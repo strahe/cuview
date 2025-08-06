@@ -1,23 +1,10 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import AppLayout from '@/components/layout/AppLayout.vue'
+import Dashboard from '@/components/Dashboard.vue'
 </script>
 
 <template>
-  <div class="app">
-    <h1>Cuview</h1>
-    <HelloWorld />
-  </div>
+  <AppLayout>
+    <Dashboard />
+  </AppLayout>
 </template>
-
-<style scoped>
-.app {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-</style>
