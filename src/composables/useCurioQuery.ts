@@ -6,7 +6,7 @@ let globalApi: CurioApiService | null = null
 
 function getApi(): CurioApiService {
   if (!globalApi) {
-    const endpoint = import.meta.env.VITE_CURIO_ENDPOINT || '/api/webrpc/v0'
+    const endpoint = import.meta.env.VITE_CURIO_ENDPOINT || 'ws://localhost:4701/api/webrpc/v0'
     globalApi = new CurioApiService({
       endpoint
     })
@@ -27,6 +27,7 @@ export interface QueryOptions {
 export interface QueryResult<T> {
   data: import('vue').Ref<T | null>
   loading: import('vue').Ref<boolean>
+  refreshing: import('vue').Ref<boolean>
   error: import('vue').Ref<Error | null>
   refresh: () => Promise<void>
   reset: () => void
@@ -53,42 +54,64 @@ function createQuery<T>(
   
   const data = ref<T | null>(null)
   const loading = ref(false)
+  const refreshing = ref(false)
   const error = ref<Error | null>(null)
   
   let pollingTimer: NodeJS.Timeout | null = null
   let retryTimer: NodeJS.Timeout | null = null
   let currentRetryCount = 0
 
-  async function execute(): Promise<void> {
-    if (loading.value) return
+  async function execute(isRefresh = false): Promise<void> {
+    // Prevent multiple concurrent requests
+    if (loading.value || refreshing.value) return
 
-    loading.value = true
-    error.value = null
+    // Set appropriate loading state - NEVER set loading=true during refresh
+    if (isRefresh) {
+      refreshing.value = true
+    } else {
+      loading.value = true
+      error.value = null
+    }
 
     try {
       const result = await api.call<T>(method, params)
-      data.value = result
+      
+      // Only update data if we got a valid result
+      // For refresh operations, preserve existing data if new data is null/undefined
+      if (isRefresh && (result === null || result === undefined)) {
+        console.warn(`Refresh returned null/undefined for ${method}, keeping existing data`)
+      } else {
+        data.value = result
+      }
+      
       currentRetryCount = 0
+      
+      // Clear error on successful request
+      if (error.value) {
+        error.value = null
+      }
     } catch (err) {
       error.value = err as Error
       
-      // Auto retry
+      // Auto retry with same refresh status
       if (retry && currentRetryCount < retryCount) {
         currentRetryCount++
         retryTimer = setTimeout(() => {
-          execute()
+          execute(isRefresh)
         }, retryDelay * Math.pow(2, currentRetryCount - 1))
       }
     } finally {
       loading.value = false
+      refreshing.value = false
     }
   }
 
-  const refresh = () => execute()
+  const refresh = () => execute(true)
 
   function reset() {
     data.value = null
     loading.value = false
+    refreshing.value = false
     error.value = null
     currentRetryCount = 0
     stopPolling()
@@ -96,12 +119,14 @@ function createQuery<T>(
   }
 
   function startPolling() {
-    if (!polling || pollingInterval <= 0) return
+    // Auto-enable polling if pollingInterval is set
+    const shouldPoll = polling || (pollingInterval > 0)
+    if (!shouldPoll) return
     
     stopPolling()
     pollingTimer = setInterval(() => {
-      if (api.isConnected && !loading.value) {
-        execute()
+      if (api.isConnected && !loading.value && !refreshing.value) {
+        execute(true) // Always use refresh mode for polling
       }
     }, pollingInterval)
   }
@@ -146,6 +171,7 @@ function createQuery<T>(
   return {
     data: data as import('vue').Ref<T | null>,
     loading,
+    refreshing,
     error,
     refresh,
     reset,
@@ -173,6 +199,27 @@ export function createCurioQuery() {
     // Generic query method
     query: <T>(method: string, params?: any[], options?: QueryOptions) =>
       createQuery<T>(method, params || [], options),
+
+    // Direct call method for imperative usage
+    call: async <T>(method: string, params?: any[]): Promise<T> => {
+      const api = getApi()
+      
+      // Wait for connection if not connected
+      if (!api.isConnected) {
+        await new Promise((resolve) => {
+          const checkConnection = () => {
+            if (api.isConnected) {
+              resolve(void 0)
+            } else {
+              setTimeout(checkConnection, 100)
+            }
+          }
+          checkConnection()
+        })
+      }
+      
+      return await api.call<T>(method, params || [])
+    },
 
     // Batch query
     batch: (calls: Array<{ method: string; params?: any[] }>, options?: QueryOptions) =>

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import AppLayout from '@/components/layout/AppLayout.vue'
-import Dashboard from '@/components/Dashboard.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 </script>
 
 <template>
   <AppLayout>
-    <Dashboard />
+    <router-view />
   </AppLayout>
 </template>
