@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import { DocumentDuplicateIcon, CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import DataTable from '@/components/ui/DataTable.vue'
 
 interface DeadlineCount {
   Total: number
@@ -75,8 +76,7 @@ const copyToClipboard = async (text: string) => {
 
 <template>
   <div class="space-y-4">
-    <div class="overflow-x-auto">
-      <table class="table table-zebra">
+    <DataTable>
         <thead>
           <tr>
             <th>Address</th>
@@ -173,22 +173,21 @@ const copyToClipboard = async (text: string) => {
             </td>
           </tr>
         </tbody>
-      </table>
-      
-      <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
-        <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-        Loading actor summary...
-      </div>
-      
-      <div v-else-if="error" class="text-center py-8 text-error">
-        <div class="text-lg mb-2">🎭 Actor Error</div>
-        <div class="text-sm">{{ error.message }}</div>
-      </div>
-      
-      <div v-else-if="!actors || actors.length === 0 && !loading" class="text-center py-8 text-base-content/60">
-        <div class="text-4xl mb-2">🎭</div>
-        <div>No actors available</div>
-      </div>
+    </DataTable>
+    
+    <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
+      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
+      Loading actor summary...
+    </div>
+    
+    <div v-else-if="error" class="text-center py-8 text-error">
+      <div class="text-lg mb-2">🎭 Actor Error</div>
+      <div class="text-sm">{{ error.message }}</div>
+    </div>
+    
+    <div v-else-if="!actors || actors.length === 0 && !loading" class="text-center py-8 text-base-content/60">
+      <div class="text-4xl mb-2">🎭</div>
+      <div>No actors available</div>
     </div>
     
     <!-- Legend -->

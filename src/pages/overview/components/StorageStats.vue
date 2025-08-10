@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
+import DataTable from '@/components/ui/DataTable.vue'
 
 interface StorageUseStat {
   Type: string
@@ -74,8 +75,7 @@ const getProgressColor = (percentage: number): string => {
 
 <template>
   <div class="space-y-4">
-    <div class="overflow-x-auto">
-      <table class="table">
+    <DataTable :zebra="false">
         <thead>
           <tr>
             <th>Type</th>
@@ -135,22 +135,21 @@ const getProgressColor = (percentage: number): string => {
             </tr>
           </template>
         </tbody>
-      </table>
-      
-      <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
-        <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-        Loading storage statistics...
-      </div>
-      
-      <div v-else-if="error" class="text-center py-8 text-error">
-        <div class="text-lg mb-2">💾 Storage Error</div>
-        <div class="text-sm">{{ error.message }}</div>
-      </div>
-      
-      <div v-else-if="data.length === 0 && !loading" class="text-center py-8 text-base-content/60">
-        <div class="text-4xl mb-2">💾</div>
-        <div>No storage data available</div>
-      </div>
+    </DataTable>
+    
+    <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
+      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
+      Loading storage statistics...
+    </div>
+    
+    <div v-else-if="error" class="text-center py-8 text-error">
+      <div class="text-lg mb-2">💾 Storage Error</div>
+      <div class="text-sm">{{ error.message }}</div>
+    </div>
+    
+    <div v-else-if="data.length === 0 && !loading" class="text-center py-8 text-base-content/60">
+      <div class="text-4xl mb-2">💾</div>
+      <div>No storage data available</div>
     </div>
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import DataTable from '@/components/ui/DataTable.vue'
 
 interface HarmonyTaskStat {
   Name: string
@@ -51,15 +52,14 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
 
 <template>
   <div class="space-y-4">
-    <div class="overflow-x-auto">
-      <table class="table table-zebra">
+    <DataTable :compact="true">
         <thead>
           <tr>
-            <th>Task</th>
-            <th>Success Rate</th>
-            <th>Successful</th>
-            <th>Failed</th>
-            <th>Status</th>
+            <th class="w-1/3">Task Name</th>
+            <th class="w-1/4">Success Rate</th>
+            <th class="w-1/6">Success</th>
+            <th class="w-1/6">Failed</th>
+            <th class="w-1/6">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -68,19 +68,23 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
             :key="task.Name"
             :class="{ 'bg-error/10': task.isError }"
           >
-            <td class="font-medium">
-              <span :class="{ 'text-error': task.isError }">
+            <td class="font-medium truncate max-w-0">
+              <span 
+                :class="{ 'text-error': task.isError }"
+                :title="task.Name"
+                class="block truncate"
+              >
                 {{ task.Name }}
               </span>
             </td>
             
             <td>
               <div class="flex items-center gap-2">
-                <div class="w-16 text-sm font-medium">
+                <div class="text-sm font-medium min-w-[3rem]">
                   {{ getSuccessRate(task).toFixed(1) }}%
                 </div>
                 <progress 
-                  class="progress progress-sm w-20"
+                  class="progress progress-sm flex-1 max-w-16"
                   :class="task.isError ? 'progress-error' : task.FalseCount === 0 ? 'progress-success' : 'progress-warning'"
                   :value="getSuccessRate(task)" 
                   max="100"
@@ -89,17 +93,19 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
             </td>
             
             <td>
-              <div class="flex items-center gap-2">
-                <CheckCircleIcon class="size-4 text-success" />
-                <span class="font-medium">{{ task.TrueCount }}</span>
-              </div>
+              <span class="badge badge-success badge-sm">
+                {{ task.TrueCount }}
+              </span>
             </td>
             
             <td>
-              <div class="flex items-center gap-2">
-                <XCircleIcon class="size-4 text-error" />
-                <span class="font-medium">{{ task.FalseCount }}</span>
-                <span class="text-sm text-base-content/70">({{ task.FailedPercentage }})</span>
+              <div class="flex items-center gap-1">
+                <span class="badge badge-error badge-sm">
+                  {{ task.FalseCount }}
+                </span>
+                <span class="text-xs text-base-content/60">
+                  {{ task.FailedPercentage }}
+                </span>
               </div>
             </td>
             
@@ -115,22 +121,21 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
             </td>
           </tr>
         </tbody>
-      </table>
-      
-      <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
-        <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-        Loading task statistics...
-      </div>
-      
-      <div v-else-if="error" class="text-center py-8 text-error">
-        <div class="text-lg mb-2">📊 Task Stats Error</div>
-        <div class="text-sm">{{ error.message }}</div>
-      </div>
-      
-      <div v-else-if="processedData.length === 0 && !loading" class="text-center py-8 text-base-content/60">
-        <div class="text-4xl mb-2">📊</div>
-        <div>No task statistics available</div>
-      </div>
+    </DataTable>
+    
+    <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
+      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
+      Loading task statistics...
+    </div>
+    
+    <div v-else-if="error" class="text-center py-8 text-error">
+      <div class="text-lg mb-2">📊 Task Stats Error</div>
+      <div class="text-sm">{{ error.message }}</div>
+    </div>
+    
+    <div v-else-if="processedData.length === 0 && !loading" class="text-center py-8 text-base-content/60">
+      <div class="text-4xl mb-2">📊</div>
+      <div>No task statistics available</div>
     </div>
 
     <div class="stats shadow">

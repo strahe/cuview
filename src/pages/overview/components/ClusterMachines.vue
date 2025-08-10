@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import { useCurioQuery } from '@/composables/useCurioQuery'
 import { PauseIcon, PlayIcon, ArrowPathIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import DataTable from '@/components/ui/DataTable.vue'
 
 interface ClusterMachine {
   ID: number
@@ -97,8 +98,7 @@ const getStatusBadge = (item: ClusterMachine) => {
       <div class="min-h-[24px]"></div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="table table-zebra table-fixed">
+    <DataTable :fixed="true">
         <thead>
           <tr>
             <th class="w-32">Name</th>
@@ -205,26 +205,25 @@ const getStatusBadge = (item: ClusterMachine) => {
             </td>
           </tr>
         </tbody>
-      </table>
-      
-      <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
-        <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-        Loading cluster machines...
-      </div>
-      
-      <div v-else-if="error" class="text-center py-8 text-error">
-        <div class="text-lg mb-2">⚠️ Connection Error</div>
-        <div class="text-sm">{{ error.message }}</div>
-        <button @click="refresh" class="btn btn-sm btn-outline btn-error mt-3">
-          <ArrowPathIcon class="size-4" />
-          Retry
-        </button>
-      </div>
-      
-      <div v-else-if="!machines || machines.length === 0 && !loading" class="text-center py-8 text-base-content/60">
-        <div class="text-4xl mb-2">🖥️</div>
-        <div>No cluster machines available</div>
-      </div>
+    </DataTable>
+    
+    <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
+      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
+      Loading cluster machines...
+    </div>
+    
+    <div v-else-if="error" class="text-center py-8 text-error">
+      <div class="text-lg mb-2">⚠️ Connection Error</div>
+      <div class="text-sm">{{ error.message }}</div>
+      <button @click="refresh" class="btn btn-sm btn-outline btn-error mt-3">
+        <ArrowPathIcon class="size-4" />
+        Retry
+      </button>
+    </div>
+    
+    <div v-else-if="!machines || machines.length === 0 && !loading" class="text-center py-8 text-base-content/60">
+      <div class="text-4xl mb-2">🖥️</div>
+      <div>No cluster machines available</div>
     </div>
   </div>
 </template>
