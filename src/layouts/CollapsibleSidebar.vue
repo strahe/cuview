@@ -46,7 +46,7 @@ const toggleCollapse = () => {
 
 <template>
   <aside :class="sidebarClasses">
-    <div class="p-4 border-b border-base-300">
+    <div class="p-4 border-b border-base-300 h-20 flex flex-col justify-center">
       <div v-if="!isCollapsed" class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="size-10 rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-content grid place-items-center font-bold text-lg">
@@ -60,31 +60,31 @@ const toggleCollapse = () => {
         
         <button 
           @click="toggleCollapse"
-          class="btn btn-ghost btn-sm shrink-0"
+          class="btn btn-ghost btn-sm shrink-0 size-8 p-0"
         >
           <ChevronLeftIcon class="size-5" />
         </button>
       </div>
       
-      <div v-else class="flex flex-col items-center gap-2">
+      <div v-else class="flex flex-col items-center justify-center gap-2">
         <div class="size-8 rounded-lg bg-gradient-to-br from-primary to-secondary text-primary-content grid place-items-center font-bold text-sm">
           C
         </div>
         
         <button 
           @click="toggleCollapse"
-          class="btn btn-ghost btn-xs p-1"
+          class="btn btn-ghost btn-sm size-8 p-0"
         >
-          <ChevronRightIcon class="size-4" />
+          <ChevronRightIcon class="size-5" />
         </button>
       </div>
     </div>
 
     <nav class="flex-1" :class="isCollapsed ? 'p-2' : 'p-4'">
-      <div :class="isCollapsed ? 'space-y-2' : 'space-y-1'">
+      <div class="space-y-1">
         <!-- Reserve consistent space for header -->
-        <div v-if="!isCollapsed" class="h-6 mb-3 px-3 flex items-center">
-          <div class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">
+        <div class="h-6 mb-3 px-3 flex items-center">
+          <div v-if="!isCollapsed" class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">
             Navigation
           </div>
         </div>
@@ -93,14 +93,14 @@ const toggleCollapse = () => {
           <div class="relative">
             <a 
               :href="item.href" 
-              class="flex items-center rounded-lg text-sm font-medium transition-all duration-200 hover:bg-base-200 group relative"
+              class="flex items-center rounded-lg text-sm font-medium transition-all duration-200 hover:bg-base-200 group relative min-h-[40px]"
               :class="[
                 item.active ? 'bg-primary text-primary-content hover:bg-primary/90' : 'text-base-content/80 hover:text-base-content',
-                isCollapsed ? 'justify-center p-2 size-10' : 'px-3 py-2.5 gap-3 min-h-[40px]'
+                isCollapsed ? 'justify-center p-2 w-10' : 'px-3 py-2.5 gap-3'
               ]"
               :title="isCollapsed ? item.label : ''"
             >
-              <component :is="item.icon" :class="isCollapsed ? 'size-4' : 'size-5'" class="shrink-0" />
+              <component :is="item.icon" class="size-5 shrink-0" />
               
               <!-- Text container only when expanded -->
               <div v-if="!isCollapsed" class="flex-1 min-w-0 flex items-center">
@@ -123,10 +123,10 @@ const toggleCollapse = () => {
       </div>
     </nav>
 
-    <div :class="isCollapsed ? 'p-2' : 'p-4'" class="border-t border-base-300">
-      <div :class="isCollapsed ? 'flex justify-center' : 'flex items-center gap-3'">
+    <div :class="isCollapsed ? 'p-2' : 'p-4'" class="border-t border-base-300 h-16 flex items-center">
+      <div :class="isCollapsed ? 'flex justify-center w-full' : 'flex items-center gap-3 w-full'">
         <div class="avatar">
-          <div :class="isCollapsed ? 'size-6' : 'size-8'" class="rounded-full bg-gradient-to-br from-accent to-secondary">
+          <div :class="isCollapsed ? 'size-8' : 'size-8'" class="rounded-full bg-gradient-to-br from-accent to-secondary">
             <div class="grid place-items-center size-full text-xs font-semibold text-white">
               U
             </div>
