@@ -51,7 +51,7 @@ const cardClasses = computed(() => [
 ])
 
 const headerClasses = computed(() => [
-  'card-header',
+  'card-header px-4 pt-4 pb-3',
   {
     'pb-2': props.variant === 'compact',
     'border-b border-base-300': props.collapsible
@@ -60,7 +60,7 @@ const headerClasses = computed(() => [
 ])
 
 const bodyClasses = computed(() => [
-  'card-body',
+  'card-body px-4 pt-0 pb-4',
   {
     'pt-0': props.variant === 'compact',
     'hidden': props.collapsible && props.collapsed

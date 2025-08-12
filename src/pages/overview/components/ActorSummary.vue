@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
-import { DocumentDuplicateIcon, CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
+import { DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/ui/DataTable.vue'
 
 interface DeadlineCount {
@@ -51,12 +51,6 @@ const getDeadlineClass = (deadline: Deadline): string => {
   return classes.join(' ')
 }
 
-const getDeadlineIcon = (deadline: Deadline) => {
-  if (deadline.Faulty) return { icon: XCircleIcon, class: 'text-error' }
-  if (deadline.PartFaulty) return { icon: ExclamationTriangleIcon, class: 'text-warning' }
-  if (deadline.Proven) return { icon: CheckCircleIcon, class: 'text-success' }
-  return null
-}
 
 const toggleTooltip = (actorAddress: string, deadlineIndex: number) => {
   const key = `${actorAddress}-${deadlineIndex}`
@@ -126,15 +120,9 @@ const copyToClipboard = async (text: string) => {
                 >
                   <div 
                     :class="getDeadlineClass(deadline)"
-                    class="w-3 h-3 cursor-pointer border border-base-300 hover:scale-110 transition-transform"
+                    class="w-4 h-4 cursor-pointer hover:scale-110 transition-transform rounded-sm"
                     @click="toggleTooltip(entry.Address, index)"
-                  >
-                    <component 
-                      v-if="getDeadlineIcon(deadline)" 
-                      :is="getDeadlineIcon(deadline)!.icon" 
-                      :class="['size-2', getDeadlineIcon(deadline)!.class]" 
-                    />
-                  </div>
+                  ></div>
                   
                   <!-- Tooltip -->
                   <div 
@@ -193,19 +181,19 @@ const copyToClipboard = async (text: string) => {
     <!-- Legend -->
     <div class="flex flex-wrap gap-4 text-sm">
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-success border border-base-300"></div>
+        <div class="w-4 h-4 bg-success rounded-sm"></div>
         <span>Proven</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-warning border border-base-300"></div>
+        <div class="w-4 h-4 bg-warning rounded-sm"></div>
         <span>Partially Faulty</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-error border border-base-300"></div>
+        <div class="w-4 h-4 bg-error rounded-sm"></div>
         <span>Faulty</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-info border border-base-300" style="border-bottom: 4px solid oklch(var(--p));"></div>
+        <div class="w-4 h-4 bg-neutral border border-neutral-content rounded-sm" style="border-bottom: 3px solid oklch(var(--p));"></div>
         <span>Current</span>
       </div>
     </div>
@@ -215,22 +203,27 @@ const copyToClipboard = async (text: string) => {
 <style scoped>
 .deadline-entry {
   position: relative;
+  background-color: oklch(var(--n));
+  border: 1px solid oklch(var(--nc));
 }
 
 .deadline-current {
-  border-bottom: 4px solid oklch(var(--p));
+  border-bottom: 3px solid oklch(var(--p));
 }
 
 .deadline-proven {
-  background-color: oklch(var(--su));
+  background-color: oklch(var(--su)) !important;
+  border: 1px solid oklch(var(--su)) !important;
 }
 
 .deadline-partial-fault {
-  background-color: oklch(var(--wa));
+  background-color: oklch(var(--wa)) !important;
+  border: 1px solid oklch(var(--wa)) !important;
 }
 
 .deadline-faulty {
-  background-color: oklch(var(--er));
+  background-color: oklch(var(--er)) !important;
+  border: 1px solid oklch(var(--er)) !important;
 }
 
 .grid-cols-16 {

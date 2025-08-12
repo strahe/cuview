@@ -24,3 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 *.local.json
+*.local.md

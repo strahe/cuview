@@ -2,16 +2,16 @@
 import type { Component } from 'vue'
 
 interface KPICardProps {
-  title: string
   value: string | number
-  change?: string
+  label: string
+  subtitle?: string
   trend?: 'up' | 'down' | 'neutral'
   icon?: Component
   iconColor?: 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error'
 }
 
 withDefaults(defineProps<KPICardProps>(), {
-  change: '',
+  subtitle: '',
   trend: 'neutral',
   iconColor: 'primary'
 })
@@ -34,32 +34,32 @@ const iconBgColors = {
 </script>
 
 <template>
-  <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-1">
-    <div class="card-body p-4">
-      <div class="flex items-center justify-between">
-        <div class="text-sm font-medium text-base-content/70">
-          {{ title }}
+  <div class="bg-base-100 border border-base-300 rounded-xl p-5 hover:shadow-lg transition-all duration-200 hover:border-primary/20">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex-1">
+        <div class="text-sm font-medium text-base-content/60 mb-1">
+          {{ label }}
         </div>
-        <div 
-          v-if="icon" 
-          class="rounded-lg p-2"
-          :class="iconBgColors[iconColor]"
-        >
-          <component :is="icon" class="size-4" />
+        <div class="text-3xl font-bold text-base-content tracking-tight">
+          {{ value }}
         </div>
-      </div>
-      
-      <div class="text-3xl font-bold tracking-tight text-base-content">
-        {{ value }}
       </div>
       
       <div 
-        v-if="change" 
-        class="flex items-center gap-2 text-xs"
-        :class="trendColors[trend]"
+        v-if="icon" 
+        class="rounded-lg p-2.5 ml-3"
+        :class="iconBgColors[iconColor]"
       >
-        <span>{{ change }}</span>
+        <component :is="icon" class="size-5" />
       </div>
+    </div>
+    
+    <div 
+      v-if="subtitle" 
+      class="text-xs font-medium"
+      :class="trendColors[trend]"
+    >
+      {{ subtitle }}
     </div>
   </div>
 </template>

@@ -2,10 +2,14 @@
 import { ref, computed } from 'vue'
 import { 
   HomeIcon,
-  BoltIcon,
-  ChartBarIcon,
-  UsersIcon,
+  CpuChipIcon,
   CircleStackIcon,
+  BuildingStorefrontIcon,
+  UserIcon,
+  WrenchScrewdriverIcon,
+  ChartBarIcon,
+  WalletIcon,
+  GlobeAltIcon,
   CogIcon,
   ChevronLeftIcon,
   ChevronRightIcon
@@ -19,12 +23,62 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Overview', icon: HomeIcon, active: true, href: '#' },
-  { label: 'Activity', icon: BoltIcon, href: '#' },
-  { label: 'Analytics', icon: ChartBarIcon, href: '#' },
-  { label: 'Users', icon: UsersIcon, href: '#' },
-  { label: 'Database', icon: CircleStackIcon, href: '#' },
-  { label: 'Settings', icon: CogIcon, href: '#' },
+  { 
+    label: 'Dashboard', 
+    icon: HomeIcon, 
+    active: true, 
+    href: '/'
+  },
+  { 
+    label: 'Tasks', 
+    icon: WrenchScrewdriverIcon,
+    href: '/tasks'
+  },
+  { 
+    label: 'Machines', 
+    icon: CpuChipIcon,
+    href: '/machines'
+  },
+  { 
+    label: 'Sectors', 
+    icon: CircleStackIcon,
+    href: '/sectors'
+  },
+  { 
+    label: 'Storage', 
+    icon: ChartBarIcon,
+    href: '/storage'
+  },
+  { 
+    label: 'Pipeline', 
+    icon: ChartBarIcon,
+    href: '/pipeline'
+  },
+  { 
+    label: 'Market', 
+    icon: BuildingStorefrontIcon,
+    href: '/market'
+  },
+  { 
+    label: 'Actor', 
+    icon: UserIcon,
+    href: '/actor'
+  },
+  { 
+    label: 'Wallet', 
+    icon: WalletIcon,
+    href: '/wallet'
+  },
+  { 
+    label: 'IPNI', 
+    icon: GlobeAltIcon,
+    href: '/ipni'
+  },
+  { 
+    label: 'Config', 
+    icon: CogIcon,
+    href: '/config'
+  }
 ]
 
 const emit = defineEmits<{
@@ -163,6 +217,7 @@ const toggleCollapse = () => {
   opacity: 0;
   transform: translateX(-10px);
 }
+
 
 .tooltip-enter-active, .tooltip-leave-active {
   transition: opacity 0.2s ease;

@@ -53,74 +53,58 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
 <template>
   <div class="space-y-4">
     <DataTable :compact="true">
-        <thead>
-          <tr>
-            <th class="w-1/3">Task Name</th>
-            <th class="w-1/4">Success Rate</th>
-            <th class="w-1/6">Success</th>
-            <th class="w-1/6">Failed</th>
-            <th class="w-1/6">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
-            v-for="task in processedData" 
-            :key="task.Name"
-            :class="{ 'bg-error/10': task.isError }"
-          >
-            <td class="font-medium truncate max-w-0">
-              <span 
-                :class="{ 'text-error': task.isError }"
-                :title="task.Name"
-                class="block truncate"
-              >
-                {{ task.Name }}
+      <thead>
+        <tr>
+          <th class="w-2/5">Task Name</th>
+          <th class="w-2/5">Success Rate</th>
+          <th class="w-1/5 text-center">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr 
+          v-for="task in processedData" 
+          :key="task.Name"
+          :class="{ 'bg-error/10': task.isError }"
+        >
+          <td class="font-medium truncate">
+            <span 
+              :class="{ 'text-error': task.isError }"
+              :title="task.Name"
+              class="block truncate"
+            >
+              {{ task.Name }}
+            </span>
+          </td>
+          
+          <td>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium min-w-[3rem]">
+                {{ getSuccessRate(task).toFixed(1) }}%
               </span>
-            </td>
-            
-            <td>
-              <div class="flex items-center gap-2">
-                <div class="text-sm font-medium min-w-[3rem]">
-                  {{ getSuccessRate(task).toFixed(1) }}%
-                </div>
-                <progress 
-                  class="progress progress-sm flex-1 max-w-16"
-                  :class="task.isError ? 'progress-error' : task.FalseCount === 0 ? 'progress-success' : 'progress-warning'"
-                  :value="getSuccessRate(task)" 
-                  max="100"
-                ></progress>
-              </div>
-            </td>
-            
-            <td>
-              <span class="badge badge-success badge-sm">
-                {{ task.TrueCount }}
+              <progress 
+                class="progress progress-sm flex-1"
+                :class="task.isError ? 'progress-error' : task.FalseCount === 0 ? 'progress-success' : 'progress-warning'"
+                :value="getSuccessRate(task)" 
+                max="100"
+              ></progress>
+              <span class="text-xs text-base-content/50 min-w-[4rem]">
+                {{ task.TrueCount }}/{{ task.TotalCount }}
               </span>
-            </td>
-            
-            <td>
-              <div class="flex items-center gap-1">
-                <span class="badge badge-error badge-sm">
-                  {{ task.FalseCount }}
-                </span>
-                <span class="text-xs text-base-content/60">
-                  {{ task.FailedPercentage }}
-                </span>
-              </div>
-            </td>
-            
-            <td>
-              <div :class="['badge', getStatusBadge(task).class]">
-                <component 
-                  v-if="getStatusBadge(task).icon" 
-                  :is="getStatusBadge(task).icon" 
-                  class="size-3 mr-1" 
-                />
-                {{ task.isError ? 'Error' : task.FalseCount === 0 ? 'Healthy' : 'Warning' }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
+            </div>
+          </td>
+          
+          <td class="text-center">
+            <div class="badge badge-sm" :class="getStatusBadge(task).class">
+              <component 
+                v-if="getStatusBadge(task).icon" 
+                :is="getStatusBadge(task).icon" 
+                class="size-3 mr-1" 
+              />
+              {{ task.isError ? 'Error' : task.FalseCount === 0 ? 'Healthy' : 'Warning' }}
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </DataTable>
     
     <div v-if="isInitialLoading" class="text-center py-8 text-base-content/60">
@@ -138,25 +122,5 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
       <div>No task statistics available</div>
     </div>
 
-    <div class="stats shadow">
-      <div class="stat">
-        <div class="stat-title">Total Tasks</div>
-        <div class="stat-value text-primary">{{ processedData.length }}</div>
-      </div>
-      
-      <div class="stat">
-        <div class="stat-title">Healthy Tasks</div>
-        <div class="stat-value text-success">
-          {{ processedData.filter(t => t.FalseCount === 0).length }}
-        </div>
-      </div>
-      
-      <div class="stat">
-        <div class="stat-title">Failed Tasks</div>
-        <div class="stat-value text-error">
-          {{ processedData.filter(t => t.isError).length }}
-        </div>
-      </div>
-    </div>
   </div>
 </template>
