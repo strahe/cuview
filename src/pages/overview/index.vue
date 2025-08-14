@@ -65,11 +65,11 @@ import {
   LinkIcon
 } from '@heroicons/vue/24/outline'
 
-import ActorSummary from './overview/components/ActorSummary.vue'
-import TaskCounts from './overview/components/TaskCounts.vue'
-import StorageStats from './overview/components/StorageStats.vue'
-import ChainConnectivity from './overview/components/ChainConnectivity.vue'
-import ClusterMachines from './overview/components/ClusterMachines.vue'
-import ClusterStats from './overview/components/ClusterStats.vue'
+import ActorSummary from './components/ActorSummary.vue'
+import TaskCounts from './components/TaskCounts.vue'
+import StorageStats from './components/StorageStats.vue'
+import ChainConnectivity from './components/ChainConnectivity.vue'
+import ClusterMachines from './components/ClusterMachines.vue'
+import ClusterStats from './components/ClusterStats.vue'
 import SectionCard from '@/components/ui/SectionCard.vue'
 </script>
