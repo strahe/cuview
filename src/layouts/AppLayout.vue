@@ -10,13 +10,15 @@ import {
   SignalIcon
 } from '@heroicons/vue/24/outline'
 
+import { useLayoutStore } from '@/stores/layout'
+
 const mobileMenuOpen = ref(false)
-const sidebarCollapsed = ref(false)
+const layoutStore = useLayoutStore()
 const searchQuery = ref('')
 const searchFocused = ref(false)
 
 const mainContentMargin = computed(() => 
-  sidebarCollapsed.value ? '4rem' : '16rem'
+  layoutStore.sidebarCollapsed ? '4rem' : '16rem'
 )
 
 const handleSearch = (query: string) => {
@@ -40,7 +42,7 @@ const handleSettings = () => {
   <div class="flex min-h-screen bg-base-200/30">
     <!-- Desktop Collapsible Sidebar -->
     <div class="hidden lg:block fixed left-0 top-0 z-30">
-      <CollapsibleSidebar :isCollapsed="sidebarCollapsed" />
+      <CollapsibleSidebar :isCollapsed="layoutStore.sidebarCollapsed" />
     </div>
 
     <!-- Mobile Layout -->
@@ -94,11 +96,11 @@ const handleSettings = () => {
           <!-- Left section -->
           <div class="flex items-center gap-3">
             <button 
-              @click="sidebarCollapsed = !sidebarCollapsed"
+              @click="layoutStore.toggleSidebar"
               class="btn btn-ghost btn-sm size-9 p-0"
-              :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+              :title="layoutStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
             >
-              <Bars3Icon v-if="sidebarCollapsed" class="size-5" />
+              <Bars3Icon v-if="layoutStore.sidebarCollapsed" class="size-5" />
               <ChevronLeftIcon v-else class="size-5" />
             </button>
             
