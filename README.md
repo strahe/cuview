@@ -2,6 +2,8 @@
 
 A modern, responsive UI theme for [Curio](https://github.com/filecoin-project/curio).
 
+Unlike the original [Curio Dashboard](https://github.com/web3tea/curio-dashboard) with its GraphQL backend, Cuview is a streamlined frontend-only solution that communicates directly with Curio via RPC, delivering a faster and more focused user experience.
+
 ## 🚧 Development Status
 
 **This project is currently under active development and not yet ready for production use.**
