@@ -2,13 +2,7 @@
 import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import DataTable from '@/components/ui/DataTable.vue'
-
-interface SyncerStateItem {
-  Address: string
-  Reachable: boolean
-  SyncState: string
-  Version: string
-}
+import type { SyncerStateItem } from '@/types/sync'
 
 const { data: syncerData, loading, error, hasData } = useCachedQuery<SyncerStateItem[]>('SyncerState', [], {
   pollingInterval: 30000

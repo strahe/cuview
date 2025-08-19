@@ -2,22 +2,7 @@
 import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import DataTable from '@/components/ui/DataTable.vue'
-
-interface StorageUseStat {
-  Type: string
-  Capacity: number
-  Available: number
-  UseStr?: string
-  CapStr?: string
-  subEntries?: StorageBreakdown[]
-}
-
-interface StorageBreakdown {
-  type: string
-  capacity: number
-  available: number
-  avail_str: string
-}
+import type { StorageUseStat, StorageBreakdown } from '@/types/storage'
 
 const { data: summary, loading: summaryLoading, error: summaryError, hasData: summaryHasData } = 
   useCachedQuery<StorageUseStat[]>('StorageUseStats', [], {

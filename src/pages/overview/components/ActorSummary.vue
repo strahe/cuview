@@ -3,34 +3,7 @@ import { ref, computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import { DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/ui/DataTable.vue'
-
-interface DeadlineCount {
-  Total: number
-  Active: number
-  Live: number
-  Fault: number
-  Recovering: number
-}
-
-interface Deadline {
-  Current: boolean
-  Proven: boolean
-  PartFaulty: boolean
-  Faulty: boolean
-  Count?: DeadlineCount
-}
-
-interface ActorSummaryData {
-  Address: string
-  CLayers: string[]
-  QualityAdjustedPower: string
-  Deadlines: Deadline[]
-  ActorBalance: string
-  ActorAvailable: string
-  Win1: number
-  Win7: number
-  Win30: number
-}
+import type { ActorSummaryData, Deadline } from '@/types/actor'
 
 const openTooltipIndex = ref<string>('')
 

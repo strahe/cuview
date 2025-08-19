@@ -4,23 +4,7 @@ import { useCachedQuery } from '@/composables/useCachedQuery'
 import { useCurioQuery } from '@/composables/useCurioQuery'
 import { PauseIcon, PlayIcon, ArrowPathIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/ui/DataTable.vue'
-
-interface ClusterMachine {
-  ID: number
-  Name: string
-  Address: string
-  Cpu: number
-  RamHumanized: string
-  Gpu: number
-  SinceContact: string
-  Uptime: string
-  Unschedulable: boolean
-  Restarting: boolean
-  RunningTasks: number
-  RestartRequest: string
-  Tasks: string
-  Layers: string
-}
+import type { ClusterMachine } from '@/types/cluster'
 
 
 const { call } = useCurioQuery()

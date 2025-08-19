@@ -1,13 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useCurioQuery } from '@/composables/useCurioQuery'
-
-interface CachedData<T = any> {
-  data: T | null
-  lastUpdated: number
-  loading: boolean
-  error: Error | null
-}
+import type { CachedData } from '@/types/cache'
 
 export const useCurioDataStore = defineStore('curioData', () => {
   const cache = ref<Map<string, CachedData>>(new Map())

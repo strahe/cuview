@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import KPICard from '@/components/ui/KPICard.vue'
+import type { ClusterMachine, HarmonyTaskStat } from '@/types/cluster'
+import type { StorageUseStat } from '@/types/storage'
+import type { ActorSummaryData } from '@/types/actor'
 import { 
   CpuChipIcon, 
   ServerIcon, 
@@ -11,49 +14,6 @@ import {
   CircleStackIcon,
   WalletIcon
 } from '@heroicons/vue/24/outline'
-
-interface ClusterMachine {
-  ID: number
-  Name: string
-  Address: string
-  Cpu: number
-  RamHumanized: string
-  Gpu: number
-  SinceContact: string
-  Uptime: string
-  Unschedulable: boolean
-  Restarting: boolean
-  RunningTasks: number
-  RestartRequest: string
-  Tasks: string
-  Layers: string
-}
-
-interface HarmonyTaskStat {
-  Name: string
-  TrueCount: number
-  FalseCount: number
-  TotalCount: number
-}
-
-interface StorageUseStat {
-  Type: string
-  Capacity: number
-  Available: number
-  UseStr?: string
-  CapStr?: string
-}
-
-interface ActorSummaryData {
-  Address: string
-  CLayers: string[]
-  QualityAdjustedPower: string
-  ActorBalance: string
-  ActorAvailable: string
-  Win1: number
-  Win7: number
-  Win30: number
-}
 
 const { data: machines, loading: machinesLoading, error: machinesError } = useCachedQuery<ClusterMachine[]>('ClusterMachines', [], {
   pollingInterval: 30000

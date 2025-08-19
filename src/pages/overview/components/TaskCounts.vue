@@ -3,18 +3,7 @@ import { computed } from 'vue'
 import { useCachedQuery } from '@/composables/useCachedQuery'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/ui/DataTable.vue'
-
-interface HarmonyTaskStat {
-  Name: string
-  TrueCount: number
-  FalseCount: number
-  TotalCount: number
-}
-
-interface TaskStatWithPercentage extends HarmonyTaskStat {
-  FailedPercentage: string
-  isError: boolean
-}
+import type { HarmonyTaskStat, TaskStatWithPercentage } from '@/types/cluster'
 
 const { data: rawData, loading, error, hasData } = useCachedQuery<HarmonyTaskStat[]>('HarmonyTaskStats', [], {
   pollingInterval: 30000
