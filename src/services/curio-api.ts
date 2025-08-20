@@ -33,7 +33,7 @@ export class CurioApiService {
     this.client.on(event, callback);
   }
 
-  async call<T = any>(method: string, params: any[] = []): Promise<T> {
-    return await this.client.call<T>(method, params);
+  async call<T = unknown>(method: string, params: unknown[] = []): Promise<T> {
+    return this.client.call<T>(method, params);
   }
 }

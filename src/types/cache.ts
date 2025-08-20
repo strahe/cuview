@@ -1,6 +1,6 @@
-export interface CachedData<T = any> {
-  data: T | null
-  lastUpdated: number
-  loading: boolean
-  error: Error | null
+export interface CachedData<T = unknown> {
+  data: T | null;
+  lastUpdated: number;
+  loading: boolean;
+  error: Error | null;
 }

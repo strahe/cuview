@@ -1,11 +1,11 @@
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
   method: string;
-  params: any[];
+  params: unknown[];
   id: number;
 }
 
-export interface JsonRpcResponse<T = any> {
+export interface JsonRpcResponse<T = unknown> {
   jsonrpc: "2.0";
   result?: T;
   error?: JsonRpcError;
@@ -15,7 +15,7 @@ export interface JsonRpcResponse<T = any> {
 export interface JsonRpcError {
   code: number;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface JsonRpcClientOptions {
@@ -39,8 +39,8 @@ export class JsonRpcClient {
   private pendingRequests = new Map<
     number,
     {
-      resolve: (value: any) => void;
-      reject: (error: any) => void;
+      resolve: (value: unknown) => void;
+      reject: (error: Error) => void;
       timeout: NodeJS.Timeout;
     }
   >();
@@ -82,9 +82,11 @@ export class JsonRpcClient {
     return new Promise((resolve, reject) => {
       try {
         // If endpoint is a complete URL, use it directly; otherwise, construct it
-        const wsUrl = this.config.endpoint.startsWith('ws://') || this.config.endpoint.startsWith('wss://') 
-          ? this.config.endpoint
-          : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}${this.config.endpoint}`;
+        const wsUrl =
+          this.config.endpoint.startsWith("ws://") ||
+          this.config.endpoint.startsWith("wss://")
+            ? this.config.endpoint
+            : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}${this.config.endpoint}`;
 
         this.ws = new WebSocket(wsUrl);
 
@@ -128,7 +130,7 @@ export class JsonRpcClient {
     });
   }
 
-  async call<T = any>(method: string, params: any[] = []): Promise<T> {
+  async call<T = unknown>(method: string, params: unknown[] = []): Promise<T> {
     if (!this.isConnected) {
       throw new Error("WebSocket is not connected");
     }
@@ -153,11 +155,11 @@ export class JsonRpcClient {
       }, this.config.timeout);
 
       this.pendingRequests.set(id, {
-        resolve: (result: T) => {
+        resolve: (result: unknown) => {
           clearTimeout(timeoutHandle);
-          resolve(result);
+          resolve(result as T);
         },
-        reject: (error: any) => {
+        reject: (error: Error) => {
           clearTimeout(timeoutHandle);
           reject(error);
         },
@@ -174,7 +176,7 @@ export class JsonRpcClient {
     });
   }
 
-  notify(method: string, params: any[] = []): void {
+  notify(method: string, params: unknown[] = []): void {
     if (!this.isConnected) {
       console.warn("Cannot send notification: WebSocket is not connected");
       return;
@@ -239,9 +241,12 @@ export class JsonRpcClient {
         this.pendingRequests.delete(response.id);
 
         if (response.error) {
-          const error = new Error(response.error.message);
-          (error as any).code = response.error.code;
-          (error as any).data = response.error.data;
+          const error = new Error(response.error.message) as Error & {
+            code: number;
+            data?: unknown;
+          };
+          error.code = response.error.code;
+          error.data = response.error.data;
           pending.reject(error);
         } else {
           pending.resolve(response.result);

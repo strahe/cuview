@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: all;
-  darkTheme: dark;
+  darktheme: dark;
   base: true;
   styled: true;
   utils: true;

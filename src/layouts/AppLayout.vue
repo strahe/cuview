@@ -1,70 +1,79 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import CollapsibleSidebar from './CollapsibleSidebar.vue'
-import { 
+import { ref, computed } from "vue";
+import CollapsibleSidebar from "./CollapsibleSidebar.vue";
+import {
   Bars3Icon,
   ChevronLeftIcon,
   MagnifyingGlassIcon,
   BellIcon,
   Cog6ToothIcon,
-  SignalIcon
-} from '@heroicons/vue/24/outline'
+  SignalIcon,
+} from "@heroicons/vue/24/outline";
 
-import { useLayoutStore } from '@/stores/layout'
+import { useLayoutStore } from "@/stores/layout";
 
-const mobileMenuOpen = ref(false)
-const layoutStore = useLayoutStore()
-const searchQuery = ref('')
-const searchFocused = ref(false)
+const mobileMenuOpen = ref(false);
+const layoutStore = useLayoutStore();
+const searchQuery = ref("");
+const searchFocused = ref(false);
 
-const mainContentMargin = computed(() => 
-  layoutStore.sidebarCollapsed ? '4rem' : '16rem'
-)
+const mainContentMargin = computed(() =>
+  layoutStore.sidebarCollapsed ? "4rem" : "16rem",
+);
 
 const handleSearch = (query: string) => {
   // TODO: Implement global search functionality
-  console.log('Search query:', query)
-}
+  console.log("Search query:", query);
+};
 
 const handleNotifications = () => {
   // TODO: Open notifications panel
-  console.log('Open notifications')
-}
+  console.log("Open notifications");
+};
 
 const handleSettings = () => {
   // TODO: Navigate to settings page
-  console.log('Open settings')
-}
-
+  console.log("Open settings");
+};
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-base-200/30">
+  <div class="bg-base-200/30 flex min-h-screen">
     <!-- Desktop Collapsible Sidebar -->
-    <div class="hidden lg:block fixed left-0 top-0 z-30">
-      <CollapsibleSidebar :isCollapsed="layoutStore.sidebarCollapsed" />
+    <div class="fixed top-0 left-0 z-30 hidden lg:block">
+      <CollapsibleSidebar :is-collapsed="layoutStore.sidebarCollapsed" />
     </div>
 
     <!-- Mobile Layout -->
-    <div class="lg:hidden w-full">
+    <div class="w-full lg:hidden">
       <div class="drawer">
-        <input id="mobile-drawer-toggle" type="checkbox" class="drawer-toggle" v-model="mobileMenuOpen" />
-        
+        <input
+          id="mobile-drawer-toggle"
+          v-model="mobileMenuOpen"
+          type="checkbox"
+          class="drawer-toggle"
+        />
+
         <!-- Drawer content -->
         <div class="drawer-content flex flex-col">
           <!-- Mobile Top Navigation -->
           <div class="navbar bg-base-100 shadow-sm">
             <div class="navbar-start">
-              <label for="mobile-drawer-toggle" class="btn btn-square btn-ghost">
+              <label
+                for="mobile-drawer-toggle"
+                class="btn btn-square btn-ghost"
+              >
                 <Bars3Icon class="size-6" />
               </label>
             </div>
             <div class="navbar-center">
               <div class="flex items-center gap-2">
-                <div class="size-8 rounded-lg bg-primary text-primary-content grid place-items-center font-semibold">
+                <div
+                  class="bg-primary text-primary-content grid size-8 place-items-center rounded-lg font-semibold"
+                >
                   C
                 </div>
-                <span class="font-semibold text-lg">Cuview</span>
+                <span class="text-lg font-semibold">Cuview</span>
               </div>
             </div>
             <div class="navbar-end">
@@ -80,7 +89,11 @@ const handleSettings = () => {
 
         <!-- Mobile Drawer sidebar -->
         <div class="drawer-side">
-          <label for="mobile-drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+          <label
+            for="mobile-drawer-toggle"
+            aria-label="close sidebar"
+            class="drawer-overlay"
+          ></label>
           <div class="w-64">
             <CollapsibleSidebar />
           </div>
@@ -89,44 +102,57 @@ const handleSettings = () => {
     </div>
 
     <!-- Desktop Main content -->
-    <main class="flex-1 lg:block hidden overflow-y-auto h-screen transition-all duration-300" :style="{ marginLeft: mainContentMargin }">
+    <main
+      class="hidden h-screen flex-1 overflow-y-auto transition-all duration-300 lg:block"
+      :style="{ marginLeft: mainContentMargin }"
+    >
       <!-- Enhanced top bar -->
-      <div class="sticky top-0 z-20 bg-base-100/90 backdrop-blur-md border-b border-base-300/50">
+      <div
+        class="bg-base-100/90 border-base-300/50 sticky top-0 z-20 border-b backdrop-blur-md"
+      >
         <div class="flex items-center justify-between px-6 py-3">
           <!-- Left section -->
           <div class="flex items-center gap-3">
-            <button 
-              @click="layoutStore.toggleSidebar"
+            <button
               class="btn btn-ghost btn-sm size-9 p-0"
-              :title="layoutStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+              :title="
+                layoutStore.sidebarCollapsed
+                  ? 'Expand sidebar'
+                  : 'Collapse sidebar'
+              "
+              @click="layoutStore.toggleSidebar"
             >
               <Bars3Icon v-if="layoutStore.sidebarCollapsed" class="size-5" />
               <ChevronLeftIcon v-else class="size-5" />
             </button>
-            
+
             <!-- Connection status indicator -->
-            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 text-success">
-              <div class="size-2 rounded-full bg-success animate-pulse"></div>
+            <div
+              class="bg-success/10 text-success flex items-center gap-2 rounded-full px-3 py-1.5"
+            >
+              <div class="bg-success size-2 animate-pulse rounded-full"></div>
               <span class="text-xs font-medium">Connected</span>
             </div>
           </div>
 
           <!-- Center section - Search -->
-          <div class="flex-1 max-w-md mx-8">
+          <div class="mx-8 max-w-md flex-1">
             <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon class="size-4 text-base-content/50" />
+              <div
+                class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+              >
+                <MagnifyingGlassIcon class="text-base-content/50 size-4" />
               </div>
               <input
                 v-model="searchQuery"
+                type="text"
+                placeholder="Search tasks, machines, sectors..."
+                class="input input-sm bg-base-200/50 border-base-300/50 focus:bg-base-200 focus:border-primary/50 w-full pr-4 pl-9 transition-all"
                 @focus="searchFocused = true"
                 @blur="searchFocused = false"
                 @keyup.enter="handleSearch(searchQuery)"
-                type="text"
-                placeholder="Search tasks, machines, sectors..."
-                class="input input-sm w-full pl-9 pr-4 bg-base-200/50 border-base-300/50 focus:bg-base-200 focus:border-primary/50 transition-all"
               />
-              <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                 <kbd class="kbd kbd-xs">⌘K</kbd>
               </div>
             </div>
@@ -135,20 +161,22 @@ const handleSettings = () => {
           <!-- Right section -->
           <div class="flex items-center gap-1">
             <!-- Quick actions -->
-            <div class="flex items-center gap-1 mr-2">
-              <button 
-                @click="handleNotifications"
-                class="btn btn-ghost btn-sm size-9 p-0 relative"
+            <div class="mr-2 flex items-center gap-1">
+              <button
+                class="btn btn-ghost btn-sm relative size-9 p-0"
                 title="Notifications"
+                @click="handleNotifications"
               >
                 <BellIcon class="size-5" />
-                <div class="absolute -top-1 -right-1 size-3 rounded-full bg-warning"></div>
+                <div
+                  class="bg-warning absolute -top-1 -right-1 size-3 rounded-full"
+                ></div>
               </button>
-              
-              <button 
-                @click="handleSettings"
+
+              <button
                 class="btn btn-ghost btn-sm size-9 p-0"
                 title="Settings"
+                @click="handleSettings"
               >
                 <Cog6ToothIcon class="size-5" />
               </button>
@@ -156,31 +184,50 @@ const handleSettings = () => {
 
             <!-- User menu -->
             <div class="dropdown dropdown-end">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-sm px-2 gap-2">
+              <div
+                tabindex="0"
+                role="button"
+                class="btn btn-ghost btn-sm gap-2 px-2"
+              >
                 <div class="avatar">
-                  <div class="size-6 rounded-full bg-gradient-to-br from-accent to-secondary">
-                    <div class="grid place-items-center size-full text-xs font-semibold text-white">
+                  <div
+                    class="from-accent to-secondary size-6 rounded-full bg-gradient-to-br"
+                  >
+                    <div
+                      class="grid size-full place-items-center text-xs font-semibold text-white"
+                    >
                       A
                     </div>
                   </div>
                 </div>
-                <span class="text-sm font-medium hidden sm:block">Admin</span>
+                <span class="hidden text-sm font-medium sm:block">Admin</span>
               </div>
-              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-48">
-                <li><a><div class="flex items-center gap-2"><SignalIcon class="size-4" />System Status</div></a></li>
+              <ul
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow-lg"
+              >
+                <li>
+                  <a
+                    ><div class="flex items-center gap-2">
+                      <SignalIcon class="size-4" />System Status
+                    </div></a
+                  >
+                </li>
                 <div class="divider my-1"></div>
-                <li><a class="text-error"><div class="flex items-center gap-2">Sign Out</div></a></li>
+                <li>
+                  <a class="text-error"
+                    ><div class="flex items-center gap-2">Sign Out</div></a
+                  >
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="relative">
         <slot />
       </div>
     </main>
   </div>
 </template>
-
-

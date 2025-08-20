@@ -1,17 +1,17 @@
 <script setup lang="ts">
 interface Props {
-  zebra?: boolean
-  fixed?: boolean
-  hoverable?: boolean
-  compact?: boolean
+  zebra?: boolean;
+  fixed?: boolean;
+  hoverable?: boolean;
+  compact?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
   zebra: true,
   fixed: false,
   hoverable: true,
-  compact: false
-})
+  compact: false,
+});
 </script>
 
 <template>
@@ -23,8 +23,8 @@ withDefaults(defineProps<Props>(), {
           'table-zebra': zebra,
           'table-fixed': fixed,
           'table-sm': compact,
-          'table-hover': hoverable
-        }
+          'table-hover': hoverable,
+        },
       ]"
     >
       <slot />
@@ -35,7 +35,9 @@ withDefaults(defineProps<Props>(), {
 <style>
 /* Simplified hover effects without layout changes */
 .table-hover tbody tr {
-  transition: background-color 0.2s ease, box-shadow 0.2s ease !important;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease !important;
 }
 
 .table-hover tbody tr:hover {

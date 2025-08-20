@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import Card from './Card.vue'
+import { computed } from "vue";
+import Card from "./Card.vue";
 
 interface Props {
-  title: string
-  description?: string
-  icon?: any
-  loading?: boolean
-  class?: string
+  title: string;
+  description?: string;
+  icon?: unknown;
+  loading?: boolean;
+  class?: string;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-const iconComponent = computed(() => props.icon)
+const iconComponent = computed(() => props.icon);
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const iconComponent = computed(() => props.icon)
     :description="description"
     :icon="iconComponent"
     :loading="loading"
-    :class="class"
+    :class="props.class"
   >
     <slot />
   </Card>
