@@ -1,5 +1,7 @@
 # Cuview
 
+[![CI](https://github.com/strahe/cuview/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/cuview/actions/workflows/ci.yml)
+
 A modern, responsive UI theme for [Curio](https://github.com/filecoin-project/curio).
 
 Unlike the original [Curio Dashboard](https://github.com/web3tea/curio-dashboard) with its GraphQL backend, Cuview is a streamlined frontend-only solution that communicates directly with Curio via RPC, delivering a faster and more focused user experience.
@@ -16,6 +18,8 @@ Unlike the original [Curio Dashboard](https://github.com/web3tea/curio-dashboard
 
 ## Development
 
+### Quick Start
+
 ```bash
 # Install dependencies
 npm install
@@ -25,12 +29,16 @@ export VITE_CURIO_ENDPOINT="ws://localhost:4701/api/webrpc/v0"
 
 # Start development server
 npm run dev
+```
 
-# Build for production
-npm run build
+### Commands
 
-# Type checking
-npm run typecheck
+```bash
+npm run dev              # Start development server
+npm run build            # Production build
+npm run typecheck        # TypeScript type checking
+npm run lint             # Fix code issues
+npm run format           # Format code
 ```
 
 ## License
