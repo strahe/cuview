@@ -1,12 +1,16 @@
 import { JsonRpcClient, createJsonRpcClient } from "@/lib/jsonrpc-client";
 import type { JsonRpcClientEvents } from "@/lib/jsonrpc-client";
+import { useConfigStore } from "@/stores/config";
 
 export class CurioApiService {
   private client: JsonRpcClient;
 
   constructor(options?: { endpoint?: string; timeout?: number }) {
+    const configStore = useConfigStore();
+    const endpoint = options?.endpoint || configStore.getEndpoint();
+    
     this.client = createJsonRpcClient({
-      endpoint: options?.endpoint || "/api/webrpc/v0",
+      endpoint,
       timeout: options?.timeout || 30000,
       methodPrefix: "CurioWeb.",
       reconnectInterval: 1000,

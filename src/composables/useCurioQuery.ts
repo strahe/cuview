@@ -1,19 +1,26 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { CurioApiService } from "@/services/curio-api";
+import { useConfigStore } from "@/stores/config";
 
 // Global API instance
 let globalApi: CurioApiService | null = null;
+let currentEndpoint: string | null = null;
 
 function getApi(): CurioApiService {
-  if (!globalApi) {
-    const endpoint =
-      import.meta.env.VITE_CURIO_ENDPOINT ||
-      "ws://localhost:4701/api/webrpc/v0";
-    globalApi = new CurioApiService({
-      endpoint,
-    });
+  const configStore = useConfigStore();
+  const endpoint = configStore.getEndpoint();
+  
+  // Create new API instance if endpoint changed
+  if (!globalApi || currentEndpoint !== endpoint) {
+    if (globalApi) {
+      globalApi.disconnect();
+    }
+    
+    globalApi = new CurioApiService({ endpoint });
+    currentEndpoint = endpoint;
     globalApi.connect().catch(console.error);
   }
+  
   return globalApi;
 }
 

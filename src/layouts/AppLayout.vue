@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import CollapsibleSidebar from "./CollapsibleSidebar.vue";
+import SettingsModal from "@/components/composed/SettingsModal.vue";
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -16,6 +17,7 @@ const mobileMenuOpen = ref(false);
 const layoutStore = useLayoutStore();
 const searchQuery = ref("");
 const searchFocused = ref(false);
+const settingsModalOpen = ref(false);
 
 const mainContentMargin = computed(() =>
   layoutStore.sidebarCollapsed ? "4rem" : "16rem",
@@ -32,8 +34,7 @@ const handleNotifications = () => {
 };
 
 const handleSettings = () => {
-  // TODO: Navigate to settings page
-  console.log("Open settings");
+  settingsModalOpen.value = true;
 };
 </script>
 
@@ -213,6 +214,13 @@ const handleSettings = () => {
                     </div></a
                   >
                 </li>
+                <li>
+                  <a @click="handleSettings"
+                    ><div class="flex items-center gap-2">
+                      <Cog6ToothIcon class="size-4" />Endpoint Settings
+                    </div></a
+                  >
+                </li>
                 <div class="divider my-1"></div>
                 <li>
                   <a class="text-error"
@@ -229,5 +237,8 @@ const handleSettings = () => {
         <slot />
       </div>
     </main>
+
+    <!-- Settings Modal -->
+    <SettingsModal v-model:open="settingsModalOpen" />
   </div>
 </template>

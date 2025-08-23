@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useConfigStore } from "@/stores/config";
 
 const router = useRouter();
+const configStore = useConfigStore();
 
-// Auto redirect to overview
+// Initialize config and handle routing
 onMounted(() => {
-  router.replace("/overview");
+  configStore.initializeFromEnv();
+  
+  // Check if endpoint is configured
+  if (configStore.isConfigured) {
+    router.replace("/overview");
+  } else {
+    router.replace("/setup");
+  }
 });
 </script>
 
