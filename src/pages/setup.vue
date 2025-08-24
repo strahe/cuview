@@ -60,16 +60,8 @@ const testConnection = async (endpoint: string): Promise<boolean> => {
 
   try {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
-    const { CurioApiService } = await import("@/services/curio-api");
-    const testApi = new CurioApiService({ 
-      endpoint: normalizedEndpoint,
-      timeout: 10000
-    });
-
-    await testApi.connect();
-    await testApi.call("Version");
-    testApi.disconnect();
-    return true;
+    const { testEndpointConnection } = await import("@/utils/testConnection");
+    return await testEndpointConnection(normalizedEndpoint, 10000);
   } catch (err) {
     console.error("Connection test failed:", err);
     return false;
