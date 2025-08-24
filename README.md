@@ -1,6 +1,6 @@
 # Cuview
 
-[![CI](https://github.com/strahe/cuview/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/cuview/actions/workflows/ci.yml)
+[![CI](https://github.com/strahe/cuview/actions/workflows/ci.yml/badge.svg)](https://github.com/strahe/cuview/actions/workflows/ci.yml)
 
 A modern, responsive UI theme for [Curio](https://github.com/filecoin-project/curio).
 
