@@ -36,7 +36,7 @@ npm run dev
 ```bash
 npm run dev              # Start development server
 npm run build            # Production build
-npm run typecheck        # TypeScript type checking
+npm run check            # Type, linting, and formatting checks
 npm run lint             # Fix code issues
 npm run format           # Format code
 ```

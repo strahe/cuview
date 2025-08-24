@@ -5,16 +5,16 @@ import { useConfigStore } from "@/stores/config";
 export class CurioApiService {
   private client: JsonRpcClient;
 
-  constructor(options?: { 
-    endpoint?: string; 
-    timeout?: number; 
+  constructor(options?: {
+    endpoint?: string;
+    timeout?: number;
     enableAutoReconnect?: boolean;
   }) {
     const configStore = useConfigStore();
     const endpoint = options?.endpoint || configStore.getEndpoint();
-    
+
     const enableAutoReconnect = options?.enableAutoReconnect ?? true;
-    
+
     this.client = createJsonRpcClient({
       endpoint,
       timeout: options?.timeout || 30000,

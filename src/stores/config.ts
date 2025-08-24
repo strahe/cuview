@@ -21,7 +21,7 @@ export const useConfigStore = defineStore(
       if (endpoint.value) {
         return endpoint.value;
       }
-      
+
       // Fallback to environment variable or default
       return import.meta.env.VITE_CURIO_ENDPOINT || "/api/webrpc/v0";
     }

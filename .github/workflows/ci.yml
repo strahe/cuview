@@ -29,14 +29,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: TypeScript type checking
-      run: npm run typecheck
-      
-    - name: ESLint code quality check
-      run: npm run lint:check
-      
-    - name: Prettier formatting check
-      run: npm run format:check
+    - name: Code quality checks
+      run: npm run check
       
     - name: Build production bundle
       run: npm run build

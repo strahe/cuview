@@ -9,7 +9,7 @@ const configStore = useConfigStore();
 // Initialize config and handle routing
 onMounted(() => {
   configStore.initializeFromEnv();
-  
+
   // Check if endpoint is configured
   if (configStore.isConfigured) {
     router.replace("/overview");

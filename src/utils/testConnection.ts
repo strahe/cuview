@@ -1,11 +1,11 @@
 import { createJsonRpcClient } from "@/lib/jsonrpc-client";
 
 export const testEndpointConnection = async (
-  endpoint: string, 
-  timeout: number = 10000
+  endpoint: string,
+  timeout: number = 10000,
 ): Promise<boolean> => {
   let client = null;
-  
+
   try {
     client = createJsonRpcClient({
       endpoint,
@@ -14,7 +14,7 @@ export const testEndpointConnection = async (
       reconnectInterval: 0,
       maxReconnectAttempts: 0,
     });
-    
+
     await client.connect();
     await client.call("Version");
     return true;

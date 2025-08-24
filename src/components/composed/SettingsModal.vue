@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useConfigStore } from "@/stores/config";
-import { 
-  XMarkIcon, 
-  Cog6ToothIcon, 
+import {
+  XMarkIcon,
+  Cog6ToothIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon 
+  ExclamationTriangleIcon,
 } from "@heroicons/vue/24/outline";
 
 interface Props {
@@ -26,31 +26,34 @@ const error = ref("");
 const showSuccess = ref(false);
 
 // Watch for modal open/close to reset form
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    endpointInput.value = configStore.getEndpoint();
-    error.value = "";
-    showSuccess.value = false;
-  }
-});
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      endpointInput.value = configStore.getEndpoint();
+      error.value = "";
+      showSuccess.value = false;
+    }
+  },
+);
 
 const validateEndpoint = (endpoint: string): boolean => {
   if (!endpoint.trim()) return false;
-  
+
   try {
     if (endpoint.startsWith("/")) return true;
-    
+
     if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
       new URL(endpoint);
       return true;
     }
-    
+
     if (endpoint.startsWith("ws://") || endpoint.startsWith("wss://")) {
       const httpUrl = endpoint.replace(/^wss?:/, "http:");
       new URL(httpUrl);
       return true;
     }
-    
+
     return false;
   } catch {
     return false;
@@ -59,15 +62,15 @@ const validateEndpoint = (endpoint: string): boolean => {
 
 const normalizeEndpoint = (endpoint: string): string => {
   if (endpoint.startsWith("/")) return endpoint;
-  
+
   if (endpoint.startsWith("http://")) {
     return endpoint.replace("http://", "ws://");
   }
-  
+
   if (endpoint.startsWith("https://")) {
     return endpoint.replace("https://", "wss://");
   }
-  
+
   return endpoint;
 };
 
@@ -97,22 +100,24 @@ const handleSave = async () => {
 
   try {
     const isConnectionValid = await testConnection(endpointInput.value);
-    
+
     if (isConnectionValid) {
       const normalizedEndpoint = normalizeEndpoint(endpointInput.value);
       configStore.setEndpoint(normalizedEndpoint);
       showSuccess.value = true;
-      
+
       // Close modal after showing success
       setTimeout(() => {
         emit("update:open", false);
         showSuccess.value = false;
       }, 1500);
     } else {
-      error.value = "Cannot connect to Curio server. Please verify the endpoint and server status.";
+      error.value =
+        "Cannot connect to Curio server. Please verify the endpoint and server status.";
     }
   } catch {
-    error.value = "Connection test failed. Please check your network connection.";
+    error.value =
+      "Connection test failed. Please check your network connection.";
   } finally {
     isLoading.value = false;
   }
@@ -134,17 +139,16 @@ const resetToDefault = () => {
   <div v-if="open" class="modal modal-open">
     <div class="modal-box max-w-lg">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="bg-primary text-primary-content flex size-10 items-center justify-center rounded-lg">
+          <div
+            class="bg-primary text-primary-content flex size-10 items-center justify-center rounded-lg"
+          >
             <Cog6ToothIcon class="size-5" />
           </div>
           <h3 class="text-lg font-semibold">Curio API Settings</h3>
         </div>
-        <button
-          class="btn btn-ghost btn-sm btn-square"
-          @click="handleCancel"
-        >
+        <button class="btn btn-ghost btn-sm btn-square" @click="handleCancel">
           <XMarkIcon class="size-5" />
         </button>
       </div>
@@ -178,12 +182,18 @@ const resetToDefault = () => {
             </button>
           </label>
 
-          <div v-if="error" class="text-error text-sm mt-2 flex items-center gap-2">
+          <div
+            v-if="error"
+            class="text-error mt-2 flex items-center gap-2 text-sm"
+          >
             <ExclamationTriangleIcon class="size-4" />
             {{ error }}
           </div>
-          
-          <div v-if="showSuccess" class="text-success text-sm mt-2 flex items-center gap-2">
+
+          <div
+            v-if="showSuccess"
+            class="text-success mt-2 flex items-center gap-2 text-sm"
+          >
             <CheckCircleIcon class="size-4" />
             Configuration saved successfully!
           </div>
@@ -191,21 +201,31 @@ const resetToDefault = () => {
 
         <!-- Help Section -->
         <div class="bg-base-200 rounded-lg p-3">
-          <h4 class="text-sm font-medium mb-2">Endpoint Examples:</h4>
-          <ul class="text-xs text-base-content/70 space-y-1">
+          <h4 class="mb-2 text-sm font-medium">Endpoint Examples:</h4>
+          <ul class="text-base-content/70 space-y-1 text-xs">
             <li><code>/api/webrpc/v0</code> - Relative path</li>
-            <li><code>ws://localhost:4701/api/webrpc/v0</code> - WebSocket URL</li>
-            <li><code>http://localhost:4701/api/webrpc/v0</code> - HTTP (auto-converted)</li>
+            <li>
+              <code>ws://localhost:4701/api/webrpc/v0</code> - WebSocket URL
+            </li>
+            <li>
+              <code>http://localhost:4701/api/webrpc/v0</code> - HTTP
+              (auto-converted)
+            </li>
           </ul>
-          
+
           <!-- Security Warning -->
-          <div class="bg-warning/10 border border-warning/20 rounded-lg p-2 mt-2">
+          <div
+            class="bg-warning/10 border-warning/20 mt-2 rounded-lg border p-2"
+          >
             <div class="flex items-center gap-2">
-              <div class="bg-warning text-warning-content flex size-4 items-center justify-center rounded-full text-xs font-bold">
+              <div
+                class="bg-warning text-warning-content flex size-4 items-center justify-center rounded-full text-xs font-bold"
+              >
                 !
               </div>
-              <p class="text-xs text-base-content/80">
-                <strong>Security:</strong> Curio runs without authentication. Use only on trusted networks.
+              <p class="text-base-content/80 text-xs">
+                <strong>Security:</strong> Curio runs without authentication.
+                Use only on trusted networks.
               </p>
             </div>
           </div>
@@ -239,9 +259,7 @@ const resetToDefault = () => {
             Connected & Saved!
           </template>
           <!-- Default state -->
-          <template v-else>
-            Test & Save
-          </template>
+          <template v-else> Test & Save </template>
         </button>
       </div>
     </div>

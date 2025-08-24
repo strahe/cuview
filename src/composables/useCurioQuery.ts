@@ -9,18 +9,18 @@ let currentEndpoint: string | null = null;
 function getApi(): CurioApiService {
   const configStore = useConfigStore();
   const endpoint = configStore.getEndpoint();
-  
+
   // Create new API instance if endpoint changed
   if (!globalApi || currentEndpoint !== endpoint) {
     if (globalApi) {
       globalApi.disconnect();
     }
-    
+
     globalApi = new CurioApiService({ endpoint });
     currentEndpoint = endpoint;
     globalApi.connect().catch(console.error);
   }
-  
+
   return globalApi;
 }
 
