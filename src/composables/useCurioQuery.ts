@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { CurioApiService } from "@/services/curio-api";
 import { useConfigStore } from "@/stores/config";
+import { useConnectionStore } from "@/stores/connection";
 
 // Global API instance
 let globalApi: CurioApiService | null = null;
@@ -8,6 +9,7 @@ let currentEndpoint: string | null = null;
 
 function getApi(): CurioApiService {
   const configStore = useConfigStore();
+  const connectionStore = useConnectionStore();
   const endpoint = configStore.getEndpoint();
 
   // Create new API instance if endpoint changed
@@ -18,7 +20,29 @@ function getApi(): CurioApiService {
 
     globalApi = new CurioApiService({ endpoint });
     currentEndpoint = endpoint;
-    globalApi.connect().catch(console.error);
+
+    // Set up connection status listeners
+    globalApi.on("connected", () => {
+      connectionStore.setStatus("connected");
+    });
+
+    globalApi.on("disconnected", () => {
+      connectionStore.setStatus("disconnected");
+    });
+
+    globalApi.on("reconnecting", (attempt: number) => {
+      connectionStore.setStatus("reconnecting");
+      connectionStore.setReconnectAttempt(attempt);
+    });
+
+    globalApi.on("error", () => {
+      connectionStore.setStatus("disconnected");
+    });
+
+    connectionStore.setStatus("connecting");
+    globalApi.connect().catch(() => {
+      connectionStore.setStatus("disconnected");
+    });
   }
 
   return globalApi;
@@ -199,6 +223,9 @@ function createQuery<T>(
 
 // Create API object with convenient methods
 export function createCurioQuery() {
+  // Initialize API to set up connection status
+  getApi();
+
   return {
     // Version info
     version: (options?: QueryOptions) =>

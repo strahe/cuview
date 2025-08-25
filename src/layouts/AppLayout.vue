@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import CollapsibleSidebar from "./CollapsibleSidebar.vue";
 import SettingsModal from "@/components/composed/SettingsModal.vue";
+import ConnectionStatus from "@/components/ui/ConnectionStatus.vue";
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -128,12 +129,7 @@ const handleSettings = () => {
             </button>
 
             <!-- Connection status indicator -->
-            <div
-              class="bg-success/10 text-success flex items-center gap-2 rounded-full px-3 py-1.5"
-            >
-              <div class="bg-success size-2 animate-pulse rounded-full"></div>
-              <span class="text-xs font-medium">Connected</span>
-            </div>
+            <ConnectionStatus />
           </div>
 
           <!-- Center section - Search -->
