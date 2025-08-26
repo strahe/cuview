@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import CollapsibleSidebar from "./CollapsibleSidebar.vue";
 import SettingsModal from "@/components/composed/SettingsModal.vue";
 import ConnectionStatus from "@/components/ui/ConnectionStatus.vue";
+import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -169,6 +170,8 @@ const handleSettings = () => {
                   class="bg-warning absolute -top-1 -right-1 size-3 rounded-full"
                 ></div>
               </button>
+
+              <ThemeToggle />
 
               <button
                 class="btn btn-ghost btn-sm size-9 p-0"
