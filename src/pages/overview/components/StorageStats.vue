@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import DataTable from "@/components/ui/DataTable.vue";
+import DataSection from "@/components/ui/DataSection.vue";
 import type { StorageUseStat, StorageBreakdown } from "@/types/storage";
 
 const {
@@ -9,6 +10,7 @@ const {
   loading: summaryLoading,
   error: summaryError,
   hasData: summaryHasData,
+  refresh: refreshSummary,
 } = useCachedQuery<StorageUseStat[]>("StorageUseStats", [], {
   pollingInterval: 30000,
 });
@@ -18,6 +20,7 @@ const {
   loading: breakdownLoading,
   error: breakdownError,
   hasData: breakdownHasData,
+  refresh: refreshBreakdown,
 } = useCachedQuery<StorageBreakdown[]>("StorageStoreTypeStats", [], {
   pollingInterval: 30000,
 });
@@ -25,7 +28,11 @@ const {
 const loading = computed(() => summaryLoading.value || breakdownLoading.value);
 const error = computed(() => summaryError.value || breakdownError.value);
 const hasData = computed(() => summaryHasData.value || breakdownHasData.value);
-const isInitialLoading = computed(() => loading.value && !hasData.value);
+
+const refresh = () => {
+  refreshSummary();
+  refreshBreakdown();
+};
 const data = computed(() => {
   if (summary.value && summary.value.length > 0) {
     const hasDetailedBreakdown =
@@ -69,7 +76,17 @@ const getProgressColor = (percentage: number): string => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <DataSection
+    :loading="loading"
+    :error="error"
+    :has-data="hasData"
+    :on-retry="refresh"
+    error-title="Storage Error"
+    empty-icon="💾"
+    empty-message="No storage data available"
+  >
+    <template #loading>Loading storage statistics...</template>
+
     <DataTable :zebra="false">
       <thead>
         <tr>
@@ -139,23 +156,5 @@ const getProgressColor = (percentage: number): string => {
         </template>
       </tbody>
     </DataTable>
-
-    <div v-if="isInitialLoading" class="text-base-content/60 py-8 text-center">
-      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-      Loading storage statistics...
-    </div>
-
-    <div v-else-if="error" class="text-error py-8 text-center">
-      <div class="mb-2 text-lg">💾 Storage Error</div>
-      <div class="text-sm">{{ error.message }}</div>
-    </div>
-
-    <div
-      v-else-if="data.length === 0 && !loading"
-      class="text-base-content/60 py-8 text-center"
-    >
-      <div class="mb-2 text-4xl">💾</div>
-      <div>No storage data available</div>
-    </div>
-  </div>
+  </DataSection>
 </template>

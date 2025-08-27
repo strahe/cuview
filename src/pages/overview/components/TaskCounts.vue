@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
+import DataSection from "@/components/ui/DataSection.vue";
 import type { HarmonyTaskStat, TaskStatWithPercentage } from "@/types/cluster";
 
 const {
@@ -10,11 +11,10 @@ const {
   loading,
   error,
   hasData,
+  refresh,
 } = useCachedQuery<HarmonyTaskStat[]>("HarmonyTaskStats", [], {
   pollingInterval: 30000,
 });
-
-const isInitialLoading = computed(() => loading.value && !hasData.value);
 const processedData = computed<TaskStatWithPercentage[]>(() => {
   if (rawData.value && rawData.value.length > 0) {
     return rawData.value.map((task) => ({
@@ -45,7 +45,17 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <DataSection
+    :loading="loading"
+    :error="error"
+    :has-data="hasData"
+    :on-retry="refresh"
+    error-title="Task Stats Error"
+    empty-icon="📊"
+    empty-message="No task statistics available"
+  >
+    <template #loading>Loading task statistics...</template>
+
     <DataTable :compact="true">
       <thead>
         <tr>
@@ -112,23 +122,5 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
         </tr>
       </tbody>
     </DataTable>
-
-    <div v-if="isInitialLoading" class="text-base-content/60 py-8 text-center">
-      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-      Loading task statistics...
-    </div>
-
-    <div v-else-if="error" class="text-error py-8 text-center">
-      <div class="mb-2 text-lg">📊 Task Stats Error</div>
-      <div class="text-sm">{{ error.message }}</div>
-    </div>
-
-    <div
-      v-else-if="processedData.length === 0 && !loading"
-      class="text-base-content/60 py-8 text-center"
-    >
-      <div class="mb-2 text-4xl">📊</div>
-      <div>No task statistics available</div>
-    </div>
-  </div>
+  </DataSection>
 </template>
