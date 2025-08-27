@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import {
@@ -9,6 +9,7 @@ import {
   XCircleIcon,
 } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
+import DataSection from "@/components/ui/DataSection.vue";
 import type { ClusterMachine } from "@/types/cluster";
 
 const { call } = useCurioQuery();
@@ -23,8 +24,6 @@ const {
 } = useCachedQuery<ClusterMachine[]>("ClusterMachines", [], {
   pollingInterval: 5000,
 });
-
-const isInitialLoading = computed(() => loading.value && !hasData.value);
 
 const cordon = async (id: number) => {
   try {
@@ -98,141 +97,131 @@ const getStatusBadge = (item: ClusterMachine) => {
       <div class="min-h-[24px]"></div>
     </div>
 
-    <DataTable :fixed="true">
-      <thead>
-        <tr>
-          <th class="w-32">Name</th>
-          <th class="w-40">Host</th>
-          <th class="w-16">ID</th>
-          <th v-if="detailed" class="w-16">CPUs</th>
-          <th v-if="detailed" class="w-20">RAM</th>
-          <th v-if="detailed" class="w-16">GPUs</th>
-          <th class="w-32">Last Contact</th>
-          <th class="w-24">Uptime</th>
-          <th class="w-48">Status</th>
-          <th class="w-32">Actions</th>
-          <th v-if="detailed" class="w-40">Tasks</th>
-          <th v-if="detailed" class="w-40">Layers</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in machines" :key="item.ID">
-          <td class="truncate font-medium">{{ item.Name }}</td>
-          <td class="truncate font-mono text-sm">{{ item.Address }}</td>
-          <td class="text-base-content/70 text-sm">{{ item.ID }}</td>
+    <DataSection
+      :loading="loading"
+      :error="error"
+      :has-data="hasData"
+      :on-retry="refresh"
+      error-title="Connection Error"
+      empty-icon="🖥️"
+      empty-message="No cluster machines available"
+    >
+      <template #loading>Loading cluster machines...</template>
 
-          <td v-if="detailed">{{ item.Cpu }}</td>
-          <td v-if="detailed">{{ item.RamHumanized }}</td>
-          <td v-if="detailed">{{ item.Gpu }}</td>
+      <DataTable :fixed="true">
+        <thead>
+          <tr>
+            <th class="w-32">Name</th>
+            <th class="w-40">Host</th>
+            <th class="w-16">ID</th>
+            <th v-if="detailed" class="w-16">CPUs</th>
+            <th v-if="detailed" class="w-20">RAM</th>
+            <th v-if="detailed" class="w-16">GPUs</th>
+            <th class="w-32">Last Contact</th>
+            <th class="w-24">Uptime</th>
+            <th class="w-48">Status</th>
+            <th class="w-32">Actions</th>
+            <th v-if="detailed" class="w-40">Tasks</th>
+            <th v-if="detailed" class="w-40">Layers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in machines" :key="item.ID">
+            <td class="truncate font-medium">{{ item.Name }}</td>
+            <td class="truncate font-mono text-sm">{{ item.Address }}</td>
+            <td class="text-base-content/70 text-sm">{{ item.ID }}</td>
 
-          <td class="text-sm">{{ item.SinceContact }}</td>
-          <td class="text-sm">{{ item.Uptime }}</td>
+            <td v-if="detailed">{{ item.Cpu }}</td>
+            <td v-if="detailed">{{ item.RamHumanized }}</td>
+            <td v-if="detailed">{{ item.Gpu }}</td>
 
-          <td>
-            <div :class="['badge', getStatusBadge(item).class]">
-              {{ getStatusBadge(item).text }}
-            </div>
-          </td>
+            <td class="text-sm">{{ item.SinceContact }}</td>
+            <td class="text-sm">{{ item.Uptime }}</td>
 
-          <td>
-            <div class="flex items-center gap-1">
-              <button
-                class="btn btn-ghost btn-xs"
-                :class="{ 'opacity-30': item.Unschedulable }"
-                :disabled="item.Unschedulable"
-                title="Cordon (Pause)"
-                @click="cordon(item.ID)"
-              >
-                <PauseIcon class="size-4" />
-              </button>
+            <td>
+              <div :class="['badge', getStatusBadge(item).class]">
+                {{ getStatusBadge(item).text }}
+              </div>
+            </td>
 
-              <button
-                class="btn btn-ghost btn-xs"
-                :class="{ 'opacity-30': !item.Unschedulable }"
-                :disabled="!item.Unschedulable"
-                title="Uncordon (Resume)"
-                @click="uncordon(item.ID)"
-              >
-                <PlayIcon class="size-4" />
-              </button>
-
-              <div class="flex w-8 justify-center">
+            <td>
+              <div class="flex items-center gap-1">
                 <button
-                  v-if="!item.Restarting"
+                  class="btn btn-ghost btn-xs"
+                  :class="{ 'opacity-30': item.Unschedulable }"
+                  :disabled="item.Unschedulable"
+                  title="Cordon (Pause)"
+                  @click="cordon(item.ID)"
+                >
+                  <PauseIcon class="size-4" />
+                </button>
+
+                <button
                   class="btn btn-ghost btn-xs"
                   :class="{ 'opacity-30': !item.Unschedulable }"
                   :disabled="!item.Unschedulable"
-                  title="Restart"
-                  @click="restart(item.ID)"
+                  title="Uncordon (Resume)"
+                  @click="uncordon(item.ID)"
                 >
-                  <ArrowPathIcon class="size-4" />
+                  <PlayIcon class="size-4" />
                 </button>
 
-                <button
-                  v-else
-                  class="btn btn-ghost btn-xs"
-                  title="Abort Restart"
-                  @click="abortRestart(item.ID)"
-                >
-                  <XCircleIcon class="size-4" />
-                </button>
+                <div class="flex w-8 justify-center">
+                  <button
+                    v-if="!item.Restarting"
+                    class="btn btn-ghost btn-xs"
+                    :class="{ 'opacity-30': !item.Unschedulable }"
+                    :disabled="!item.Unschedulable"
+                    title="Restart"
+                    @click="restart(item.ID)"
+                  >
+                    <ArrowPathIcon class="size-4" />
+                  </button>
+
+                  <button
+                    v-else
+                    class="btn btn-ghost btn-xs"
+                    title="Abort Restart"
+                    @click="abortRestart(item.ID)"
+                  >
+                    <XCircleIcon class="size-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          </td>
+            </td>
 
-          <td v-if="detailed">
-            <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
-              <span
-                v-for="task in (item.Tasks || '')
-                  .split(',')
-                  .map((t) => t.trim())
-                  .filter((t) => t)"
-                :key="task"
-                class="badge badge-outline badge-sm"
-              >
-                {{ task }}
-              </span>
-            </div>
-          </td>
+            <td v-if="detailed">
+              <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
+                <span
+                  v-for="task in (item.Tasks || '')
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter((t) => t)"
+                  :key="task"
+                  class="badge badge-outline badge-sm"
+                >
+                  {{ task }}
+                </span>
+              </div>
+            </td>
 
-          <td v-if="detailed">
-            <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
-              <span
-                v-for="layer in (item.Layers || '')
-                  .split(',')
-                  .map((l) => l.trim())
-                  .filter((l) => l)"
-                :key="layer"
-                class="badge badge-outline badge-sm"
-              >
-                {{ layer }}
-              </span>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </DataTable>
-
-    <div v-if="isInitialLoading" class="text-base-content/60 py-8 text-center">
-      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-      Loading cluster machines...
-    </div>
-
-    <div v-else-if="error" class="text-error py-8 text-center">
-      <div class="mb-2 text-lg">⚠️ Connection Error</div>
-      <div class="text-sm">{{ error.message }}</div>
-      <button class="btn btn-sm btn-outline btn-error mt-3" @click="refresh">
-        <ArrowPathIcon class="size-4" />
-        Retry
-      </button>
-    </div>
-
-    <div
-      v-else-if="!machines || (machines.length === 0 && !loading)"
-      class="text-base-content/60 py-8 text-center"
-    >
-      <div class="mb-2 text-4xl">🖥️</div>
-      <div>No cluster machines available</div>
-    </div>
+            <td v-if="detailed">
+              <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
+                <span
+                  v-for="layer in (item.Layers || '')
+                    .split(',')
+                    .map((l) => l.trim())
+                    .filter((l) => l)"
+                  :key="layer"
+                  class="badge badge-outline badge-sm"
+                >
+                  {{ layer }}
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </DataTable>
+    </DataSection>
   </div>
 </template>

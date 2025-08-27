@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import DataTable from "@/components/ui/DataTable.vue";
+import DataSection from "@/components/ui/DataSection.vue";
 import type { SyncerStateItem } from "@/types/sync";
 
 const {
@@ -9,15 +9,24 @@ const {
   loading,
   error,
   hasData,
+  refresh,
 } = useCachedQuery<SyncerStateItem[]>("SyncerState", [], {
   pollingInterval: 30000,
 });
-
-const isInitialLoading = computed(() => loading.value && !hasData.value);
 </script>
 
 <template>
-  <div class="space-y-4">
+  <DataSection
+    :loading="loading"
+    :error="error"
+    :has-data="hasData"
+    :on-retry="refresh"
+    error-title="Connection Failed"
+    empty-icon="🔗"
+    empty-message="No RPC connections configured"
+  >
+    <template #loading>Connecting to blockchain...</template>
+
     <DataTable>
       <thead>
         <tr>
@@ -46,23 +55,5 @@ const isInitialLoading = computed(() => loading.value && !hasData.value);
         </tr>
       </tbody>
     </DataTable>
-
-    <div v-if="isInitialLoading" class="text-base-content/60 py-8 text-center">
-      <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
-      Connecting to blockchain...
-    </div>
-
-    <div v-else-if="error" class="text-error py-8 text-center">
-      <div class="mb-2 text-lg">🔗 Connection Failed</div>
-      <div class="text-sm">{{ error.message }}</div>
-    </div>
-
-    <div
-      v-else-if="!syncerData || (syncerData.length === 0 && !loading)"
-      class="text-base-content/60 py-8 text-center"
-    >
-      <div class="mb-2 text-4xl">🔗</div>
-      <div>No RPC connections configured</div>
-    </div>
-  </div>
+  </DataSection>
 </template>
