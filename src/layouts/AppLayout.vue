@@ -4,6 +4,7 @@ import CollapsibleSidebar from "./CollapsibleSidebar.vue";
 import SettingsModal from "@/components/composed/SettingsModal.vue";
 import ConnectionStatus from "@/components/ui/ConnectionStatus.vue";
 import ThemeToggle from "@/components/ui/ThemeToggle.vue";
+import NetworkSimulationToggle from "@/components/ui/NetworkSimulationToggle.vue";
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -172,6 +173,8 @@ const handleSettings = () => {
               </button>
 
               <ThemeToggle />
+
+              <NetworkSimulationToggle />
 
               <button
                 class="btn btn-ghost btn-sm size-9 p-0"

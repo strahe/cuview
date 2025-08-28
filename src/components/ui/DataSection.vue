@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import ErrorOverlay from "./ErrorOverlay.vue";
+import { ArrowPathIcon } from "@heroicons/vue/24/outline";
 
 interface Props {
   loading?: boolean;
@@ -25,14 +25,33 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const isInitialLoading = computed(() => props.loading && !props.hasData);
-const shouldShowContent = computed(() => props.hasData || props.loading);
 </script>
 
 <template>
   <div class="relative min-h-[200px]">
-    <!-- Main content area -->
-    <div v-if="shouldShowContent">
-      <slot />
+    <!-- Error state - displayed inline instead of overlay -->
+    <div v-if="error" class="py-12 text-center">
+      <div
+        class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
+      >
+        <div class="text-error text-2xl">⚠️</div>
+      </div>
+      <h3 class="text-base-content mb-2 text-lg font-semibold">
+        {{ errorTitle }}
+      </h3>
+      <p class="text-base-content/70 mb-4 text-sm">{{ error.message }}</p>
+      <button
+        v-if="onRetry"
+        class="btn btn-outline btn-sm"
+        :disabled="loading"
+        @click="onRetry"
+      >
+        <span v-if="loading" class="loading loading-spinner loading-xs"></span>
+        <ArrowPathIcon v-else class="size-4" />
+        <span class="ml-2">{{
+          loading ? "Retrying..." : "Retry Connection"
+        }}</span>
+      </button>
     </div>
 
     <!-- Initial loading state -->
@@ -45,17 +64,14 @@ const shouldShowContent = computed(() => props.hasData || props.loading);
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!error" class="text-base-content/60 py-12 text-center">
+    <div v-else-if="!hasData" class="text-base-content/60 py-12 text-center">
       <div class="mb-2 text-4xl">{{ emptyIcon }}</div>
       <div>{{ emptyMessage }}</div>
     </div>
 
-    <!-- Error overlay - positioned relative to this container -->
-    <ErrorOverlay
-      :error="error"
-      :loading="loading"
-      :title="errorTitle"
-      :on-retry="onRetry"
-    />
+    <!-- Main content area -->
+    <div v-else>
+      <slot />
+    </div>
   </div>
 </template>

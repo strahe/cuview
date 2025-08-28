@@ -56,13 +56,15 @@ export const useCurioDataStore = defineStore("curioData", () => {
   const fetchData = async <T>(
     method: string,
     params: unknown[] = [],
+    forceLoading = false,
   ): Promise<void> => {
     const key = `${method}:${JSON.stringify(params)}`;
     const cached = getCachedData<T>(key);
     const isInitialLoad = !cached || cached.data === null;
+    const shouldShowLoading = isInitialLoad || forceLoading;
 
     try {
-      if (isInitialLoad) {
+      if (shouldShowLoading) {
         setLoading(key, true);
       }
 
@@ -72,7 +74,7 @@ export const useCurioDataStore = defineStore("curioData", () => {
       console.error(`Failed to fetch ${method}:`, error);
       setError(key, error as Error);
     } finally {
-      if (isInitialLoad) {
+      if (shouldShowLoading) {
         setLoading(key, false);
       }
     }
@@ -107,7 +109,7 @@ export const useCurioDataStore = defineStore("curioData", () => {
     method: string,
     params: unknown[] = [],
   ): Promise<void> => {
-    await fetchData<T>(method, params);
+    await fetchData<T>(method, params, true); // Force loading state for refresh
   };
 
   const cleanup = () => {
