@@ -131,6 +131,23 @@ export class JsonRpcClient {
   }
 
   async call<T = unknown>(method: string, params: unknown[] = []): Promise<T> {
+    // Debug network simulation (only in development)
+    if (import.meta.env.DEV) {
+      const { useDebugStore } = await import("../stores/debug");
+      const debugStore = useDebugStore();
+
+      // Simulate network offline
+      if (debugStore.shouldRejectRequest()) {
+        throw new Error("Network offline (debug simulation)");
+      }
+
+      // Simulate network delay
+      const delay = debugStore.getNetworkDelay();
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
     if (!this.isConnected) {
       throw new Error("WebSocket is not connected");
     }
