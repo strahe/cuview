@@ -277,13 +277,6 @@ const totalTasks = computed(() => filteredData.value.length);
 const columnHelper = createColumnHelper<TaskSummary>();
 
 const columns = [
-  columnHelper.accessor("SpID", {
-    header: "SP ID",
-    size: 120,
-    enableGrouping: false,
-    cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
-    aggregatedCell: () => "—",
-  }),
   columnHelper.accessor("Name", {
     header: "Task Type",
     size: 200,
