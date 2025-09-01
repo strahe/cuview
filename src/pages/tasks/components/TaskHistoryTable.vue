@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h } from "vue";
+import { computed, h, ref } from "vue";
 import {
   useVueTable,
   getCoreRowModel,
@@ -8,71 +8,151 @@ import {
   getExpandedRowModel,
   getGroupedRowModel,
   createColumnHelper,
-  type SortingState,
   type ColumnFiltersState,
-  type ExpandedState,
-  type GroupingState,
   type Row,
+  type Cell,
   FlexRender,
 } from "@tanstack/vue-table";
-import {
-  MagnifyingGlassMinusIcon,
-  MagnifyingGlassPlusIcon,
-} from "@heroicons/vue/24/outline";
+import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useTaskHistoryTableStore } from "@/stores/taskHistoryTable";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { TaskHistorySummary } from "@/types/task";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
-
-const sorting = ref<SortingState>([]);
-const columnFilters = ref<ColumnFiltersState>([]);
-const grouping = ref<GroupingState>([]);
-const expanded = ref<ExpandedState>({});
 
 const {
   data: rawData,
   loading,
   error,
-  hasData,
   refresh,
 } = useCachedQuery<TaskHistorySummary[]>("ClusterTaskHistory", [], {
   pollingInterval: 30000,
 });
+
+const hasData = computed(() => {
+  return Array.isArray(rawData.value) && rawData.value.length > 0;
+});
+
+const store = useTaskHistoryTableStore();
+
+const filteredData = computed(() => {
+  if (!Array.isArray(rawData.value)) return [];
+
+  let filtered = rawData.value;
+
+  // Search filter
+  if (store.searchQuery) {
+    const query = store.searchQuery.toLowerCase();
+    filtered = filtered.filter(
+      (task) =>
+        task.Name?.toLowerCase().includes(query) ||
+        task.TaskID?.toString().includes(query) ||
+        task.CompletedBy?.toLowerCase().includes(query) ||
+        task.Err?.toLowerCase().includes(query),
+    );
+  }
+
+  // Result filter
+  if (store.resultFilter !== "all") {
+    const isSuccess = store.resultFilter === "success";
+    filtered = filtered.filter((task) => task.Result === isSuccess);
+  }
+
+  return filtered;
+});
+
+const totalTasks = computed(() => filteredData.value.length);
 
 const columnHelper = createColumnHelper<TaskHistorySummary>();
 
 const columns = [
   columnHelper.accessor("TaskID", {
     header: "Task ID",
-    size: 100,
+    size: 120,
+    enableGrouping: false,
     cell: (info) => {
       const taskId = info.getValue();
       return h(
         "button",
         {
-          class: "link link-primary font-mono text-sm",
+          class: "link link-primary font-mono text-sm hover:link-hover",
           onClick: () => handleTaskClick(taskId),
         },
-        taskId.toString(),
+        `#${taskId.toString()}`,
+      );
+    },
+    aggregatedCell: () => "—",
+  }),
+  columnHelper.accessor("Name", {
+    header: "Task Type",
+    size: 200,
+    enableGrouping: true,
+    cell: (info) => {
+      const taskName = info.getValue();
+      return h("span", { class: "font-semibold capitalize" }, taskName);
+    },
+    aggregatedCell: (info) => {
+      const count = info.table.getRowModel().rows.length;
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${count} tasks`,
       );
     },
   }),
-  columnHelper.accessor("Name", {
-    header: "Name",
-    size: 180,
-    enableGrouping: true,
-    cell: (info) => h("span", { class: "font-medium" }, info.getValue()),
-  }),
   columnHelper.accessor("Start", {
     header: "Started",
-    size: 130,
-    cell: (info) =>
-      h("span", { class: "text-sm text-base-content/80" }, info.getValue()),
+    size: 150,
+    enableGrouping: false,
+    cell: (info) => {
+      const date = new Date(info.getValue());
+      const timeAgo = formatDistanceToNow(date, { addSuffix: true });
+      return h(
+        "span",
+        {
+          class: "text-sm text-base-content/80",
+          title: date.toLocaleString(),
+        },
+        timeAgo,
+      );
+    },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskHistorySummary }[] };
+      const rows = context.subRows || [];
+      if (rows.length === 0) return "—";
+
+      const dates = rows.map((row) => new Date(row.original.Start));
+      const oldest = Math.min(...dates.map((d) => d.getTime()));
+      const newest = Math.max(...dates.map((d) => d.getTime()));
+
+      return h("div", { class: "text-xs text-base-content/70" }, [
+        h(
+          "div",
+          `Oldest: ${formatDistanceToNow(new Date(oldest), { addSuffix: true })}`,
+        ),
+        h(
+          "div",
+          `Newest: ${formatDistanceToNow(new Date(newest), { addSuffix: true })}`,
+        ),
+      ]);
+    },
   }),
   columnHelper.accessor("Took", {
     header: "Duration",
     size: 100,
+    enableGrouping: false,
     cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskHistorySummary }[] };
+      const rows = context.subRows || [];
+      if (rows.length === 0) return "—";
+
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${rows.length} tasks`,
+      );
+    },
   }),
   columnHelper.accessor("CompletedBy", {
     header: "Completed By",
@@ -83,16 +163,29 @@ const columns = [
       return h(
         "button",
         {
-          class: "link link-secondary text-sm",
+          class: "link link-secondary font-mono text-sm hover:link-hover",
           onClick: () => handleMachineClick(machine),
         },
         machine,
       );
     },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskHistorySummary }[] };
+      const rows = context.subRows || [];
+      const machines = new Set(
+        rows.map((row) => row.original.CompletedBy).filter(Boolean),
+      );
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${machines.size} machine${machines.size !== 1 ? "s" : ""}`,
+      );
+    },
   }),
   columnHelper.accessor("Result", {
     header: "Result",
-    size: 80,
+    size: 100,
+    enableGrouping: true,
     cell: (info) => {
       const success = info.getValue();
       const IconComponent = success ? CheckCircleIcon : XCircleIcon;
@@ -107,13 +200,25 @@ const columns = [
         h("span", { class: textClass }, label),
       ]);
     },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskHistorySummary }[] };
+      const rows = context.subRows || [];
+      const successCount = rows.filter((row) => row.original.Result).length;
+      const failCount = rows.length - successCount;
+
+      return h("div", { class: "text-xs text-base-content/70" }, [
+        h("div", `✅ ${successCount} success`),
+        h("div", `❌ ${failCount} failed`),
+      ]);
+    },
   }),
   columnHelper.accessor("Err", {
     header: "Error",
     size: 200,
+    enableGrouping: false,
     cell: (info) => {
       const error = info.getValue();
-      if (!error) return null;
+      if (!error) return h("span", { class: "text-base-content/40" }, "—");
 
       const truncated = error.length > 50 ? `${error.slice(0, 50)}...` : error;
       return h(
@@ -125,38 +230,54 @@ const columns = [
         truncated,
       );
     },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskHistorySummary }[] };
+      const rows = context.subRows || [];
+      const errorCount = rows.filter((row) => row.original.Err).length;
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${errorCount} with errors`,
+      );
+    },
   }),
 ];
 
+const columnFilters = ref<ColumnFiltersState>([]);
+
 const table = useVueTable({
   get data() {
-    return rawData.value || [];
+    return filteredData.value;
   },
   columns,
+  getRowId: (row: TaskHistorySummary) => `task-${row.TaskID}`,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getGroupedRowModel: getGroupedRowModel(),
   getExpandedRowModel: getExpandedRowModel(),
+  enableGrouping: true,
+  autoResetExpanded: false,
   state: {
     get sorting() {
-      return sorting.value;
+      return store.sorting;
     },
     get columnFilters() {
       return columnFilters.value;
     },
     get grouping() {
-      return grouping.value;
+      return store.grouping;
     },
     get expanded() {
-      return expanded.value;
+      return store.expanded;
     },
   },
   onSortingChange: (updaterOrValue) => {
-    sorting.value =
+    const newSorting =
       typeof updaterOrValue === "function"
-        ? updaterOrValue(sorting.value)
+        ? updaterOrValue(store.sorting)
         : updaterOrValue;
+    store.setSorting(newSorting);
   },
   onColumnFiltersChange: (updaterOrValue) => {
     columnFilters.value =
@@ -165,91 +286,126 @@ const table = useVueTable({
         : updaterOrValue;
   },
   onGroupingChange: (updaterOrValue) => {
-    grouping.value =
+    const newGrouping =
       typeof updaterOrValue === "function"
-        ? updaterOrValue(grouping.value)
+        ? updaterOrValue(store.grouping)
         : updaterOrValue;
+    store.setGrouping(newGrouping);
   },
   onExpandedChange: (updaterOrValue) => {
-    expanded.value =
+    const newExpanded =
       typeof updaterOrValue === "function"
-        ? updaterOrValue(expanded.value)
+        ? updaterOrValue(store.expanded)
         : updaterOrValue;
+    store.setExpanded(newExpanded);
   },
 });
 
+const getColumnAggregateInfo = (columnId: string) => {
+  const data = filteredData.value;
+  if (!data.length) return "";
+
+  switch (columnId) {
+    case "Name": {
+      const taskTypes = data.reduce(
+        (acc, task) => {
+          acc[task.Name] = (acc[task.Name] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+      const uniqueCount = Object.keys(taskTypes).length;
+      return `${uniqueCount} unique types`;
+    }
+    case "CompletedBy": {
+      const machines = new Set(
+        data.map((task) => task.CompletedBy).filter(Boolean),
+      );
+      return `${machines.size} unique machines`;
+    }
+    case "Result": {
+      const successCount = data.filter((task) => task.Result).length;
+      const failCount = data.length - successCount;
+      return `${successCount} success, ${failCount} failed`;
+    }
+    case "TaskID":
+      return `${data.length} total tasks`;
+    case "Start": {
+      if (data.length === 0) return "";
+      const dates = data.map((task) => new Date(task.Start));
+      const oldest = Math.min(...dates.map((d) => d.getTime()));
+      const newest = Math.max(...dates.map((d) => d.getTime()));
+      return `${formatDistanceToNow(new Date(oldest))} - ${formatDistanceToNow(new Date(newest))}`;
+    }
+    case "Err": {
+      const errorCount = data.filter((task) => task.Err).length;
+      return `${errorCount} with errors`;
+    }
+    default:
+      return "";
+  }
+};
+
+const getGroupCount = () => {
+  const groupedRows = table
+    .getRowModel()
+    .rows.filter((row) => row.getIsGrouped());
+  return groupedRows.length;
+};
+
+const handleGroupByChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  store.setSelectedGroupBy(target.value);
+};
+
+const handleResultFilterChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  store.setResultFilter(target.value as "all" | "success" | "failed");
+};
+
 const handleTaskClick = (taskId: number) => {
   console.log("Task clicked:", taskId);
-  // TODO: Navigate to task detail page
+  // TODO: Navigate to task details
 };
 
 const handleMachineClick = (machineName: string) => {
   console.log("Machine clicked:", machineName);
-  // TODO: Navigate to machine detail page
+  // TODO: Navigate to machine details or filter by machine
 };
 
 const handleRowClick = (row: Row<TaskHistorySummary>) => {
-  if (row.getIsGrouped()) {
-    if (row.getCanExpand()) {
-      row.getToggleExpandedHandler()();
-    }
-  } else {
+  if (row.getCanExpand()) {
+    row.getToggleExpandedHandler()();
+  } else if (!row.getIsGrouped()) {
     handleTaskClick(row.original.TaskID);
   }
 };
 
-const toggleGrouping = (columnId: string) => {
-  const currentGrouping = grouping.value;
-  const isGrouped = currentGrouping.includes(columnId);
-
-  if (isGrouped) {
-    grouping.value = currentGrouping.filter((id) => id !== columnId);
-  } else {
-    grouping.value = [...currentGrouping, columnId];
+const getCellTooltip = (cell: Cell<TaskHistorySummary, unknown>) => {
+  const value = cell.getValue();
+  if (cell.getIsGrouped()) {
+    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
   }
-
-  console.log("Grouping changed:", {
-    columnId,
-    isGrouped,
-    newGrouping: grouping.value,
-  });
+  return String(value || "");
 };
 
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
     console.log("Copied to clipboard:", text);
-  } catch {
-    // Fallback for older browsers
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-      document.execCommand("copy");
-      console.log("Copied to clipboard (fallback):", text);
-    } catch (error) {
-      console.error("Copy failed:", error);
-    }
-    document.body.removeChild(textArea);
+  } catch (err) {
+    console.error("Failed to copy: ", err);
   }
 };
 
 const handleCellRightClick = (
   event: MouseEvent,
-  cell: { column: { id: string }; getValue: () => unknown },
+  cell: { getValue: () => unknown },
 ) => {
   event.preventDefault();
-
-  const cellValue = cell.getValue();
-
-  if (
-    cellValue &&
-    cellValue !== "-" &&
-    cellValue !== null &&
-    cellValue !== undefined
-  ) {
-    copyToClipboard(String(cellValue));
+  const value = String(cell.getValue() || "");
+  if (value) {
+    copyToClipboard(value);
   }
 };
 </script>
@@ -258,18 +414,96 @@ const handleCellRightClick = (
   <DataSection
     :loading="loading"
     :error="error"
-    :has-data="hasData"
-    :on-retry="refresh"
-    error-title="Task History Error"
-    empty-icon="📜"
-    empty-message="No task history available"
+    :has-data="hasData || false"
+    :empty-message="'No task history found'"
   >
-    <template #loading>Loading task history...</template>
+    <div class="mb-4 space-y-3">
+      <div
+        class="bg-base-100 border-base-300 flex flex-wrap items-center gap-3 rounded-lg border p-3 shadow-sm"
+      >
+        <div class="form-control">
+          <input
+            v-model="store.searchQuery"
+            type="text"
+            placeholder="Search history..."
+            class="input input-bordered input-sm w-56"
+          />
+        </div>
+
+        <div class="border-base-300 border-l pl-3">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-base-content/70 text-sm font-medium whitespace-nowrap"
+              >Group by</span
+            >
+            <select
+              :value="store.selectedGroupBy"
+              class="select select-bordered select-sm w-36"
+              @change="handleGroupByChange"
+            >
+              <option value="">None</option>
+              <option value="Name">Task Type</option>
+              <option value="CompletedBy">Machine</option>
+              <option value="Result">Result</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="border-base-300 border-l pl-3">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-base-content/70 text-sm font-medium whitespace-nowrap"
+              >Status</span
+            >
+            <select
+              :value="store.resultFilter"
+              class="select select-bordered select-sm w-32"
+              @change="handleResultFilterChange"
+            >
+              <option value="all">All</option>
+              <option value="success">Success</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="border-base-300 border-l pl-3">
+          <label
+            class="flex cursor-pointer items-center gap-2 whitespace-nowrap"
+          >
+            <input
+              v-model="store.showAggregateInfo"
+              type="checkbox"
+              class="checkbox checkbox-sm"
+            />
+            <span class="text-sm">Column stats</span>
+          </label>
+        </div>
+
+        <div class="border-base-300 border-l pl-3">
+          <button
+            class="btn btn-outline btn-sm"
+            :class="{ loading }"
+            @click="refresh"
+          >
+            <span v-if="!loading">🔄</span>
+            Refresh
+          </button>
+        </div>
+
+        <div class="text-base-content/60 ml-auto text-xs">
+          <span class="font-medium">{{ totalTasks }}</span> tasks
+          <span v-if="store.grouping.length > 0" class="text-base-content/40">
+            • <span class="font-medium">{{ getGroupCount() }}</span> groups
+          </span>
+        </div>
+      </div>
+    </div>
 
     <div
-      class="bg-base-100 border-base-300/30 overflow-x-auto rounded-lg border shadow-md"
+      class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
-      <table class="table-zebra table-sm table w-full">
+      <table class="table w-full">
         <thead class="bg-base-200/50 sticky top-0 z-10">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
@@ -281,103 +515,133 @@ const handleCellRightClick = (
               :key="header.id"
               :colSpan="header.colSpan"
               :style="{ width: `${header.getSize()}px` }"
-              class="text-base-content border-base-300/30 border-r bg-transparent px-3 py-3 font-medium backdrop-blur-sm first:rounded-tl-lg last:rounded-tr-lg last:border-r-0"
+              class="text-base-content border-base-300/30 border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
             >
-              <div
-                v-if="header.column.getCanSort()"
-                class="flex cursor-pointer items-center gap-2 select-none"
-                @click="header.column.getToggleSortingHandler()?.($event)"
-              >
-                <FlexRender
-                  :render="header.column.columnDef.header"
-                  :props="header.getContext()"
-                />
-                <span
-                  class="text-sm transition-transform duration-200"
+              <div class="space-y-1">
+                <div
                   :class="{
-                    'rotate-180 transform':
-                      header.column.getIsSorted() === 'desc',
-                    'opacity-50': !header.column.getIsSorted(),
+                    'cursor-pointer select-none': header.column.getCanSort(),
                   }"
+                  @click="
+                    header.column.getCanSort() &&
+                    header.column.getToggleSortingHandler()?.($event)
+                  "
                 >
-                  {{ header.column.getIsSorted() ? "▲" : "▼" }}
-                </span>
-              </div>
-              <FlexRender
-                v-else
-                :render="header.column.columnDef.header"
-                :props="header.getContext()"
-              />
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <FlexRender
+                        v-if="!header.isPlaceholder"
+                        :render="header.column.columnDef.header"
+                        :props="header.getContext()"
+                      />
+                      <button
+                        v-if="header.column.getCanGroup()"
+                        :title="
+                          header.column.getIsGrouped()
+                            ? 'Remove grouping'
+                            : 'Group by this column'
+                        "
+                        class="btn btn-xs btn-circle btn-ghost opacity-60 hover:opacity-100"
+                        :class="{
+                          'btn-primary': header.column.getIsGrouped(),
+                        }"
+                        @click.stop="store.toggleGrouping(header.column.id)"
+                      >
+                        <span v-if="header.column.getIsGrouped()">📌</span>
+                        <span v-else>📂</span>
+                      </button>
+                    </div>
 
-              <button
-                v-if="header.column.getCanGroup()"
-                :title="header.column.getIsGrouped() ? 'Ungroup' : 'Group'"
-                class="btn btn-xs btn-circle btn-ghost ml-1 opacity-60 hover:opacity-100"
-                @click.stop="toggleGrouping(header.column.id)"
-              >
-                <MagnifyingGlassMinusIcon
-                  v-if="header.column.getIsGrouped()"
-                  class="h-3 w-3"
-                />
-                <MagnifyingGlassPlusIcon v-else class="h-3 w-3" />
-              </button>
+                    <span
+                      v-if="header.column.getIsSorted()"
+                      class="text-sm transition-transform duration-200"
+                      :class="{
+                        'rotate-180 transform':
+                          header.column.getIsSorted() === 'desc',
+                      }"
+                    >
+                      ▲
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  v-if="
+                    store.showAggregateInfo && header.column.id !== 'actions'
+                  "
+                  class="text-base-content/60 space-y-0.5 text-xs"
+                >
+                  <div v-if="getColumnAggregateInfo(header.column.id)">
+                    {{ getColumnAggregateInfo(header.column.id) }}
+                  </div>
+                </div>
+              </div>
             </th>
           </tr>
         </thead>
+
         <tbody>
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :class="[
-              'cursor-pointer transition-all duration-200',
-              !row.original?.Result && !row.getIsGrouped()
-                ? 'bg-error/10 hover:bg-error/20 text-error-content'
-                : 'hover:bg-base-200/70',
-            ]"
+            class="bg-base-100 hover:bg-primary! hover:text-primary-content cursor-pointer transition-all duration-200"
+            :class="{
+              'bg-base-200/30': row.getIsGrouped(),
+              'font-medium': row.getIsGrouped(),
+            }"
             @click="handleRowClick(row)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              :title="String(cell.getValue() || '')"
-              class="border-base-300/30 cursor-context-menu border-r px-3 py-4 text-sm font-medium last:border-r-0"
+              :title="getCellTooltip(cell)"
+              class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+              :class="{
+                'font-semibold': cell.getIsGrouped(),
+                'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
+              }"
               @contextmenu="handleCellRightClick($event, cell)"
             >
-              <template v-if="cell.column.getIsGrouped()">
-                <template v-if="row.getCanExpand()">
-                  <div class="flex items-center gap-2 font-semibold">
-                    <MagnifyingGlassMinusIcon
-                      v-if="row.getIsExpanded()"
-                      class="text-success h-4 w-4"
-                    />
-                    <MagnifyingGlassPlusIcon
-                      v-else
-                      class="text-success h-4 w-4"
-                    />
-                    <FlexRender
-                      :render="cell.column.columnDef.cell"
-                      :props="cell.getContext()"
-                    />
-                    <span class="badge badge-success badge-sm">
-                      {{ row.subRows.length }}
-                    </span>
+              <template v-if="cell.getIsGrouped()">
+                <div class="flex items-center gap-2 font-semibold">
+                  <span class="text-primary">
+                    {{ row.getIsExpanded() ? "📂" : "📁" }}
+                  </span>
+                  <span class="capitalize">{{
+                    cell.getValue() || "Unassigned"
+                  }}</span>
+                  <div class="badge badge-primary badge-sm">
+                    {{ row.subRows.length }}
                   </div>
-                </template>
+                </div>
               </template>
-              <FlexRender
-                v-else
-                :render="cell.column.columnDef.cell"
-                :props="cell.getContext()"
-              />
+
+              <template v-else-if="cell.getIsAggregated()">
+                <div class="text-base-content/70 text-center">
+                  <FlexRender
+                    :render="
+                      cell.column.columnDef.aggregatedCell ??
+                      cell.column.columnDef.cell
+                    "
+                    :props="cell.getContext()"
+                  />
+                </div>
+              </template>
+
+              <template v-else-if="cell.getIsPlaceholder()">
+                <div class="text-base-content/40">—</div>
+              </template>
+
+              <template v-else>
+                <FlexRender
+                  :render="cell.column.columnDef.cell"
+                  :props="cell.getContext()"
+                />
+              </template>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Results count -->
-    <div class="text-base-content/70 mt-4 text-sm">
-      Showing {{ rawData?.length || 0 }} completed tasks
     </div>
   </DataSection>
 </template>

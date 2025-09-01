@@ -1,46 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import TabsContainer from "@/components/ui/TabsContainer.vue";
-import OverviewTab from "./components/OverviewTab.vue";
-import ActiveTasksTab from "./components/ActiveTasksTab.vue";
-import HistoryTab from "./components/HistoryTab.vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-const activeTab = ref("overview");
+const router = useRouter();
 
-const tabs = [
-  {
-    id: "overview",
-    label: "Overview",
-    icon: "📊",
-  },
-  {
-    id: "active",
-    label: "Active Tasks",
-    icon: "⚡",
-  },
-  {
-    id: "history",
-    label: "History",
-    icon: "📜",
-  },
-];
+// Redirect to overview by default
+onMounted(() => {
+  router.replace("/tasks/overview");
+});
 </script>
 
 <template>
   <div class="p-6">
-    <!-- Tab Navigation and Content -->
-    <TabsContainer v-model="activeTab" :tabs="tabs">
-      <template #default="{ activeTab: currentTab }">
-        <div v-show="currentTab === 'overview'">
-          <OverviewTab />
-        </div>
-        <div v-show="currentTab === 'active'">
-          <ActiveTasksTab />
-        </div>
-        <div v-show="currentTab === 'history'">
-          <HistoryTab />
-        </div>
-      </template>
-    </TabsContainer>
+    <div class="text-center">
+      <div class="loading loading-spinner loading-lg"></div>
+      <p class="text-base-content/70 mt-4">Redirecting to tasks overview...</p>
+    </div>
   </div>
 </template>
