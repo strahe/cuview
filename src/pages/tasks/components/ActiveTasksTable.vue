@@ -1,8 +1,351 @@
+<script setup lang="ts">
+import { computed, h, ref } from "vue";
+import {
+  createColumnHelper,
+  useVueTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getGroupedRowModel,
+  getExpandedRowModel,
+  FlexRender,
+  type ColumnFiltersState,
+  type Cell,
+} from "@tanstack/vue-table";
+import { formatDistanceToNow } from "date-fns";
+import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useActiveTasksTableStore } from "@/stores/activeTasksTable";
+import type { TaskSummary } from "@/types/task";
+import TaskStatusBadge from "./TaskStatusBadge.vue";
+import DataSection from "@/components/ui/DataSection.vue";
+
+const {
+  data: rawData,
+  loading,
+  error,
+  refresh,
+} = useCachedQuery<TaskSummary[]>("ClusterTaskSummary", [], {
+  pollingInterval: 2000,
+});
+
+const store = useActiveTasksTableStore();
+
+const hasData = computed(() => {
+  return Array.isArray(rawData.value) && rawData.value.length > 0;
+});
+
+const filteredData = computed(() => {
+  if (!Array.isArray(rawData.value)) return [];
+
+  let filtered = rawData.value;
+
+  if (store.searchQuery) {
+    const query = store.searchQuery.toLowerCase();
+    filtered = filtered.filter(
+      (task) =>
+        task.Name?.toLowerCase().includes(query) ||
+        task.ID?.toString().includes(query) ||
+        task.Owner?.toLowerCase().includes(query) ||
+        task.Miner?.toLowerCase().includes(query),
+    );
+  }
+
+  return filtered;
+});
+
+const totalTasks = computed(() => filteredData.value.length);
+
+const columnHelper = createColumnHelper<TaskSummary>();
+
+const columns = [
+  columnHelper.accessor("Name", {
+    header: "Task Type",
+    size: 200,
+    enableGrouping: true,
+    cell: (info) => {
+      const taskName = info.getValue();
+      return h("span", { class: "font-semibold capitalize" }, taskName);
+    },
+    aggregatedCell: (info) => {
+      const count = info.table.getRowModel().rows.length;
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${count} tasks`,
+      );
+    },
+  }),
+  columnHelper.accessor("ID", {
+    header: "Task ID",
+    size: 120,
+    enableGrouping: false,
+    cell: (info) => {
+      const taskId = info.getValue();
+      return h(
+        "button",
+        {
+          class: "link link-primary font-mono text-sm hover:link-hover",
+          onClick: () => handleTaskClick(taskId),
+        },
+        `#${taskId.toString()}`,
+      );
+    },
+    aggregatedCell: () => "—",
+  }),
+  columnHelper.accessor("SincePosted", {
+    header: "Posted",
+    size: 150,
+    enableGrouping: false,
+    cell: (info) => {
+      const date = new Date(info.getValue());
+      const timeAgo = formatDistanceToNow(date, { addSuffix: true });
+      return h(
+        "span",
+        {
+          class: "text-sm text-base-content/80",
+          title: date.toLocaleString(),
+        },
+        timeAgo,
+      );
+    },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskSummary }[] };
+      const rows = context.subRows || [];
+      if (rows.length === 0) return "—";
+
+      const dates = rows.map((row) => new Date(row.original.SincePosted));
+      const oldest = Math.min(...dates.map((d) => d.getTime()));
+      const newest = Math.max(...dates.map((d) => d.getTime()));
+
+      return h("div", { class: "text-xs text-base-content/70" }, [
+        h(
+          "div",
+          `Oldest: ${formatDistanceToNow(new Date(oldest), { addSuffix: true })}`,
+        ),
+        h(
+          "div",
+          `Newest: ${formatDistanceToNow(new Date(newest), { addSuffix: true })}`,
+        ),
+      ]);
+    },
+  }),
+  columnHelper.accessor("Owner", {
+    header: "Owner",
+    size: 150,
+    enableGrouping: true,
+    cell: (info) => {
+      const owner = info.getValue();
+      if (!owner) {
+        return h("div", { class: "flex items-center gap-2" }, [
+          h(TaskStatusBadge, { status: "pending", size: "xs" }),
+          h("span", { class: "text-xs text-base-content/60" }, "Pending"),
+        ]);
+      }
+      return h(
+        "button",
+        {
+          class: "link link-secondary font-mono text-sm hover:link-hover",
+          onClick: () => handleMachineClick(owner),
+        },
+        owner,
+      );
+    },
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskSummary }[] };
+      const rows = context.subRows || [];
+      const owners = new Set(
+        rows.map((row) => row.original.Owner).filter(Boolean),
+      );
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${owners.size} owner${owners.size !== 1 ? "s" : ""}`,
+      );
+    },
+  }),
+  columnHelper.accessor("Miner", {
+    header: "Miner",
+    size: 120,
+    enableGrouping: true,
+    cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
+    aggregatedCell: (info) => {
+      const context = info as { subRows?: { original: TaskSummary }[] };
+      const rows = context.subRows || [];
+      const miners = new Set(
+        rows.map((row) => row.original.Miner).filter(Boolean),
+      );
+      return h(
+        "span",
+        { class: "text-sm text-base-content/70" },
+        `${miners.size} miner${miners.size !== 1 ? "s" : ""}`,
+      );
+    },
+  }),
+];
+
+const getGroupCount = () => {
+  const groupedRows =
+    store.grouping.length > 0
+      ? filteredData.value.reduce((groups, task) => {
+          const groupKey = task[store.grouping[0] as keyof TaskSummary];
+          if (!groups.has(groupKey)) {
+            groups.add(groupKey);
+          }
+          return groups;
+        }, new Set()).size
+      : 0;
+  return groupedRows;
+};
+
+const handleGroupByChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  store.setSelectedGroupBy(target.value);
+};
+
+const handleTaskClick = (taskId: number) => {
+  console.log("Task clicked:", taskId);
+};
+
+const handleMachineClick = (machineName: string) => {
+  console.log("Machine clicked:", machineName);
+};
+
+const handleRowClick = (row: {
+  original: TaskSummary;
+  getCanExpand: () => boolean;
+  getToggleExpandedHandler: () => () => void;
+  getIsGrouped: () => boolean;
+}) => {
+  if (row.getCanExpand()) {
+    row.getToggleExpandedHandler()();
+  } else if (!row.getIsGrouped()) {
+    handleTaskClick(row.original.ID);
+  }
+};
+
+const handleCellRightClick = (
+  cell: Cell<TaskSummary, unknown>,
+  event: MouseEvent,
+) => {
+  event.preventDefault();
+  const value = String(cell.getValue() || "");
+  if (value) {
+    navigator.clipboard?.writeText(value);
+    console.log("Copied to clipboard:", value);
+  }
+};
+
+const columnFilters = ref<ColumnFiltersState>([]);
+
+const table = useVueTable({
+  get data() {
+    return filteredData.value;
+  },
+  columns,
+  getRowId: (row: TaskSummary) => `task-${row.ID}`,
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getGroupedRowModel: getGroupedRowModel(),
+  getExpandedRowModel: getExpandedRowModel(),
+  enableGrouping: true,
+  autoResetExpanded: false,
+  state: {
+    get sorting() {
+      return store.sorting;
+    },
+    get columnFilters() {
+      return columnFilters.value;
+    },
+    get grouping() {
+      return store.grouping;
+    },
+    get expanded() {
+      return store.expanded;
+    },
+  },
+  onSortingChange: (updaterOrValue) => {
+    const newSorting =
+      typeof updaterOrValue === "function"
+        ? updaterOrValue(store.sorting)
+        : updaterOrValue;
+    store.setSorting(newSorting);
+  },
+  onColumnFiltersChange: (updaterOrValue) => {
+    columnFilters.value =
+      typeof updaterOrValue === "function"
+        ? updaterOrValue(columnFilters.value)
+        : updaterOrValue;
+  },
+  onGroupingChange: (updaterOrValue) => {
+    const newGrouping =
+      typeof updaterOrValue === "function"
+        ? updaterOrValue(store.grouping)
+        : updaterOrValue;
+    store.setGrouping(newGrouping);
+  },
+  onExpandedChange: (updaterOrValue) => {
+    const newExpanded =
+      typeof updaterOrValue === "function"
+        ? updaterOrValue(store.expanded)
+        : updaterOrValue;
+    store.setExpanded(newExpanded);
+  },
+});
+
+const getColumnAggregateInfo = (columnId: string) => {
+  const data = filteredData.value;
+  if (!data.length) return "";
+
+  switch (columnId) {
+    case "Name": {
+      const taskTypes = data.reduce(
+        (acc: Record<string, number>, task) => {
+          acc[task.Name] = (acc[task.Name] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+      const uniqueCount = Object.keys(taskTypes).length;
+      return `${uniqueCount} unique types`;
+    }
+    case "Owner": {
+      const owners = new Set(data.map((task) => task.Owner).filter(Boolean));
+      const pending = data.filter((task) => !task.Owner).length;
+      return `${owners.size} owners${pending > 0 ? `, ${pending} pending` : ""}`;
+    }
+    case "Miner": {
+      const miners = new Set(data.map((task) => task.Miner).filter(Boolean));
+      return `${miners.size} unique miners`;
+    }
+    case "ID":
+      return `${data.length} total tasks`;
+    case "SincePosted": {
+      if (data.length === 0) return "";
+      const dates = data.map((task) => new Date(task.SincePosted));
+      const oldest = Math.min(...dates.map((d) => d.getTime()));
+      const newest = Math.max(...dates.map((d) => d.getTime()));
+      return `${formatDistanceToNow(new Date(oldest))} - ${formatDistanceToNow(new Date(newest))}`;
+    }
+    default:
+      return "";
+  }
+};
+
+const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
+  const value = cell.getValue();
+  if (cell.getIsGrouped()) {
+    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
+  }
+  return String(value || "");
+};
+</script>
+
 <template>
   <DataSection
     :loading="loading"
     :error="error"
-    :has-data="hasData || false"
+    :has-data="hasData"
     :empty-message="'No active tasks found'"
   >
     <div class="mb-4 space-y-3">
@@ -170,17 +513,23 @@
                 'font-semibold': cell.getIsGrouped(),
                 'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
               }"
-              @contextmenu="handleCellRightClick($event, cell)"
+              @contextmenu="handleCellRightClick(cell, $event)"
             >
               <template v-if="cell.getIsGrouped()">
                 <div class="flex items-center gap-2 font-semibold">
-                  <span class="text-primary">
+                  <span
+                    class="text-primary cursor-pointer"
+                    @click.stop="row.getToggleExpandedHandler()()"
+                  >
                     {{ row.getIsExpanded() ? "📂" : "📁" }}
                   </span>
                   <span class="capitalize">{{
                     cell.getValue() || "Unassigned"
                   }}</span>
-                  <div class="badge badge-primary badge-sm">
+                  <div
+                    class="badge badge-primary badge-sm cursor-pointer"
+                    @click.stop="row.getToggleExpandedHandler()()"
+                  >
                     {{ row.subRows.length }}
                   </div>
                 </div>
@@ -215,345 +564,3 @@
     </div>
   </DataSection>
 </template>
-
-<script setup lang="ts">
-import { computed, h, ref } from "vue";
-import {
-  useVueTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getGroupedRowModel,
-  getExpandedRowModel,
-  createColumnHelper,
-  FlexRender,
-  type ColumnFiltersState,
-  type Row,
-  type Cell,
-} from "@tanstack/vue-table";
-import { formatDistanceToNow } from "date-fns";
-import { useCachedQuery } from "@/composables/useCachedQuery";
-import { useActiveTasksTableStore } from "@/stores/activeTasksTable";
-import type { TaskSummary } from "@/types/task";
-import TaskStatusBadge from "./TaskStatusBadge.vue";
-import DataSection from "@/components/ui/DataSection.vue";
-
-const {
-  data: rawData,
-  loading,
-  error,
-  refresh,
-} = useCachedQuery<TaskSummary[]>("ClusterTaskSummary", [], {
-  pollingInterval: 2000,
-});
-
-const hasData = computed(() => {
-  return Array.isArray(rawData.value) && rawData.value.length > 0;
-});
-
-const store = useActiveTasksTableStore();
-
-const filteredData = computed(() => {
-  if (!Array.isArray(rawData.value)) return [];
-
-  let filtered = rawData.value;
-
-  if (store.searchQuery) {
-    const query = store.searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      (task) =>
-        task.Name?.toLowerCase().includes(query) ||
-        task.ID?.toString().includes(query) ||
-        task.Owner?.toLowerCase().includes(query) ||
-        task.Miner?.toLowerCase().includes(query),
-    );
-  }
-
-  return filtered;
-});
-
-const totalTasks = computed(() => filteredData.value.length);
-
-const columnHelper = createColumnHelper<TaskSummary>();
-
-const columns = [
-  columnHelper.accessor("Name", {
-    header: "Task Type",
-    size: 200,
-    enableGrouping: true,
-    cell: (info) => {
-      const taskName = info.getValue();
-      return h("span", { class: "font-semibold capitalize" }, taskName);
-    },
-    aggregatedCell: (info) => {
-      const count = info.table.getRowModel().rows.length;
-      return h(
-        "span",
-        { class: "text-sm text-base-content/70" },
-        `${count} tasks`,
-      );
-    },
-  }),
-  columnHelper.accessor("ID", {
-    header: "Task ID",
-    size: 120,
-    enableGrouping: false,
-    cell: (info) => {
-      const taskId = info.getValue();
-      return h(
-        "button",
-        {
-          class: "link link-primary font-mono text-sm hover:link-hover",
-          onClick: () => handleTaskClick(taskId),
-        },
-        `#${taskId.toString()}`,
-      );
-    },
-    aggregatedCell: () => "—",
-  }),
-  columnHelper.accessor("SincePosted", {
-    header: "Posted",
-    size: 150,
-    enableGrouping: false,
-    cell: (info) => {
-      const date = new Date(info.getValue());
-      const timeAgo = formatDistanceToNow(date, { addSuffix: true });
-      return h(
-        "span",
-        {
-          class: "text-sm text-base-content/80",
-          title: date.toLocaleString(),
-        },
-        timeAgo,
-      );
-    },
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      if (rows.length === 0) return "—";
-
-      const dates = rows.map((row) => new Date(row.original.SincePosted));
-      const oldest = Math.min(...dates.map((d) => d.getTime()));
-      const newest = Math.max(...dates.map((d) => d.getTime()));
-
-      return h("div", { class: "text-xs text-base-content/70" }, [
-        h(
-          "div",
-          `Oldest: ${formatDistanceToNow(new Date(oldest), { addSuffix: true })}`,
-        ),
-        h(
-          "div",
-          `Newest: ${formatDistanceToNow(new Date(newest), { addSuffix: true })}`,
-        ),
-      ]);
-    },
-  }),
-  columnHelper.accessor("Owner", {
-    header: "Owner",
-    size: 150,
-    enableGrouping: true,
-    cell: (info) => {
-      const owner = info.getValue();
-      if (!owner) {
-        return h("div", { class: "flex items-center gap-2" }, [
-          h(TaskStatusBadge, { status: "pending", size: "xs" }),
-          h("span", { class: "text-xs text-base-content/60" }, "Pending"),
-        ]);
-      }
-      return h(
-        "button",
-        {
-          class: "link link-secondary font-mono text-sm hover:link-hover",
-          onClick: () => handleMachineClick(owner),
-        },
-        owner,
-      );
-    },
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      const owners = new Set(
-        rows.map((row) => row.original.Owner).filter(Boolean),
-      );
-      return h(
-        "span",
-        { class: "text-sm text-base-content/70" },
-        `${owners.size} owner${owners.size !== 1 ? "s" : ""}`,
-      );
-    },
-  }),
-  columnHelper.accessor("Miner", {
-    header: "Miner",
-    size: 120,
-    enableGrouping: true,
-    cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      const miners = new Set(
-        rows.map((row) => row.original.Miner).filter(Boolean),
-      );
-      return h(
-        "span",
-        { class: "text-sm text-base-content/70" },
-        `${miners.size} miner${miners.size !== 1 ? "s" : ""}`,
-      );
-    },
-  }),
-];
-
-const columnFilters = ref<ColumnFiltersState>([]);
-
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
-  },
-  columns,
-  getRowId: (row: TaskSummary) => `task-${row.ID}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  enableGrouping: true,
-  autoResetExpanded: false,
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get columnFilters() {
-      return columnFilters.value;
-    },
-    get grouping() {
-      return store.grouping;
-    },
-    get expanded() {
-      return store.expanded;
-    },
-  },
-  onSortingChange: (updaterOrValue) => {
-    const newSorting =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.sorting)
-        : updaterOrValue;
-    store.setSorting(newSorting);
-  },
-  onColumnFiltersChange: (updaterOrValue) => {
-    columnFilters.value =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(columnFilters.value)
-        : updaterOrValue;
-  },
-  onGroupingChange: (updaterOrValue) => {
-    const newGrouping =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.grouping)
-        : updaterOrValue;
-    store.setGrouping(newGrouping);
-  },
-  onExpandedChange: (updaterOrValue) => {
-    const newExpanded =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.expanded)
-        : updaterOrValue;
-    store.setExpanded(newExpanded);
-  },
-});
-
-const getColumnAggregateInfo = (columnId: string) => {
-  const data = filteredData.value;
-  if (!data.length) return "";
-
-  switch (columnId) {
-    case "Name": {
-      const taskTypes = data.reduce(
-        (acc, task) => {
-          acc[task.Name] = (acc[task.Name] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-      const uniqueCount = Object.keys(taskTypes).length;
-      return `${uniqueCount} unique types`;
-    }
-    case "Owner": {
-      const owners = new Set(data.map((task) => task.Owner).filter(Boolean));
-      const pending = data.filter((task) => !task.Owner).length;
-      return `${owners.size} owners${pending > 0 ? `, ${pending} pending` : ""}`;
-    }
-    case "Miner": {
-      const miners = new Set(data.map((task) => task.Miner).filter(Boolean));
-      return `${miners.size} unique miners`;
-    }
-    case "ID":
-      return `${data.length} total tasks`;
-    case "SincePosted": {
-      if (data.length === 0) return "";
-      const dates = data.map((task) => new Date(task.SincePosted));
-      const oldest = Math.min(...dates.map((d) => d.getTime()));
-      const newest = Math.max(...dates.map((d) => d.getTime()));
-      return `${formatDistanceToNow(new Date(oldest))} - ${formatDistanceToNow(new Date(newest))}`;
-    }
-    default:
-      return "";
-  }
-};
-
-const getGroupCount = () => {
-  const groupedRows = table
-    .getRowModel()
-    .rows.filter((row) => row.getIsGrouped());
-  return groupedRows.length;
-};
-
-const handleGroupByChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setSelectedGroupBy(target.value);
-};
-
-const handleTaskClick = (taskId: number) => {
-  console.log("Task clicked:", taskId);
-  // TODO: Navigate to task details
-};
-
-const handleMachineClick = (machineName: string) => {
-  console.log("Machine clicked:", machineName);
-  // TODO: Navigate to machine details or filter by machine
-};
-
-const handleRowClick = (row: Row<TaskSummary>) => {
-  if (row.getCanExpand()) {
-    row.getToggleExpandedHandler()();
-  } else if (!row.getIsGrouped()) {
-    handleTaskClick(row.original.ID);
-  }
-};
-
-const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
-  const value = cell.getValue();
-  if (cell.getIsGrouped()) {
-    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
-  }
-  return String(value || "");
-};
-
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    console.log("Copied to clipboard:", text);
-  } catch (err) {
-    console.error("Failed to copy: ", err);
-  }
-};
-
-const handleCellRightClick = (
-  event: MouseEvent,
-  cell: { getValue: () => unknown },
-) => {
-  event.preventDefault();
-  const value = String(cell.getValue() || "");
-  if (value) {
-    copyToClipboard(value);
-  }
-};
-</script>
