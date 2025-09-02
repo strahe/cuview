@@ -16,7 +16,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useTableHelpers } from "@/composables/useTableHelpers";
-import { useTaskHistoryTableStore } from "@/stores/taskHistoryTable";
+import { useTableState } from "@/composables/useTableState";
 import DataSection from "@/components/ui/DataSection.vue";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
@@ -32,7 +32,10 @@ const {
   pollingInterval: 30000,
 });
 
-const store = useTaskHistoryTableStore();
+const store = useTableState("taskHistoryTable", {
+  defaultSorting: [{ id: "Start", desc: true }],
+  customFilters: { resultFilter: "all" },
+});
 
 const filteredData = computed(() => {
   if (!Array.isArray(rawData.value)) return [];
@@ -52,8 +55,8 @@ const filteredData = computed(() => {
   }
 
   // Result filter
-  if (store.resultFilter !== "all") {
-    const isSuccess = store.resultFilter === "success";
+  if (store.customFilters.resultFilter !== "all") {
+    const isSuccess = store.customFilters.resultFilter === "success";
     filtered = filtered.filter((task) => task.Result === isSuccess);
   }
 
@@ -360,7 +363,10 @@ const handleGroupByChange = (event: Event) => {
 
 const handleResultFilterChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
-  store.setResultFilter(target.value as "all" | "success" | "failed");
+  store.setCustomFilter(
+    "resultFilter",
+    target.value as "all" | "success" | "failed",
+  );
 };
 
 const handleTaskClick = (taskId: number) => {
@@ -454,7 +460,7 @@ const handleCellRightClick = (
             Status
           </span>
           <select
-            :value="store.resultFilter"
+            :value="store.customFilters.resultFilter"
             class="select select-bordered select-sm w-32"
             @change="handleResultFilterChange"
           >

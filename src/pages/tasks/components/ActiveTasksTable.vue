@@ -15,7 +15,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useTableHelpers } from "@/composables/useTableHelpers";
-import { useActiveTasksTableStore } from "@/stores/activeTasksTable";
+import { useTableState } from "@/composables/useTableState";
 import DataSection from "@/components/ui/DataSection.vue";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
@@ -33,7 +33,9 @@ const {
 });
 
 // Table store
-const store = useActiveTasksTableStore();
+const store = useTableState("activeTasksTable", {
+  defaultSorting: [{ id: "SincePosted", desc: true }],
+});
 
 // Grouping options
 const groupingOptions = [
@@ -161,19 +163,23 @@ const table = useVueTable({
     },
   },
   onSortingChange: (updater) => {
-    const newSorting = typeof updater === "function" ? updater(store.sorting) : updater;
+    const newSorting =
+      typeof updater === "function" ? updater(store.sorting) : updater;
     store.setSorting(newSorting);
   },
   onGroupingChange: (updater) => {
-    const newGrouping = typeof updater === "function" ? updater(store.grouping) : updater;
+    const newGrouping =
+      typeof updater === "function" ? updater(store.grouping) : updater;
     store.setGrouping(newGrouping);
   },
   onExpandedChange: (updater) => {
-    const newExpanded = typeof updater === "function" ? updater(store.expanded) : updater;
+    const newExpanded =
+      typeof updater === "function" ? updater(store.expanded) : updater;
     store.setExpanded(newExpanded);
   },
   onGlobalFilterChange: (updater) => {
-    const newValue = typeof updater === "function" ? updater(store.searchQuery) : updater;
+    const newValue =
+      typeof updater === "function" ? updater(store.searchQuery) : updater;
     store.setSearchQuery(newValue || "");
   },
 });
