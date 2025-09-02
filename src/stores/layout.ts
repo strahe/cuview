@@ -6,13 +6,11 @@ export type Theme = "light" | "dark";
 export const useLayoutStore = defineStore(
   "layout",
   () => {
-    // State
     const sidebarCollapsed = ref(false);
     const searchVisible = ref(false);
     const notificationsVisible = ref(false);
     const theme = ref<Theme>("dark");
 
-    // Computed
     const isDark = computed(() => theme.value === "dark");
 
     // Apply theme to document
@@ -23,7 +21,6 @@ export const useLayoutStore = defineStore(
     // Watch for theme changes and apply them
     watch(theme, applyTheme, { immediate: true });
 
-    // Actions
     function toggleSidebar() {
       sidebarCollapsed.value = !sidebarCollapsed.value;
     }
@@ -49,13 +46,11 @@ export const useLayoutStore = defineStore(
     }
 
     return {
-      // State
       sidebarCollapsed,
       searchVisible,
       notificationsVisible,
       theme,
       isDark,
-      // Actions
       toggleSidebar,
       toggleSearch,
       toggleNotifications,

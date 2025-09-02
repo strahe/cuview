@@ -49,7 +49,7 @@ const percentage = computed(() => Math.round((props.value / props.max) * 100));
       <span v-if="showPercentage">{{ percentage }}%</span>
     </div>
 
-    <!-- 使用 reka-ui Progress 提供语义化和可访问性 -->
+    <!-- Use reka-ui Progress for semantic and accessibility features -->
     <ProgressRoot :value="value" :max="max" class="w-full">
       <ProgressIndicator
         class="progress w-full"

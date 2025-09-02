@@ -38,10 +38,8 @@ export const useConfigStore = defineStore(
     }
 
     return {
-      // State
       endpoint,
       isConfigured,
-      // Actions
       setEndpoint,
       getEndpoint,
       initializeFromEnv,

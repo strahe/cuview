@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRoute } from "vue-router";
 import {
   HomeIcon,
   CpuChipIcon,
@@ -19,6 +20,7 @@ interface NavItem {
   icon: unknown;
   active?: boolean;
   to: string;
+  activePattern?: string; // Optional pattern for active state matching
 }
 
 const navItems: NavItem[] = [
@@ -30,7 +32,8 @@ const navItems: NavItem[] = [
   {
     label: "Tasks",
     icon: WrenchScrewdriverIcon,
-    to: "/tasks",
+    to: "/tasks/overview",
+    activePattern: "^/tasks/.*", // Match all /tasks/* routes
   },
   {
     label: "Machines",
@@ -83,6 +86,19 @@ const { isCollapsed = false } = defineProps<{
   isCollapsed?: boolean;
 }>();
 
+const route = useRoute();
+
+// Check if navigation item should be active
+const isNavItemActive = (item: NavItem): boolean => {
+  if (item.activePattern) {
+    // If has custom active pattern, use regex matching
+    const pattern = new RegExp(item.activePattern);
+    return pattern.test(route.path);
+  }
+  // Otherwise use exact matching
+  return route.path === item.to;
+};
+
 const sidebarClasses = computed(() => [
   "transition-all duration-300 ease-in-out bg-base-100 shadow-xl h-screen flex flex-col",
   isCollapsed ? "w-16" : "w-64",
@@ -120,8 +136,12 @@ const sidebarClasses = computed(() => [
             <router-link
               :to="item.to"
               class="hover:bg-base-200 group relative flex h-10 items-center rounded-lg text-sm font-medium transition-all duration-200"
-              :class="[isCollapsed ? 'w-10 justify-center px-2' : 'gap-3 px-3']"
-              active-class="bg-primary text-primary-content hover:bg-primary/90"
+              :class="[
+                isCollapsed ? 'w-10 justify-center px-2' : 'gap-3 px-3',
+                isNavItemActive(item)
+                  ? 'bg-primary text-primary-content hover:bg-primary/90'
+                  : '',
+              ]"
               :title="isCollapsed ? item.label : ''"
             >
               <component :is="item.icon" class="size-5 shrink-0" />
