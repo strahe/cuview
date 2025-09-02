@@ -15,8 +15,11 @@ import {
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useTaskHistoryTableStore } from "@/stores/taskHistoryTable";
 import DataSection from "@/components/ui/DataSection.vue";
+import TableControls from "@/components/table/TableControls.vue";
+import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { TaskHistorySummary } from "@/types/task";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 
@@ -27,10 +30,6 @@ const {
   refresh,
 } = useCachedQuery<TaskHistorySummary[]>("ClusterTaskHistory", [], {
   pollingInterval: 30000,
-});
-
-const hasData = computed(() => {
-  return Array.isArray(rawData.value) && rawData.value.length > 0;
 });
 
 const store = useTaskHistoryTableStore();
@@ -60,8 +59,6 @@ const filteredData = computed(() => {
 
   return filtered;
 });
-
-const totalTasks = computed(() => filteredData.value.length);
 
 const columnHelper = createColumnHelper<TaskHistorySummary>();
 
@@ -301,6 +298,9 @@ const table = useVueTable({
   },
 });
 
+// Table helper utilities
+const { hasData, totalItems } = useTableHelpers(rawData, table);
+
 const getColumnAggregateInfo = (columnId: string) => {
   const data = filteredData.value;
   if (!data.length) return "";
@@ -414,91 +414,76 @@ const handleCellRightClick = (
   <DataSection
     :loading="loading"
     :error="error"
-    :has-data="hasData || false"
-    :empty-message="'No task history found'"
+    :has-data="hasData"
+    empty-message="No task history found"
   >
-    <div class="mb-4 space-y-3">
-      <div
-        class="bg-base-100 border-base-300 flex flex-wrap items-center gap-3 rounded-lg border p-3 shadow-sm"
-      >
-        <div class="form-control">
-          <input
-            v-model="store.searchQuery"
-            type="text"
-            placeholder="Search history..."
-            class="input input-bordered input-sm w-56"
-          />
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <div class="flex items-center gap-2">
-            <span
-              class="text-base-content/70 text-sm font-medium whitespace-nowrap"
-              >Group by</span
-            >
-            <select
-              :value="store.selectedGroupBy"
-              class="select select-bordered select-sm w-36"
-              @change="handleGroupByChange"
-            >
-              <option value="">None</option>
-              <option value="Name">Task Type</option>
-              <option value="CompletedBy">Machine</option>
-              <option value="Result">Result</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <div class="flex items-center gap-2">
-            <span
-              class="text-base-content/70 text-sm font-medium whitespace-nowrap"
-              >Status</span
-            >
-            <select
-              :value="store.resultFilter"
-              class="select select-bordered select-sm w-32"
-              @change="handleResultFilterChange"
-            >
-              <option value="all">All</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <label
-            class="flex cursor-pointer items-center gap-2 whitespace-nowrap"
+    <!-- Control bar -->
+    <TableControls
+      v-model:search-input="store.searchQuery"
+      search-placeholder="Search history..."
+      :loading="loading"
+      @refresh="refresh"
+    >
+      <!-- Group by -->
+      <div class="border-base-300 border-l pl-3">
+        <div class="flex items-center gap-2">
+          <span
+            class="text-base-content/70 text-sm font-medium whitespace-nowrap"
           >
-            <input
-              v-model="store.showAggregateInfo"
-              type="checkbox"
-              class="checkbox checkbox-sm"
-            />
-            <span class="text-sm">Column stats</span>
-          </label>
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <button
-            class="btn btn-outline btn-sm"
-            :class="{ loading }"
-            @click="refresh"
-          >
-            <span v-if="!loading">🔄</span>
-            Refresh
-          </button>
-        </div>
-
-        <div class="text-base-content/60 ml-auto text-xs">
-          <span class="font-medium">{{ totalTasks }}</span> tasks
-          <span v-if="store.grouping.length > 0" class="text-base-content/40">
-            • <span class="font-medium">{{ getGroupCount() }}</span> groups
+            Group by
           </span>
+          <select
+            :value="store.selectedGroupBy"
+            class="select select-bordered select-sm w-36"
+            @change="handleGroupByChange"
+          >
+            <option value="">None</option>
+            <option value="Name">Task Type</option>
+            <option value="CompletedBy">Machine</option>
+            <option value="Result">Result</option>
+          </select>
         </div>
       </div>
-    </div>
+
+      <!-- Status Filter -->
+      <div class="border-base-300 border-l pl-3">
+        <div class="flex items-center gap-2">
+          <span
+            class="text-base-content/70 text-sm font-medium whitespace-nowrap"
+          >
+            Status
+          </span>
+          <select
+            :value="store.resultFilter"
+            class="select select-bordered select-sm w-32"
+            @change="handleResultFilterChange"
+          >
+            <option value="all">All</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Column stats -->
+      <div class="border-base-300 border-l pl-3">
+        <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap">
+          <input
+            v-model="store.showAggregateInfo"
+            type="checkbox"
+            class="checkbox checkbox-sm"
+          />
+          <span class="text-sm">Column stats</span>
+        </label>
+      </div>
+
+      <template #stats>
+        <span class="font-medium">{{ totalItems }}</span> tasks
+        <span v-if="store.grouping.length > 0" class="text-base-content/40">
+          • <span class="font-medium">{{ getGroupCount() }}</span> groups
+        </span>
+      </template>
+    </TableControls>
 
     <div
       class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
@@ -565,16 +550,12 @@ const handleCellRightClick = (
                   </div>
                 </div>
 
-                <div
-                  v-if="
+                <ColumnStats
+                  :show-stats="
                     store.showAggregateInfo && header.column.id !== 'actions'
                   "
-                  class="text-base-content/60 space-y-0.5 text-xs"
-                >
-                  <div v-if="getColumnAggregateInfo(header.column.id)">
-                    {{ getColumnAggregateInfo(header.column.id) }}
-                  </div>
-                </div>
+                  :stats-text="getColumnAggregateInfo(header.column.id)"
+                />
               </div>
             </th>
           </tr>

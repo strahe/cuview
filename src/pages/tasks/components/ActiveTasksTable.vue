@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import { computed, h, ref } from "vue";
+import { computed, h } from "vue";
 import {
-  createColumnHelper,
   useVueTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
   getGroupedRowModel,
   getExpandedRowModel,
+  createColumnHelper,
   FlexRender,
-  type ColumnFiltersState,
+  type Row,
   type Cell,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useActiveTasksTableStore } from "@/stores/activeTasksTable";
-import type { TaskSummary } from "@/types/task";
-import TaskStatusBadge from "./TaskStatusBadge.vue";
 import DataSection from "@/components/ui/DataSection.vue";
+import TableControls from "@/components/table/TableControls.vue";
+import ColumnStats from "@/components/table/ColumnStats.vue";
+import TaskStatusBadge from "./TaskStatusBadge.vue";
+import type { TaskSummary } from "@/types/task";
 
+// Data query
 const {
   data: rawData,
   loading,
@@ -28,33 +32,23 @@ const {
   pollingInterval: 2000,
 });
 
+// Table store
 const store = useActiveTasksTableStore();
 
-const hasData = computed(() => {
-  return Array.isArray(rawData.value) && rawData.value.length > 0;
-});
+// Grouping options
+const groupingOptions = [
+  { value: "Name", label: "Task Type" },
+  { value: "Owner", label: "Owner" },
+  { value: "Miner", label: "Miner" },
+];
 
-const filteredData = computed(() => {
-  if (!Array.isArray(rawData.value)) return [];
+// Handle group by change
+const handleGroupByChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  store.setSelectedGroupBy(target.value);
+};
 
-  let filtered = rawData.value;
-
-  if (store.searchQuery) {
-    const query = store.searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      (task) =>
-        task.Name?.toLowerCase().includes(query) ||
-        task.ID?.toString().includes(query) ||
-        task.Owner?.toLowerCase().includes(query) ||
-        task.Miner?.toLowerCase().includes(query),
-    );
-  }
-
-  return filtered;
-});
-
-const totalTasks = computed(() => filteredData.value.length);
-
+// Column definitions
 const columnHelper = createColumnHelper<TaskSummary>();
 
 const columns = [
@@ -62,10 +56,8 @@ const columns = [
     header: "Task Type",
     size: 200,
     enableGrouping: true,
-    cell: (info) => {
-      const taskName = info.getValue();
-      return h("span", { class: "font-semibold capitalize" }, taskName);
-    },
+    cell: (info) =>
+      h("span", { class: "font-semibold capitalize" }, info.getValue()),
     aggregatedCell: (info) => {
       const count = info.table.getRowModel().rows.length;
       return h(
@@ -108,26 +100,6 @@ const columns = [
         timeAgo,
       );
     },
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      if (rows.length === 0) return "—";
-
-      const dates = rows.map((row) => new Date(row.original.SincePosted));
-      const oldest = Math.min(...dates.map((d) => d.getTime()));
-      const newest = Math.max(...dates.map((d) => d.getTime()));
-
-      return h("div", { class: "text-xs text-base-content/70" }, [
-        h(
-          "div",
-          `Oldest: ${formatDistanceToNow(new Date(oldest), { addSuffix: true })}`,
-        ),
-        h(
-          "div",
-          `Newest: ${formatDistanceToNow(new Date(newest), { addSuffix: true })}`,
-        ),
-      ]);
-    },
   }),
   columnHelper.accessor("Owner", {
     header: "Owner",
@@ -150,58 +122,75 @@ const columns = [
         owner,
       );
     },
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      const owners = new Set(
-        rows.map((row) => row.original.Owner).filter(Boolean),
-      );
-      return h(
-        "span",
-        { class: "text-sm text-base-content/70" },
-        `${owners.size} owner${owners.size !== 1 ? "s" : ""}`,
-      );
-    },
   }),
   columnHelper.accessor("Miner", {
     header: "Miner",
     size: 120,
     enableGrouping: true,
     cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
-    aggregatedCell: (info) => {
-      const context = info as { subRows?: { original: TaskSummary }[] };
-      const rows = context.subRows || [];
-      const miners = new Set(
-        rows.map((row) => row.original.Miner).filter(Boolean),
-      );
-      return h(
-        "span",
-        { class: "text-sm text-base-content/70" },
-        `${miners.size} miner${miners.size !== 1 ? "s" : ""}`,
-      );
-    },
   }),
 ];
 
-const getGroupCount = () => {
-  const groupedRows =
-    store.grouping.length > 0
-      ? filteredData.value.reduce((groups, task) => {
-          const groupKey = task[store.grouping[0] as keyof TaskSummary];
-          if (!groups.has(groupKey)) {
-            groups.add(groupKey);
-          }
-          return groups;
-        }, new Set()).size
-      : 0;
-  return groupedRows;
-};
+// Table instance
+const table = useVueTable({
+  get data() {
+    return rawData.value || [];
+  },
+  columns,
+  getRowId: (row: TaskSummary) => `task-${row.ID}`,
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getGroupedRowModel: getGroupedRowModel(),
+  getExpandedRowModel: getExpandedRowModel(),
+  enableGrouping: true,
+  autoResetExpanded: false,
+  globalFilterFn: "includesString",
+  state: {
+    get sorting() {
+      return store.sorting;
+    },
+    get grouping() {
+      return store.grouping;
+    },
+    get expanded() {
+      return store.expanded;
+    },
+    get globalFilter() {
+      return store.searchQuery;
+    },
+  },
+  onSortingChange: (updater) => {
+    const newSorting = typeof updater === "function" ? updater(store.sorting) : updater;
+    store.setSorting(newSorting);
+  },
+  onGroupingChange: (updater) => {
+    const newGrouping = typeof updater === "function" ? updater(store.grouping) : updater;
+    store.setGrouping(newGrouping);
+  },
+  onExpandedChange: (updater) => {
+    const newExpanded = typeof updater === "function" ? updater(store.expanded) : updater;
+    store.setExpanded(newExpanded);
+  },
+  onGlobalFilterChange: (updater) => {
+    const newValue = typeof updater === "function" ? updater(store.searchQuery) : updater;
+    store.setSearchQuery(newValue || "");
+  },
+});
 
-const handleGroupByChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setSelectedGroupBy(target.value);
-};
+// Table helper utilities
+const { hasData, totalItems } = useTableHelpers(rawData, table);
+const groupCount = computed(() => {
+  if (!store.selectedGroupBy) return 0;
+  const groups = new Set(
+    rawData.value?.map(
+      (task) => task[store.selectedGroupBy as keyof TaskSummary],
+    ),
+  );
+  return groups.size;
+});
 
+// Event handlers
 const handleTaskClick = (taskId: number) => {
   console.log("Task clicked:", taskId);
 };
@@ -210,12 +199,7 @@ const handleMachineClick = (machineName: string) => {
   console.log("Machine clicked:", machineName);
 };
 
-const handleRowClick = (row: {
-  original: TaskSummary;
-  getCanExpand: () => boolean;
-  getToggleExpandedHandler: () => () => void;
-  getIsGrouped: () => boolean;
-}) => {
+const handleRowClick = (row: Row<TaskSummary>) => {
   if (row.getCanExpand()) {
     row.getToggleExpandedHandler()();
   } else if (!row.getIsGrouped()) {
@@ -229,78 +213,26 @@ const handleCellRightClick = (
 ) => {
   event.preventDefault();
   const value = String(cell.getValue() || "");
-  if (value) {
-    navigator.clipboard?.writeText(value);
-    console.log("Copied to clipboard:", value);
+  if (value && navigator.clipboard) {
+    navigator.clipboard.writeText(value);
   }
 };
 
-const columnFilters = ref<ColumnFiltersState>([]);
-
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
-  },
-  columns,
-  getRowId: (row: TaskSummary) => `task-${row.ID}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  enableGrouping: true,
-  autoResetExpanded: false,
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get columnFilters() {
-      return columnFilters.value;
-    },
-    get grouping() {
-      return store.grouping;
-    },
-    get expanded() {
-      return store.expanded;
-    },
-  },
-  onSortingChange: (updaterOrValue) => {
-    const newSorting =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.sorting)
-        : updaterOrValue;
-    store.setSorting(newSorting);
-  },
-  onColumnFiltersChange: (updaterOrValue) => {
-    columnFilters.value =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(columnFilters.value)
-        : updaterOrValue;
-  },
-  onGroupingChange: (updaterOrValue) => {
-    const newGrouping =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.grouping)
-        : updaterOrValue;
-    store.setGrouping(newGrouping);
-  },
-  onExpandedChange: (updaterOrValue) => {
-    const newExpanded =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.expanded)
-        : updaterOrValue;
-    store.setExpanded(newExpanded);
-  },
-});
+const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
+  if (cell.getIsGrouped()) {
+    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
+  }
+  return String(cell.getValue() || "");
+};
 
 const getColumnAggregateInfo = (columnId: string) => {
-  const data = filteredData.value;
-  if (!data.length) return "";
+  const data = rawData.value;
+  if (!data || !data.length) return "";
 
   switch (columnId) {
     case "Name": {
       const taskTypes = data.reduce(
-        (acc: Record<string, number>, task) => {
+        (acc, task) => {
           acc[task.Name] = (acc[task.Name] || 0) + 1;
           return acc;
         },
@@ -308,15 +240,6 @@ const getColumnAggregateInfo = (columnId: string) => {
       );
       const uniqueCount = Object.keys(taskTypes).length;
       return `${uniqueCount} unique types`;
-    }
-    case "Owner": {
-      const owners = new Set(data.map((task) => task.Owner).filter(Boolean));
-      const pending = data.filter((task) => !task.Owner).length;
-      return `${owners.size} owners${pending > 0 ? `, ${pending} pending` : ""}`;
-    }
-    case "Miner": {
-      const miners = new Set(data.map((task) => task.Miner).filter(Boolean));
-      return `${miners.size} unique miners`;
     }
     case "ID":
       return `${data.length} total tasks`;
@@ -327,17 +250,18 @@ const getColumnAggregateInfo = (columnId: string) => {
       const newest = Math.max(...dates.map((d) => d.getTime()));
       return `${formatDistanceToNow(new Date(oldest))} - ${formatDistanceToNow(new Date(newest))}`;
     }
+    case "Owner": {
+      const owners = new Set(data.map((task) => task.Owner).filter(Boolean));
+      const pendingCount = data.filter((task) => !task.Owner).length;
+      return `${owners.size} assigned, ${pendingCount} pending`;
+    }
+    case "Miner": {
+      const miners = new Set(data.map((task) => task.Miner).filter(Boolean));
+      return `${miners.size} unique miners`;
+    }
     default:
       return "";
   }
-};
-
-const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
-  const value = cell.getValue();
-  if (cell.getIsGrouped()) {
-    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
-  }
-  return String(value || "");
 };
 </script>
 
@@ -346,73 +270,61 @@ const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
     :loading="loading"
     :error="error"
     :has-data="hasData"
-    :empty-message="'No active tasks found'"
+    empty-message="No active tasks found"
   >
-    <div class="mb-4 space-y-3">
-      <div
-        class="bg-base-100 border-base-300 flex flex-wrap items-center gap-3 rounded-lg border p-3 shadow-sm"
-      >
-        <div class="form-control">
-          <input
-            v-model="store.searchQuery"
-            type="text"
-            placeholder="Search tasks..."
-            class="input input-bordered input-sm w-56"
-          />
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <div class="flex items-center gap-2">
-            <span
-              class="text-base-content/70 text-sm font-medium whitespace-nowrap"
-              >Group by</span
-            >
-            <select
-              :value="store.selectedGroupBy"
-              class="select select-bordered select-sm w-36"
-              @change="handleGroupByChange"
-            >
-              <option value="">None</option>
-              <option value="Name">Task Type</option>
-              <option value="Owner">Owner</option>
-              <option value="Miner">Miner</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <label
-            class="flex cursor-pointer items-center gap-2 whitespace-nowrap"
+    <!-- Control bar -->
+    <TableControls
+      v-model:search-input="store.searchQuery"
+      search-placeholder="Search tasks..."
+      :loading="loading"
+      @refresh="refresh"
+    >
+      <!-- Grouping -->
+      <div class="border-base-300 border-l pl-3">
+        <div class="flex items-center gap-2">
+          <span
+            class="text-base-content/70 text-sm font-medium whitespace-nowrap"
           >
-            <input
-              v-model="store.showAggregateInfo"
-              type="checkbox"
-              class="checkbox checkbox-sm"
-            />
-            <span class="text-sm">Column stats</span>
-          </label>
-        </div>
-
-        <div class="border-base-300 border-l pl-3">
-          <button
-            class="btn btn-outline btn-sm"
-            :class="{ loading }"
-            @click="refresh"
-          >
-            <span v-if="!loading">🔄</span>
-            Refresh
-          </button>
-        </div>
-
-        <div class="text-base-content/60 ml-auto text-xs">
-          <span class="font-medium">{{ totalTasks }}</span> tasks
-          <span v-if="store.grouping.length > 0" class="text-base-content/40">
-            • <span class="font-medium">{{ getGroupCount() }}</span> groups
+            Group by
           </span>
+          <select
+            :value="store.selectedGroupBy"
+            class="select select-bordered select-sm w-36"
+            @change="handleGroupByChange"
+          >
+            <option value="">None</option>
+            <option
+              v-for="option in groupingOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
       </div>
-    </div>
 
+      <!-- Column stats -->
+      <div class="border-base-300 border-l pl-3">
+        <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap">
+          <input
+            v-model="store.showAggregateInfo"
+            type="checkbox"
+            class="checkbox checkbox-sm"
+          />
+          <span class="text-sm">Column stats</span>
+        </label>
+      </div>
+
+      <template #stats>
+        <span class="font-medium">{{ totalItems }}</span> tasks
+        <span v-if="groupCount > 0" class="text-base-content/40">
+          • <span class="font-medium">{{ groupCount }}</span> groups
+        </span>
+      </template>
+    </TableControls>
+
+    <!-- Table -->
     <div
       class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
@@ -428,80 +340,47 @@ const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
               :key="header.id"
               :colSpan="header.colSpan"
               :style="{ width: `${header.getSize()}px` }"
-              class="text-base-content border-base-300/30 border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              class="border-base-300/30 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              :class="{
+                'cursor-pointer select-none': header.column.getCanSort(),
+              }"
+              @click="
+                header.column.getCanSort() &&
+                header.column.getToggleSortingHandler()?.($event)
+              "
             >
               <div class="space-y-1">
-                <div
-                  :class="{
-                    'cursor-pointer select-none': header.column.getCanSort(),
-                  }"
-                  @click="
-                    header.column.getCanSort() &&
-                    header.column.getToggleSortingHandler()?.($event)
-                  "
-                >
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <FlexRender
-                        v-if="!header.isPlaceholder"
-                        :render="header.column.columnDef.header"
-                        :props="header.getContext()"
-                      />
-                      <button
-                        v-if="header.column.getCanGroup()"
-                        :title="
-                          header.column.getIsGrouped()
-                            ? 'Remove grouping'
-                            : 'Group by this column'
-                        "
-                        class="btn btn-xs btn-circle btn-ghost opacity-60 hover:opacity-100"
-                        :class="{
-                          'btn-primary': header.column.getIsGrouped(),
-                        }"
-                        @click.stop="store.toggleGrouping(header.column.id)"
-                      >
-                        <span v-if="header.column.getIsGrouped()">📌</span>
-                        <span v-else>📂</span>
-                      </button>
-                    </div>
-
-                    <span
-                      v-if="header.column.getIsSorted()"
-                      class="text-sm transition-transform duration-200"
-                      :class="{
-                        'rotate-180 transform':
-                          header.column.getIsSorted() === 'desc',
-                      }"
-                    >
-                      ▲
-                    </span>
-                  </div>
+                <div class="flex items-center justify-between gap-2">
+                  <FlexRender
+                    v-if="!header.isPlaceholder"
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                  />
+                  <span
+                    v-if="header.column.getIsSorted()"
+                    class="text-sm transition-transform duration-200"
+                    :class="{
+                      'rotate-180 transform':
+                        header.column.getIsSorted() === 'desc',
+                    }"
+                  >
+                    ▲
+                  </span>
                 </div>
-
-                <div
-                  v-if="
-                    store.showAggregateInfo && header.column.id !== 'actions'
-                  "
-                  class="text-base-content/60 space-y-0.5 text-xs"
-                >
-                  <div v-if="getColumnAggregateInfo(header.column.id)">
-                    {{ getColumnAggregateInfo(header.column.id) }}
-                  </div>
-                </div>
+                <ColumnStats
+                  :show-stats="store.showAggregateInfo"
+                  :stats-text="getColumnAggregateInfo(header.column.id)"
+                />
               </div>
             </th>
           </tr>
         </thead>
-
         <tbody>
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            class="bg-base-100 hover:bg-primary! hover:text-primary-content cursor-pointer transition-all duration-200"
-            :class="{
-              'bg-base-200/30': row.getIsGrouped(),
-              'font-medium': row.getIsGrouped(),
-            }"
+            class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+            :class="{ 'bg-base-200/30 font-medium': row.getIsGrouped() }"
             @click="handleRowClick(row)"
           >
             <td
@@ -515,26 +394,22 @@ const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
               }"
               @contextmenu="handleCellRightClick(cell, $event)"
             >
+              <!-- Grouped cell -->
               <template v-if="cell.getIsGrouped()">
                 <div class="flex items-center gap-2 font-semibold">
-                  <span
-                    class="text-primary cursor-pointer"
-                    @click.stop="row.getToggleExpandedHandler()()"
-                  >
-                    {{ row.getIsExpanded() ? "📂" : "📁" }}
+                  <span class="text-primary">
+                    {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
                   </span>
-                  <span class="capitalize">{{
-                    cell.getValue() || "Unassigned"
-                  }}</span>
-                  <div
-                    class="badge badge-primary badge-sm cursor-pointer"
-                    @click.stop="row.getToggleExpandedHandler()()"
-                  >
-                    {{ row.subRows.length }}
+                  <span class="capitalize">
+                    {{ cell.getValue() || "Unassigned" }}
+                  </span>
+                  <div class="badge badge-primary badge-sm">
+                    {{ cell.row.subRows.length }}
                   </div>
                 </div>
               </template>
 
+              <!-- Aggregated cell -->
               <template v-else-if="cell.getIsAggregated()">
                 <div class="text-base-content/70 text-center">
                   <FlexRender
@@ -547,10 +422,12 @@ const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
                 </div>
               </template>
 
+              <!-- Placeholder cell -->
               <template v-else-if="cell.getIsPlaceholder()">
                 <div class="text-base-content/40">—</div>
               </template>
 
+              <!-- Regular cell -->
               <template v-else>
                 <FlexRender
                   :render="cell.column.columnDef.cell"
