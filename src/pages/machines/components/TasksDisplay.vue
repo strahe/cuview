@@ -71,7 +71,7 @@ const toggleExpanded = () => {
         <button
           v-if="hasMoreTasks"
           type="button"
-          class="badge badge-outline hover:badge-primary cursor-pointer text-xs transition-colors"
+          class="badge badge-ghost hover:badge-secondary border-base-content/20 hover:border-secondary cursor-pointer border text-xs transition-colors"
           :title="expanded ? 'Show less' : `Show ${remainingCount} more tasks`"
           @click="toggleExpanded"
         >
