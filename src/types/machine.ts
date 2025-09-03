@@ -11,6 +11,8 @@ export interface MachineSummary {
   Uptime: string;
   Unschedulable: boolean;
   RunningTasks: number;
+  Restarting?: boolean;
+  RestartRequest?: string;
 }
 
 export interface MachineInfo {

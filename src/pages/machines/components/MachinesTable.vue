@@ -10,7 +10,12 @@ import {
   type Row,
   type Cell,
 } from "@tanstack/vue-table";
-import { PauseIcon, PlayIcon } from "@heroicons/vue/24/outline";
+import {
+  PauseIcon,
+  PlayIcon,
+  ArrowPathIcon,
+  XCircleIcon,
+} from "@heroicons/vue/24/outline";
 import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useTableState } from "@/composables/useTableState";
 import DataSection from "@/components/ui/DataSection.vue";
@@ -41,12 +46,16 @@ const {
   error: operationError,
   cordon,
   uncordon,
+  restart,
+  abortRestart,
   clearError,
 } = useMachineOperations();
 
 // Confirmation dialog state
 const showConfirmDialog = ref(false);
-const confirmAction = ref<"cordon" | "uncordon">("cordon");
+const confirmAction = ref<"cordon" | "uncordon" | "restart" | "abortRestart">(
+  "cordon",
+);
 const selectedMachine = ref<MachineSummary | null>(null);
 
 // Table state management
@@ -72,14 +81,17 @@ const availableTaskTypes = computed(() => {
 // Compute status distribution
 const statusDistribution = computed(() => {
   if (!props.machines?.length)
-    return { online: 0, offline: 0, unschedulable: 0 };
+    return { online: 0, offline: 0, unschedulable: 0, restarting: 0 };
 
   let online = 0;
   let offline = 0;
   let unschedulable = 0;
+  let restarting = 0;
 
   props.machines.forEach((machine) => {
-    if (machine.Unschedulable) {
+    if (machine.Restarting) {
+      restarting++;
+    } else if (machine.Unschedulable) {
       unschedulable++;
     } else {
       const contactMatch = machine.SinceContact.match(/(\d+)s/);
@@ -92,7 +104,7 @@ const statusDistribution = computed(() => {
     }
   });
 
-  return { online, offline, unschedulable };
+  return { online, offline, unschedulable, restarting };
 });
 
 // Custom filter functions
@@ -109,11 +121,21 @@ const statusFilterFn = (
 
   switch (filterValue) {
     case "online":
-      return secondsSinceContact <= 60 && !machine.Unschedulable;
+      return (
+        secondsSinceContact <= 60 &&
+        !machine.Unschedulable &&
+        !machine.Restarting
+      );
     case "offline":
-      return secondsSinceContact > 60 && !machine.Unschedulable;
+      return (
+        secondsSinceContact > 60 &&
+        !machine.Unschedulable &&
+        !machine.Restarting
+      );
     case "unschedulable":
-      return machine.Unschedulable;
+      return machine.Unschedulable && !machine.Restarting;
+    case "restarting":
+      return Boolean(machine.Restarting);
     default:
       return true;
   }
@@ -167,6 +189,8 @@ const columns = [
         unschedulable: info.getValue(),
         sinceContact: info.row.original.SinceContact,
         runningTasks: info.row.original.RunningTasks,
+        restarting: info.row.original.Restarting,
+        restartRequest: info.row.original.RestartRequest,
       }),
   }),
   columnHelper.accessor("Address", {
@@ -234,43 +258,96 @@ const columns = [
   columnHelper.display({
     id: "actions",
     header: "Actions",
-    size: 100,
+    size: 140,
     enableGrouping: false,
     cell: (info) => {
       const machine = info.row.original;
+      const buttons = [];
 
-      // Show only the relevant button based on current state
+      // Primary action button (cordon/uncordon)
       if (machine.Unschedulable) {
-        // Machine is cordoned, show uncordon button
-        return h(
-          "button",
-          {
-            class: "btn btn-success btn-xs gap-1",
-            disabled: operationLoading.value,
-            title: "Uncordon (Allow new tasks)",
-            onClick: () => handleUncordonClick(machine),
-          },
-          [
-            h(PlayIcon, { class: "size-3" }),
-            h("span", { class: "text-xs font-medium" }, "Resume"),
-          ],
+        buttons.push(
+          h(
+            "button",
+            {
+              class: "btn btn-success btn-xs gap-1",
+              disabled: operationLoading.value,
+              title: "Uncordon (Allow new tasks)",
+              onClick: () => handleUncordonClick(machine),
+            },
+            [
+              h(PlayIcon, { class: "size-3" }),
+              h("span", { class: "text-xs font-medium" }, "Resume"),
+            ],
+          ),
         );
       } else {
-        // Machine is active, show cordon button
-        return h(
-          "button",
-          {
-            class: "btn btn-warning btn-xs gap-1",
-            disabled: operationLoading.value,
-            title: "Cordon (Prevent new tasks)",
-            onClick: () => handleCordonClick(machine),
-          },
-          [
-            h(PauseIcon, { class: "size-3" }),
-            h("span", { class: "text-xs font-medium" }, "Cordon"),
-          ],
+        buttons.push(
+          h(
+            "button",
+            {
+              class: "btn btn-warning btn-xs gap-1",
+              disabled: operationLoading.value,
+              title: "Cordon (Prevent new tasks)",
+              onClick: () => handleCordonClick(machine),
+            },
+            [
+              h(PauseIcon, { class: "size-3" }),
+              h("span", { class: "text-xs font-medium" }, "Cordon"),
+            ],
+          ),
         );
       }
+
+      // Restart action button
+      if (machine.Restarting) {
+        // Show abort restart button
+        buttons.push(
+          h(
+            "button",
+            {
+              class: "btn btn-error btn-xs",
+              disabled: operationLoading.value,
+              title: "Abort Restart",
+              onClick: () => handleAbortRestartClick(machine),
+            },
+            [h(XCircleIcon, { class: "size-3" })],
+          ),
+        );
+      } else {
+        // Show restart button with better visibility
+        if (machine.Unschedulable) {
+          // Machine is cordoned, show active restart button
+          buttons.push(
+            h(
+              "button",
+              {
+                class: "btn btn-info btn-xs",
+                disabled: operationLoading.value,
+                title: "Restart machine",
+                onClick: () => handleRestartClick(machine),
+              },
+              [h(ArrowPathIcon, { class: "size-3" })],
+            ),
+          );
+        } else {
+          // Machine not cordoned, show disabled restart button with explanation
+          buttons.push(
+            h(
+              "button",
+              {
+                class: "btn btn-ghost btn-xs opacity-30",
+                disabled: true,
+                title: "Must cordon machine first to restart",
+                onClick: undefined,
+              },
+              [h(ArrowPathIcon, { class: "size-3" })],
+            ),
+          );
+        }
+      }
+
+      return h("div", { class: "flex items-center gap-1" }, buttons);
     },
   }),
 ];
@@ -389,6 +466,18 @@ const handleUncordonClick = (machine: MachineSummary) => {
   showConfirmDialog.value = true;
 };
 
+const handleRestartClick = (machine: MachineSummary) => {
+  selectedMachine.value = machine;
+  confirmAction.value = "restart";
+  showConfirmDialog.value = true;
+};
+
+const handleAbortRestartClick = (machine: MachineSummary) => {
+  selectedMachine.value = machine;
+  confirmAction.value = "abortRestart";
+  showConfirmDialog.value = true;
+};
+
 const handleConfirmAction = async () => {
   if (!selectedMachine.value) return;
 
@@ -398,11 +487,17 @@ const handleConfirmAction = async () => {
   let result;
   if (confirmAction.value === "cordon") {
     result = await cordon(machine.ID, machineName);
-  } else {
+  } else if (confirmAction.value === "uncordon") {
     result = await uncordon(machine.ID, machineName);
+  } else if (confirmAction.value === "restart") {
+    result = await restart(machine.ID, machineName);
+  } else if (confirmAction.value === "abortRestart") {
+    result = await abortRestart(machine.ID, machineName);
+  } else {
+    return; // Unknown action
   }
 
-  if (result.success) {
+  if (result?.success) {
     showConfirmDialog.value = false;
     selectedMachine.value = null;
     props.onRefresh();
@@ -416,7 +511,14 @@ const handleCancelAction = () => {
 };
 
 const getConfirmationProps = () => {
-  if (!selectedMachine.value) return { title: "", message: "" };
+  if (!selectedMachine.value) {
+    return {
+      title: "",
+      message: "",
+      confirmText: "",
+      type: "warning" as const,
+    };
+  }
 
   const machine = selectedMachine.value;
   const machineName = machine.Name || `machine-${machine.ID}`;
@@ -428,12 +530,33 @@ const getConfirmationProps = () => {
       confirmText: "Cordon",
       type: "warning" as const,
     };
-  } else {
+  } else if (confirmAction.value === "uncordon") {
     return {
       title: "Uncordon Machine",
       message: `Are you sure you want to uncordon machine "${machineName}"? This will allow new tasks to be scheduled to this machine.`,
       confirmText: "Uncordon",
       type: "info" as const,
+    };
+  } else if (confirmAction.value === "restart") {
+    return {
+      title: "Restart Machine",
+      message: `Are you sure you want to restart machine "${machineName}"?\n\n⚠️ This is a long-running operation:\n• Machine will be cordoned automatically\n• All running tasks must complete first\n• Restart process may take several minutes\n• Machine status will show "Restarting" until complete`,
+      confirmText: "Start Restart",
+      type: "danger" as const,
+    };
+  } else if (confirmAction.value === "abortRestart") {
+    return {
+      title: "Abort Restart",
+      message: `Are you sure you want to abort the restart for machine "${machineName}"? The machine will remain cordoned but the restart process will be cancelled.`,
+      confirmText: "Abort Restart",
+      type: "warning" as const,
+    };
+  } else {
+    return {
+      title: "Unknown Action",
+      message: "Unknown action requested.",
+      confirmText: "OK",
+      type: "warning" as const,
     };
   }
 };
@@ -450,18 +573,23 @@ const getColumnAggregateInfo = (columnId: string) => {
       return `${namedCount} named machines`;
     }
     case "Unschedulable": {
+      const restarting = data.filter((machine) => machine.Restarting).length;
       const online = data.filter((machine) => {
         const contactMatch = machine.SinceContact.match(/(\d+)s/);
         const secondsSinceContact = contactMatch
           ? parseInt(contactMatch[1])
           : 0;
-        return secondsSinceContact <= 60 && !machine.Unschedulable;
+        return (
+          secondsSinceContact <= 60 &&
+          !machine.Unschedulable &&
+          !machine.Restarting
+        );
       }).length;
       const unschedulable = data.filter(
-        (machine) => machine.Unschedulable,
+        (machine) => machine.Unschedulable && !machine.Restarting,
       ).length;
-      const offline = data.length - online - unschedulable;
-      return `${online} online, ${offline} offline, ${unschedulable} unschedulable`;
+      const offline = data.length - online - unschedulable - restarting;
+      return `${online} online, ${offline} offline, ${unschedulable} cordoned, ${restarting} restarting`;
     }
     case "Address": {
       const uniqueAddresses = new Set(data.map((machine) => machine.Address));
@@ -523,7 +651,10 @@ const getColumnAggregateInfo = (columnId: string) => {
               Offline ({{ statusDistribution.offline }})
             </option>
             <option value="unschedulable">
-              Unschedulable ({{ statusDistribution.unschedulable }})
+              Cordoned ({{ statusDistribution.unschedulable }})
+            </option>
+            <option value="restarting">
+              Restarting ({{ statusDistribution.restarting }})
             </option>
           </select>
         </div>

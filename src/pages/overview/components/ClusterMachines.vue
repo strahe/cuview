@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useCachedQuery } from "@/composables/useCachedQuery";
-import { useCurioQuery } from "@/composables/useCurioQuery";
-import {
-  PauseIcon,
-  PlayIcon,
-  ArrowPathIcon,
-  XCircleIcon,
-} from "@heroicons/vue/24/outline";
+import { ArrowRightIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { ClusterMachine } from "@/types/cluster";
 
-const { call } = useCurioQuery();
+const router = useRouter();
 const detailed = ref(false);
 
 const {
@@ -25,40 +20,8 @@ const {
   pollingInterval: 5000,
 });
 
-const cordon = async (id: number) => {
-  try {
-    await call("Cordon", [id]);
-    refresh();
-  } catch (error) {
-    console.error("Failed to cordon machine:", error);
-  }
-};
-
-const uncordon = async (id: number) => {
-  try {
-    await call("Uncordon", [id]);
-    refresh();
-  } catch (error) {
-    console.error("Failed to uncordon machine:", error);
-  }
-};
-
-const restart = async (id: number) => {
-  try {
-    await call("Restart", [id]);
-    refresh();
-  } catch (error) {
-    console.error("Failed to restart machine:", error);
-  }
-};
-
-const abortRestart = async (id: number) => {
-  try {
-    await call("AbortRestart", [id]);
-    refresh();
-  } catch (error) {
-    console.error("Failed to abort restart:", error);
-  }
+const navigateToMachines = () => {
+  router.push("/machines");
 };
 
 const getStatusBadge = (item: ClusterMachine) => {
@@ -93,8 +56,10 @@ const getStatusBadge = (item: ClusterMachine) => {
         <span class="label-text">Detailed View</span>
       </label>
 
-      <!-- Empty space for layout consistency -->
-      <div class="min-h-[24px]"></div>
+      <button class="btn btn-primary btn-sm gap-2" @click="navigateToMachines">
+        Manage Machines
+        <ArrowRightIcon class="size-4" />
+      </button>
     </div>
 
     <DataSection
@@ -120,7 +85,6 @@ const getStatusBadge = (item: ClusterMachine) => {
             <th class="w-32">Last Contact</th>
             <th class="w-24">Uptime</th>
             <th class="w-48">Status</th>
-            <th class="w-32">Actions</th>
             <th v-if="detailed" class="w-40">Tasks</th>
             <th v-if="detailed" class="w-40">Layers</th>
           </tr>
@@ -141,52 +105,6 @@ const getStatusBadge = (item: ClusterMachine) => {
             <td>
               <div :class="['badge', getStatusBadge(item).class]">
                 {{ getStatusBadge(item).text }}
-              </div>
-            </td>
-
-            <td>
-              <div class="flex items-center gap-1">
-                <button
-                  class="btn btn-ghost btn-xs"
-                  :class="{ 'opacity-30': item.Unschedulable }"
-                  :disabled="item.Unschedulable"
-                  title="Cordon (Pause)"
-                  @click="cordon(item.ID)"
-                >
-                  <PauseIcon class="size-4" />
-                </button>
-
-                <button
-                  class="btn btn-ghost btn-xs"
-                  :class="{ 'opacity-30': !item.Unschedulable }"
-                  :disabled="!item.Unschedulable"
-                  title="Uncordon (Resume)"
-                  @click="uncordon(item.ID)"
-                >
-                  <PlayIcon class="size-4" />
-                </button>
-
-                <div class="flex w-8 justify-center">
-                  <button
-                    v-if="!item.Restarting"
-                    class="btn btn-ghost btn-xs"
-                    :class="{ 'opacity-30': !item.Unschedulable }"
-                    :disabled="!item.Unschedulable"
-                    title="Restart"
-                    @click="restart(item.ID)"
-                  >
-                    <ArrowPathIcon class="size-4" />
-                  </button>
-
-                  <button
-                    v-else
-                    class="btn btn-ghost btn-xs"
-                    title="Abort Restart"
-                    @click="abortRestart(item.ID)"
-                  >
-                    <XCircleIcon class="size-4" />
-                  </button>
-                </div>
               </div>
             </td>
 

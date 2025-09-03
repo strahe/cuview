@@ -5,11 +5,37 @@ interface Props {
   unschedulable: boolean;
   sinceContact: string;
   runningTasks?: number;
+  restarting?: boolean;
+  restartRequest?: string;
 }
 
 const props = defineProps<Props>();
 
 const status = computed(() => {
+  // Check if machine is restarting first (highest priority)
+  if (props.restarting && props.restartRequest) {
+    // Format restart time display
+    const restartTime = props.restartRequest;
+    let timeDisplay = restartTime;
+
+    // Handle "now" case and format better time display
+    if (restartTime === "now") {
+      timeDisplay = "just started";
+    } else if (restartTime.includes("ago")) {
+      // Keep the original format if it already has "ago"
+      timeDisplay = restartTime;
+    } else {
+      // Add "ago" suffix if not present
+      timeDisplay = `${restartTime} ago`;
+    }
+
+    return {
+      label: `Restarting (${timeDisplay})`,
+      class: "badge-error",
+      icon: "🔄",
+    };
+  }
+
   // Simple heuristic for determining if machine is offline
   // If last contact was more than 60 seconds ago, consider offline
   const contactMatch = props.sinceContact.match(/(\d+)s/);
@@ -25,7 +51,7 @@ const status = computed(() => {
 
   if (props.unschedulable) {
     return {
-      label: "Unschedulable",
+      label: "Cordoned",
       class: "badge-warning",
       icon: "⚠️",
     };

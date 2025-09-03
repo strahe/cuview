@@ -40,6 +40,40 @@ export function useMachineOperations() {
     }
   };
 
+  const restart = async (machineId: number, machineName?: string) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await call("Restart", [machineId]);
+      return { success: true };
+    } catch (err) {
+      const errorMessage = `Failed to restart machine ${machineName || machineId}: ${err instanceof Error ? err.message : String(err)}`;
+      error.value = errorMessage;
+      console.error(errorMessage, err);
+      return { success: false, error: errorMessage };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const abortRestart = async (machineId: number, machineName?: string) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await call("AbortRestart", [machineId]);
+      return { success: true };
+    } catch (err) {
+      const errorMessage = `Failed to abort restart for machine ${machineName || machineId}: ${err instanceof Error ? err.message : String(err)}`;
+      error.value = errorMessage;
+      console.error(errorMessage, err);
+      return { success: false, error: errorMessage };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const clearError = () => {
     error.value = null;
   };
@@ -49,6 +83,8 @@ export function useMachineOperations() {
     error,
     cordon,
     uncordon,
+    restart,
+    abortRestart,
     clearError,
   };
 }
