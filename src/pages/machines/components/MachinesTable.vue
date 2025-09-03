@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
+import { computed, h, ref } from "vue";
 import {
   useVueTable,
   getCoreRowModel,
@@ -10,13 +10,16 @@ import {
   type Row,
   type Cell,
 } from "@tanstack/vue-table";
+import { PauseIcon, PlayIcon } from "@heroicons/vue/24/outline";
 import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useTableState } from "@/composables/useTableState";
 import DataSection from "@/components/ui/DataSection.vue";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
 import MachineStatusBadge from "./MachineStatusBadge.vue";
 import TasksDisplay from "./TasksDisplay.vue";
+import { useMachineOperations } from "../composables/useMachineOperations";
 import type { MachineSummary } from "@/types/machine";
 
 interface Props {
@@ -31,6 +34,20 @@ const props = withDefaults(defineProps<Props>(), {
   error: null,
   onRefresh: () => {},
 });
+
+// Machine operations
+const {
+  loading: operationLoading,
+  error: operationError,
+  cordon,
+  uncordon,
+  clearError,
+} = useMachineOperations();
+
+// Confirmation dialog state
+const showConfirmDialog = ref(false);
+const confirmAction = ref<"cordon" | "uncordon">("cordon");
+const selectedMachine = ref<MachineSummary | null>(null);
 
 // Table state management
 const store = useTableState("machinesTable", {
@@ -166,16 +183,24 @@ const columns = [
   columnHelper.display({
     id: "Resources",
     header: "Resources",
-    size: 150,
+    size: 180,
     enableGrouping: false,
     cell: (info) => {
       const machine = info.row.original;
-      return h("div", { class: "text-sm text-right" }, [
-        h("div", {}, `${machine.Cpu} CPU`),
-        h("div", { class: "text-base-content/60" }, machine.RamHumanized),
+      const parts = [`${machine.Cpu}C`, machine.RamHumanized];
+
+      if (machine.Gpu > 0) {
+        parts.push(`${machine.Gpu}G`);
+      }
+
+      return h("div", { class: "text-sm font-mono" }, [
+        h("span", { class: "text-primary" }, parts[0]), // CPU
+        h("span", { class: "text-base-content/60 mx-1" }, "•"),
+        h("span", { class: "text-base-content" }, parts[1]), // RAM
         machine.Gpu > 0
-          ? h("div", { class: "text-warning" }, `${machine.Gpu} GPU`)
+          ? h("span", { class: "text-base-content/60 mx-1" }, "•")
           : null,
+        machine.Gpu > 0 ? h("span", { class: "text-warning" }, parts[2]) : null, // GPU
       ]);
     },
   }),
@@ -205,6 +230,48 @@ const columns = [
     enableGrouping: false,
     cell: (info) =>
       h("span", { class: "text-base-content/60 text-sm" }, info.getValue()),
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: "Actions",
+    size: 100,
+    enableGrouping: false,
+    cell: (info) => {
+      const machine = info.row.original;
+
+      // Show only the relevant button based on current state
+      if (machine.Unschedulable) {
+        // Machine is cordoned, show uncordon button
+        return h(
+          "button",
+          {
+            class: "btn btn-success btn-xs gap-1",
+            disabled: operationLoading.value,
+            title: "Uncordon (Allow new tasks)",
+            onClick: () => handleUncordonClick(machine),
+          },
+          [
+            h(PlayIcon, { class: "size-3" }),
+            h("span", { class: "text-xs font-medium" }, "Resume"),
+          ],
+        );
+      } else {
+        // Machine is active, show cordon button
+        return h(
+          "button",
+          {
+            class: "btn btn-warning btn-xs gap-1",
+            disabled: operationLoading.value,
+            title: "Cordon (Prevent new tasks)",
+            onClick: () => handleCordonClick(machine),
+          },
+          [
+            h(PauseIcon, { class: "size-3" }),
+            h("span", { class: "text-xs font-medium" }, "Cordon"),
+          ],
+        );
+      }
+    },
   }),
 ];
 
@@ -307,6 +374,68 @@ const handleCellRightClick = (
 
 const getCellTooltip = (cell: Cell<MachineSummary, unknown>) => {
   return String(cell.getValue() || "");
+};
+
+// Machine operation handlers
+const handleCordonClick = (machine: MachineSummary) => {
+  selectedMachine.value = machine;
+  confirmAction.value = "cordon";
+  showConfirmDialog.value = true;
+};
+
+const handleUncordonClick = (machine: MachineSummary) => {
+  selectedMachine.value = machine;
+  confirmAction.value = "uncordon";
+  showConfirmDialog.value = true;
+};
+
+const handleConfirmAction = async () => {
+  if (!selectedMachine.value) return;
+
+  const machine = selectedMachine.value;
+  const machineName = machine.Name || `machine-${machine.ID}`;
+
+  let result;
+  if (confirmAction.value === "cordon") {
+    result = await cordon(machine.ID, machineName);
+  } else {
+    result = await uncordon(machine.ID, machineName);
+  }
+
+  if (result.success) {
+    showConfirmDialog.value = false;
+    selectedMachine.value = null;
+    props.onRefresh();
+  }
+};
+
+const handleCancelAction = () => {
+  showConfirmDialog.value = false;
+  selectedMachine.value = null;
+  clearError();
+};
+
+const getConfirmationProps = () => {
+  if (!selectedMachine.value) return { title: "", message: "" };
+
+  const machine = selectedMachine.value;
+  const machineName = machine.Name || `machine-${machine.ID}`;
+
+  if (confirmAction.value === "cordon") {
+    return {
+      title: "Cordon Machine",
+      message: `Are you sure you want to cordon machine "${machineName}"? This will prevent new tasks from being scheduled to this machine. Running tasks will continue to completion.`,
+      confirmText: "Cordon",
+      type: "warning" as const,
+    };
+  } else {
+    return {
+      title: "Uncordon Machine",
+      message: `Are you sure you want to uncordon machine "${machineName}"? This will allow new tasks to be scheduled to this machine.`,
+      confirmText: "Uncordon",
+      type: "info" as const,
+    };
+  }
 };
 
 const getColumnAggregateInfo = (columnId: string) => {
@@ -528,5 +657,22 @@ const getColumnAggregateInfo = (columnId: string) => {
         </tbody>
       </table>
     </div>
+
+    <!-- Error Alert -->
+    <div v-if="operationError" class="alert alert-error mt-4">
+      <div class="flex items-start justify-between">
+        <span>{{ operationError }}</span>
+        <button class="btn btn-ghost btn-xs" @click="clearError">×</button>
+      </div>
+    </div>
   </DataSection>
+
+  <!-- Confirmation Dialog -->
+  <ConfirmationDialog
+    v-model:show="showConfirmDialog"
+    v-bind="getConfirmationProps()"
+    :loading="operationLoading"
+    @confirm="handleConfirmAction"
+    @cancel="handleCancelAction"
+  />
 </template>
