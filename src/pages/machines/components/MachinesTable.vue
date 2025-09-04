@@ -16,6 +16,7 @@ import {
   ArrowPathIcon,
   XCircleIcon,
 } from "@heroicons/vue/24/outline";
+import { useRouter } from "vue-router";
 import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useTableState } from "@/composables/useTableState";
 import DataSection from "@/components/ui/DataSection.vue";
@@ -39,6 +40,9 @@ const props = withDefaults(defineProps<Props>(), {
   error: null,
   onRefresh: () => {},
 });
+
+// Router for navigation
+const router = useRouter();
 
 // Machine operations
 const {
@@ -267,13 +271,13 @@ const columns = [
       const machine = info.row.original;
       const buttons = [];
 
-      // Primary action button (cordon/uncordon)
+      // Show uncordon button for cordoned machines
       if (machine.Unschedulable) {
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-success btn-xs gap-1",
+              class: "btn btn-success btn-xs gap-1 no-row-click",
               disabled: operationLoading.value,
               title: "Uncordon (Allow new tasks)",
               onClick: () => handleUncordonClick(machine),
@@ -285,11 +289,12 @@ const columns = [
           ),
         );
       } else {
+        // Show cordon button for active machines
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-warning btn-xs gap-1",
+              class: "btn btn-warning btn-xs gap-1 no-row-click",
               disabled: operationLoading.value,
               title: "Cordon (Prevent new tasks)",
               onClick: () => handleCordonClick(machine),
@@ -302,14 +307,13 @@ const columns = [
         );
       }
 
-      // Restart action button
+      // Restart/abort restart buttons based on machine state
       if (machine.Restarting) {
-        // Show abort restart button
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-error btn-xs",
+              class: "btn btn-error btn-xs no-row-click",
               disabled: operationLoading.value,
               title: "Abort Restart",
               onClick: () => handleAbortRestartClick(machine),
@@ -318,14 +322,12 @@ const columns = [
           ),
         );
       } else {
-        // Show restart button with better visibility
         if (machine.Unschedulable) {
-          // Machine is cordoned, show active restart button
           buttons.push(
             h(
               "button",
               {
-                class: "btn btn-info btn-xs",
+                class: "btn btn-info btn-xs no-row-click",
                 disabled: operationLoading.value,
                 title: "Restart machine",
                 onClick: () => handleRestartClick(machine),
@@ -334,13 +336,13 @@ const columns = [
             ),
           );
         } else {
-          // Machine not cordoned, show disabled restart button with explanation
+          // Disabled restart button with tooltip for uncordoned machines
           buttons.push(
             h(
               "span",
               {
                 title: "Must cordon machine first to restart",
-                class: "inline-block",
+                class: "inline-block no-row-click",
               },
               [
                 h(
@@ -443,10 +445,15 @@ const resetFilters = () => {
 
 // Event handlers
 const handleMachineClick = (machineId: number) => {
-  console.log("Machine clicked:", machineId);
+  router.push(`/machines/${machineId}`);
 };
 
-const handleRowClick = (row: Row<MachineSummary>) => {
+const handleRowClick = (row: Row<MachineSummary>, event: MouseEvent) => {
+  // Prevent row navigation when clicking interactive elements
+  const target = event.target as HTMLElement;
+  if (target.closest(".no-row-click")) {
+    return;
+  }
   handleMachineClick(row.original.ID);
 };
 
@@ -782,7 +789,7 @@ const getColumnAggregateInfo = (columnId: string) => {
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-            @click="handleRowClick(row)"
+            @click="handleRowClick(row, $event)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
