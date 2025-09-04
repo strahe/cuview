@@ -180,7 +180,7 @@ const columns = [
   columnHelper.accessor("Unschedulable", {
     id: "status",
     header: "Status",
-    size: 120,
+    size: 180,
     enableGrouping: false,
     enableColumnFilter: true,
     filterFn: statusFilterFn,
@@ -209,6 +209,7 @@ const columns = [
     header: "Resources",
     size: 180,
     enableGrouping: false,
+    enableSorting: false,
     cell: (info) => {
       const machine = info.row.original;
       const parts = [`${machine.Cpu}C`, machine.RamHumanized];
@@ -217,12 +218,12 @@ const columns = [
         parts.push(`${machine.Gpu}G`);
       }
 
-      return h("div", { class: "text-sm font-mono" }, [
+      return h("div", { class: "text-sm font-mono flex items-center gap-1" }, [
         h("span", { class: "text-primary" }, parts[0]), // CPU
-        h("span", { class: "text-base-content/60 mx-1" }, "•"),
+        h("span", { class: "text-base-content/60" }, "•"),
         h("span", { class: "text-base-content" }, parts[1]), // RAM
         machine.Gpu > 0
-          ? h("span", { class: "text-base-content/60 mx-1" }, "•")
+          ? h("span", { class: "text-base-content/60" }, "•")
           : null,
         machine.Gpu > 0 ? h("span", { class: "text-warning" }, parts[2]) : null, // GPU
       ]);
@@ -233,9 +234,10 @@ const columns = [
     header: "Tasks",
     size: 250,
     enableGrouping: false,
+    enableSorting: false,
     enableColumnFilter: true,
     filterFn: taskFilterFn,
-    cell: (info) => h(TasksDisplay, { tasks: info.getValue(), limit: 2 }),
+    cell: (info) => h(TasksDisplay, { tasks: info.getValue(), limit: 3 }),
   }),
   columnHelper.accessor("Uptime", {
     header: "Uptime",
@@ -260,6 +262,7 @@ const columns = [
     header: "Actions",
     size: 140,
     enableGrouping: false,
+    enableSorting: false,
     cell: (info) => {
       const machine = info.row.original;
       const buttons = [];
@@ -334,14 +337,23 @@ const columns = [
           // Machine not cordoned, show disabled restart button with explanation
           buttons.push(
             h(
-              "button",
+              "span",
               {
-                class: "btn btn-ghost btn-xs opacity-30",
-                disabled: true,
                 title: "Must cordon machine first to restart",
-                onClick: undefined,
+                class: "inline-block",
               },
-              [h(ArrowPathIcon, { class: "size-3" })],
+              [
+                h(
+                  "button",
+                  {
+                    class:
+                      "btn btn-outline btn-neutral btn-xs border-base-content/30",
+                    disabled: true,
+                    onClick: undefined,
+                  },
+                  [h(ArrowPathIcon, { class: "size-3" })],
+                ),
+              ],
             ),
           );
         }

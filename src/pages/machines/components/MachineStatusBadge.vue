@@ -14,25 +14,12 @@ const props = defineProps<Props>();
 const status = computed(() => {
   // Check if machine is restarting first (highest priority)
   if (props.restarting && props.restartRequest) {
-    // Format restart time display
-    const restartTime = props.restartRequest;
-    let timeDisplay = restartTime;
-
-    // Handle "now" case and format better time display
-    if (restartTime === "now") {
-      timeDisplay = "just started";
-    } else if (restartTime.includes("ago")) {
-      // Keep the original format if it already has "ago"
-      timeDisplay = restartTime;
-    } else {
-      // Add "ago" suffix if not present
-      timeDisplay = `${restartTime} ago`;
-    }
-
     return {
-      label: `Restarting (${timeDisplay})`,
-      class: "badge-error",
+      label: "Restarting",
+      additionalInfo: [props.restartRequest],
+      class: "badge-info",
       icon: "🔄",
+      tooltip: `Machine restart requested: ${props.restartRequest}`,
     };
   }
 
@@ -44,16 +31,24 @@ const status = computed(() => {
   if (secondsSinceContact > 60) {
     return {
       label: "Offline",
+      additionalInfo: [`Last contact ${props.sinceContact}`],
       class: "badge-error",
       icon: "🔴",
+      tooltip: `Machine is offline. Last contact: ${props.sinceContact}`,
     };
   }
 
   if (props.unschedulable) {
+    let tooltip = "Machine is cordoned - no new tasks will be scheduled";
+    if (props.runningTasks && props.runningTasks > 0) {
+      tooltip += `. Currently running ${props.runningTasks} task${props.runningTasks > 1 ? "s" : ""}`;
+    }
+
     return {
       label: "Cordoned",
       class: "badge-warning",
       icon: "⚠️",
+      tooltip,
     };
   }
 
@@ -61,19 +56,35 @@ const status = computed(() => {
     label: "Online",
     class: "badge-success",
     icon: "🟢",
+    tooltip: `Machine is online. Last contact: ${props.sinceContact}`,
   };
 });
 </script>
 
 <template>
-  <div class="badge gap-1 text-xs" :class="status.class">
-    <span>{{ status.icon }}</span>
-    <span>{{ status.label }}</span>
-    <span
-      v-if="props.runningTasks && props.runningTasks > 0"
-      class="font-medium"
+  <div class="flex flex-col gap-1">
+    <div
+      class="badge gap-1 text-xs"
+      :class="status.class"
+      :title="status.tooltip"
     >
-      ({{ props.runningTasks }})
-    </span>
+      <span>{{ status.icon }}</span>
+      <span>{{ status.label }}</span>
+      <span
+        v-if="props.runningTasks && props.runningTasks > 0"
+        class="font-medium"
+      >
+        ({{ props.runningTasks }})
+      </span>
+    </div>
+    <div v-if="status.additionalInfo" class="space-y-0.5">
+      <div
+        v-for="(info, index) in status.additionalInfo"
+        :key="index"
+        class="text-base-content/60 text-[11px]"
+      >
+        {{ info }}
+      </div>
+    </div>
   </div>
 </template>
