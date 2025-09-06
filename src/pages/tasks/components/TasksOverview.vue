@@ -4,6 +4,7 @@ import { useCachedQuery } from "@/composables/useCachedQuery";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { HarmonyTaskStat, TaskStatWithPercentage } from "@/types/cluster";
+import { getTaskStatusBadgeColor } from "@/utils/ui";
 
 const {
   data: rawData,
@@ -35,12 +36,12 @@ const getSuccessRate = (task: TaskStatWithPercentage): number => {
 
 const getStatusBadge = (task: TaskStatWithPercentage) => {
   if (task.isError) {
-    return { class: "badge-error", icon: XCircleIcon };
+    return { class: getTaskStatusBadgeColor("error"), icon: XCircleIcon };
   }
   if (task.FalseCount === 0) {
-    return { class: "badge-success", icon: CheckCircleIcon };
+    return { class: getTaskStatusBadgeColor("success"), icon: CheckCircleIcon };
   }
-  return { class: "badge-warning", icon: null };
+  return { class: getTaskStatusBadgeColor("warning"), icon: null };
 };
 </script>
 

@@ -34,6 +34,11 @@
         </button>
       </div>
 
+      <!-- Actions -->
+      <div class="border-base-300 border-l pl-3">
+        <slot name="actions" />
+      </div>
+
       <!-- Statistics -->
       <div class="text-base-content/60 ml-auto text-xs">
         <slot name="stats" />

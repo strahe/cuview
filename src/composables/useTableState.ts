@@ -4,6 +4,7 @@ import type {
   SortingState,
   GroupingState,
   ExpandedState,
+  ColumnFiltersState,
 } from "@tanstack/vue-table";
 
 export interface TableStateConfig {
@@ -23,6 +24,7 @@ export function useTableState(tableId: string, config: TableStateConfig) {
       const sorting = ref<SortingState>(config.defaultSorting);
       const grouping = ref<GroupingState>([]);
       const expanded = ref<ExpandedState>({});
+      const columnFilters = ref<ColumnFiltersState>([]);
 
       // Custom filter state
       const customFilters = reactive(config.customFilters || {});
@@ -39,6 +41,10 @@ export function useTableState(tableId: string, config: TableStateConfig) {
 
       const setExpanded = (newExpanded: ExpandedState) => {
         expanded.value = newExpanded;
+      };
+
+      const setColumnFilters = (newColumnFilters: ColumnFiltersState) => {
+        columnFilters.value = newColumnFilters;
       };
 
       const setShowAggregateInfo = (show: boolean) => {
@@ -87,6 +93,7 @@ export function useTableState(tableId: string, config: TableStateConfig) {
         sorting.value = config.defaultSorting;
         grouping.value = [];
         expanded.value = {};
+        columnFilters.value = [];
         // Reset custom filters to initial values
         Object.keys(customFilters).forEach((key) => {
           customFilters[key] = config.customFilters?.[key];
@@ -101,12 +108,14 @@ export function useTableState(tableId: string, config: TableStateConfig) {
         sorting,
         grouping,
         expanded,
+        columnFilters,
         customFilters,
 
         // Methods
         setSorting,
         setGrouping,
         setExpanded,
+        setColumnFilters,
         setShowAggregateInfo,
         setSearchQuery,
         setSelectedGroupBy,
@@ -125,6 +134,7 @@ export function useTableState(tableId: string, config: TableStateConfig) {
           "sorting",
           "grouping",
           "expanded",
+          "columnFilters",
           "customFilters",
           ...(config.persistKeys || []),
         ],
