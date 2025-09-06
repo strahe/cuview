@@ -25,6 +25,7 @@ export interface MachineInfo {
     Memory: number;
     GPU: number;
     Layers: string;
+    Tasks: string;
     Unschedulable: boolean;
     RunningTasks: number;
   };

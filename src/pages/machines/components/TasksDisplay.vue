@@ -32,18 +32,6 @@ const remainingCount = computed(() =>
 
 const hasMoreTasks = computed(() => taskList.value.length > props.limit);
 
-const taskBadgeColor = (task: string) => {
-  // Color coding based on task type
-  if (task.includes("porep") || task.includes("precommit"))
-    return "badge-primary";
-  if (task.includes("commit") || task.includes("prove"))
-    return "badge-secondary";
-  if (task.includes("finalize") || task.includes("move"))
-    return "badge-success";
-  if (task.includes("unseal") || task.includes("fetch")) return "badge-info";
-  return "badge-ghost";
-};
-
 const toggleExpanded = () => {
   expanded.value = !expanded.value;
 };
@@ -57,15 +45,14 @@ const toggleExpanded = () => {
     <template v-else>
       <!-- Task badges -->
       <div class="flex flex-wrap items-center gap-1">
-        <div
+        <span
           v-for="task in displayedTasks"
           :key="task"
-          class="badge text-xs"
-          :class="taskBadgeColor(task)"
+          class="bg-base-200/50 rounded px-2 py-1 text-xs font-medium"
           :title="task"
         >
           {{ task }}
-        </div>
+        </span>
 
         <!-- Expand/Collapse button -->
         <button

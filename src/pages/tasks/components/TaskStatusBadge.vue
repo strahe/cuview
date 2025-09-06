@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TaskStatus } from "@/types/task";
+import { getTaskStatusBadgeColor } from "@/utils/ui";
 
 interface Props {
   status: TaskStatus["Status"];
@@ -8,30 +9,20 @@ interface Props {
 
 const { status, size = "sm" } = defineProps<Props>();
 
-const statusConfig = {
-  pending: {
-    class: "badge-ghost",
-    label: "Pending",
-  },
-  running: {
-    class: "badge-info",
-    label: "Running",
-  },
-  done: {
-    class: "badge-success",
-    label: "Done",
-  },
-  failed: {
-    class: "badge-error",
-    label: "Failed",
-  },
+const statusLabels = {
+  pending: "Pending",
+  running: "Running",
+  done: "Done",
+  failed: "Failed",
 };
 
-const config = statusConfig[status];
+const getBadgeClass = (status: string) => getTaskStatusBadgeColor(status);
+const getLabel = (status: string) =>
+  statusLabels[status as keyof typeof statusLabels] || status;
 </script>
 
 <template>
-  <div :class="['badge', `badge-${size}`, config.class]">
-    {{ config.label }}
+  <div :class="['badge', `badge-${size}`, getBadgeClass(status)]">
+    {{ getLabel(status) }}
   </div>
 </template>

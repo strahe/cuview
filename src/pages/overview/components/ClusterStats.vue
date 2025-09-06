@@ -5,6 +5,7 @@ import KPICard from "@/components/ui/KPICard.vue";
 import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
 import type { StorageUseStat } from "@/types/storage";
 import type { ActorSummaryData } from "@/types/actor";
+import { formatBytes, formatNumber } from "@/utils/format";
 import {
   CpuChipIcon,
   ServerIcon,
@@ -132,11 +133,12 @@ const storageUsagePercentage = computed(() => {
 });
 
 const totalStorageCapacity = computed(() => {
-  if (!storageStats.value || storageStats.value.length === 0) return "0 TB";
-  const totalTB =
-    storageStats.value.reduce((sum, stat) => sum + stat.Capacity, 0) /
-    (1024 * 1024 * 1024 * 1024);
-  return `${totalTB.toFixed(1)} TB`;
+  if (!storageStats.value || storageStats.value.length === 0) return "0 B";
+  const totalBytes = storageStats.value.reduce(
+    (sum, stat) => sum + stat.Capacity,
+    0,
+  );
+  return formatBytes(totalBytes);
 });
 
 const totalActorBalance = computed(() => {
@@ -175,16 +177,6 @@ const totalWins7d = computed(() => {
   if (!actors.value || actors.value.length === 0) return 0;
   return actors.value.reduce((sum, actor) => sum + actor.Win7, 0);
 });
-
-const formatNumber = (num: number) => {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toString();
-};
 </script>
 
 <template>

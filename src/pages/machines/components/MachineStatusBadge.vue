@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { getTaskStatusBadgeColor } from "@/utils/ui";
 
 interface Props {
   unschedulable: boolean;
@@ -17,7 +18,7 @@ const status = computed(() => {
     return {
       label: "Restarting",
       additionalInfo: [props.restartRequest],
-      class: "badge-info",
+      class: getTaskStatusBadgeColor("running"),
       icon: "🔄",
       tooltip: `Machine restart requested: ${props.restartRequest}`,
     };
@@ -32,7 +33,7 @@ const status = computed(() => {
     return {
       label: "Offline",
       additionalInfo: [`Last contact ${props.sinceContact}`],
-      class: "badge-error",
+      class: getTaskStatusBadgeColor("error"),
       icon: "🔴",
       tooltip: `Machine is offline. Last contact: ${props.sinceContact}`,
     };
@@ -46,7 +47,7 @@ const status = computed(() => {
 
     return {
       label: "Cordoned",
-      class: "badge-warning",
+      class: getTaskStatusBadgeColor("pending"),
       icon: "⚠️",
       tooltip,
     };
@@ -54,7 +55,7 @@ const status = computed(() => {
 
   return {
     label: "Online",
-    class: "badge-success",
+    class: getTaskStatusBadgeColor("success"),
     icon: "🟢",
     tooltip: `Machine is online. Last contact: ${props.sinceContact}`,
   };

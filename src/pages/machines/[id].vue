@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import {
   ArrowLeftIcon,
   ServerIcon,
@@ -11,283 +11,208 @@ import {
   PlayIcon,
   PauseIcon,
   ArrowPathIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  BoltIcon,
+  SignalIcon,
 } from "@heroicons/vue/24/outline";
-import KPICard from "@/components/ui/KPICard.vue";
-import SectionCard from "@/components/ui/SectionCard.vue";
-import MachineStatusBadge from "./components/MachineStatusBadge.vue";
+
+import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useMachineOperations } from "./composables/useMachineOperations";
+import type { MachineInfo } from "@/types/machine";
+import DataTable from "@/components/ui/DataTable.vue";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
+import { formatBytes, formatDuration } from "@/utils/format";
 
 const router = useRouter();
+const route = useRoute();
 
-// Different test scenarios for dynamic content
-const testScenarios = {
-  empty: { RunningTasks: [] },
-  few: {
-    RunningTasks: [
-      {
-        ID: 12345,
-        Task: "SDR",
-        Posted: "2024-01-15T08:25:00Z",
-        PoRepSector: 1234,
-        PoRepSectorSP: 1001,
-        PoRepSectorMiner: "f01001",
-      },
-      {
-        ID: 12346,
-        Task: "PC1",
-        Posted: "2024-01-15T09:15:00Z",
-        PoRepSector: 1235,
-        PoRepSectorSP: 1001,
-        PoRepSectorMiner: "f01001",
-      },
-    ],
-  },
-  many: {
-    RunningTasks: Array.from({ length: 25 }, (_, i) => ({
-      ID: 12345 + i,
-      Task: ["SDR", "PC1", "PC2", "C2"][i % 4],
-      Posted: new Date(Date.now() - i * 1000 * 60 * 30).toISOString(),
-      PoRepSector: 1234 + i,
-      PoRepSectorSP: 1001,
-      PoRepSectorMiner: "f01001",
-    })),
-  },
-};
+const machineId = computed(() => parseInt(route.params.id as string));
 
-// You can change this to test different scenarios: 'empty', 'few', 'many'
-const currentScenario = "many";
-
-// Mock data based on Curio RPC structure
-const mockMachineData = ref({
-  Info: {
-    Name: "worker-01",
-    Host: "192.168.1.100:2345",
-    ID: 5,
-    LastContact: "12s",
-    CPU: 24,
-    Memory: 68719476736, // 64GB in bytes
-    GPU: 4,
-    Layers: "seal,post",
-    Unschedulable: false,
-    RunningTasks: 8,
-    Restarting: false,
-  },
-  Storage: [
-    {
-      ID: "store-001",
-      Weight: 10,
-      MaxStorage: 2199023255552, // 2TB
-      CanSeal: false,
-      CanStore: true,
-      Groups: "main",
-      AllowTo: "",
-      AllowTypes: "unsealed,sealed,cache,update,update-cache",
-      DenyTypes: "",
-      Capacity: 2199023255552,
-      Available: 329853931520, // ~15% available
-      FSAvailable: 329853931520,
-      Reserved: 0,
-      Used: 1869169324032, // ~85% used
-      AllowMiners: "",
-      DenyMiners: "",
-      LastHeartbeat: "2024-01-15T10:30:00Z",
-      HeartbeatErr: "",
-      UsedPercent: 85,
-      ReservedPercent: 0,
-    },
-    {
-      ID: "store-002",
-      Weight: 10,
-      MaxStorage: 4398046511104, // 4TB
-      CanSeal: false,
-      CanStore: true,
-      Groups: "main",
-      AllowTo: "",
-      AllowTypes: "unsealed,sealed,cache,update,update-cache",
-      DenyTypes: "",
-      Capacity: 4398046511104,
-      Available: 2419020169830, // ~55% available
-      FSAvailable: 2419020169830,
-      Reserved: 0,
-      Used: 1979026341274, // ~45% used
-      AllowMiners: "",
-      DenyMiners: "",
-      LastHeartbeat: "2024-01-15T10:29:45Z",
-      HeartbeatErr: "",
-      UsedPercent: 45,
-      ReservedPercent: 0,
-    },
-    {
-      ID: "seal-001",
-      Weight: 15,
-      MaxStorage: 1099511627776, // 1TB
-      CanSeal: true,
-      CanStore: false,
-      Groups: "seal",
-      AllowTo: "",
-      AllowTypes: "cache,update-cache",
-      DenyTypes: "sealed,unsealed",
-      Capacity: 1099511627776,
-      Available: 87961293414, // ~8% available
-      FSAvailable: 87961293414,
-      Reserved: 0,
-      Used: 1011550334362, // ~92% used
-      AllowMiners: "",
-      DenyMiners: "",
-      LastHeartbeat: "2024-01-15T10:30:15Z",
-      HeartbeatErr: "",
-      UsedPercent: 92,
-      ReservedPercent: 0,
-    },
-    {
-      ID: "cache-001",
-      Weight: 5,
-      MaxStorage: 536870912000, // 500GB
-      CanSeal: true,
-      CanStore: false,
-      Groups: "cache",
-      AllowTo: "",
-      AllowTypes: "cache",
-      DenyTypes: "sealed,unsealed",
-      Capacity: 536870912000,
-      Available: 472446926880, // ~88% available
-      FSAvailable: 472446926880,
-      Reserved: 0,
-      Used: 64423985120, // ~12% used
-      AllowMiners: "",
-      DenyMiners: "",
-      LastHeartbeat: "2024-01-15T10:30:30Z",
-      HeartbeatErr: "",
-      UsedPercent: 12,
-      ReservedPercent: 0,
-    },
-  ],
-  RunningTasks: testScenarios[currentScenario].RunningTasks,
-  FinishedTasks: [
-    {
-      ID: 12344,
-      Task: "C2",
-      Posted: "2024-01-15T06:15:00Z",
-      Start: "2024-01-15T06:16:00Z",
-      Queued: "1m",
-      Took: "1h 23m",
-      Outcome: "success",
-      Message: "Task completed successfully",
-    },
-    {
-      ID: 12343,
-      Task: "PC2",
-      Posted: "2024-01-15T02:30:00Z",
-      Start: "2024-01-15T02:32:00Z",
-      Queued: "2m",
-      Took: "3h 45m",
-      Outcome: "success",
-      Message: "Task completed successfully",
-    },
-    {
-      ID: 12342,
-      Task: "SDR",
-      Posted: "2024-01-14T18:20:00Z",
-      Start: "2024-01-14T18:25:00Z",
-      Queued: "5m",
-      Took: "8h 12m",
-      Outcome: "failed",
-      Message: "Insufficient disk space",
-    },
-    {
-      ID: 12341,
-      Task: "PC1",
-      Posted: "2024-01-14T16:45:00Z",
-      Start: "2024-01-14T16:47:00Z",
-      Queued: "2m",
-      Took: "2h 18m",
-      Outcome: "success",
-      Message: "Task completed successfully",
-    },
-    {
-      ID: 12340,
-      Task: "C2",
-      Posted: "2024-01-14T14:10:00Z",
-      Start: "2024-01-14T14:12:00Z",
-      Queued: "2m",
-      Took: "1h 15m",
-      Outcome: "success",
-      Message: "Task completed successfully",
-    },
-  ],
+const {
+  data: machineData,
+  loading,
+  error,
+  refresh,
+} = useCachedQuery<MachineInfo>("ClusterNodeInfo", [machineId.value], {
+  pollingInterval: 30000,
 });
 
-// Computed values for KPI cards
+// Machine operations
+const {
+  loading: operationLoading,
+  cordon,
+  uncordon,
+  restart,
+} = useMachineOperations();
+
 const cpuUsage = computed(() => {
-  const used =
-    mockMachineData.value.RunningTasks.filter((t) =>
-      ["SDR", "PC1", "PC2"].includes(t.Task),
-    ).length * 2;
-  return Math.min((used / mockMachineData.value.Info.CPU) * 100, 100);
+  if (!machineData.value?.RunningTasks || !machineData.value?.Info?.CPU)
+    return 0;
+
+  const cpuIntensiveTasks = machineData.value.RunningTasks.filter((task) =>
+    ["SDR", "PC1", "PC2"].includes(task.Task),
+  ).length;
+
+  const estimatedUsage =
+    ((cpuIntensiveTasks * 2) / machineData.value.Info.CPU) * 100;
+  return Math.min(estimatedUsage, 100);
 });
 
 const memoryUsage = computed(() => {
-  const totalGB = mockMachineData.value.Info.Memory / (1024 * 1024 * 1024);
-  const usedGB = mockMachineData.value.Info.RunningTasks * 4; // Assume 4GB per task
+  const defaultMemoryStats = { used: 0, total: 0, percentage: 0 };
+
+  if (
+    !machineData.value?.Info?.Memory ||
+    !machineData.value?.Info?.RunningTasks
+  ) {
+    return defaultMemoryStats;
+  }
+
+  const totalGB = Math.round(
+    machineData.value.Info.Memory / (1024 * 1024 * 1024),
+  );
+  const estimatedUsedGB = machineData.value.Info.RunningTasks * 4;
+  const percentage = Math.min((estimatedUsedGB / totalGB) * 100, 100);
+
   return {
-    used: usedGB,
-    total: Math.round(totalGB),
-    percentage: Math.min((usedGB / totalGB) * 100, 100),
+    used: estimatedUsedGB,
+    total: totalGB,
+    percentage,
   };
 });
 
 const gpuUsage = computed(() => {
-  const used = mockMachineData.value.RunningTasks.filter((t) =>
-    ["SDR", "PC2"].includes(t.Task),
+  if (!machineData.value?.RunningTasks || !machineData.value?.Info?.GPU)
+    return 0;
+
+  const gpuIntensiveTasks = machineData.value.RunningTasks.filter((task) =>
+    ["SDR", "PC2"].includes(task.Task),
   ).length;
-  return Math.min((used / mockMachineData.value.Info.GPU) * 100, 100);
+
+  return Math.min((gpuIntensiveTasks / machineData.value.Info.GPU) * 100, 100);
 });
 
 const storageStats = computed(() => {
-  const totalCapacity = mockMachineData.value.Storage.reduce(
-    (sum, s) => sum + s.Capacity,
+  const defaultStats = { volumes: 0, used: 0, total: 0, percentage: 0 };
+
+  if (!machineData.value?.Storage?.length) return defaultStats;
+
+  const { Storage } = machineData.value;
+  const totalCapacity = Storage.reduce(
+    (sum, storage) => sum + storage.Capacity,
     0,
   );
-  const totalUsed = mockMachineData.value.Storage.reduce(
-    (sum, s) => sum + s.Used,
-    0,
-  );
+  const totalUsed = Storage.reduce((sum, storage) => sum + storage.Used, 0);
+  const percentage = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
+
   return {
-    volumes: mockMachineData.value.Storage.length,
+    volumes: Storage.length,
     used: totalUsed,
     total: totalCapacity,
-    percentage: (totalUsed / totalCapacity) * 100,
+    percentage,
   };
 });
 
-// Helper functions
-const formatBytes = (bytes: number) => {
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  if (bytes === 0) return "0 B";
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+const machineHealthStatus = computed(() => {
+  if (!machineData.value)
+    return { status: "unknown", color: "neutral", icon: SignalIcon };
+
+  const { Info } = machineData.value;
+  const isOnline = Info.LastContact && parseInt(Info.LastContact) < 60;
+  const isUnschedulable = Info.Unschedulable;
+  const hasHighLoad = cpuUsage.value > 90 || memoryUsage.value.percentage > 90;
+
+  if (!isOnline)
+    return { status: "offline", color: "error", icon: ExclamationTriangleIcon };
+  if (isUnschedulable)
+    return { status: "cordoned", color: "warning", icon: PauseIcon };
+  if (hasHighLoad)
+    return { status: "high-load", color: "warning", icon: BoltIcon };
+  return { status: "healthy", color: "success", icon: CheckCircleIcon };
+});
+
+// Confirmation dialog state
+const showConfirmDialog = ref(false);
+const confirmAction = ref<"cordon" | "uncordon" | "restart">("cordon");
+const confirmLoading = ref(false);
+
+// Machine action handlers
+const handleCordonClick = () => {
+  confirmAction.value = "cordon";
+  showConfirmDialog.value = true;
 };
 
-const formatDuration = (posted: string) => {
-  const now = new Date();
-  const postedDate = new Date(posted);
-  const diffMs = now.getTime() - postedDate.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+const handleUncordonClick = () => {
+  confirmAction.value = "uncordon";
+  showConfirmDialog.value = true;
+};
 
-  if (diffHours > 0) {
-    return `${diffHours}h ${diffMinutes}m`;
+const handleRestartClick = () => {
+  confirmAction.value = "restart";
+  showConfirmDialog.value = true;
+};
+
+const executeAction = async () => {
+  if (!machineData.value?.Info) return;
+
+  confirmLoading.value = true;
+  let result;
+
+  try {
+    const machineId = machineData.value.Info.ID;
+    const machineName = machineData.value.Info.Name;
+
+    if (confirmAction.value === "cordon") {
+      result = await cordon(machineId, machineName);
+    } else if (confirmAction.value === "uncordon") {
+      result = await uncordon(machineId, machineName);
+    } else if (confirmAction.value === "restart") {
+      result = await restart(machineId, machineName);
+    }
+
+    if (result?.success) {
+      refresh();
+      showConfirmDialog.value = false;
+    }
+  } finally {
+    confirmLoading.value = false;
   }
-  return `${diffMinutes}m`;
 };
 
-const getTaskTypeColor = (taskType: string) => {
-  const colors = {
-    SDR: "badge-primary",
-    PC1: "badge-info",
-    PC2: "badge-warning",
-    C2: "badge-success",
-  };
-  return colors[taskType as keyof typeof colors] || "badge-neutral";
+const getConfirmationDetails = () => {
+  if (!machineData.value?.Info)
+    return {
+      title: "",
+      message: "",
+      confirmText: "",
+      type: "warning" as const,
+    };
+
+  const machineName = machineData.value.Info.Name;
+
+  if (confirmAction.value === "cordon") {
+    return {
+      title: "Cordon Machine",
+      message: `Are you sure you want to cordon machine "${machineName}"? This will prevent new tasks from being scheduled to this machine. Running tasks will continue to completion.`,
+      confirmText: "Cordon",
+      type: "warning" as const,
+    };
+  } else if (confirmAction.value === "uncordon") {
+    return {
+      title: "Uncordon Machine",
+      message: `Are you sure you want to uncordon machine "${machineName}"? This will allow new tasks to be scheduled to this machine.`,
+      confirmText: "Uncordon",
+      type: "success" as const,
+    };
+  } else {
+    return {
+      title: "Restart Machine",
+      message: `Are you sure you want to restart machine "${machineName}"? This will gracefully restart the machine after all current tasks complete.`,
+      confirmText: "Restart",
+      type: "error" as const,
+    };
+  }
 };
 
 const goBack = () => {
@@ -296,531 +221,723 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="p-6">
-    <!-- Header -->
-    <div class="mb-6 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <button class="btn btn-ghost btn-sm gap-2" @click="goBack">
-          <ArrowLeftIcon class="size-4" />
-          Back to Machines
-        </button>
-        <div class="divider divider-horizontal"></div>
-        <div>
-          <h1 class="text-2xl font-bold">
-            Machine: {{ mockMachineData.Info.Name }}
-            <span class="text-base-content/60"
-              >(ID: {{ mockMachineData.Info.ID }})</span
-            >
-          </h1>
-          <p class="text-base-content/70 text-sm">
-            Last Contact: {{ mockMachineData.Info.LastContact }} ago •
-            {{ mockMachineData.Info.Host }}
-          </p>
-        </div>
+  <div class="bg-base-200/30 min-h-screen">
+    <!-- Loading State -->
+    <div
+      v-if="loading && !machineData"
+      class="flex min-h-screen items-center justify-center"
+    >
+      <div class="text-center">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <p class="text-base-content/70 mt-4">Loading machine details...</p>
       </div>
+    </div>
 
-      <div class="flex items-center gap-3">
-        <MachineStatusBadge
-          :unschedulable="mockMachineData.Info.Unschedulable"
-          :since-contact="mockMachineData.Info.LastContact"
-          :running-tasks="mockMachineData.Info.RunningTasks"
-          :restarting="mockMachineData.Info.Restarting"
-        />
-        <div class="flex gap-2">
-          <button
-            v-if="mockMachineData.Info.Unschedulable"
-            class="btn btn-success btn-sm gap-1"
-          >
-            <PlayIcon class="size-4" />
-            Uncordon
-          </button>
-          <button v-else class="btn btn-warning btn-sm gap-1">
-            <PauseIcon class="size-4" />
-            Cordon
-          </button>
-          <button
-            class="btn btn-info btn-sm gap-1"
-            :disabled="!mockMachineData.Info.Unschedulable"
-          >
-            <ArrowPathIcon class="size-4" />
-            Restart
-          </button>
+    <!-- Error State -->
+    <div
+      v-else-if="error && !machineData"
+      class="flex min-h-screen items-center justify-center"
+    >
+      <div class="card bg-base-100 mx-4 w-full max-w-md shadow-xl">
+        <div class="card-body text-center">
+          <ExclamationTriangleIcon class="text-error mx-auto mb-4 h-16 w-16" />
+          <h2 class="card-title text-error justify-center">Failed to Load</h2>
+          <p class="text-base-content/70">{{ error.message }}</p>
+          <div class="card-actions mt-4 justify-center">
+            <button class="btn btn-primary" @click="refresh">
+              <ArrowPathIcon class="h-4 w-4" />
+              Try Again
+            </button>
+            <button class="btn btn-ghost" @click="goBack">
+              <ArrowLeftIcon class="h-4 w-4" />
+              Back to Machines
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-      <KPICard
-        label="CPU Usage"
-        :value="`${Math.round(cpuUsage)}%`"
-        :subtitle="`${mockMachineData.Info.CPU} cores`"
-        :icon="CpuChipIcon"
-        icon-color="primary"
-      />
-      <KPICard
-        label="Memory"
-        :value="`${memoryUsage.used}/${memoryUsage.total}GB`"
-        :subtitle="`${Math.round(memoryUsage.percentage)}% used`"
-        :icon="ServerIcon"
-        icon-color="info"
-      />
-      <KPICard
-        label="GPU Usage"
-        :value="`${Math.round(gpuUsage)}%`"
-        :subtitle="`${mockMachineData.Info.GPU} units`"
-        :icon="CpuChipIcon"
-        icon-color="warning"
-      />
-      <KPICard
-        label="Running Tasks"
-        :value="mockMachineData.Info.RunningTasks"
-        subtitle="Active"
-        :icon="ClockIcon"
-        icon-color="success"
-      />
-      <KPICard
-        label="Storage"
-        :value="storageStats.volumes"
-        subtitle="Volumes"
-        :icon="CircleStackIcon"
-        icon-color="secondary"
-      />
-      <KPICard
-        label="Uptime"
-        value="7d 3h"
-        subtitle="99.8%"
-        :icon="ServerIcon"
-        icon-color="accent"
-      />
-    </div>
+    <!-- Main Content -->
+    <div v-else-if="machineData" class="pb-8">
+      <!-- Hero Section - Machine Overview -->
+      <div class="bg-base-100 border-base-300 border-b">
+        <!-- Navigation Bar -->
+        <div class="border-base-200 border-b px-6 py-3">
+          <button class="btn btn-ghost btn-sm gap-2" @click="goBack">
+            <ArrowLeftIcon class="h-4 w-4" />
+            Back to Machines
+          </button>
+        </div>
 
-    <!-- Main Content - Two Column Layout -->
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-      <!-- Left Column - Machine Info & Storage -->
-      <div class="space-y-6">
-        <!-- Machine Information -->
-        <SectionCard
-          title="Machine Information"
-          description="Basic machine details and configuration"
-          :icon="ServerIcon"
-        >
-          <div class="space-y-4">
-            <div class="bg-base-200/50 rounded-lg p-4">
-              <h4 class="mb-3 font-medium">Basic Information</h4>
-              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">Name:</span>
-                  <span class="font-medium">{{
-                    mockMachineData.Info.Name
-                  }}</span>
+        <!-- Machine Header -->
+        <div class="px-6 py-6">
+          <div
+            class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between"
+          >
+            <!-- Left: Machine Info -->
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex-shrink-0 rounded-lg p-3"
+                  :class="`bg-${machineHealthStatus.color}/10 border border-${machineHealthStatus.color}/20`"
+                >
+                  <component
+                    :is="machineHealthStatus.icon"
+                    class="h-8 w-8"
+                    :class="`text-${machineHealthStatus.color}`"
+                  />
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">Address:</span>
-                  <span class="font-mono text-sm">{{
-                    mockMachineData.Info.Host
-                  }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">Layers:</span>
-                  <span class="font-medium">{{
-                    mockMachineData.Info.Layers
-                  }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">Tasks:</span>
-                  <span class="font-medium">SDR,PC1,PC2,C2</span>
+
+                <div class="min-w-0 flex-1">
+                  <h1 class="text-base-content mb-2 text-3xl font-bold">
+                    {{ machineData.Info.Name }}
+                  </h1>
+
+                  <div
+                    class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-4"
+                  >
+                    <div>
+                      <span class="text-base-content/60">Status:</span>
+                      <span
+                        :class="`ml-2 font-medium text-${machineHealthStatus.color} capitalize`"
+                      >
+                        {{ machineHealthStatus.status.replace("-", " ") }}
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-base-content/60">Host:</span>
+                      <span class="text-base-content ml-2 font-mono">{{
+                        machineData.Info.Host
+                      }}</span>
+                    </div>
+                    <div>
+                      <span class="text-base-content/60">Machine ID:</span>
+                      <span class="text-base-content ml-2 font-mono">{{
+                        machineData.Info.ID
+                      }}</span>
+                    </div>
+                    <div>
+                      <span class="text-base-content/60">Last Contact:</span>
+                      <span
+                        :class="`ml-2 font-medium ${parseInt(machineData.Info.LastContact) > 60 ? 'text-error' : 'text-success'}`"
+                      >
+                        {{ machineData.Info.LastContact }} ago
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-base-content/60">Layers:</span>
+                      <span class="badge badge-outline badge-sm ml-2">{{
+                        machineData.Info.Layers
+                      }}</span>
+                    </div>
+                    <div>
+                      <span class="text-base-content/60">Running Tasks:</span>
+                      <span class="text-primary ml-2 font-semibold">{{
+                        machineData.Info.RunningTasks
+                      }}</span>
+                    </div>
+                    <div class="md:col-span-2">
+                      <span class="text-base-content/60">Supported Tasks:</span>
+                      <!-- TODO: Add Supported Tasks field to RPC response -->
+                      <div class="mt-1">
+                        <span class="text-base-content/40 text-xs">
+                          Not available
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="bg-base-200/50 rounded-lg p-4">
-              <h4 class="mb-3 font-medium">Hardware Resources</h4>
-              <div class="space-y-3">
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">CPU:</span>
-                  <span class="font-medium"
-                    >{{ mockMachineData.Info.CPU }} cores (Intel Xeon)</span
-                  >
+            <!-- Right: Actions -->
+            <div class="flex-shrink-0">
+              <div class="flex flex-col gap-2">
+                <button
+                  v-if="machineData.Info.Unschedulable"
+                  :disabled="operationLoading"
+                  class="btn btn-success gap-2"
+                  @click="handleUncordonClick"
+                >
+                  <PlayIcon class="h-4 w-4" />
+                  Uncordon
+                </button>
+                <button
+                  v-else
+                  :disabled="operationLoading"
+                  class="btn btn-warning gap-2"
+                  @click="handleCordonClick"
+                >
+                  <PauseIcon class="h-4 w-4" />
+                  Cordon
+                </button>
+                <button
+                  :disabled="
+                    operationLoading || !machineData.Info.Unschedulable
+                  "
+                  class="btn btn-info gap-2"
+                  :class="{ 'btn-disabled': !machineData.Info.Unschedulable }"
+                  @click="handleRestartClick"
+                >
+                  <ArrowPathIcon class="h-4 w-4" />
+                  Restart
+                </button>
+                <button
+                  class="btn btn-ghost gap-2"
+                  :disabled="loading"
+                  @click="refresh"
+                >
+                  <ArrowPathIcon class="h-4 w-4" />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hardware Stats -->
+          <div
+            class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+          >
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <CpuChipIcon class="text-primary h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ Math.round(cpuUsage) }}%
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      CPU ({{ machineData.Info.CPU }} cores)
+                    </div>
+                  </div>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">Memory:</span>
-                  <span class="font-medium"
-                    >{{ memoryUsage.total }} GB DDR4</span
-                  >
+                <progress
+                  class="progress progress-primary progress-sm mt-2"
+                  :value="cpuUsage"
+                  max="100"
+                ></progress>
+              </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <ServerIcon class="text-info h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ Math.round(memoryUsage.percentage) }}%
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      Memory ({{ memoryUsage.used }}/{{ memoryUsage.total }}GB)
+                    </div>
+                  </div>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-base-content/70">GPU:</span>
-                  <span class="font-medium"
-                    >{{ mockMachineData.Info.GPU }}x NVIDIA RTX 4090</span
-                  >
+                <progress
+                  class="progress progress-info progress-sm mt-2"
+                  :value="memoryUsage.percentage"
+                  max="100"
+                ></progress>
+              </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <BoltIcon class="text-warning h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ Math.round(gpuUsage) }}%
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      GPU ({{ machineData.Info.GPU }} units)
+                    </div>
+                  </div>
+                </div>
+                <progress
+                  class="progress progress-warning progress-sm mt-2"
+                  :value="gpuUsage"
+                  max="100"
+                ></progress>
+              </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <CircleStackIcon class="text-secondary h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ Math.round(storageStats.percentage) }}%
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      Storage ({{ storageStats.volumes }} volumes)
+                    </div>
+                  </div>
+                </div>
+                <progress
+                  class="progress progress-secondary progress-sm mt-2"
+                  :value="storageStats.percentage"
+                  max="100"
+                ></progress>
+              </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <ClockIcon class="text-success h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ machineData.RunningTasks?.length || 0 }}
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      Running Tasks
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                  <CheckCircleIcon class="text-accent h-6 w-6" />
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ machineData.FinishedTasks?.length || 0 }}
+                    </div>
+                    <div class="text-base-content/60 text-xs">
+                      Completed Tasks
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </SectionCard>
+        </div>
+      </div>
 
-        <!-- Storage Volumes -->
-        <SectionCard
-          title="Storage Volumes"
-          description="Disk utilization and storage configuration"
-          :icon="CircleStackIcon"
-        >
-          <div class="overflow-x-auto">
-            <table class="table w-full">
-              <thead>
-                <tr class="border-base-300">
-                  <th>Volume ID</th>
-                  <th>Size</th>
-                  <th>Usage</th>
-                  <th>Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="volume in mockMachineData.Storage"
-                  :key="volume.ID"
-                  class="border-base-300/50"
+      <!-- Content Sections - Full Width -->
+      <div class="mt-4 px-4">
+        <div class="grid grid-cols-1 gap-6 2xl:grid-cols-3">
+          <!-- Left Section - Hardware & Storage (Expanded) -->
+          <div class="space-y-6 2xl:col-span-2">
+            <!-- Hardware Resources -->
+            <div class="card bg-base-100 shadow-lg">
+              <div class="card-body p-4">
+                <div class="mb-4 flex items-center gap-2">
+                  <ServerIcon class="text-primary h-5 w-5" />
+                  <h2 class="card-title text-lg">Hardware Resources</h2>
+                </div>
+
+                <div
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
                 >
-                  <td class="font-mono text-sm">{{ volume.ID }}</td>
-                  <td class="font-medium">
-                    {{ formatBytes(volume.Capacity) }}
-                  </td>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-medium"
-                        >{{ volume.UsedPercent }}%</span
+                  <div
+                    class="bg-primary/5 border-primary/10 rounded-lg border p-4"
+                  >
+                    <div class="mb-2 flex items-center justify-between">
+                      <span class="text-base-content/60 text-xs font-medium"
+                        >CPU</span
                       >
+                      <CpuChipIcon class="text-primary h-4 w-4" />
+                    </div>
+                    <div class="mb-1 text-xl font-bold">
+                      {{ machineData.Info.CPU }}
+                    </div>
+                    <div class="text-base-content/60 mb-2 text-xs">
+                      cores available
+                    </div>
+                    <div class="flex items-center gap-3">
                       <progress
-                        class="progress w-20"
-                        :class="{
-                          'progress-success': volume.UsedPercent < 70,
-                          'progress-warning':
-                            volume.UsedPercent >= 70 && volume.UsedPercent < 90,
-                          'progress-error': volume.UsedPercent >= 90,
-                        }"
-                        :value="volume.UsedPercent"
+                        class="progress progress-primary flex-1"
+                        :value="cpuUsage"
                         max="100"
                       ></progress>
+                      <span class="text-sm font-medium"
+                        >{{ Math.round(cpuUsage) }}%</span
+                      >
                     </div>
-                  </td>
-                  <td>
-                    <div class="badge badge-sm badge-outline">
-                      {{ volume.CanSeal ? "Seal" : "Store" }}
+                  </div>
+
+                  <div class="bg-info/5 border-info/10 rounded-lg border p-4">
+                    <div class="mb-2 flex items-center justify-between">
+                      <span class="text-base-content/60 text-xs font-medium"
+                        >Memory</span
+                      >
+                      <ServerIcon class="text-info h-4 w-4" />
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </SectionCard>
-      </div>
+                    <div class="mb-1 text-xl font-bold">
+                      {{ memoryUsage.total }}GB
+                    </div>
+                    <div class="text-base-content/60 mb-2 text-xs">
+                      {{ memoryUsage.used }}GB used
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <progress
+                        class="progress progress-info flex-1"
+                        :value="memoryUsage.percentage"
+                        max="100"
+                      ></progress>
+                      <span class="text-sm font-medium"
+                        >{{ Math.round(memoryUsage.percentage) }}%</span
+                      >
+                    </div>
+                  </div>
 
-      <!-- Right Column - Tasks & Activity -->
-      <div class="space-y-6">
-        <!-- Running Tasks -->
-        <SectionCard
-          title="Running Tasks"
-          :description="`Currently executing tasks on this machine (${mockMachineData.RunningTasks.length})`"
-          :icon="ClockIcon"
-        >
-          <!-- Empty State -->
-          <div
-            v-if="mockMachineData.RunningTasks.length === 0"
-            class="py-12 text-center"
-          >
-            <div class="mb-4 text-4xl">💤</div>
-            <div class="text-base-content/70 mb-2 text-lg font-medium">
-              No Running Tasks
-            </div>
-            <div class="text-base-content/50 text-sm">
-              This machine is currently idle
-            </div>
-          </div>
-
-          <!-- Tasks List -->
-          <div v-else>
-            <!-- Quick Stats for Large Lists -->
-            <div
-              v-if="mockMachineData.RunningTasks.length > 3"
-              class="mb-4 flex flex-wrap gap-2"
-            >
-              <div class="badge badge-outline badge-sm">
-                {{
-                  mockMachineData.RunningTasks.filter((t) => t.Task === "SDR")
-                    .length
-                }}
-                SDR
-              </div>
-              <div class="badge badge-outline badge-sm">
-                {{
-                  mockMachineData.RunningTasks.filter((t) => t.Task === "PC1")
-                    .length
-                }}
-                PC1
-              </div>
-              <div class="badge badge-outline badge-sm">
-                {{
-                  mockMachineData.RunningTasks.filter((t) => t.Task === "PC2")
-                    .length
-                }}
-                PC2
-              </div>
-              <div class="badge badge-outline badge-sm">
-                {{
-                  mockMachineData.RunningTasks.filter((t) => t.Task === "C2")
-                    .length
-                }}
-                C2
-              </div>
-            </div>
-
-            <!-- Tasks Container with Dynamic Height -->
-            <div
-              class="border-base-300/30 space-y-2 overflow-y-auto rounded-lg border"
-              :class="{
-                'max-h-60': mockMachineData.RunningTasks.length > 5,
-                'max-h-96': mockMachineData.RunningTasks.length > 10,
-                'max-h-[500px]': mockMachineData.RunningTasks.length > 20,
-              }"
-            >
-              <div
-                v-for="(task, index) in mockMachineData.RunningTasks"
-                :key="task.ID"
-                class="bg-base-100 hover:bg-base-200/50 flex items-center justify-between p-3 transition-colors"
-                :class="{
-                  'border-base-300/30 border-b':
-                    index < mockMachineData.RunningTasks.length - 1,
-                }"
-              >
-                <div class="flex items-center gap-3">
                   <div
-                    class="badge badge-sm"
-                    :class="getTaskTypeColor(task.Task)"
+                    class="bg-warning/5 border-warning/10 rounded-lg border p-4"
                   >
-                    {{ task.Task }}
-                  </div>
-                  <div>
-                    <div class="font-mono text-sm font-medium">
-                      #{{ task.ID }}
+                    <div class="mb-2 flex items-center justify-between">
+                      <span class="text-base-content/60 text-xs font-medium"
+                        >GPU</span
+                      >
+                      <BoltIcon class="text-warning h-4 w-4" />
                     </div>
-                    <div class="text-base-content/60 text-xs">
-                      {{
-                        task.PoRepSector
-                          ? `Sector ${task.PoRepSector}`
-                          : "Processing"
-                      }}
+                    <div class="mb-1 text-xl font-bold">
+                      {{ machineData.Info.GPU }}
                     </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-medium">
-                    {{ formatDuration(task.Posted) }}
-                  </div>
-                  <div class="text-base-content/60 text-xs">running</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Show All Button for Large Lists -->
-            <div
-              v-if="mockMachineData.RunningTasks.length > 20"
-              class="mt-3 text-center"
-            >
-              <button class="btn btn-ghost btn-sm">
-                View All {{ mockMachineData.RunningTasks.length }} Tasks →
-              </button>
-            </div>
-          </div>
-        </SectionCard>
-
-        <!-- Recent Activity -->
-        <SectionCard
-          title="Recent Activity"
-          :description="`Latest completed and failed tasks (${mockMachineData.FinishedTasks.length} total)`"
-          :icon="ClockIcon"
-        >
-          <!-- Empty State -->
-          <div
-            v-if="mockMachineData.FinishedTasks.length === 0"
-            class="py-12 text-center"
-          >
-            <div class="mb-4 text-4xl">📭</div>
-            <div class="text-base-content/70 mb-2 text-lg font-medium">
-              No Task History
-            </div>
-            <div class="text-base-content/50 text-sm">
-              No completed tasks found on this machine
-            </div>
-          </div>
-
-          <!-- Activity List -->
-          <div v-else>
-            <!-- Summary Stats -->
-            <div
-              v-if="mockMachineData.FinishedTasks.length > 0"
-              class="mb-4 flex flex-wrap gap-2"
-            >
-              <div class="badge badge-success badge-outline badge-sm">
-                {{
-                  mockMachineData.FinishedTasks.filter(
-                    (t) => t.Outcome === "success",
-                  ).length
-                }}
-                Successful
-              </div>
-              <div class="badge badge-error badge-outline badge-sm">
-                {{
-                  mockMachineData.FinishedTasks.filter(
-                    (t) => t.Outcome === "failed",
-                  ).length
-                }}
-                Failed
-              </div>
-            </div>
-
-            <!-- Recent Tasks (show up to 8) -->
-            <div class="space-y-2">
-              <div
-                v-for="(task, index) in mockMachineData.FinishedTasks.slice(
-                  0,
-                  8,
-                )"
-                :key="task.ID"
-                class="bg-base-100 hover:bg-base-200/50 flex items-center justify-between rounded-lg p-3 transition-colors"
-                :class="{
-                  'border-base-300/30 border-b':
-                    index <
-                    Math.min(mockMachineData.FinishedTasks.length, 8) - 1,
-                }"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="text-lg">
-                    {{ task.Outcome === "success" ? "✅" : "❌" }}
-                  </div>
-                  <div>
-                    <div class="font-mono text-sm font-medium">
-                      Task #{{ task.ID }} ({{ task.Task }})
+                    <div class="text-base-content/60 mb-2 text-xs">
+                      units available
                     </div>
-                    <div class="text-base-content/60 text-xs">
-                      {{ task.Outcome === "success" ? "completed" : "failed" }}
-                      {{ task.Outcome === "failed" ? `- ${task.Message}` : "" }}
+                    <div class="flex items-center gap-3">
+                      <progress
+                        class="progress progress-warning flex-1"
+                        :value="gpuUsage"
+                        max="100"
+                      ></progress>
+                      <span class="text-sm font-medium"
+                        >{{ Math.round(gpuUsage) }}%</span
+                      >
                     </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-medium">{{ task.Took }}</div>
-                  <div class="text-base-content/60 text-xs">
-                    {{ new Date(task.Start).toLocaleDateString() }}
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- View All Button -->
-            <div
-              v-if="mockMachineData.FinishedTasks.length > 8"
-              class="mt-4 text-center"
-            >
-              <button class="btn btn-ghost btn-sm">
-                View All {{ mockMachineData.FinishedTasks.length }} Tasks
-                History →
-              </button>
+            <!-- Storage Volumes -->
+            <div class="card bg-base-100 shadow-lg">
+              <div class="card-body p-4">
+                <div class="mb-4 flex items-center gap-2">
+                  <CircleStackIcon class="text-secondary h-5 w-5" />
+                  <h2 class="card-title text-lg">Storage Volumes</h2>
+                  <div class="badge badge-secondary badge-sm">
+                    {{ storageStats.volumes }}
+                  </div>
+                </div>
+
+                <div
+                  v-if="!machineData.Storage?.length"
+                  class="py-8 text-center"
+                >
+                  <CircleStackIcon
+                    class="text-base-content/20 mx-auto mb-3 h-12 w-12"
+                  />
+                  <p class="text-base-content/60 text-sm">
+                    No storage volumes configured
+                  </p>
+                </div>
+
+                <DataTable v-else>
+                  <thead>
+                    <tr>
+                      <th>Volume ID</th>
+                      <th>Type</th>
+                      <th>Capacity</th>
+                      <th>Used</th>
+                      <th>Available</th>
+                      <th>Usage</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="volume in machineData.Storage" :key="volume.ID">
+                      <td>
+                        <div class="font-mono font-semibold">
+                          {{ volume.ID }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="flex flex-wrap gap-1">
+                          <div
+                            class="badge badge-sm"
+                            :class="
+                              volume.CanSeal ? 'badge-primary' : 'badge-neutral'
+                            "
+                          >
+                            {{ volume.CanSeal ? "Seal" : "Store" }}
+                          </div>
+                          <div
+                            v-if="volume.CanStore"
+                            class="badge badge-secondary badge-sm"
+                          >
+                            Store
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-medium">
+                          {{
+                            volume.Capacity
+                              ? formatBytes(Number(volume.Capacity))
+                              : "N/A"
+                          }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-medium">
+                          {{
+                            volume.Used
+                              ? formatBytes(Number(volume.Used))
+                              : "0 B"
+                          }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-medium">
+                          {{
+                            volume.Available
+                              ? formatBytes(Number(volume.Available))
+                              : "N/A"
+                          }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <progress
+                            class="progress progress-sm w-16"
+                            :class="{
+                              'progress-success': volume.UsedPercent < 70,
+                              'progress-warning':
+                                volume.UsedPercent >= 70 &&
+                                volume.UsedPercent < 90,
+                              'progress-error': volume.UsedPercent >= 90,
+                            }"
+                            :value="volume.UsedPercent"
+                            max="100"
+                          ></progress>
+                          <span
+                            class="text-sm font-semibold"
+                            :class="{
+                              'text-success': volume.UsedPercent < 70,
+                              'text-warning':
+                                volume.UsedPercent >= 70 &&
+                                volume.UsedPercent < 90,
+                              'text-error': volume.UsedPercent >= 90,
+                            }"
+                          >
+                            {{ Math.round(volume.UsedPercent) }}%
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="flex items-center gap-2">
+                          <div
+                            class="badge badge-sm"
+                            :class="
+                              volume.HeartbeatErr
+                                ? 'badge-error'
+                                : 'badge-success'
+                            "
+                          >
+                            {{ volume.HeartbeatErr ? "Error" : "Healthy" }}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </DataTable>
+              </div>
             </div>
-            <div
-              v-else-if="mockMachineData.FinishedTasks.length > 0"
-              class="mt-4 text-center"
-            >
-              <button class="btn btn-ghost btn-sm">View Full History →</button>
+            <!-- Recent Activity -->
+            <div class="card bg-base-100 shadow-lg">
+              <div class="card-body p-4">
+                <div class="mb-4 flex items-center gap-2">
+                  <ClockIcon class="text-info h-5 w-5" />
+                  <h2 class="card-title text-lg">Recent Activity</h2>
+                </div>
+
+                <div
+                  v-if="!machineData.FinishedTasks?.length"
+                  class="py-8 text-center"
+                >
+                  <ClockIcon
+                    class="text-base-content/20 mx-auto mb-3 h-12 w-12"
+                  />
+                  <p class="text-base-content/60 text-sm">No recent activity</p>
+                </div>
+
+                <DataTable v-else>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Sector</th>
+                      <th>Status</th>
+                      <th>Start</th>
+                      <th>Took</th>
+                      <th>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="task in machineData.FinishedTasks.slice(0, 20)"
+                      :key="task.ID"
+                    >
+                      <td>
+                        <div class="font-mono font-semibold">
+                          #{{ task.ID }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-sm font-medium">
+                          {{ task.Task }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-sm">N/A</div>
+                      </td>
+                      <td>
+                        <span
+                          class="badge badge-sm"
+                          :class="
+                            task.Outcome === 'Success'
+                              ? 'badge-success'
+                              : 'badge-error'
+                          "
+                        >
+                          {{
+                            task.Outcome === "Success" ? "Success" : "Failed"
+                          }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="text-sm">
+                          {{ task.Start }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-medium">
+                          {{ task.Took || "N/A" }}
+                        </div>
+                      </td>
+                      <td>
+                        <div
+                          v-if="task.Outcome !== 'Success' && task.Message"
+                          class="text-error max-w-xs truncate text-xs"
+                          :title="task.Message"
+                        >
+                          {{ task.Message }}
+                        </div>
+                        <div v-else class="text-base-content/40 text-xs">-</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </DataTable>
+              </div>
             </div>
           </div>
-        </SectionCard>
-      </div>
-    </div>
 
-    <!-- Task History & Performance (Expandable Section) -->
-    <div class="mt-6">
-      <SectionCard
-        title="Task History & Performance"
-        description="Complete task execution history and performance metrics"
-        :icon="ClockIcon"
-        collapsible
-        :collapsed="true"
-      >
-        <div class="overflow-x-auto">
-          <div class="mb-4 flex items-center justify-between">
-            <div class="flex gap-2">
-              <select class="select select-bordered select-sm">
-                <option value="">All Task Types</option>
-                <option value="SDR">SDR</option>
-                <option value="PC1">PC1</option>
-                <option value="PC2">PC2</option>
-                <option value="C2">C2</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                class="input input-bordered input-sm"
-              />
-            </div>
-            <div class="flex gap-2">
-              <button class="btn btn-ghost btn-sm">Export</button>
-              <button class="btn btn-primary btn-sm">Filter</button>
+          <!-- Right Column - Running Tasks Only -->
+          <div class="space-y-6">
+            <!-- Running Tasks -->
+            <div class="card bg-base-100 shadow-lg">
+              <div class="card-body p-4">
+                <div class="mb-4 flex items-center gap-2">
+                  <ClockIcon class="text-success h-5 w-5" />
+                  <h2 class="card-title text-lg">Running Tasks</h2>
+                  <div class="badge badge-primary badge-sm">
+                    {{ machineData.RunningTasks?.length || 0 }}
+                  </div>
+                </div>
+
+                <div
+                  v-if="!machineData.RunningTasks?.length"
+                  class="py-8 text-center"
+                >
+                  <ClockIcon
+                    class="text-base-content/20 mx-auto mb-3 h-12 w-12"
+                  />
+                  <p class="text-base-content/60 text-sm">
+                    No tasks currently running
+                  </p>
+                </div>
+
+                <DataTable v-else>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Sector</th>
+                      <th>Elapsed</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="task in machineData.RunningTasks.slice(0, 20)"
+                      :key="task.ID"
+                    >
+                      <td>
+                        <div class="font-mono font-semibold">
+                          #{{ task.ID }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-sm font-medium">
+                          {{ task.Task }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="text-sm">
+                          {{ task.PoRepSector || "N/A" }}
+                        </div>
+                      </td>
+                      <td>
+                        <div class="font-medium">
+                          {{ formatDuration(task.Posted) }}
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge badge-success badge-sm">
+                          Running
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </DataTable>
+
+                <div
+                  v-if="machineData.RunningTasks.length > 20"
+                  class="mt-4 text-center"
+                >
+                  <div class="text-base-content/60 text-sm">
+                    Showing 20 of {{ machineData.RunningTasks.length }} running
+                    tasks
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <table class="table w-full">
-            <thead>
-              <tr class="border-base-300">
-                <th>Task ID</th>
-                <th>Type</th>
-                <th>Sector</th>
-                <th>Started</th>
-                <th>Duration</th>
-                <th>Result</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="task in mockMachineData.FinishedTasks"
-                :key="task.ID"
-                class="border-base-300/50 hover:bg-base-200/30"
-              >
-                <td class="font-mono text-sm">#{{ task.ID }}</td>
-                <td>
-                  <div
-                    class="badge badge-sm"
-                    :class="getTaskTypeColor(task.Task)"
-                  >
-                    {{ task.Task }}
-                  </div>
-                </td>
-                <td class="font-mono text-sm">s-1233</td>
-                <td class="text-sm">
-                  {{ new Date(task.Start).toLocaleString() }}
-                </td>
-                <td class="font-medium">{{ task.Took }}</td>
-                <td>
-                  <div
-                    class="badge badge-sm"
-                    :class="
-                      task.Outcome === 'success'
-                        ? 'badge-success'
-                        : 'badge-error'
-                    "
-                  >
-                    {{ task.Outcome === "success" ? "✅" : "❌" }}
-                  </div>
-                </td>
-                <td class="text-base-content/70 max-w-xs truncate text-sm">
-                  {{ task.Message }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-      </SectionCard>
+      </div>
     </div>
+
+    <!-- Confirmation Dialog -->
+    <ConfirmationDialog
+      v-if="machineData"
+      :show="showConfirmDialog"
+      :title="getConfirmationDetails().title"
+      :message="getConfirmationDetails().message"
+      :confirm-text="getConfirmationDetails().confirmText"
+      :type="
+        getConfirmationDetails().type === 'error'
+          ? 'danger'
+          : (getConfirmationDetails().type as 'warning' | 'info')
+      "
+      :loading="confirmLoading"
+      @confirm="executeAction"
+      @cancel="showConfirmDialog = false"
+    />
   </div>
 </template>

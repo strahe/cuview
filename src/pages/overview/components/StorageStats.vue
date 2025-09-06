@@ -4,6 +4,8 @@ import { useCachedQuery } from "@/composables/useCachedQuery";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { StorageUseStat, StorageBreakdown } from "@/types/storage";
+import { formatPercentage } from "@/utils/format";
+import { getProgressColor } from "@/utils/ui";
 
 const {
   data: summary,
@@ -57,21 +59,15 @@ const data = computed(() => {
   return [];
 });
 
-const getUsagePercentage = (capacity: number, available: number): string => {
-  return capacity > 0 ? (100 - (100 * available) / capacity).toFixed(2) : "0";
+const getUsagePercentage = (capacity: number, available: number): number => {
+  return capacity > 0 ? 100 - (100 * available) / capacity : 0;
 };
 
 const getAvailablePercentage = (
   capacity: number,
   available: number,
-): string => {
-  return capacity > 0 ? ((100 * available) / capacity).toFixed(2) : "0";
-};
-
-const getProgressColor = (percentage: number): string => {
-  if (percentage < 50) return "progress-success";
-  if (percentage < 80) return "progress-warning";
-  return "progress-error";
+): number => {
+  return capacity > 0 ? (100 * available) / capacity : 0;
 };
 </script>
 
@@ -106,7 +102,12 @@ const getProgressColor = (percentage: number): string => {
                   {{ row.CapStr || row.Capacity }}
                 </div>
                 <div class="text-base-content/70 text-xs">
-                  {{ getUsagePercentage(row.Capacity, row.Available) }}% used
+                  {{
+                    formatPercentage(
+                      getUsagePercentage(row.Capacity, row.Available),
+                    )
+                  }}
+                  used
                 </div>
               </div>
             </td>
@@ -115,7 +116,7 @@ const getProgressColor = (percentage: number): string => {
                 class="progress w-56"
                 :class="
                   getProgressColor(
-                    parseFloat(getUsagePercentage(row.Capacity, row.Available)),
+                    getUsagePercentage(row.Capacity, row.Available),
                   )
                 "
                 :value="getUsagePercentage(row.Capacity, row.Available)"
@@ -135,7 +136,11 @@ const getProgressColor = (percentage: number): string => {
               <div class="space-y-1">
                 <div>Available: {{ sub.avail_str }}</div>
                 <div class="text-base-content/70 text-xs">
-                  {{ getAvailablePercentage(sub.capacity, sub.available) }}%
+                  {{
+                    formatPercentage(
+                      getAvailablePercentage(sub.capacity, sub.available),
+                    )
+                  }}
                   available
                 </div>
               </div>
@@ -145,7 +150,7 @@ const getProgressColor = (percentage: number): string => {
                 class="progress w-48"
                 :class="
                   getProgressColor(
-                    parseFloat(getUsagePercentage(sub.capacity, sub.available)),
+                    getUsagePercentage(sub.capacity, sub.available),
                   )
                 "
                 :value="getUsagePercentage(sub.capacity, sub.available)"

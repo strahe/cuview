@@ -182,7 +182,6 @@ const columns = [
     },
   }),
   columnHelper.accessor("Unschedulable", {
-    id: "status",
     header: "Status",
     size: 180,
     enableGrouping: false,
@@ -414,12 +413,12 @@ const { hasData, totalItems } = useTableHelpers(
 // Filter helper computed properties
 const statusFilter = computed({
   get: () => {
-    const filter = table.getColumn("status")?.getFilterValue() as string;
+    const filter = table.getColumn("Unschedulable")?.getFilterValue() as string;
     return filter || "all";
   },
   set: (value: string) => {
     table
-      .getColumn("status")
+      .getColumn("Unschedulable")
       ?.setFilterValue(value === "all" ? undefined : value);
   },
 });
