@@ -239,6 +239,53 @@ export function createCurioQuery() {
         ...options,
       }),
 
+    // Pipeline APIs
+    pipelinePorepSectors: (options?: QueryOptions) =>
+      createQuery<unknown[]>("PipelinePorepSectors", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
+
+    porepPipelineSummary: (options?: QueryOptions) =>
+      createQuery<unknown[]>("PorepPipelineSummary", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
+
+    pipelineStatsSDR: (options?: QueryOptions) =>
+      createQuery<unknown>("PipelineStatsSDR", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
+
+    pipelineStatsSnap: (options?: QueryOptions) =>
+      createQuery<unknown>("PipelineStatsSnap", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
+
+    pipelineFailedTasksMarket: (options?: QueryOptions) =>
+      createQuery<unknown>("PipelineFailedTasksMarket", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
+
+    // Pipeline Actions
+    pipelinePorepRestartAll: async () => {
+      const api = getApi();
+      return await api.call<null>("PipelinePorepRestartAll", []);
+    },
+
+    pipelineSnapRestartAll: async () => {
+      const api = getApi();
+      return await api.call<null>("PipelineSnapRestartAll", []);
+    },
+
     // Generic query method
     query: <T>(method: string, params?: unknown[], options?: QueryOptions) =>
       createQuery<T>(method, params || [], options),

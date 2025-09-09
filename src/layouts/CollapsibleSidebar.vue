@@ -54,6 +54,7 @@ const navItems: NavItem[] = [
     label: "Pipeline",
     icon: ArrowsRightLeftIcon,
     to: "/pipeline",
+    activePattern: "^/pipeline.*", // Match all /pipeline/* routes
   },
   {
     label: "Market",
