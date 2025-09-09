@@ -1,6 +1,20 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+onMounted(() => {
+  // Redirect to PoRep pipeline as the default view
+  router.replace("/pipeline/porep");
+});
+</script>
+
 <template>
-  <div class="p-6">
-    <h1 class="mb-4 text-2xl font-bold">Pipeline</h1>
-    <p class="text-base-content/70">Pipeline page is under development.</p>
+  <div class="flex items-center justify-center p-6">
+    <div class="text-center">
+      <span class="loading loading-spinner loading-lg"></span>
+      <div class="text-base-content/60 mt-2 text-sm">Redirecting...</div>
+    </div>
   </div>
 </template>
