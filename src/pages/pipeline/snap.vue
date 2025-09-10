@@ -235,9 +235,28 @@ import {
 
 import SectionCard from "@/components/ui/SectionCard.vue";
 import PipelineLayout from "./components/PipelineLayout.vue";
-import { usePipelineData } from "@/composables/usePipelineData";
+import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useCurioQuery } from "@/composables/useCurioQuery";
+import type { PipelineStats } from "@/types/pipeline";
 
-const { snapStats, restartSnapPipeline } = usePipelineData();
+// Direct query for snap stats
+const snapStats = useCachedQuery<PipelineStats>("PipelineStatsSnap", [], {
+  pollingInterval: 30000,
+});
+
+// Action functions
+const { pipelineSnapRestartAll } = useCurioQuery();
+
+const restartSnapPipeline = async () => {
+  try {
+    await pipelineSnapRestartAll();
+    await snapStats.refresh();
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to restart Snap pipeline:", error);
+    return { success: false, error: error as Error };
+  }
+};
 
 const isRestarting = ref(false);
 
