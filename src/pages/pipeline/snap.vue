@@ -243,10 +243,7 @@ const pipelineStats = computed(() => {
 const refreshDashboard = async () => {
   isRefreshingDashboard.value = true;
   try {
-    await Promise.all([
-      snapStats.refresh(),
-      upgradeSectors.refresh(), // Include upgradeSectors refresh since all stats depend on it
-    ]);
+    await snapStats.refresh();
   } finally {
     isRefreshingDashboard.value = false;
   }

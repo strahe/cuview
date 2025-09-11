@@ -38,7 +38,6 @@ const {
   pollingInterval: 30000,
 });
 
-// Machine operations
 const {
   loading: operationLoading,
   cordon,
@@ -132,12 +131,10 @@ const machineHealthStatus = computed(() => {
   return { status: "healthy", color: "success", icon: CheckCircleIcon };
 });
 
-// Confirmation dialog state
 const showConfirmDialog = ref(false);
 const confirmAction = ref<"cordon" | "uncordon" | "restart">("cordon");
 const confirmLoading = ref(false);
 
-// Machine action handlers
 const handleCordonClick = () => {
   confirmAction.value = "cordon";
   showConfirmDialog.value = true;

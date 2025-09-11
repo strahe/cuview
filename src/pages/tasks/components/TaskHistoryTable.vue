@@ -1,67 +1,60 @@
 <script setup lang="ts">
-import { computed, h, ref } from "vue";
+import { computed, h } from "vue";
 import {
-  useVueTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getExpandedRowModel,
-  getGroupedRowModel,
   createColumnHelper,
-  type ColumnFiltersState,
-  type Row,
-  type Cell,
   FlexRender,
+  type ColumnDef,
+  type Row,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
-import { useCachedQuery } from "@/composables/useCachedQuery";
-import { useTableHelpers } from "@/composables/useTableHelpers";
-import { useTableState } from "@/composables/useTableState";
-import DataSection from "@/components/ui/DataSection.vue";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  XMarkIcon,
+} from "@heroicons/vue/24/outline";
+import { useStandardTable } from "@/composables/useStandardTable";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { TaskHistorySummary } from "@/types/task";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
 
-const {
-  data: rawData,
-  loading,
-  error,
-  refresh,
-} = useCachedQuery<TaskHistorySummary[]>("ClusterTaskHistory", [], {
-  pollingInterval: 30000,
+interface Props {
+  items: TaskHistorySummary[];
+  loading?: boolean;
+  error?: Error | null;
+  onRefresh?: () => void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  error: null,
+  onRefresh: () => {},
 });
 
-const store = useTableState("taskHistoryTable", {
-  defaultSorting: [{ id: "Start", desc: true }],
-  customFilters: { resultFilter: "all" },
-});
+const rawData = computed(() => props.items);
 
-const filteredData = computed(() => {
-  if (!Array.isArray(rawData.value)) return [];
+const groupingOptions = [
+  { value: "Name", label: "Task Type" },
+  { value: "CompletedBy", label: "Machine" },
+  { value: "Result", label: "Result" },
+];
 
-  let filtered = rawData.value;
+const resultFilterFn = (
+  row: { original: TaskHistorySummary },
+  _columnId: string,
+  filterValue: string,
+) => {
+  if (filterValue === "all") return true;
 
-  // Search filter
-  if (store.searchQuery) {
-    const query = store.searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      (task) =>
-        task.Name?.toLowerCase().includes(query) ||
-        task.TaskID?.toString().includes(query) ||
-        task.CompletedBy?.toLowerCase().includes(query) ||
-        task.Err?.toLowerCase().includes(query),
-    );
+  const task = row.original;
+  switch (filterValue) {
+    case "success":
+      return task.Result === true;
+    case "failed":
+      return task.Result === false;
+    default:
+      return true;
   }
-
-  // Result filter
-  if (store.customFilters.resultFilter !== "all") {
-    const isSuccess = store.customFilters.resultFilter === "success";
-    filtered = filtered.filter((task) => task.Result === isSuccess);
-  }
-
-  return filtered;
-});
+};
 
 const columnHelper = createColumnHelper<TaskHistorySummary>();
 
@@ -186,6 +179,8 @@ const columns = [
     header: "Result",
     size: 100,
     enableGrouping: true,
+    enableColumnFilter: true,
+    filterFn: resultFilterFn,
     cell: (info) => {
       const success = info.getValue();
       const IconComponent = success ? CheckCircleIcon : XCircleIcon;
@@ -243,69 +238,61 @@ const columns = [
   }),
 ];
 
-const columnFilters = ref<ColumnFiltersState>([]);
+const { table, store, helpers, handlers } =
+  useStandardTable<TaskHistorySummary>({
+    tableId: "taskHistoryTable",
+    columns: columns as ColumnDef<TaskHistorySummary>[],
+    data: rawData,
+    defaultSorting: [{ id: "Start", desc: true }],
+    groupingOptions,
+    getRowId: (row) => `task-${row.TaskID}`,
+  });
 
-const table = useVueTable({
-  get data() {
-    return filteredData.value;
+const {
+  hasData: tableHasData,
+  totalItems,
+  groupCount,
+  hasActiveFilters,
+} = helpers;
+const {
+  handleGroupByChange,
+  handleCellRightClick,
+  getCellTooltip,
+  clearAllFilters,
+} = handlers;
+
+const handleTaskClick = (taskId: number) => {
+  console.log("Task clicked:", taskId);
+  // TODO: Navigate to task details
+};
+
+const handleMachineClick = (machineName: string) => {
+  console.log("Machine clicked:", machineName);
+  // TODO: Navigate to machine details or filter by machine
+};
+
+const handleRowClick = (row: Row<TaskHistorySummary>) => {
+  if (row.getCanExpand()) {
+    row.getToggleExpandedHandler()();
+  } else if (!row.getIsGrouped()) {
+    handleTaskClick(row.original.TaskID);
+  }
+};
+
+const resultFilter = computed({
+  get: () => {
+    const filter = table.getColumn("Result")?.getFilterValue() as string;
+    return filter || "all";
   },
-  columns,
-  getRowId: (row: TaskHistorySummary) => `task-${row.TaskID}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  enableGrouping: true,
-  autoResetExpanded: false,
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get columnFilters() {
-      return columnFilters.value;
-    },
-    get grouping() {
-      return store.grouping;
-    },
-    get expanded() {
-      return store.expanded;
-    },
-  },
-  onSortingChange: (updaterOrValue) => {
-    const newSorting =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.sorting)
-        : updaterOrValue;
-    store.setSorting(newSorting);
-  },
-  onColumnFiltersChange: (updaterOrValue) => {
-    columnFilters.value =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(columnFilters.value)
-        : updaterOrValue;
-  },
-  onGroupingChange: (updaterOrValue) => {
-    const newGrouping =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.grouping)
-        : updaterOrValue;
-    store.setGrouping(newGrouping);
-  },
-  onExpandedChange: (updaterOrValue) => {
-    const newExpanded =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(store.expanded)
-        : updaterOrValue;
-    store.setExpanded(newExpanded);
+  set: (value: string) => {
+    table
+      .getColumn("Result")
+      ?.setFilterValue(value === "all" ? undefined : value);
   },
 });
 
-// Table helper utilities
-const { hasData, totalItems } = useTableHelpers(rawData, table);
-
 const getColumnAggregateInfo = (columnId: string) => {
-  const data = filteredData.value;
+  const data = rawData.value;
   if (!data.length) return "";
 
   switch (columnId) {
@@ -348,87 +335,15 @@ const getColumnAggregateInfo = (columnId: string) => {
       return "";
   }
 };
-
-const getGroupCount = () => {
-  const groupedRows = table
-    .getRowModel()
-    .rows.filter((row) => row.getIsGrouped());
-  return groupedRows.length;
-};
-
-const handleGroupByChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setSelectedGroupBy(target.value);
-};
-
-const handleResultFilterChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setCustomFilter(
-    "resultFilter",
-    target.value as "all" | "success" | "failed",
-  );
-};
-
-const handleTaskClick = (taskId: number) => {
-  console.log("Task clicked:", taskId);
-  // TODO: Navigate to task details
-};
-
-const handleMachineClick = (machineName: string) => {
-  console.log("Machine clicked:", machineName);
-  // TODO: Navigate to machine details or filter by machine
-};
-
-const handleRowClick = (row: Row<TaskHistorySummary>) => {
-  if (row.getCanExpand()) {
-    row.getToggleExpandedHandler()();
-  } else if (!row.getIsGrouped()) {
-    handleTaskClick(row.original.TaskID);
-  }
-};
-
-const getCellTooltip = (cell: Cell<TaskHistorySummary, unknown>) => {
-  const value = cell.getValue();
-  if (cell.getIsGrouped()) {
-    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
-  }
-  return String(value || "");
-};
-
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    console.log("Copied to clipboard:", text);
-  } catch (err) {
-    console.error("Failed to copy: ", err);
-  }
-};
-
-const handleCellRightClick = (
-  event: MouseEvent,
-  cell: { getValue: () => unknown },
-) => {
-  event.preventDefault();
-  const value = String(cell.getValue() || "");
-  if (value) {
-    copyToClipboard(value);
-  }
-};
 </script>
 
 <template>
-  <DataSection
-    :loading="loading"
-    :error="error"
-    :has-data="hasData"
-    empty-message="No task history found"
-  >
-    <!-- Control bar -->
+  <div class="space-y-4">
     <TableControls
       v-model:search-input="store.searchQuery"
       search-placeholder="Search history..."
-      :loading="loading"
-      @refresh="refresh"
+      :loading="props.loading"
+      @refresh="props.onRefresh"
     >
       <!-- Group by -->
       <div class="border-base-300 border-l pl-3">
@@ -444,9 +359,13 @@ const handleCellRightClick = (
             @change="handleGroupByChange"
           >
             <option value="">None</option>
-            <option value="Name">Task Type</option>
-            <option value="CompletedBy">Machine</option>
-            <option value="Result">Result</option>
+            <option
+              v-for="option in groupingOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
           </select>
         </div>
       </div>
@@ -460,9 +379,8 @@ const handleCellRightClick = (
             Status
           </span>
           <select
-            :value="store.customFilters.resultFilter"
+            v-model="resultFilter"
             class="select select-bordered select-sm w-32"
-            @change="handleResultFilterChange"
           >
             <option value="all">All</option>
             <option value="success">Success</option>
@@ -483,10 +401,24 @@ const handleCellRightClick = (
         </label>
       </div>
 
+      <!-- Clear Filters Button moved to actions slot to appear after refresh -->
+      <template #actions>
+        <div v-if="hasActiveFilters">
+          <button
+            class="btn btn-ghost btn-sm text-base-content/60 hover:text-base-content"
+            title="Clear all filters"
+            @click="clearAllFilters"
+          >
+            <XMarkIcon class="h-4 w-4" />
+            Clear Filters
+          </button>
+        </div>
+      </template>
+
       <template #stats>
         <span class="font-medium">{{ totalItems }}</span> tasks
-        <span v-if="store.grouping.length > 0" class="text-base-content/40">
-          • <span class="font-medium">{{ getGroupCount() }}</span> groups
+        <span v-if="groupCount > 0" class="text-base-content/40">
+          • <span class="font-medium">{{ groupCount }}</span> groups
         </span>
       </template>
     </TableControls>
@@ -505,57 +437,33 @@ const handleCellRightClick = (
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              :style="{ width: `${header.getSize()}px` }"
               class="text-base-content border-base-300/30 border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              :class="{
+                'cursor-pointer select-none': header.column.getCanSort(),
+              }"
+              @click="
+                header.column.getCanSort() &&
+                header.column.getToggleSortingHandler()?.($event)
+              "
             >
               <div class="space-y-1">
-                <div
-                  :class="{
-                    'cursor-pointer select-none': header.column.getCanSort(),
-                  }"
-                  @click="
-                    header.column.getCanSort() &&
-                    header.column.getToggleSortingHandler()?.($event)
-                  "
-                >
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <FlexRender
-                        v-if="!header.isPlaceholder"
-                        :render="header.column.columnDef.header"
-                        :props="header.getContext()"
-                      />
-                      <button
-                        v-if="header.column.getCanGroup()"
-                        :title="
-                          header.column.getIsGrouped()
-                            ? 'Remove grouping'
-                            : 'Group by this column'
-                        "
-                        class="btn btn-xs btn-circle btn-ghost opacity-60 hover:opacity-100"
-                        :class="{
-                          'btn-primary': header.column.getIsGrouped(),
-                        }"
-                        @click.stop="store.toggleGrouping(header.column.id)"
-                      >
-                        <span v-if="header.column.getIsGrouped()">📌</span>
-                        <span v-else>📂</span>
-                      </button>
-                    </div>
-
-                    <span
-                      v-if="header.column.getIsSorted()"
-                      class="text-sm transition-transform duration-200"
-                      :class="{
-                        'rotate-180 transform':
-                          header.column.getIsSorted() === 'desc',
-                      }"
-                    >
-                      ▲
-                    </span>
-                  </div>
+                <div class="flex items-center justify-between gap-2">
+                  <FlexRender
+                    v-if="!header.isPlaceholder"
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                  />
+                  <span
+                    v-if="header.column.getIsSorted()"
+                    class="text-sm transition-transform duration-200"
+                    :class="{
+                      'rotate-180 transform':
+                        header.column.getIsSorted() === 'desc',
+                    }"
+                  >
+                    ▲
+                  </span>
                 </div>
-
                 <ColumnStats
                   :show-stats="
                     store.showAggregateInfo && header.column.id !== 'actions'
@@ -566,69 +474,124 @@ const handleCellRightClick = (
             </th>
           </tr>
         </thead>
-
         <tbody>
-          <tr
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            class="bg-base-100 hover:bg-primary! hover:text-primary-content cursor-pointer transition-all duration-200"
-            :class="{
-              'bg-base-200/30': row.getIsGrouped(),
-              'font-medium': row.getIsGrouped(),
-            }"
-            @click="handleRowClick(row)"
-          >
-            <td
-              v-for="cell in row.getVisibleCells()"
-              :key="cell.id"
-              :title="getCellTooltip(cell)"
-              class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
-              :class="{
-                'font-semibold': cell.getIsGrouped(),
-                'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
-              }"
-              @contextmenu="handleCellRightClick($event, cell)"
-            >
-              <template v-if="cell.getIsGrouped()">
-                <div class="flex items-center gap-2 font-semibold">
-                  <span class="text-primary">
-                    {{ row.getIsExpanded() ? "📂" : "📁" }}
-                  </span>
-                  <span class="capitalize">{{
-                    cell.getValue() || "Unassigned"
-                  }}</span>
-                  <div class="badge badge-primary badge-sm">
-                    {{ row.subRows.length }}
-                  </div>
+          <template v-if="props.error">
+            <tr>
+              <td :colspan="columns.length" class="py-12 text-center">
+                <div
+                  class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
+                >
+                  <div class="text-error text-2xl">⚠️</div>
                 </div>
-              </template>
+                <h3 class="text-base-content mb-2 text-lg font-semibold">
+                  Connection Error
+                </h3>
+                <p class="text-base-content/70 mb-4 text-sm">
+                  {{ props.error.message }}
+                </p>
+                <button
+                  class="btn btn-outline btn-sm"
+                  :disabled="props.loading"
+                  @click="props.onRefresh"
+                >
+                  <span
+                    v-if="props.loading"
+                    class="loading loading-spinner loading-xs"
+                  ></span>
+                  <span class="ml-2">{{
+                    props.loading ? "Retrying..." : "Retry Connection"
+                  }}</span>
+                </button>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="props.loading && !tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-12 text-center"
+              >
+                <div
+                  class="loading loading-spinner loading-lg mx-auto mb-4"
+                ></div>
+                <div>Loading...</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="!tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-8 text-center"
+              >
+                <div class="mb-2 text-4xl">📊</div>
+                <div>No task history found</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+              :class="{
+                'bg-base-200/30': row.getIsGrouped(),
+                'font-medium': row.getIsGrouped(),
+              }"
+              @click="handleRowClick(row)"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :title="getCellTooltip(cell)"
+                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                :class="{
+                  'font-semibold': cell.getIsGrouped(),
+                  'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
+                }"
+                @contextmenu="handleCellRightClick(cell, $event)"
+              >
+                <template v-if="cell.getIsGrouped()">
+                  <div class="flex items-center gap-2 font-semibold">
+                    <span class="text-primary">
+                      {{ row.getIsExpanded() ? "📂" : "📁" }}
+                    </span>
+                    <span class="capitalize">{{
+                      cell.getValue() || "Unassigned"
+                    }}</span>
+                    <div class="badge badge-primary badge-sm">
+                      {{ row.subRows.length }}
+                    </div>
+                  </div>
+                </template>
 
-              <template v-else-if="cell.getIsAggregated()">
-                <div class="text-base-content/70 text-center">
+                <template v-else-if="cell.getIsAggregated()">
+                  <div class="text-base-content/70 text-center">
+                    <FlexRender
+                      :render="
+                        cell.column.columnDef.aggregatedCell ??
+                        cell.column.columnDef.cell
+                      "
+                      :props="cell.getContext()"
+                    />
+                  </div>
+                </template>
+
+                <template v-else-if="cell.getIsPlaceholder()">
+                  <div class="text-base-content/40">—</div>
+                </template>
+
+                <template v-else>
                   <FlexRender
-                    :render="
-                      cell.column.columnDef.aggregatedCell ??
-                      cell.column.columnDef.cell
-                    "
+                    :render="cell.column.columnDef.cell"
                     :props="cell.getContext()"
                   />
-                </div>
-              </template>
-
-              <template v-else-if="cell.getIsPlaceholder()">
-                <div class="text-base-content/40">—</div>
-              </template>
-
-              <template v-else>
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
-              </template>
-            </td>
-          </tr>
+                </template>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
-  </DataSection>
+  </div>
 </template>

@@ -1,56 +1,40 @@
 <script setup lang="ts">
 import { computed, h } from "vue";
 import {
-  useVueTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getGroupedRowModel,
-  getExpandedRowModel,
   createColumnHelper,
   FlexRender,
+  type ColumnDef,
   type Row,
-  type Cell,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
-import { useCachedQuery } from "@/composables/useCachedQuery";
-import { useTableHelpers } from "@/composables/useTableHelpers";
-import { useTableState } from "@/composables/useTableState";
-import DataSection from "@/components/ui/DataSection.vue";
+import { XMarkIcon } from "@heroicons/vue/24/outline";
+import { useStandardTable } from "@/composables/useStandardTable";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import TaskStatusBadge from "./TaskStatusBadge.vue";
 import type { TaskSummary } from "@/types/task";
 
-// Data query
-const {
-  data: rawData,
-  loading,
-  error,
-  refresh,
-} = useCachedQuery<TaskSummary[]>("ClusterTaskSummary", [], {
-  pollingInterval: 2000,
+interface Props {
+  items: TaskSummary[];
+  loading?: boolean;
+  error?: Error | null;
+  onRefresh?: () => void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  error: null,
+  onRefresh: () => {},
 });
 
-// Table store
-const store = useTableState("activeTasksTable", {
-  defaultSorting: [{ id: "SincePosted", desc: true }],
-});
+const rawData = computed(() => props.items);
 
-// Grouping options
 const groupingOptions = [
   { value: "Name", label: "Task Type" },
   { value: "Owner", label: "Owner" },
   { value: "Miner", label: "Miner" },
 ];
 
-// Handle group by change
-const handleGroupByChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setSelectedGroupBy(target.value);
-};
-
-// Column definitions
 const columnHelper = createColumnHelper<TaskSummary>();
 
 const columns = [
@@ -133,70 +117,28 @@ const columns = [
   }),
 ];
 
-// Table instance
-const table = useVueTable({
-  get data() {
-    return rawData.value || [];
-  },
-  columns,
-  getRowId: (row: TaskSummary) => `task-${row.ID}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  enableGrouping: true,
-  autoResetExpanded: false,
-  globalFilterFn: "includesString",
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get grouping() {
-      return store.grouping;
-    },
-    get expanded() {
-      return store.expanded;
-    },
-    get globalFilter() {
-      return store.searchQuery;
-    },
-  },
-  onSortingChange: (updater) => {
-    const newSorting =
-      typeof updater === "function" ? updater(store.sorting) : updater;
-    store.setSorting(newSorting);
-  },
-  onGroupingChange: (updater) => {
-    const newGrouping =
-      typeof updater === "function" ? updater(store.grouping) : updater;
-    store.setGrouping(newGrouping);
-  },
-  onExpandedChange: (updater) => {
-    const newExpanded =
-      typeof updater === "function" ? updater(store.expanded) : updater;
-    store.setExpanded(newExpanded);
-  },
-  onGlobalFilterChange: (updater) => {
-    const newValue =
-      typeof updater === "function" ? updater(store.searchQuery) : updater;
-    store.setSearchQuery(newValue || "");
-  },
+const { table, store, helpers, handlers } = useStandardTable<TaskSummary>({
+  tableId: "activeTasksTable",
+  columns: columns as ColumnDef<TaskSummary>[],
+  data: rawData,
+  defaultSorting: [{ id: "SincePosted", desc: true }],
+  groupingOptions,
+  getRowId: (row) => `task-${row.ID}`,
 });
 
-// Table helper utilities
-const { hasData, totalItems } = useTableHelpers(rawData, table);
-const groupCount = computed(() => {
-  if (!store.selectedGroupBy) return 0;
-  const groups = new Set(
-    rawData.value?.map(
-      (task) => task[store.selectedGroupBy as keyof TaskSummary],
-    ),
-  );
-  return groups.size;
-});
+const {
+  hasData: tableHasData,
+  totalItems,
+  groupCount,
+  hasActiveFilters,
+} = helpers;
+const {
+  handleGroupByChange,
+  handleCellRightClick,
+  getCellTooltip,
+  clearAllFilters,
+} = handlers;
 
-// Event handlers
 const handleTaskClick = (taskId: number) => {
   console.log("Task clicked:", taskId);
 };
@@ -211,24 +153,6 @@ const handleRowClick = (row: Row<TaskSummary>) => {
   } else if (!row.getIsGrouped()) {
     handleTaskClick(row.original.ID);
   }
-};
-
-const handleCellRightClick = (
-  cell: Cell<TaskSummary, unknown>,
-  event: MouseEvent,
-) => {
-  event.preventDefault();
-  const value = String(cell.getValue() || "");
-  if (value && navigator.clipboard) {
-    navigator.clipboard.writeText(value);
-  }
-};
-
-const getCellTooltip = (cell: Cell<TaskSummary, unknown>) => {
-  if (cell.getIsGrouped()) {
-    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
-  }
-  return String(cell.getValue() || "");
 };
 
 const getColumnAggregateInfo = (columnId: string) => {
@@ -272,20 +196,13 @@ const getColumnAggregateInfo = (columnId: string) => {
 </script>
 
 <template>
-  <DataSection
-    :loading="loading"
-    :error="error"
-    :has-data="hasData"
-    empty-message="No active tasks found"
-  >
-    <!-- Control bar -->
+  <div class="space-y-4">
     <TableControls
       v-model:search-input="store.searchQuery"
       search-placeholder="Search tasks..."
-      :loading="loading"
-      @refresh="refresh"
+      :loading="props.loading"
+      @refresh="props.onRefresh"
     >
-      <!-- Grouping -->
       <div class="border-base-300 border-l pl-3">
         <div class="flex items-center gap-2">
           <span
@@ -310,7 +227,6 @@ const getColumnAggregateInfo = (columnId: string) => {
         </div>
       </div>
 
-      <!-- Column stats -->
       <div class="border-base-300 border-l pl-3">
         <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap">
           <input
@@ -322,6 +238,20 @@ const getColumnAggregateInfo = (columnId: string) => {
         </label>
       </div>
 
+      <!-- Clear Filters Button moved to actions slot to appear after refresh -->
+      <template #actions>
+        <div v-if="hasActiveFilters">
+          <button
+            class="btn btn-ghost btn-sm text-base-content/60 hover:text-base-content"
+            title="Clear all filters"
+            @click="clearAllFilters"
+          >
+            <XMarkIcon class="h-4 w-4" />
+            Clear Filters
+          </button>
+        </div>
+      </template>
+
       <template #stats>
         <span class="font-medium">{{ totalItems }}</span> tasks
         <span v-if="groupCount > 0" class="text-base-content/40">
@@ -330,7 +260,6 @@ const getColumnAggregateInfo = (columnId: string) => {
       </template>
     </TableControls>
 
-    <!-- Table -->
     <div
       class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
@@ -345,7 +274,6 @@ const getColumnAggregateInfo = (columnId: string) => {
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              :style="{ width: `${header.getSize()}px` }"
               class="border-base-300/30 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
               :class="{
                 'cursor-pointer select-none': header.column.getCanSort(),
@@ -382,68 +310,120 @@ const getColumnAggregateInfo = (columnId: string) => {
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-            :class="{ 'bg-base-200/30 font-medium': row.getIsGrouped() }"
-            @click="handleRowClick(row)"
-          >
-            <td
-              v-for="cell in row.getVisibleCells()"
-              :key="cell.id"
-              :title="getCellTooltip(cell)"
-              class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
-              :class="{
-                'font-semibold': cell.getIsGrouped(),
-                'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
-              }"
-              @contextmenu="handleCellRightClick(cell, $event)"
-            >
-              <!-- Grouped cell -->
-              <template v-if="cell.getIsGrouped()">
-                <div class="flex items-center gap-2 font-semibold">
-                  <span class="text-primary">
-                    {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
-                  </span>
-                  <span class="capitalize">
-                    {{ cell.getValue() || "Unassigned" }}
-                  </span>
-                  <div class="badge badge-primary badge-sm">
-                    {{ cell.row.subRows.length }}
-                  </div>
+          <template v-if="props.error">
+            <tr>
+              <td :colspan="columns.length" class="py-12 text-center">
+                <div
+                  class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
+                >
+                  <div class="text-error text-2xl">⚠️</div>
                 </div>
-              </template>
+                <h3 class="text-base-content mb-2 text-lg font-semibold">
+                  Connection Error
+                </h3>
+                <p class="text-base-content/70 mb-4 text-sm">
+                  {{ props.error.message }}
+                </p>
+                <button
+                  class="btn btn-outline btn-sm"
+                  :disabled="props.loading"
+                  @click="props.onRefresh"
+                >
+                  <span
+                    v-if="props.loading"
+                    class="loading loading-spinner loading-xs"
+                  ></span>
+                  <span class="ml-2">{{
+                    props.loading ? "Retrying..." : "Retry Connection"
+                  }}</span>
+                </button>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="props.loading && !tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-12 text-center"
+              >
+                <div
+                  class="loading loading-spinner loading-lg mx-auto mb-4"
+                ></div>
+                <div>Loading...</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="!tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-8 text-center"
+              >
+                <div class="mb-2 text-4xl">📋</div>
+                <div>No active tasks found</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+              :class="{ 'bg-base-200/30 font-medium': row.getIsGrouped() }"
+              @click="handleRowClick(row)"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :title="getCellTooltip(cell)"
+                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                :class="{
+                  'font-semibold': cell.getIsGrouped(),
+                  'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
+                }"
+                @contextmenu="handleCellRightClick(cell, $event)"
+              >
+                <template v-if="cell.getIsGrouped()">
+                  <div class="flex items-center gap-2 font-semibold">
+                    <span class="text-primary">
+                      {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
+                    </span>
+                    <span class="capitalize">
+                      {{ cell.getValue() || "Unassigned" }}
+                    </span>
+                    <div class="badge badge-primary badge-sm">
+                      {{ cell.row.subRows.length }}
+                    </div>
+                  </div>
+                </template>
 
-              <!-- Aggregated cell -->
-              <template v-else-if="cell.getIsAggregated()">
-                <div class="text-base-content/70 text-center">
+                <template v-else-if="cell.getIsAggregated()">
+                  <div class="text-base-content/70 text-center">
+                    <FlexRender
+                      :render="
+                        cell.column.columnDef.aggregatedCell ??
+                        cell.column.columnDef.cell
+                      "
+                      :props="cell.getContext()"
+                    />
+                  </div>
+                </template>
+
+                <template v-else-if="cell.getIsPlaceholder()">
+                  <div class="text-base-content/40">—</div>
+                </template>
+
+                <template v-else>
                   <FlexRender
-                    :render="
-                      cell.column.columnDef.aggregatedCell ??
-                      cell.column.columnDef.cell
-                    "
+                    :render="cell.column.columnDef.cell"
                     :props="cell.getContext()"
                   />
-                </div>
-              </template>
-
-              <!-- Placeholder cell -->
-              <template v-else-if="cell.getIsPlaceholder()">
-                <div class="text-base-content/40">—</div>
-              </template>
-
-              <!-- Regular cell -->
-              <template v-else>
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
-              </template>
-            </td>
-          </tr>
+                </template>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
-  </DataSection>
+  </div>
 </template>

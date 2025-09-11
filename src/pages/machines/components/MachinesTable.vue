@@ -1,31 +1,27 @@
 <script setup lang="ts">
 import { computed, h, ref } from "vue";
 import {
-  useVueTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
   createColumnHelper,
   FlexRender,
+  type ColumnDef,
   type Row,
-  type Cell,
 } from "@tanstack/vue-table";
 import {
   PauseIcon,
   PlayIcon,
   ArrowPathIcon,
   XCircleIcon,
+  XMarkIcon,
 } from "@heroicons/vue/24/outline";
 import { useRouter } from "vue-router";
-import { useTableHelpers } from "@/composables/useTableHelpers";
-import { useTableState } from "@/composables/useTableState";
-import DataSection from "@/components/ui/DataSection.vue";
+import { useStandardTable } from "@/composables/useStandardTable";
+import { useTableActions } from "@/composables/useTableActions";
+import { useCurioQuery } from "@/composables/useCurioQuery";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
 import MachineStatusBadge from "./MachineStatusBadge.vue";
 import TasksDisplay from "./TasksDisplay.vue";
-import { useMachineOperations } from "../composables/useMachineOperations";
 import type { MachineSummary } from "@/types/machine";
 
 interface Props {
@@ -41,37 +37,68 @@ const props = withDefaults(defineProps<Props>(), {
   onRefresh: () => {},
 });
 
-// Router for navigation
+const rawData = computed(() => props.machines);
+
 const router = useRouter();
 
-// Machine operations
-const {
-  loading: operationLoading,
-  error: operationError,
-  cordon,
-  uncordon,
-  restart,
-  abortRestart,
-  clearError,
-} = useMachineOperations();
-
-// Confirmation dialog state
 const showConfirmDialog = ref(false);
 const confirmAction = ref<"cordon" | "uncordon" | "restart" | "abortRestart">(
   "cordon",
 );
 const selectedMachine = ref<MachineSummary | null>(null);
+const operationError = ref<string | null>(null);
 
-// Table state management
-const store = useTableState("machinesTable", {
-  defaultSorting: [{ id: "ID", desc: false }],
+const { call } = useCurioQuery();
+const {
+  isLoading: isActionLoading,
+  executeAction,
+  hasLoadingActions,
+} = useTableActions<MachineSummary>({
+  actions: {
+    cordon: {
+      name: "cordon",
+      handler: async (machine) => {
+        await call("CordonMachine", [machine.ID]);
+      },
+      loadingKey: (machine) => `cordon-${machine.ID}`,
+      onSuccess: () => props.onRefresh(),
+    },
+    uncordon: {
+      name: "uncordon",
+      handler: async (machine) => {
+        await call("UncordonMachine", [machine.ID]);
+      },
+      loadingKey: (machine) => `uncordon-${machine.ID}`,
+      onSuccess: () => props.onRefresh(),
+    },
+    restart: {
+      name: "restart",
+      handler: async (machine) => {
+        await call("RestartMachine", [machine.ID]);
+      },
+      loadingKey: (machine) => `restart-${machine.ID}`,
+      onSuccess: () => props.onRefresh(),
+    },
+    abortRestart: {
+      name: "abortRestart",
+      handler: async (machine) => {
+        await call("AbortRestartMachine", [machine.ID]);
+      },
+      loadingKey: (machine) => `abortRestart-${machine.ID}`,
+      onSuccess: () => props.onRefresh(),
+    },
+  },
 });
 
-// Compute available task types from machines data
+// Computed property for compatibility with ConfirmationDialog loading prop
+const operationLoading = computed(() => {
+  return selectedMachine.value ? hasLoadingActions.value : false;
+});
+
 const availableTaskTypes = computed(() => {
-  if (!props.machines?.length) return [];
+  if (!rawData.value?.length) return [];
   const taskTypes = new Set<string>();
-  props.machines.forEach((machine) => {
+  rawData.value.forEach((machine) => {
     if (machine.Tasks) {
       machine.Tasks.split(",")
         .map((task) => task.trim())
@@ -82,9 +109,8 @@ const availableTaskTypes = computed(() => {
   return Array.from(taskTypes).sort();
 });
 
-// Compute status distribution
 const statusDistribution = computed(() => {
-  if (!props.machines?.length)
+  if (!rawData.value?.length)
     return { online: 0, offline: 0, unschedulable: 0, restarting: 0 };
 
   let online = 0;
@@ -92,7 +118,7 @@ const statusDistribution = computed(() => {
   let unschedulable = 0;
   let restarting = 0;
 
-  props.machines.forEach((machine) => {
+  rawData.value.forEach((machine) => {
     if (machine.Restarting) {
       restarting++;
     } else if (machine.Unschedulable) {
@@ -111,7 +137,6 @@ const statusDistribution = computed(() => {
   return { online, offline, unschedulable, restarting };
 });
 
-// Custom filter functions
 const statusFilterFn = (
   row: { original: MachineSummary },
   _columnId: string,
@@ -156,7 +181,6 @@ const taskFilterFn = (
   return machine.Tasks?.includes(filterValue) ?? false;
 };
 
-// Column definitions
 const columnHelper = createColumnHelper<MachineSummary>();
 
 const columns = [
@@ -272,35 +296,49 @@ const columns = [
 
       // Show uncordon button for cordoned machines
       if (machine.Unschedulable) {
+        const isUncordoning = isActionLoading("uncordon", machine);
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-success btn-xs gap-1 no-row-click",
-              disabled: operationLoading.value,
+              class: isUncordoning
+                ? "btn btn-success btn-xs gap-1 no-row-click loading cursor-not-allowed"
+                : "btn btn-success btn-xs gap-1 no-row-click",
+              disabled: isUncordoning,
               title: "Uncordon (Allow new tasks)",
               onClick: () => handleUncordonClick(machine),
             },
             [
               h(PlayIcon, { class: "size-3" }),
-              h("span", { class: "text-xs font-medium" }, "Resume"),
+              h(
+                "span",
+                { class: "text-xs font-medium" },
+                isUncordoning ? "Resuming..." : "Resume",
+              ),
             ],
           ),
         );
       } else {
         // Show cordon button for active machines
+        const isCordoning = isActionLoading("cordon", machine);
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-warning btn-xs gap-1 no-row-click",
-              disabled: operationLoading.value,
+              class: isCordoning
+                ? "btn btn-warning btn-xs gap-1 no-row-click loading cursor-not-allowed"
+                : "btn btn-warning btn-xs gap-1 no-row-click",
+              disabled: isCordoning,
               title: "Cordon (Prevent new tasks)",
               onClick: () => handleCordonClick(machine),
             },
             [
               h(PauseIcon, { class: "size-3" }),
-              h("span", { class: "text-xs font-medium" }, "Cordon"),
+              h(
+                "span",
+                { class: "text-xs font-medium" },
+                isCordoning ? "Cordoning..." : "Cordon",
+              ),
             ],
           ),
         );
@@ -308,12 +346,15 @@ const columns = [
 
       // Restart/abort restart buttons based on machine state
       if (machine.Restarting) {
+        const isAborting = isActionLoading("abortRestart", machine);
         buttons.push(
           h(
             "button",
             {
-              class: "btn btn-error btn-xs no-row-click",
-              disabled: operationLoading.value,
+              class: isAborting
+                ? "btn btn-error btn-xs no-row-click loading cursor-not-allowed"
+                : "btn btn-error btn-xs no-row-click",
+              disabled: isAborting,
               title: "Abort Restart",
               onClick: () => handleAbortRestartClick(machine),
             },
@@ -322,12 +363,15 @@ const columns = [
         );
       } else {
         if (machine.Unschedulable) {
+          const isRestarting = isActionLoading("restart", machine);
           buttons.push(
             h(
               "button",
               {
-                class: "btn btn-info btn-xs no-row-click",
-                disabled: operationLoading.value,
+                class: isRestarting
+                  ? "btn btn-info btn-xs no-row-click loading cursor-not-allowed"
+                  : "btn btn-info btn-xs no-row-click",
+                disabled: isRestarting,
                 title: "Restart machine",
                 onClick: () => handleRestartClick(machine),
               },
@@ -365,52 +409,18 @@ const columns = [
   }),
 ];
 
-// Table instance
-const table = useVueTable({
-  get data() {
-    return props.machines || [];
-  },
-  columns,
-  getRowId: (row: MachineSummary) => `machine-${row.ID}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  globalFilterFn: "includesString",
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get columnFilters() {
-      return store.columnFilters;
-    },
-    get globalFilter() {
-      return store.searchQuery;
-    },
-  },
-  onSortingChange: (updater) => {
-    const newSorting =
-      typeof updater === "function" ? updater(store.sorting) : updater;
-    store.setSorting(newSorting);
-  },
-  onColumnFiltersChange: (updater) => {
-    const newFilters =
-      typeof updater === "function" ? updater(store.columnFilters) : updater;
-    store.setColumnFilters(newFilters);
-  },
-  onGlobalFilterChange: (updater) => {
-    const newValue =
-      typeof updater === "function" ? updater(store.searchQuery) : updater;
-    store.setSearchQuery(newValue || "");
-  },
+const { table, store, helpers, handlers } = useStandardTable<MachineSummary>({
+  tableId: "machinesTable",
+  columns: columns as ColumnDef<MachineSummary>[],
+  data: rawData,
+  defaultSorting: [{ id: "ID", desc: false }],
+  getRowId: (row) => `machine-${row.ID}`,
+  enableGrouping: false,
 });
 
-// Table helper utilities
-const { hasData, totalItems } = useTableHelpers(
-  computed(() => props.machines),
-  table,
-);
+const { hasData: tableHasData, totalItems, hasActiveFilters } = helpers;
+const { handleCellRightClick, getCellTooltip, clearAllFilters } = handlers;
 
-// Filter helper computed properties
 const statusFilter = computed({
   get: () => {
     const filter = table.getColumn("Unschedulable")?.getFilterValue() as string;
@@ -432,17 +442,6 @@ const taskFilter = computed({
   },
 });
 
-// Check if filters are active
-const hasActiveFilters = computed(() => {
-  return store.columnFilters.length > 0;
-});
-
-// Reset all filters
-const resetFilters = () => {
-  table.resetColumnFilters();
-};
-
-// Event handlers
 const handleMachineClick = (machineId: number) => {
   router.push(`/machines/${machineId}`);
 };
@@ -456,22 +455,10 @@ const handleRowClick = (row: Row<MachineSummary>, event: MouseEvent) => {
   handleMachineClick(row.original.ID);
 };
 
-const handleCellRightClick = (
-  cell: Cell<MachineSummary, unknown>,
-  event: MouseEvent,
-) => {
-  event.preventDefault();
-  const value = String(cell.getValue() || "");
-  if (value && navigator.clipboard) {
-    navigator.clipboard.writeText(value);
-  }
+const clearError = () => {
+  operationError.value = null;
 };
 
-const getCellTooltip = (cell: Cell<MachineSummary, unknown>) => {
-  return String(cell.getValue() || "");
-};
-
-// Machine operation handlers
 const handleCordonClick = (machine: MachineSummary) => {
   selectedMachine.value = machine;
   confirmAction.value = "cordon";
@@ -499,26 +486,15 @@ const handleAbortRestartClick = (machine: MachineSummary) => {
 const handleConfirmAction = async () => {
   if (!selectedMachine.value) return;
 
-  const machine = selectedMachine.value;
-  const machineName = machine.Name || `machine-${machine.ID}`;
+  try {
+    operationError.value = null;
+    await executeAction(confirmAction.value, selectedMachine.value);
 
-  let result;
-  if (confirmAction.value === "cordon") {
-    result = await cordon(machine.ID, machineName);
-  } else if (confirmAction.value === "uncordon") {
-    result = await uncordon(machine.ID, machineName);
-  } else if (confirmAction.value === "restart") {
-    result = await restart(machine.ID, machineName);
-  } else if (confirmAction.value === "abortRestart") {
-    result = await abortRestart(machine.ID, machineName);
-  } else {
-    return; // Unknown action
-  }
-
-  if (result?.success) {
     showConfirmDialog.value = false;
     selectedMachine.value = null;
-    props.onRefresh();
+  } catch (error) {
+    operationError.value =
+      error instanceof Error ? error.message : "Operation failed";
   }
 };
 
@@ -580,7 +556,7 @@ const getConfirmationProps = () => {
 };
 
 const getColumnAggregateInfo = (columnId: string) => {
-  const data = props.machines;
+  const data = rawData.value;
   if (!data || !data.length) return "";
 
   switch (columnId) {
@@ -636,18 +612,12 @@ const getColumnAggregateInfo = (columnId: string) => {
 </script>
 
 <template>
-  <DataSection
-    :loading="loading"
-    :error="error"
-    :has-data="hasData"
-    empty-message="No machines found"
-  >
-    <!-- Control bar -->
+  <div class="space-y-4">
     <TableControls
       v-model:search-input="store.searchQuery"
       search-placeholder="Search machines..."
-      :loading="loading"
-      @refresh="onRefresh"
+      :loading="props.loading"
+      @refresh="props.onRefresh"
     >
       <!-- Status Filter -->
       <div class="border-base-300 border-l pl-3">
@@ -719,20 +689,19 @@ const getColumnAggregateInfo = (columnId: string) => {
       </template>
 
       <template #actions>
-        <div v-if="hasActiveFilters" class="flex items-center">
+        <div v-if="hasActiveFilters">
           <button
-            type="button"
-            class="btn btn-ghost btn-sm gap-1"
-            @click="resetFilters"
+            class="btn btn-ghost btn-sm text-base-content/60 hover:text-base-content"
+            title="Clear all filters"
+            @click="clearAllFilters"
           >
-            <span class="text-sm">×</span>
+            <XMarkIcon class="h-4 w-4" />
             Clear Filters
           </button>
         </div>
       </template>
     </TableControls>
 
-    <!-- Table -->
     <div
       class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
@@ -784,37 +753,93 @@ const getColumnAggregateInfo = (columnId: string) => {
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-            @click="handleRowClick(row, $event)"
-          >
-            <td
-              v-for="cell in row.getVisibleCells()"
-              :key="cell.id"
-              :title="getCellTooltip(cell)"
-              class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
-              @contextmenu="handleCellRightClick(cell, $event)"
+          <template v-if="props.error">
+            <tr>
+              <td :colspan="columns.length" class="py-12 text-center">
+                <div
+                  class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
+                >
+                  <div class="text-error text-2xl">⚠️</div>
+                </div>
+                <h3 class="text-base-content mb-2 text-lg font-semibold">
+                  Connection Error
+                </h3>
+                <p class="text-base-content/70 mb-4 text-sm">
+                  {{ props.error.message }}
+                </p>
+                <button
+                  class="btn btn-outline btn-sm"
+                  :disabled="props.loading"
+                  @click="props.onRefresh"
+                >
+                  <span
+                    v-if="props.loading"
+                    class="loading loading-spinner loading-xs"
+                  ></span>
+                  <span class="ml-2">{{
+                    props.loading ? "Retrying..." : "Retry Connection"
+                  }}</span>
+                </button>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="props.loading && !tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-12 text-center"
+              >
+                <div
+                  class="loading loading-spinner loading-lg mx-auto mb-4"
+                ></div>
+                <div>Loading machines...</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else-if="!tableHasData">
+            <tr>
+              <td
+                :colspan="columns.length"
+                class="text-base-content/60 py-8 text-center"
+              >
+                <div class="mb-2 text-4xl">🖥️</div>
+                <div>No machines found</div>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+              @click="handleRowClick(row, $event)"
             >
-              <FlexRender
-                :render="cell.column.columnDef.cell"
-                :props="cell.getContext()"
-              />
-            </td>
-          </tr>
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :title="getCellTooltip(cell)"
+                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                @contextmenu="handleCellRightClick(cell, $event)"
+              >
+                <FlexRender
+                  :render="cell.column.columnDef.cell"
+                  :props="cell.getContext()"
+                />
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
 
     <!-- Error Alert -->
-    <div v-if="operationError" class="alert alert-error mt-4">
+    <div v-if="operationError" class="alert alert-error">
       <div class="flex items-start justify-between">
         <span>{{ operationError }}</span>
         <button class="btn btn-ghost btn-xs" @click="clearError">×</button>
       </div>
     </div>
-  </DataSection>
+  </div>
 
   <!-- Confirmation Dialog -->
   <ConfirmationDialog
