@@ -267,6 +267,12 @@ export function createCurioQuery() {
         pollingInterval: 30000,
         ...options,
       }),
+    upgradeSectors: (options?: QueryOptions) =>
+      createQuery<unknown>("UpgradeSectors", [], {
+        polling: true,
+        pollingInterval: 30000,
+        ...options,
+      }),
 
     pipelineFailedTasksMarket: (options?: QueryOptions) =>
       createQuery<unknown>("PipelineFailedTasksMarket", [], {
@@ -284,6 +290,15 @@ export function createCurioQuery() {
     pipelineSnapRestartAll: async () => {
       const api = getApi();
       return await api.call<null>("PipelineSnapRestartAll", []);
+    },
+    // Upgrade operations
+    upgradeResetTaskIDs: async (spid: number, sectorNum: number) => {
+      const api = getApi();
+      return await api.call<null>("UpgradeResetTaskIDs", [spid, sectorNum]);
+    },
+    upgradeDelete: async (spid: number, sectorNum: number) => {
+      const api = getApi();
+      return await api.call<null>("UpgradeDelete", [spid, sectorNum]);
     },
 
     // Generic query method

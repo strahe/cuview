@@ -19,10 +19,10 @@ import { useTableHelpers } from "@/composables/useTableHelpers";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
-import type { SectorListEntry } from "@/types/pipeline";
+import type { SnapSectorEntry } from "@/types/pipeline";
 
 interface Props {
-  sectors: SectorListEntry[];
+  sectors: SnapSectorEntry[];
   loading?: boolean;
   error?: Error | null;
   onRefresh?: () => void;
@@ -36,35 +36,28 @@ const props = withDefaults(defineProps<Props>(), {
 
 const rawData = computed(() => props.sectors);
 
-const store = useTableState("porepSectorsTable", {
-  defaultSorting: [{ id: "SectorNumber", desc: true }],
+const store = useTableState("snapUpgradesTable", {
+  defaultSorting: [{ id: "StartTime", desc: true }],
 });
 
 const groupingOptions = [
+  { value: "CurrentState", label: "State" },
   { value: "Address", label: "Miner" },
-  { value: "state", label: "State" },
 ];
 
 const showSectorDetailsModal = ref(false);
-const selectedSector = ref<SectorListEntry | null>(null);
+const selectedSector = ref<SnapSectorEntry | null>(null);
 
 const restartingTasks = ref(new Set<string>());
 
 // Helper functions for data processing
-const getCurrentState = (sector: SectorListEntry): string => {
+const getCurrentState = (sector: SnapSectorEntry): string => {
   if (sector.Failed) return "Failed";
-  if (sector.AfterCommitMsgSuccess) return "Completed";
-  if (!sector.AfterSDR) return "SDR";
-  if (!sector.AfterTreeD) return "TreeD";
-  if (!sector.AfterTreeC) return "TreeC";
-  if (!sector.AfterTreeR) return "TreeR";
-  if (!sector.AfterSynthetic) return "Synthetic";
-  if (!sector.AfterPrecommitMsg) return "PreCommit";
-  if (!sector.AfterSeed) return "WaitSeed";
-  if (!sector.AfterPoRep) return "PoRep";
-  if (!sector.AfterFinalize) return "Finalize";
-  if (!sector.AfterMoveStorage) return "MoveStorage";
-  if (!sector.AfterCommitMsg) return "CommitMsg";
+  if (sector.AfterMoveStorage) return "Completed";
+  if (!sector.AfterEncode) return "Encoding";
+  if (!sector.AfterProve) return "Proving";
+  if (!sector.AfterSubmit) return "Submitting";
+  if (!sector.AfterMoveStorage) return "Moving";
   return "Unknown";
 };
 
@@ -74,27 +67,36 @@ const getStateBadgeClass = (state: string) => {
       return "badge-success";
     case "failed":
       return "badge-error";
-    case "waitseed":
-      return "badge-warning";
-    default:
+    case "encoding":
       return "badge-info";
+    case "proving":
+      return "badge-warning";
+    case "submitting":
+      return "badge-primary";
+    case "moving":
+      return "badge-secondary";
+    default:
+      return "badge-ghost";
   }
 };
 
-const columnHelper = createColumnHelper<SectorListEntry>();
+const columnHelper = createColumnHelper<SnapSectorEntry>();
 
 const columns = [
-  columnHelper.accessor("Address", {
+  columnHelper.accessor("SpID", {
     header: "Miner",
     size: 120,
     enableGrouping: true,
-    cell: (info) => h("div", { class: "font-mono text-sm" }, info.getValue()),
+    cell: (info) => {
+      const spID = info.getValue();
+      return h("div", { class: "font-mono text-sm" }, `f0${spID}`);
+    },
     aggregatedCell: (info) => {
       const count = info.row.subRows.length;
       return h(
         "span",
         { class: "text-sm text-base-content/70" },
-        `${count} sectors`,
+        `${count} upgrades`,
       );
     },
   }),
@@ -108,7 +110,7 @@ const columns = [
         "button",
         {
           class: "link link-primary font-mono text-sm hover:link-hover",
-          onClick: () => handleSectorClick(sectorNumber),
+          onClick: () => handleSectorClick(info.row.original),
         },
         sectorNumber.toString(),
       );
@@ -116,7 +118,7 @@ const columns = [
     aggregatedCell: () => "—",
   }),
   columnHelper.display({
-    id: "state",
+    id: "CurrentState",
     header: "State",
     size: 120,
     enableGrouping: true,
@@ -131,7 +133,7 @@ const columns = [
       return h(
         "span",
         { class: "text-sm text-base-content/70" },
-        `${count} sectors`,
+        `${count} upgrades`,
       );
     },
     getGroupingValue: (row) => {
@@ -139,16 +141,38 @@ const columns = [
     },
   }),
   columnHelper.display({
-    id: "created",
-    header: "Create Time",
+    id: "progress",
+    header: "Progress",
+    size: 140,
+    enableGrouping: false,
+    cell: (info) => {
+      const sector = info.row.original;
+      const progress = getUpgradeProgress(sector);
+      const state = getCurrentState(sector);
+
+      return h("div", { class: "w-full" }, [
+        h("div", { class: "flex items-center justify-between mb-1" }, [
+          h("span", { class: "text-xs text-base-content/60" }, state),
+          h("span", { class: "text-xs font-medium" }, `${progress}%`),
+        ]),
+        h("div", { class: "bg-base-200 h-1.5 w-full rounded-full" }, [
+          h("div", {
+            class: "bg-primary h-1.5 rounded-full transition-all duration-300",
+            style: { width: `${progress}%` },
+          }),
+        ]),
+      ]);
+    },
+  }),
+  columnHelper.display({
+    id: "startTime",
+    header: "Started",
     size: 120,
     enableGrouping: false,
     cell: (info) => {
       const sector = info.row.original;
-      // Use CreateTime field from SectorListEntry
-      const timeField = sector.CreateTime || Date.now();
       try {
-        const date = new Date(timeField);
+        const date = new Date(sector.StartTime);
         return h(
           "span",
           {
@@ -158,17 +182,17 @@ const columns = [
           formatDistanceToNow(date, { addSuffix: true }),
         );
       } catch (error) {
-        console.error("Error formatting date:", timeField, error);
+        console.error("Error formatting start time:", sector.StartTime, error);
         return h("div", { class: "text-sm text-error" }, "Invalid date");
       }
     },
   }),
   columnHelper.display({
-    id: "precommit",
-    header: "PreCommit Ready",
+    id: "updateReady",
+    header: "Ready",
     cell: (info) => {
       const sector = info.row.original;
-      const readyTime = sector.PreCommitReadyAt;
+      const readyTime = sector.UpdateReadyAt;
       if (readyTime) {
         try {
           const date = new Date(readyTime);
@@ -181,41 +205,7 @@ const columns = [
             formatDistanceToNow(date, { addSuffix: true }),
           );
         } catch (error) {
-          console.error(
-            "Error formatting PreCommit ready time:",
-            readyTime,
-            error,
-          );
-          return h("div", { class: "text-sm text-success" }, "✓");
-        }
-      }
-      return h("div", { class: "text-base-content/30" }, "—");
-    },
-    size: 120,
-  }),
-  columnHelper.display({
-    id: "commit",
-    header: "Commit Ready",
-    cell: (info) => {
-      const sector = info.row.original;
-      const readyTime = sector.CommitReadyAt;
-      if (readyTime) {
-        try {
-          const date = new Date(readyTime);
-          return h(
-            "span",
-            {
-              class: "text-sm text-success",
-              title: date.toLocaleString(),
-            },
-            formatDistanceToNow(date, { addSuffix: true }),
-          );
-        } catch (error) {
-          console.error(
-            "Error formatting Commit ready time:",
-            readyTime,
-            error,
-          );
+          console.error("Error formatting ready time:", readyTime, error);
           return h("div", { class: "text-sm text-success" }, "✓");
         }
       }
@@ -228,12 +218,13 @@ const columns = [
     header: "Error",
     cell: (info) => {
       const sector = info.row.original;
-      if (sector.Failed) {
-        const errorText = sector.FailedReason || "Task Failed";
+      if (sector.Failed && sector.FailedReason) {
+        const errorText =
+          sector.FailedReasonMsg || sector.FailedReason || "Upgrade Failed";
         return h(
           "div",
           {
-            class: "text-error text-sm font-medium",
+            class: "text-error text-sm font-medium truncate max-w-32",
             title: errorText,
           },
           errorText,
@@ -246,7 +237,7 @@ const columns = [
   columnHelper.display({
     id: "actions",
     header: "Actions",
-    size: 100,
+    size: 120,
     enableGrouping: false,
     enableSorting: false,
     cell: (info) => {
@@ -255,21 +246,40 @@ const columns = [
       const isRestarting = restartingTasks.value.has(sectorKey);
       const buttons = [];
 
+      // Restart button for failed upgrades
+      if (sector.Failed) {
+        buttons.push(
+          h(
+            "button",
+            {
+              class: isRestarting
+                ? "btn btn-xs btn-primary loading cursor-not-allowed"
+                : "btn btn-xs btn-primary hover:btn-outline transition-colors",
+              disabled: isRestarting,
+              title: "Reset and restart upgrade",
+              onClick: (e: Event) => {
+                e.stopPropagation();
+                handleRestartUpgrade(sector);
+              },
+            },
+            isRestarting ? "Restarting..." : "Restart",
+          ),
+        );
+      }
+
+      // Delete button
       buttons.push(
         h(
           "button",
           {
-            class: isRestarting
-              ? "btn btn-xs btn-primary loading cursor-not-allowed"
-              : "btn btn-xs btn-primary hover:btn-outline transition-colors",
-            disabled: isRestarting,
-            title: "Restart sector processing",
+            class: "btn btn-xs btn-error hover:btn-outline transition-colors",
+            title: "Remove upgrade from pipeline",
             onClick: (e: Event) => {
               e.stopPropagation();
-              handleRestartSector(sector);
+              handleDeleteUpgrade(sector);
             },
           },
-          isRestarting ? "Restarting..." : "Restart",
+          "Delete",
         ),
       );
 
@@ -283,8 +293,7 @@ const table = useVueTable({
     return rawData.value || [];
   },
   columns,
-  getRowId: (row: SectorListEntry) =>
-    `sector-${row.Address}-${row.SectorNumber}`,
+  getRowId: (row: SnapSectorEntry) => `upgrade-${row.SpID}-${row.SectorNumber}`,
   getCoreRowModel: getCoreRowModel(),
   getSortedRowModel: getSortedRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
@@ -335,10 +344,10 @@ const groupCount = computed(() => {
   if (!store.selectedGroupBy) return 0;
   const groups = new Set(
     rawData.value?.map((sector) => {
-      if (store.selectedGroupBy === "state") {
+      if (store.selectedGroupBy === "CurrentState") {
         return getCurrentState(sector);
       }
-      return sector[store.selectedGroupBy as keyof SectorListEntry];
+      return sector[store.selectedGroupBy as keyof SnapSectorEntry];
     }),
   );
   return groups.size;
@@ -360,16 +369,12 @@ const handleGroupByChange = (event: Event) => {
   store.setSelectedGroupBy(target.value);
 };
 
-const handleSectorClick = (sectorNumber: number) => {
-  console.log("Sector clicked:", sectorNumber);
-  const sector = rawData.value?.find((s) => s.SectorNumber === sectorNumber);
-  if (sector) {
-    selectedSector.value = sector;
-    showSectorDetailsModal.value = true;
-  }
+const handleSectorClick = (sector: SnapSectorEntry) => {
+  selectedSector.value = sector;
+  showSectorDetailsModal.value = true;
 };
 
-const handleRowClick = (row: Row<SectorListEntry>) => {
+const handleRowClick = (row: Row<SnapSectorEntry>) => {
   if (row.getCanExpand()) {
     row.getToggleExpandedHandler()();
   } else if (!row.getIsGrouped()) {
@@ -379,7 +384,7 @@ const handleRowClick = (row: Row<SectorListEntry>) => {
 };
 
 const handleCellRightClick = (
-  cell: Cell<SectorListEntry, unknown>,
+  cell: Cell<SnapSectorEntry, unknown>,
   event: MouseEvent,
 ) => {
   event.preventDefault();
@@ -389,30 +394,63 @@ const handleCellRightClick = (
   }
 };
 
-const getCellTooltip = (cell: Cell<SectorListEntry, unknown>) => {
+const getCellTooltip = (cell: Cell<SnapSectorEntry, unknown>) => {
   if (cell.getIsGrouped()) {
     return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
   }
   return String(cell.getValue() || "");
 };
 
-const handleRestartSector = async (sector: SectorListEntry) => {
-  console.log(`Restarting sector ${sector.SectorNumber}`);
+const handleRestartUpgrade = async (sector: SnapSectorEntry) => {
+  console.log(`Restarting upgrade for sector ${sector.SectorNumber}`);
 
   const sectorKey = `${sector.SpID}-${sector.SectorNumber}`;
-  const { call } = useCurioQuery();
+  const { upgradeResetTaskIDs } = useCurioQuery();
 
   try {
     restartingTasks.value.add(sectorKey);
 
-    await call("SectorRestart", [sector.SpID, sector.SectorNumber]);
-    console.log(`Successfully restarted sector ${sector.SectorNumber}`);
+    await upgradeResetTaskIDs(sector.SpID, sector.SectorNumber);
+    console.log(
+      `Successfully restarted upgrade for sector ${sector.SectorNumber}`,
+    );
 
     props.onRefresh();
   } catch (error) {
-    console.error(`Failed to restart sector ${sector.SectorNumber}:`, error);
+    console.error(
+      `Failed to restart upgrade for sector ${sector.SectorNumber}:`,
+      error,
+    );
   } finally {
     restartingTasks.value.delete(sectorKey);
+  }
+};
+
+const handleDeleteUpgrade = async (sector: SnapSectorEntry) => {
+  if (
+    !confirm(
+      `Are you sure you want to delete upgrade for sector ${sector.SectorNumber}?`,
+    )
+  ) {
+    return;
+  }
+
+  console.log(`Deleting upgrade for sector ${sector.SectorNumber}`);
+
+  const { upgradeDelete } = useCurioQuery();
+
+  try {
+    await upgradeDelete(sector.SpID, sector.SectorNumber);
+    console.log(
+      `Successfully deleted upgrade for sector ${sector.SectorNumber}`,
+    );
+
+    props.onRefresh();
+  } catch (error) {
+    console.error(
+      `Failed to delete upgrade for sector ${sector.SectorNumber}:`,
+      error,
+    );
   }
 };
 
@@ -426,13 +464,13 @@ const getColumnAggregateInfo = (columnId: string) => {
   if (!data || !data.length) return "";
 
   switch (columnId) {
-    case "Address": {
-      const miners = new Set(data.map((sector) => sector.Address));
+    case "SpID": {
+      const miners = new Set(data.map((sector) => sector.SpID));
       return `${miners.size} unique miners`;
     }
     case "SectorNumber":
-      return `${data.length} total sectors`;
-    case "state": {
+      return `${data.length} total upgrades`;
+    case "CurrentState": {
       const states = data.reduce(
         (acc, sector) => {
           const state = getCurrentState(sector);
@@ -444,21 +482,22 @@ const getColumnAggregateInfo = (columnId: string) => {
       const uniqueCount = Object.keys(states).length;
       return `${uniqueCount} unique states`;
     }
-    case "created": {
+    case "progress": {
       if (data.length === 0) return "";
-      const dates = data.map(
-        (sector) => new Date(sector.CreateTime || Date.now()),
-      );
+      const avgProgress =
+        data.reduce((sum, sector) => sum + getUpgradeProgress(sector), 0) /
+        data.length;
+      return `${Math.round(avgProgress)}% average progress`;
+    }
+    case "startTime": {
+      if (data.length === 0) return "";
+      const dates = data.map((sector) => new Date(sector.StartTime));
       const oldest = Math.min(...dates.map((d) => d.getTime()));
       const newest = Math.max(...dates.map((d) => d.getTime()));
       return `${formatDistanceToNow(new Date(oldest))} - ${formatDistanceToNow(new Date(newest))}`;
     }
-    case "precommit": {
-      const ready = data.filter((sector) => sector.PreCommitReadyAt).length;
-      return `${ready}/${data.length} ready`;
-    }
-    case "commit": {
-      const ready = data.filter((sector) => sector.CommitReadyAt).length;
+    case "updateReady": {
+      const ready = data.filter((sector) => sector.UpdateReadyAt).length;
       return `${ready}/${data.length} ready`;
     }
     case "error": {
@@ -470,69 +509,45 @@ const getColumnAggregateInfo = (columnId: string) => {
   }
 };
 
-// Calculate pipeline progress percentage
-const getPipelineProgress = (sector: SectorListEntry | null): number => {
+// Calculate upgrade progress percentage
+const getUpgradeProgress = (sector: SnapSectorEntry | null): number => {
   if (!sector) return 0;
 
   const steps = [
-    sector.AfterSDR, // Step 1
-    sector.AfterTreeD && sector.AfterTreeC && sector.AfterTreeR, // Step 2 (Trees combined)
-    sector.AfterSynthetic, // Step 3
-    sector.AfterPrecommitMsg, // Step 4
-    sector.AfterSeed, // Step 5
-    sector.AfterPoRep, // Step 6
-    sector.AfterFinalize, // Step 7
-    sector.AfterCommitMsg, // Step 8
+    sector.AfterEncode, // Step 1: Encoding
+    sector.AfterProve, // Step 2: Proving
+    sector.AfterSubmit, // Step 3: Submitting
+    sector.AfterMoveStorage, // Step 4: Moving storage
   ];
 
   const completedSteps = steps.filter(Boolean).length;
   return Math.round((completedSteps / steps.length) * 100);
 };
 
-// Get progress steps for horizontal display
-const getProgressSteps = (sector: SectorListEntry | null) => {
+// Get progress steps for detailed display
+const getProgressSteps = (sector: SnapSectorEntry | null) => {
   if (!sector) return [];
 
   return [
     {
       number: 1,
-      label: "SDR",
-      completed: sector.AfterSDR,
+      label: "Encode",
+      completed: sector.AfterEncode,
     },
     {
       number: 2,
-      label: "Trees",
-      completed: sector.AfterTreeD && sector.AfterTreeC && sector.AfterTreeR,
+      label: "Prove",
+      completed: sector.AfterProve,
     },
     {
       number: 3,
-      label: "Synthetic",
-      completed: sector.AfterSynthetic,
+      label: "Submit",
+      completed: sector.AfterSubmit,
     },
     {
       number: 4,
-      label: "PreCommit",
-      completed: sector.AfterPrecommitMsg,
-    },
-    {
-      number: 5,
-      label: "WaitSeed",
-      completed: sector.AfterSeed,
-    },
-    {
-      number: 6,
-      label: "PoRep",
-      completed: sector.AfterPoRep,
-    },
-    {
-      number: 7,
-      label: "Finalize",
-      completed: sector.AfterFinalize,
-    },
-    {
-      number: 8,
-      label: "Commit",
-      completed: sector.AfterCommitMsg,
+      label: "Move",
+      completed: sector.AfterMoveStorage,
     },
   ];
 };
@@ -542,7 +557,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
   <div class="space-y-4">
     <TableControls
       v-model:search-input="store.searchQuery"
-      search-placeholder="Search sectors..."
+      search-placeholder="Search upgrades..."
       :loading="props.loading"
       @refresh="props.onRefresh"
     >
@@ -596,7 +611,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
       </template>
 
       <template #stats>
-        <span class="font-medium">{{ totalItems }}</span> sectors
+        <span class="font-medium">{{ totalItems }}</span> upgrades
         <span v-if="groupCount > 0" class="text-base-content/40">
           • <span class="font-medium">{{ groupCount }}</span> groups
         </span>
@@ -692,7 +707,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 <div
                   class="loading loading-spinner loading-lg mx-auto mb-4"
                 ></div>
-                <div>Loading...</div>
+                <div>Loading upgrades...</div>
               </td>
             </tr>
           </template>
@@ -702,8 +717,11 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-8 text-center"
               >
-                <div class="mb-2 text-4xl">📊</div>
-                <div>No active sectors found</div>
+                <div class="mb-2 text-4xl">⬆️</div>
+                <div class="font-medium">No upgrades available</div>
+                <div class="text-sm">
+                  No sectors are currently being upgraded
+                </div>
               </td>
             </tr>
           </template>
@@ -732,7 +750,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                       {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
                     </span>
                     <!-- Special handling for state grouping -->
-                    <template v-if="cell.column.id === 'state'">
+                    <template v-if="cell.column.id === 'CurrentState'">
                       <div
                         class="badge badge-outline"
                         :class="
@@ -784,15 +802,16 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
       </table>
     </div>
 
+    <!-- Sector Details Modal -->
     <div v-if="showSectorDetailsModal" class="modal modal-open">
       <div class="modal-box max-w-2xl">
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="text-lg font-bold">
-              Sector {{ selectedSector?.SectorNumber }}
+              Sector {{ selectedSector?.SectorNumber }} Upgrade
             </h3>
             <div class="text-base-content/60 text-sm">
-              {{ selectedSector?.Address }}
+              f0{{ selectedSector?.SpID }}
             </div>
           </div>
           <button class="btn btn-ghost btn-sm" @click="closeSectorDetails">
@@ -800,11 +819,11 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
           </button>
         </div>
 
-        <div class="mb-4 grid grid-cols-3 gap-3">
+        <div class="mb-4 grid grid-cols-2 gap-3">
           <div class="bg-base-200/30 rounded-lg p-3 text-center">
             <div
               class="mb-1 text-xl font-bold"
-              :class="!selectedSector?.Failed ? 'text-success' : 'text-error'"
+              :class="!selectedSector?.Failed ? 'text-info' : 'text-error'"
             >
               {{ !selectedSector?.Failed ? "ACTIVE" : "FAILED" }}
             </div>
@@ -813,43 +832,31 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
             </div>
           </div>
           <div class="bg-base-200/30 rounded-lg p-3 text-center">
-            <div
-              class="mb-1 text-xl font-bold"
-              :class="selectedSector?.ChainAlloc ? 'text-info' : 'text-warning'"
-            >
-              {{ selectedSector?.ChainAlloc ? "ALLOC" : "PENDING" }}
+            <div class="text-primary mb-1 text-xl font-bold">
+              {{ selectedSector ? getCurrentState(selectedSector) : "Unknown" }}
             </div>
             <div class="text-base-content/60 text-xs tracking-wider uppercase">
-              Allocation
-            </div>
-          </div>
-          <div class="bg-base-200/30 rounded-lg p-3 text-center">
-            <div
-              class="mb-1 text-xl font-bold"
-              :class="
-                selectedSector?.ChainSector ? 'text-success' : 'text-warning'
-              "
-            >
-              {{ selectedSector?.ChainSector ? "ONCHAIN" : "PENDING" }}
-            </div>
-            <div class="text-base-content/60 text-xs tracking-wider uppercase">
-              Chain
+              Stage
             </div>
           </div>
         </div>
 
         <div class="bg-base-200/30 rounded-lg p-4">
           <div class="mb-3 flex items-center justify-between">
-            <h4 class="font-semibold">Pipeline Progress</h4>
+            <h4 class="font-semibold">Upgrade Progress</h4>
             <span class="text-primary font-bold"
-              >{{ getPipelineProgress(selectedSector) }}%</span
+              >{{
+                selectedSector ? getUpgradeProgress(selectedSector) : 0
+              }}%</span
             >
           </div>
 
           <div class="space-y-3">
             <div class="flex items-center justify-between gap-1">
               <div
-                v-for="(step, index) in getProgressSteps(selectedSector)"
+                v-for="(step, index) in selectedSector
+                  ? getProgressSteps(selectedSector)
+                  : []"
                 :key="index"
                 class="flex flex-1 flex-col items-center"
               >
@@ -877,7 +884,11 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
             <div class="bg-base-300 h-1.5 w-full rounded-full">
               <div
                 class="bg-success h-1.5 rounded-full transition-all duration-500"
-                :style="{ width: getPipelineProgress(selectedSector) + '%' }"
+                :style="{
+                  width:
+                    (selectedSector ? getUpgradeProgress(selectedSector) : 0) +
+                    '%',
+                }"
               ></div>
             </div>
           </div>
@@ -892,7 +903,34 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
               </span>
             </div>
             <div v-if="selectedSector?.Failed" class="text-error text-xs">
-              {{ selectedSector?.FailedReason || "Task execution failed" }}
+              {{
+                selectedSector?.FailedReasonMsg ||
+                selectedSector?.FailedReason ||
+                "Upgrade failed"
+              }}
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="selectedSector?.UpdateUnsealedCid"
+          class="bg-base-200/30 mt-4 rounded-lg p-3"
+        >
+          <div class="text-base-content/80 mb-2 text-sm font-medium">
+            CID Information
+          </div>
+          <div class="space-y-1 text-xs">
+            <div v-if="selectedSector.UpdateUnsealedCid">
+              <span class="text-base-content/60">Unsealed CID:</span>
+              <span class="text-base-content ml-2 font-mono">{{
+                selectedSector.UpdateUnsealedCid
+              }}</span>
+            </div>
+            <div v-if="selectedSector.UpdateSealedCid">
+              <span class="text-base-content/60">Sealed CID:</span>
+              <span class="text-base-content ml-2 font-mono">{{
+                selectedSector.UpdateSealedCid
+              }}</span>
             </div>
           </div>
         </div>
