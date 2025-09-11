@@ -16,15 +16,21 @@
             <div class="flex items-center gap-4 border-l pl-6">
               <div class="text-center">
                 <div class="text-base-content text-lg font-bold">
-                  {{ porepStats.data.value?.TotalSectors || 0 }}
+                  {{ totalSectors }}
                 </div>
                 <div class="text-base-content/60 text-xs">Total</div>
               </div>
               <div class="text-center">
                 <div class="text-info text-lg font-bold">
-                  {{ porepStats.data.value?.InProgressSectors || 0 }}
+                  {{ activeSectors }}
                 </div>
                 <div class="text-base-content/60 text-xs">Active</div>
+              </div>
+              <div class="text-center">
+                <div class="text-success text-lg font-bold">
+                  {{ completedSectors }}
+                </div>
+                <div class="text-base-content/60 text-xs">Completed</div>
               </div>
               <div class="text-center">
                 <div
@@ -40,13 +46,13 @@
           <!-- Action Buttons -->
           <div class="flex gap-2">
             <button
-              :disabled="porepSectors.loading.value"
+              :disabled="isRefreshingDashboard"
               class="btn btn-outline btn-sm"
-              @click="refreshData"
+              @click="refreshDashboard"
             >
               <ArrowPathIcon
                 class="h-4 w-4"
-                :class="{ 'animate-spin': porepSectors.loading.value }"
+                :class="{ 'animate-spin': isRefreshingDashboard }"
               />
               Refresh
             </button>
@@ -67,7 +73,11 @@
         <!-- Pipeline Breakdown Table -->
         <div class="mt-4 border-t pt-3">
           <div
-            v-if="porepSummary.loading.value"
+            v-if="
+              porepSummary.loading.value ||
+              porepStats.loading.value ||
+              porepSectors.loading.value
+            "
             class="flex justify-center py-2"
           >
             <span class="loading loading-spinner loading-sm"></span>
@@ -170,10 +180,20 @@
       </div>
 
       <!-- Sectors Table -->
-      <SectionCard
-        title="Active Sectors"
-        :icon="CogIcon"
-      >
+      <SectionCard title="Active Sectors" :icon="CogIcon">
+        <template #actions>
+          <button
+            :disabled="porepSectors.loading.value"
+            class="btn btn-outline btn-sm"
+            @click="porepSectors.refresh"
+          >
+            <ArrowPathIcon
+              class="h-4 w-4"
+              :class="{ 'animate-spin': porepSectors.loading.value }"
+            />
+            Refresh
+          </button>
+        </template>
         <PoRepSectorsTable
           :sectors="porepSectors.data.value || []"
           :loading="porepSectors.loading.value"
@@ -257,11 +277,67 @@ const getTotalCount = (summary: PorepPipelineSummary): number => {
 };
 
 const isRestarting = ref(false);
+const isRefreshingDashboard = ref(false);
 
-const failedCount = computed(() => porepStats.data.value?.FailedSectors || 0);
+// Calculate all statistics from PorepPipelineSummary data for consistency with table
+const totalSectors = computed(() => {
+  if (!porepSummary.data.value) return 0;
+  return porepSummary.data.value.reduce((total, summary) => {
+    return total + getTotalCount(summary);
+  }, 0);
+});
+
+const activeSectors = computed(() => {
+  if (!porepSummary.data.value) return 0;
+  // Active sectors are those in pipeline stages (SDR, Trees, PreCommit, WaitSeed, PoRep, Commit)
+  return porepSummary.data.value.reduce((total, summary) => {
+    return (
+      total +
+      summary.CountSDR +
+      summary.CountTrees +
+      summary.CountPrecommitMsg +
+      summary.CountWaitSeed +
+      summary.CountPoRep +
+      summary.CountCommitMsg
+    );
+  }, 0);
+});
+
+const completedSectors = computed(() => {
+  if (!porepSummary.data.value) return 0;
+  // Completed sectors are those marked as Done
+  return porepSummary.data.value.reduce((total, summary) => {
+    return total + summary.CountDone;
+  }, 0);
+});
+
+const failedCount = computed(() => {
+  if (!porepSummary.data.value) return 0;
+  // Failed sectors from all actors
+  return porepSummary.data.value.reduce((total, summary) => {
+    return total + summary.CountFailed;
+  }, 0);
+});
+
+const refreshDashboard = async () => {
+  isRefreshingDashboard.value = true;
+  try {
+    await Promise.all([
+      porepSummary.refresh(),
+      porepStats.refresh(),
+      porepSectors.refresh(), // Keep sectors refresh for the sectors table
+    ]);
+  } finally {
+    isRefreshingDashboard.value = false;
+  }
+};
 
 const refreshData = async () => {
-  await Promise.all([porepSummary.refresh(), porepStats.refresh()]);
+  await Promise.all([
+    porepSummary.refresh(),
+    porepStats.refresh(),
+    porepSectors.refresh(), // Keep sectors refresh for the sectors table
+  ]);
 };
 
 const handleRestartAll = async () => {

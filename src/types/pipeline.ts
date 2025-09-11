@@ -127,3 +127,54 @@ export interface PipelineOverviewStats {
   totalFailedTasks: number;
   lastUpdate: string;
 }
+
+export interface SnapSectorEntry {
+  SpID: number;
+  SectorNumber: number;
+  StartTime: string;
+  UpgradeProof: number;
+  DataAssigned: boolean;
+  UpdateUnsealedCid?: string;
+  UpdateSealedCid?: string;
+
+  // Task IDs (nullable)
+  TaskIDEncode?: number;
+  TaskIDProve?: number;
+  TaskIDSubmit?: number;
+  TaskIDMoveStorage?: number;
+
+  // After flags
+  AfterEncode: boolean;
+  AfterProve: boolean;
+  AfterSubmit: boolean;
+  AfterMoveStorage: boolean;
+  AfterProveMsgSuccess: boolean;
+
+  // Proof and submission data
+  Proof?: string;
+  ProveMsgCid?: string;
+  ProveMsgTsk?: string;
+  SubmitAfter?: string;
+  UpdateReadyAt?: string;
+
+  // Failure information
+  Failed: boolean;
+  FailedAt?: string;
+  FailedReason: string;
+  FailedReasonMsg: string;
+
+  // Computed fields for display
+  Address?: string;
+  CurrentState?: string;
+  Progress?: number;
+}
+
+export interface SnapPipelineSummary {
+  Actor: string;
+  CountEncode: number;
+  CountProve: number;
+  CountSubmit: number;
+  CountMoveStorage: number;
+  CountDone: number;
+  CountFailed: number;
+}
