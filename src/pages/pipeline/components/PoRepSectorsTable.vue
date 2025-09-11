@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import { computed, h, ref } from "vue";
+import { computed, h } from "vue";
 import {
-  useVueTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getGroupedRowModel,
-  getExpandedRowModel,
   createColumnHelper,
   FlexRender,
+  type ColumnDef,
   type Row,
-  type Cell,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
-import { useTableState } from "@/composables/useTableState";
-import { useTableHelpers } from "@/composables/useTableHelpers";
+import { useStandardTable } from "@/composables/useStandardTable";
+import { useItemModal } from "@/composables/useItemModal";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { useTableActions } from "@/composables/useTableActions";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import ItemDetailsModal from "@/components/table/ItemDetailsModal.vue";
 import type { SectorListEntry } from "@/types/pipeline";
 
 interface Props {
@@ -36,21 +32,29 @@ const props = withDefaults(defineProps<Props>(), {
 
 const rawData = computed(() => props.sectors);
 
-const store = useTableState("porepSectorsTable", {
-  defaultSorting: [{ id: "SectorNumber", desc: true }],
-});
-
 const groupingOptions = [
   { value: "Address", label: "Miner" },
   { value: "state", label: "State" },
 ];
 
-const showSectorDetailsModal = ref(false);
-const selectedSector = ref<SectorListEntry | null>(null);
+const { showModal, selectedItem, openModal, handleModalClose } =
+  useItemModal<SectorListEntry>();
 
-const restartingTasks = ref(new Set<string>());
+const { call } = useCurioQuery();
+const { isLoading: isActionLoading, executeAction } =
+  useTableActions<SectorListEntry>({
+    actions: {
+      restart: {
+        name: "restart",
+        handler: async (sector) => {
+          await call("SectorRestart", [sector.SpID, sector.SectorNumber]);
+        },
+        loadingKey: (sector) => `${sector.SpID}-${sector.SectorNumber}`,
+        onSuccess: () => props.onRefresh(),
+      },
+    },
+  });
 
-// Helper functions for data processing
 const getCurrentState = (sector: SectorListEntry): string => {
   if (sector.Failed) return "Failed";
   if (sector.AfterCommitMsgSuccess) return "Completed";
@@ -251,8 +255,7 @@ const columns = [
     enableSorting: false,
     cell: (info) => {
       const sector = info.row.original;
-      const sectorKey = `${sector.SpID}-${sector.SectorNumber}`;
-      const isRestarting = restartingTasks.value.has(sectorKey);
+      const isRestarting = isActionLoading("restart", sector);
       const buttons = [];
 
       buttons.push(
@@ -266,7 +269,7 @@ const columns = [
             title: "Restart sector processing",
             onClick: (e: Event) => {
               e.stopPropagation();
-              handleRestartSector(sector);
+              executeAction("restart", sector);
             },
           },
           isRestarting ? "Restarting..." : "Restart",
@@ -278,94 +281,33 @@ const columns = [
   }),
 ];
 
-const table = useVueTable({
-  get data() {
-    return rawData.value || [];
-  },
-  columns,
-  getRowId: (row: SectorListEntry) =>
-    `sector-${row.Address}-${row.SectorNumber}`,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  enableGrouping: true,
-  autoResetExpanded: false,
-  autoResetPageIndex: false,
-  globalFilterFn: "includesString",
-  state: {
-    get sorting() {
-      return store.sorting;
-    },
-    get grouping() {
-      return store.grouping;
-    },
-    get expanded() {
-      return store.expanded;
-    },
-    get globalFilter() {
-      return store.searchQuery;
-    },
-  },
-  onSortingChange: (updater) => {
-    const newSorting =
-      typeof updater === "function" ? updater(store.sorting) : updater;
-    store.setSorting(newSorting);
-  },
-  onGroupingChange: (updater) => {
-    const newGrouping =
-      typeof updater === "function" ? updater(store.grouping) : updater;
-    store.setGrouping(newGrouping);
-  },
-  onExpandedChange: (updater) => {
-    const newExpanded =
-      typeof updater === "function" ? updater(store.expanded) : updater;
-    store.setExpanded(newExpanded);
-  },
-  onGlobalFilterChange: (updater) => {
-    const newValue =
-      typeof updater === "function" ? updater(store.searchQuery) : updater;
-    store.setSearchQuery(newValue || "");
-  },
+const { table, store, helpers, handlers } = useStandardTable<SectorListEntry>({
+  tableId: "porepSectorsTable",
+  columns: columns as ColumnDef<SectorListEntry>[],
+  data: rawData,
+  defaultSorting: [{ id: "SectorNumber", desc: true }],
+  groupingOptions,
+  getRowId: (row) => `sector-${row.Address}-${row.SectorNumber}`,
 });
 
-const { hasData: tableHasData, totalItems } = useTableHelpers(rawData, table);
-const groupCount = computed(() => {
-  if (!store.selectedGroupBy) return 0;
-  const groups = new Set(
-    rawData.value?.map((sector) => {
-      if (store.selectedGroupBy === "state") {
-        return getCurrentState(sector);
-      }
-      return sector[store.selectedGroupBy as keyof SectorListEntry];
-    }),
-  );
-  return groups.size;
-});
-
-// Check if any filters are active
-const hasActiveFilters = computed(() => {
-  return store.searchQuery.trim() !== "" || store.selectedGroupBy !== "";
-});
-
-// Clear all filters
-const clearAllFilters = () => {
-  store.setSearchQuery("");
-  store.setSelectedGroupBy("");
-};
-
-const handleGroupByChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  store.setSelectedGroupBy(target.value);
-};
+const {
+  hasData: tableHasData,
+  totalItems,
+  groupCount,
+  hasActiveFilters,
+} = helpers;
+const {
+  handleGroupByChange,
+  handleCellRightClick,
+  getCellTooltip,
+  clearAllFilters,
+} = handlers;
 
 const handleSectorClick = (sectorNumber: number) => {
   console.log("Sector clicked:", sectorNumber);
   const sector = rawData.value?.find((s) => s.SectorNumber === sectorNumber);
   if (sector) {
-    selectedSector.value = sector;
-    showSectorDetailsModal.value = true;
+    openModal(sector);
   }
 };
 
@@ -373,52 +315,8 @@ const handleRowClick = (row: Row<SectorListEntry>) => {
   if (row.getCanExpand()) {
     row.getToggleExpandedHandler()();
   } else if (!row.getIsGrouped()) {
-    selectedSector.value = row.original;
-    showSectorDetailsModal.value = true;
+    openModal(row.original);
   }
-};
-
-const handleCellRightClick = (
-  cell: Cell<SectorListEntry, unknown>,
-  event: MouseEvent,
-) => {
-  event.preventDefault();
-  const value = String(cell.getValue() || "");
-  if (value && navigator.clipboard) {
-    navigator.clipboard.writeText(value);
-  }
-};
-
-const getCellTooltip = (cell: Cell<SectorListEntry, unknown>) => {
-  if (cell.getIsGrouped()) {
-    return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
-  }
-  return String(cell.getValue() || "");
-};
-
-const handleRestartSector = async (sector: SectorListEntry) => {
-  console.log(`Restarting sector ${sector.SectorNumber}`);
-
-  const sectorKey = `${sector.SpID}-${sector.SectorNumber}`;
-  const { call } = useCurioQuery();
-
-  try {
-    restartingTasks.value.add(sectorKey);
-
-    await call("SectorRestart", [sector.SpID, sector.SectorNumber]);
-    console.log(`Successfully restarted sector ${sector.SectorNumber}`);
-
-    props.onRefresh();
-  } catch (error) {
-    console.error(`Failed to restart sector ${sector.SectorNumber}:`, error);
-  } finally {
-    restartingTasks.value.delete(sectorKey);
-  }
-};
-
-const closeSectorDetails = () => {
-  showSectorDetailsModal.value = false;
-  selectedSector.value = null;
 };
 
 const getColumnAggregateInfo = (columnId: string) => {
@@ -470,7 +368,6 @@ const getColumnAggregateInfo = (columnId: string) => {
   }
 };
 
-// Calculate pipeline progress percentage
 const getPipelineProgress = (sector: SectorListEntry | null): number => {
   if (!sector) return 0;
 
@@ -489,7 +386,6 @@ const getPipelineProgress = (sector: SectorListEntry | null): number => {
   return Math.round((completedSteps / steps.length) * 100);
 };
 
-// Get progress steps for horizontal display
 const getProgressSteps = (sector: SectorListEntry | null) => {
   if (!sector) return [];
 
@@ -784,29 +680,25 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
       </table>
     </div>
 
-    <div v-if="showSectorDetailsModal" class="modal modal-open">
-      <div class="modal-box max-w-2xl">
-        <div class="mb-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <h3 class="text-lg font-bold">
-              Sector {{ selectedSector?.SectorNumber }}
-            </h3>
-            <div class="text-base-content/60 text-sm">
-              {{ selectedSector?.Address }}
-            </div>
-          </div>
-          <button class="btn btn-ghost btn-sm" @click="closeSectorDetails">
-            ✕
-          </button>
-        </div>
+    <!-- Unified modal component replaces manual implementation -->
+    <ItemDetailsModal
+      v-model:show="showModal"
+      :item="selectedItem"
+      @close="handleModalClose"
+    >
+      <template #title="{ item }">
+        <h3 class="text-lg font-bold">Sector {{ item?.SectorNumber }}</h3>
+        <div class="text-base-content/60 text-sm">{{ item?.Address }}</div>
+      </template>
 
+      <template #header-stats="{ item }">
         <div class="mb-4 grid grid-cols-3 gap-3">
           <div class="bg-base-200/30 rounded-lg p-3 text-center">
             <div
               class="mb-1 text-xl font-bold"
-              :class="!selectedSector?.Failed ? 'text-success' : 'text-error'"
+              :class="!item?.Failed ? 'text-success' : 'text-error'"
             >
-              {{ !selectedSector?.Failed ? "ACTIVE" : "FAILED" }}
+              {{ !item?.Failed ? "ACTIVE" : "FAILED" }}
             </div>
             <div class="text-base-content/60 text-xs tracking-wider uppercase">
               Status
@@ -815,9 +707,9 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
           <div class="bg-base-200/30 rounded-lg p-3 text-center">
             <div
               class="mb-1 text-xl font-bold"
-              :class="selectedSector?.ChainAlloc ? 'text-info' : 'text-warning'"
+              :class="item?.ChainAlloc ? 'text-info' : 'text-warning'"
             >
-              {{ selectedSector?.ChainAlloc ? "ALLOC" : "PENDING" }}
+              {{ item?.ChainAlloc ? "ALLOC" : "PENDING" }}
             </div>
             <div class="text-base-content/60 text-xs tracking-wider uppercase">
               Allocation
@@ -826,30 +718,30 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
           <div class="bg-base-200/30 rounded-lg p-3 text-center">
             <div
               class="mb-1 text-xl font-bold"
-              :class="
-                selectedSector?.ChainSector ? 'text-success' : 'text-warning'
-              "
+              :class="item?.ChainSector ? 'text-success' : 'text-warning'"
             >
-              {{ selectedSector?.ChainSector ? "ONCHAIN" : "PENDING" }}
+              {{ item?.ChainSector ? "ONCHAIN" : "PENDING" }}
             </div>
             <div class="text-base-content/60 text-xs tracking-wider uppercase">
               Chain
             </div>
           </div>
         </div>
+      </template>
 
+      <template #main-content="{ item }">
         <div class="bg-base-200/30 rounded-lg p-4">
           <div class="mb-3 flex items-center justify-between">
             <h4 class="font-semibold">Pipeline Progress</h4>
             <span class="text-primary font-bold"
-              >{{ getPipelineProgress(selectedSector) }}%</span
+              >{{ getPipelineProgress(item) }}%</span
             >
           </div>
 
           <div class="space-y-3">
             <div class="flex items-center justify-between gap-1">
               <div
-                v-for="(step, index) in getProgressSteps(selectedSector)"
+                v-for="(step, index) in getProgressSteps(item)"
                 :key="index"
                 class="flex flex-1 flex-col items-center"
               >
@@ -877,7 +769,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
             <div class="bg-base-300 h-1.5 w-full rounded-full">
               <div
                 class="bg-success h-1.5 rounded-full transition-all duration-500"
-                :style="{ width: getPipelineProgress(selectedSector) + '%' }"
+                :style="{ width: getPipelineProgress(item) + '%' }"
               ></div>
             </div>
           </div>
@@ -886,17 +778,15 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
             <div class="flex items-center gap-2">
               <span class="text-base-content/60">Current:</span>
               <span class="badge badge-outline badge-sm">
-                {{
-                  selectedSector ? getCurrentState(selectedSector) : "Unknown"
-                }}
+                {{ item ? getCurrentState(item) : "Unknown" }}
               </span>
             </div>
-            <div v-if="selectedSector?.Failed" class="text-error text-xs">
-              {{ selectedSector?.FailedReason || "Task execution failed" }}
+            <div v-if="item?.Failed" class="text-error text-xs">
+              {{ item?.FailedReason || "Task execution failed" }}
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </ItemDetailsModal>
   </div>
 </template>

@@ -73,11 +73,7 @@
         <!-- Pipeline Breakdown Table -->
         <div class="mt-4 border-t pt-3">
           <div
-            v-if="
-              porepSummary.loading.value ||
-              porepStats.loading.value ||
-              porepSectors.loading.value
-            "
+            v-if="porepSummary.loading.value || porepStats.loading.value"
             class="flex justify-center py-2"
           >
             <span class="loading loading-spinner loading-sm"></span>
@@ -322,21 +318,17 @@ const failedCount = computed(() => {
 const refreshDashboard = async () => {
   isRefreshingDashboard.value = true;
   try {
-    await Promise.all([
-      porepSummary.refresh(),
-      porepStats.refresh(),
-      porepSectors.refresh(), // Keep sectors refresh for the sectors table
-    ]);
+    await Promise.all([porepSummary.refresh(), porepStats.refresh()]);
   } finally {
     isRefreshingDashboard.value = false;
   }
 };
 
-const refreshData = async () => {
+const refreshAllData = async () => {
   await Promise.all([
     porepSummary.refresh(),
     porepStats.refresh(),
-    porepSectors.refresh(), // Keep sectors refresh for the sectors table
+    porepSectors.refresh(),
   ]);
 };
 
@@ -344,7 +336,7 @@ const handleRestartAll = async () => {
   isRestarting.value = true;
   try {
     await restartPorepPipeline();
-    await refreshData();
+    await refreshAllData();
   } finally {
     isRestarting.value = false;
   }
