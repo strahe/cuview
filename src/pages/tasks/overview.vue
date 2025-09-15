@@ -5,6 +5,14 @@ import TasksOverview from "./components/TasksOverview.vue";
 import Card from "@/components/ui/Card.vue";
 </script>
 
+<route>
+{
+  "meta": {
+    "title": "Task Overview"
+  }
+}
+</route>
+
 <template>
   <TasksLayout current-tab="overview">
     <div class="space-y-6">

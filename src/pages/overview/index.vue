@@ -1,3 +1,11 @@
+<route>
+{
+  "meta": {
+    "title": "Dashboard"
+  }
+}
+</route>
+
 <template>
   <div class="space-y-6 p-6">
     <!-- Cluster Overview Stats -->

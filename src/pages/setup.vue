@@ -1,4 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<route>
+{
+  "meta": {
+    "title": "Setup"
+  }
+}
+</route>
+
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";

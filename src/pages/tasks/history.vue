@@ -4,6 +4,14 @@ import TasksLayout from "./components/TasksLayout.vue";
 import TaskHistoryTable from "./components/TaskHistoryTable.vue";
 </script>
 
+<route>
+{
+  "meta": {
+    "title": "Task History"
+  }
+}
+</route>
+
 <template>
   <TasksLayout current-tab="history">
     <TaskHistoryTable />

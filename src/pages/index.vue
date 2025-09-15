@@ -1,8 +1,15 @@
+<route>
+{
+  "meta": {
+    "title": "Loading"
+  }
+}
+</route>
+
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useConfigStore } from "@/stores/config";
-
 const router = useRouter();
 const configStore = useConfigStore();
 

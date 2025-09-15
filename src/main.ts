@@ -15,6 +15,28 @@ const router = createRouter({
 // Apply configuration guard to all routes
 router.beforeEach(configGuard);
 
+// Set page title from route meta
+router.afterEach((to) => {
+  const baseTitle = "Cuview";
+
+  if (to.meta?.title) {
+    document.title = `${to.meta.title} - ${baseTitle}`;
+  } else {
+    // Fallback for routes without meta.title
+    const segments = to.path.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+
+    if (lastSegment && !lastSegment.includes("[")) {
+      const title = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
+      document.title = `${title} - ${baseTitle}`;
+    } else if (to.name) {
+      document.title = `${String(to.name)} - ${baseTitle}`;
+    } else {
+      document.title = baseTitle;
+    }
+  }
+});
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 

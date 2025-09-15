@@ -1,4 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<route>
+{
+  "meta": {
+    "title": "Machine"
+  }
+}
+</route>
+
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -19,6 +27,7 @@ import {
 
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useMachineOperations } from "./composables/useMachineOperations";
+import { usePageTitle } from "@/composables/usePageTitle";
 import type { MachineInfo } from "@/types/machine";
 import DataTable from "@/components/ui/DataTable.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
@@ -130,6 +139,20 @@ const machineHealthStatus = computed(() => {
     return { status: "high-load", color: "warning", icon: BoltIcon };
   return { status: "healthy", color: "success", icon: CheckCircleIcon };
 });
+
+const { updateTitle } = usePageTitle();
+
+// Update title with machine name and status
+const dynamicTitle = computed(() => {
+  if (loading.value && !machineData.value) return "Loading...";
+  if (error.value && !machineData.value) return "Error";
+
+  const name = machineData.value?.Info?.Name || "Machine";
+  const status = machineHealthStatus.value.status;
+  return `${name} (${status})`;
+});
+
+updateTitle(dynamicTitle);
 
 const showConfirmDialog = ref(false);
 const confirmAction = ref<"cordon" | "uncordon" | "restart">("cordon");

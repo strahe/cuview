@@ -1,4 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<route>
+{
+  "meta": {
+    "title": "PoRep Pipeline"
+  }
+}
+</route>
+
 <template>
   <PipelineLayout current-tab="porep">
     <div class="space-y-4">
@@ -214,6 +222,7 @@ import PoRepSectorsTable from "./components/PoRepSectorsTable.vue";
 import PipelineLayout from "./components/PipelineLayout.vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { usePageTitle } from "@/composables/usePageTitle";
 import type {
   PorepPipelineSummary,
   SectorListEntry,
@@ -314,6 +323,25 @@ const failedCount = computed(() => {
     return total + summary.CountFailed;
   }, 0);
 });
+
+const { updateTitle } = usePageTitle();
+
+// Update title with active sector count
+const dynamicTitle = computed(() => {
+  const loading = porepSummary.loading.value || porepStats.loading.value;
+  const error = porepSummary.error.value || porepStats.error.value;
+
+  if (loading && !porepSummary.data.value && !porepStats.data.value) {
+    return "Loading...";
+  }
+  if (error && !porepSummary.data.value && !porepStats.data.value) {
+    return "Error";
+  }
+
+  return `PoRep Pipeline (${activeSectors.value} active)`;
+});
+
+updateTitle(dynamicTitle);
 
 const refreshDashboard = async () => {
   isRefreshingDashboard.value = true;

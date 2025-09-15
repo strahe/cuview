@@ -1,4 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<route>
+{
+  "meta": {
+    "title": "Snap Pipeline"
+  }
+}
+</route>
+
 <template>
   <PipelineLayout current-tab="snap">
     <div class="space-y-4">
@@ -163,6 +171,7 @@ import SnapUpgradesTable from "./components/SnapUpgradesTable.vue";
 import PipelineLayout from "./components/PipelineLayout.vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { usePageTitle } from "@/composables/usePageTitle";
 import type { PipelineStats, SnapSectorEntry } from "@/types/pipeline";
 
 // Data queries
@@ -238,6 +247,25 @@ const pipelineStats = computed(() => {
     ).length,
   };
 });
+
+const { updateTitle } = usePageTitle();
+
+// Update title with upgrade count
+const dynamicTitle = computed(() => {
+  const loading = snapStats.loading.value || upgradeSectors.loading.value;
+  const error = snapStats.error.value || upgradeSectors.error.value;
+
+  if (loading && !snapStats.data.value && !upgradeSectors.data.value) {
+    return "Loading...";
+  }
+  if (error && !snapStats.data.value && !upgradeSectors.data.value) {
+    return "Error";
+  }
+
+  return `Snap Deals (${activeSectors.value} active)`;
+});
+
+updateTitle(dynamicTitle);
 
 // Action handlers
 const refreshDashboard = async () => {

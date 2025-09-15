@@ -1,3 +1,13 @@
+<route>
+{
+  "meta": {
+    "title": "Storage"
+  }
+}
+</route>
+
+<script setup lang="ts"></script>
+
 <template>
   <div class="p-6">
     <h1 class="mb-4 text-2xl font-bold">Storage</h1>

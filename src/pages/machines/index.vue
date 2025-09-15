@@ -1,4 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<route>
+{
+  "meta": {
+    "title": "Machines"
+  }
+}
+</route>
+
 <script setup lang="ts">
 import { computed } from "vue";
 import { ComputerDesktopIcon } from "@heroicons/vue/24/outline";
@@ -7,10 +15,13 @@ import KPICard from "@/components/ui/KPICard.vue";
 import MachinesTable from "./components/MachinesTable.vue";
 import { useMachinesData } from "./composables/useMachinesData";
 import { useMachineFilters } from "./composables/useMachineFilters";
+import { usePageTitle } from "@/composables/usePageTitle";
 
 const { machines, loading, error, refresh } = useMachinesData();
 
 const { filteredMachines } = useMachineFilters(machines);
+
+const { updateTitle } = usePageTitle();
 
 const stats = computed(() => {
   if (!filteredMachines.value) return null;
@@ -45,6 +56,17 @@ const stats = computed(() => {
     totalGpu,
   };
 });
+
+// Update title with machine count
+const dynamicTitle = computed(() => {
+  if (loading.value && !machines.value) return "Loading...";
+  if (error.value && !machines.value) return "Error";
+
+  const online = stats.value?.online ?? 0;
+  return `Machines (${online} online)`;
+});
+
+updateTitle(dynamicTitle);
 
 // Remove hasData as it's now handled by the table component
 </script>

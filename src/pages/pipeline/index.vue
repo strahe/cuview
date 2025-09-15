@@ -10,6 +10,14 @@ onMounted(() => {
 });
 </script>
 
+<route>
+{
+  "meta": {
+    "title": "Pipeline"
+  }
+}
+</route>
+
 <template>
   <div class="flex items-center justify-center p-6">
     <div class="text-center">
