@@ -28,6 +28,7 @@ export interface StandardTableConfig<T> {
   getRowId?: (row: T) => string;
   customRowIdPrefix?: string;
   enableGrouping?: boolean;
+  enableSorting?: boolean;
   globalFilterFn?: string;
   autoResetExpanded?: boolean;
   autoResetPageIndex?: boolean;
@@ -82,9 +83,7 @@ export function useStandardTable<T>(
 
   // Create standardized table instance with all common configuration
   const table = useVueTable({
-    get data() {
-      return rawData.value || [];
-    },
+    data: computed(() => rawData.value || []),
     columns: config.columns,
     getRowId:
       config.getRowId ||
@@ -96,6 +95,7 @@ export function useStandardTable<T>(
     getGroupedRowModel: getGroupedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     enableGrouping: config.enableGrouping ?? true,
+    enableSorting: config.enableSorting ?? true,
     autoResetExpanded: config.autoResetExpanded ?? false,
     autoResetPageIndex: config.autoResetPageIndex ?? false,
     // globalFilterFn: "includesString", // Use default filter function

@@ -56,7 +56,7 @@ export class JsonRpcClient {
   constructor(options: JsonRpcClientOptions = {}) {
     this.config = {
       endpoint: options.endpoint || "/api/webrpc/v0",
-      timeout: options.timeout || 30000,
+      timeout: options.timeout || 60000,
       reconnectInterval: options.reconnectInterval || 1000,
       maxReconnectAttempts: options.maxReconnectAttempts || 10,
       methodPrefix: options.methodPrefix || "",
