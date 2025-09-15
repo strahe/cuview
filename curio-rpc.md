@@ -254,10 +254,12 @@ interface MachineInfo {
 }
 ```
 
-#### `CurioWeb.ClusterTaskHistory()`
+#### `CurioWeb.ClusterTaskHistory(limit: number, offset: number)`
 Get recent task completion history across the cluster.
 
-**Parameters**: None
+**Parameters**:
+- `limit: number` - Maximum number of records to return
+- `offset: number` - Number of records to skip from the beginning
 
 **Returns**: `[]TaskHistorySummary`
 ```typescript

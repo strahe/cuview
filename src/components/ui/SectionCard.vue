@@ -3,7 +3,7 @@ import { computed } from "vue";
 import Card from "./Card.vue";
 
 interface Props {
-  title: string;
+  title?: string;
   description?: string;
   icon?: unknown;
   loading?: boolean;
