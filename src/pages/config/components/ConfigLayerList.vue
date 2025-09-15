@@ -1,22 +1,20 @@
 <template>
-  <div class="layer-management">
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-semibold text-base-content">Configuration Layers</h2>
-        <p class="text-sm text-base-content/70 mt-1">
+        <h2 class="text-xl font-semibold">Configuration Layers</h2>
+        <p class="text-base-content/70 mt-1 text-sm">
           Manage your configuration layers and their settings
         </p>
       </div>
-      
+
       <button
         type="button"
         class="btn btn-primary"
         @click="showCreateModal = true"
       >
-        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
+        <PlusIcon class="mr-2 h-4 w-4" />
         New Layer
       </button>
     </div>
@@ -28,9 +26,7 @@
 
     <!-- Error state -->
     <div v-else-if="error" class="alert alert-error">
-      <svg class="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-      </svg>
+      <ExclamationTriangleIcon class="h-6 w-6 shrink-0" />
       <div>
         <h3 class="font-bold">Error loading layers</h3>
         <div class="text-sm">{{ error.message }}</div>
@@ -38,89 +34,103 @@
       <button class="btn btn-sm" @click="loadLayers">Retry</button>
     </div>
 
-    <!-- Layers list -->
-    <div v-else-if="hasLayers" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Layers grid -->
+    <div
+      v-else-if="hasLayers"
+      class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+    >
       <div
         v-for="layerName in sortedLayers"
         :key="layerName"
-        class="layer-card card bg-base-100 shadow-md hover:shadow-lg transition-shadow duration-200"
+        class="card bg-base-100 shadow-md transition-shadow hover:shadow-lg"
       >
         <div class="card-body">
           <!-- Layer header -->
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex-1 min-w-0">
-              <h3 class="card-title text-lg font-semibold text-base-content truncate">
+          <div class="mb-3 flex items-start justify-between">
+            <div class="min-w-0 flex-1">
+              <h3 class="card-title truncate text-lg">
                 {{ layerSummaries[layerName]?.title || layerName }}
               </h3>
-              <p class="text-sm text-base-content/60 font-mono">{{ layerName }}</p>
+              <p class="text-base-content/60 font-mono text-sm">
+                {{ layerName }}
+              </p>
             </div>
-            
-            <!-- Layer menu -->
+
+            <!-- Actions dropdown -->
             <div class="dropdown dropdown-end">
-              <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-square">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
+              <div
+                tabindex="0"
+                role="button"
+                class="btn btn-ghost btn-sm btn-square"
+              >
+                <EllipsisVerticalIcon class="h-4 w-4" />
               </div>
-              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+              <ul
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box w-48 p-2 shadow"
+              >
                 <li>
-                  <router-link :to="`/config/${layerName}`" class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                  <router-link
+                    :to="`/config/${layerName}`"
+                    class="flex items-center gap-2"
+                  >
+                    <PencilIcon class="h-4 w-4" />
                     Edit Layer
                   </router-link>
                 </li>
                 <li>
-                  <a class="flex items-center gap-2" @click="duplicateLayer(layerName)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                  <a
+                    class="flex items-center gap-2"
+                    @click="duplicateLayer(layerName)"
+                  >
+                    <DocumentDuplicateIcon class="h-4 w-4" />
                     Duplicate
                   </a>
                 </li>
                 <li>
-                  <a class="flex items-center gap-2" @click="exportLayer(layerName)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                  <a
+                    class="flex items-center gap-2"
+                    @click="exportLayer(layerName)"
+                  >
+                    <ArrowDownTrayIcon class="h-4 w-4" />
                     Export JSON
                   </a>
                 </li>
                 <div class="divider my-1"></div>
                 <li>
-                  <a class="text-error flex items-center gap-2" @click="confirmDeleteLayer(layerName)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                  <a
+                    class="text-error flex items-center gap-2"
+                    @click="confirmDeleteLayer(layerName)"
+                  >
+                    <TrashIcon class="h-4 w-4" />
                     Delete
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          
+
           <!-- Layer description -->
-          <p 
-            v-if="layerSummaries[layerName]?.description" 
-            class="text-sm text-base-content/70 mb-4"
+          <p
+            v-if="layerSummaries[layerName]?.description"
+            class="text-base-content/70 mb-4 text-sm"
           >
             {{ layerSummaries[layerName].description }}
           </p>
-          
+
           <!-- Layer stats -->
-          <div class="flex flex-wrap gap-2 mb-4">
+          <div class="mb-4 flex flex-wrap gap-2">
             <div class="badge badge-outline badge-sm">
               {{ layerSummaries[layerName]?.fieldCount || 0 }} fields
             </div>
-            <div 
+            <div
               v-if="layerSummaries[layerName]?.modifiedAt"
               class="badge badge-ghost badge-sm"
             >
               Modified {{ formatDate(layerSummaries[layerName].modifiedAt!) }}
             </div>
           </div>
-          
+
           <!-- Actions -->
           <div class="card-actions justify-end">
             <router-link
@@ -133,11 +143,11 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Empty state -->
-    <div v-else class="text-center py-12">
-      <div class="text-6xl text-base-content/20 mb-4">⚙️</div>
-      <h3 class="text-lg font-semibold text-base-content mb-2">No configuration layers found</h3>
+    <div v-else class="py-12 text-center">
+      <CogIcon class="text-base-content/20 mx-auto mb-4 h-16 w-16" />
+      <h3 class="mb-2 text-lg font-semibold">No configuration layers found</h3>
       <p class="text-base-content/70 mb-6">
         Create your first configuration layer to get started
       </p>
@@ -153,8 +163,8 @@
     <!-- Create Layer Modal -->
     <div v-if="showCreateModal" class="modal modal-open">
       <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Create New Configuration Layer</h3>
-        
+        <h3 class="mb-4 text-lg font-bold">Create New Configuration Layer</h3>
+
         <FormKit
           type="form"
           submit-label="Create Layer"
@@ -168,7 +178,7 @@
             validation="required|length:3,50|matches:/^[a-z0-9-_]+$/"
             help="Use lowercase letters, numbers, hyphens, and underscores only"
           />
-          
+
           <FormKit
             type="text"
             name="title"
@@ -176,7 +186,7 @@
             placeholder="e.g., Production Configuration"
             help="Human-readable name for this layer"
           />
-          
+
           <FormKit
             type="textarea"
             name="description"
@@ -184,7 +194,7 @@
             placeholder="Describe the purpose of this configuration layer..."
             help="Optional description of what this layer is used for"
           />
-          
+
           <FormKit
             type="select"
             name="copyFrom"
@@ -193,8 +203,8 @@
             :options="copyFromOptions"
             help="Start with settings from an existing layer"
           />
-          
-          <div class="flex items-center justify-end gap-2 mt-6">
+
+          <div class="mt-6 flex items-center justify-end gap-2">
             <button
               type="button"
               class="btn btn-ghost"
@@ -202,18 +212,21 @@
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="creating"
-            >
-              <span v-if="creating" class="loading loading-spinner loading-xs mr-2"></span>
+            <button type="submit" class="btn btn-primary" :disabled="creating">
+              <span
+                v-if="creating"
+                class="loading loading-spinner loading-xs mr-2"
+              ></span>
               {{ creating ? "Creating..." : "Create Layer" }}
             </button>
           </div>
         </FormKit>
       </div>
-      <form method="dialog" class="modal-backdrop" @click="showCreateModal = false">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+        @click="showCreateModal = false"
+      >
         <button>close</button>
       </form>
     </div>
@@ -221,26 +234,28 @@
     <!-- Delete Confirmation Modal -->
     <div v-if="layerToDelete" class="modal modal-open">
       <div class="modal-box">
-        <h3 class="font-bold text-lg text-error mb-4">Delete Configuration Layer</h3>
+        <h3 class="text-error mb-4 text-lg font-bold">
+          Delete Configuration Layer
+        </h3>
         <p class="mb-4">
-          Are you sure you want to delete the layer <strong>{{ layerToDelete }}</strong>?
-          This action cannot be undone.
+          Are you sure you want to delete the layer
+          <strong>{{ layerToDelete }}</strong
+          >? This action cannot be undone.
         </p>
-        
-        <div class="bg-warning/10 border border-warning/20 rounded-lg p-3 mb-4">
+
+        <div class="bg-warning/10 border-warning/20 mb-4 rounded-lg border p-3">
           <div class="flex items-start gap-2">
-            <svg class="w-5 h-5 text-warning mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L5.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+            <ExclamationTriangleIcon class="text-warning mt-0.5 h-5 w-5" />
             <div>
-              <p class="text-sm font-medium text-warning">Warning</p>
-              <p class="text-sm text-warning/80">
-                All configuration settings in this layer will be permanently lost.
+              <p class="text-warning text-sm font-medium">Warning</p>
+              <p class="text-warning/80 text-sm">
+                All configuration settings in this layer will be permanently
+                lost.
               </p>
             </div>
           </div>
         </div>
-        
+
         <div class="flex items-center justify-end gap-2">
           <button
             type="button"
@@ -255,12 +270,19 @@
             :disabled="deleting"
             @click="handleDeleteLayer"
           >
-            <span v-if="deleting" class="loading loading-spinner loading-xs mr-2"></span>
+            <span
+              v-if="deleting"
+              class="loading loading-spinner loading-xs mr-2"
+            ></span>
             {{ deleting ? "Deleting..." : "Delete Layer" }}
           </button>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop" @click="layerToDelete = null">
+      <form
+        method="dialog"
+        class="modal-backdrop"
+        @click="layerToDelete = null"
+      >
         <button>close</button>
       </form>
     </div>
@@ -271,6 +293,16 @@
 import { computed, onMounted, ref } from "vue";
 import { FormKit } from "@formkit/vue";
 import { useRouter } from "vue-router";
+import {
+  CogIcon,
+  PlusIcon,
+  PencilIcon,
+  DocumentDuplicateIcon,
+  ArrowDownTrayIcon,
+  TrashIcon,
+  EllipsisVerticalIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/vue/24/outline";
 import { useConfigLayers } from "../composables/useConfigLayers";
 import type { CreateConfigLayerRequest } from "@/types/config";
 
@@ -299,7 +331,7 @@ const {
 const copyFromOptions = computed(() => {
   return [
     { label: "Start with empty layer", value: "" },
-    ...layers.value.map(layer => ({
+    ...layers.value.map((layer) => ({
       label: layerSummaries.value[layer]?.title || layer,
       value: layer,
     })),
@@ -309,20 +341,19 @@ const copyFromOptions = computed(() => {
 // Event handlers
 const handleCreateLayer = async (data: Record<string, unknown>) => {
   creating.value = true;
-  
+
   try {
     const request: CreateConfigLayerRequest = {
-      name: data.name,
-      title: data.title || undefined,
-      description: data.description || undefined,
-      copyFrom: data.copyFrom || undefined,
+      name: data.name as string,
+      title: (data.title as string) || undefined,
+      description: (data.description as string) || undefined,
+      copyFrom: (data.copyFrom as string) || undefined,
     };
-    
+
     const success = await createLayer(request);
-    
+
     if (success) {
       showCreateModal.value = false;
-      // Navigate to the new layer
       router.push(`/config/${request.name}`);
     }
   } finally {
@@ -336,15 +367,15 @@ const confirmDeleteLayer = (layerName: string) => {
 
 const handleDeleteLayer = async () => {
   if (!layerToDelete.value) return;
-  
+
   deleting.value = true;
-  
+
   try {
-    const success = await deleteLayer(layerToDelete.value);
-    
+    const success = await deleteLayer();
+
     if (success) {
       layerToDelete.value = null;
-      await loadLayers(); // Refresh the list
+      await loadLayers();
     }
   } finally {
     deleting.value = false;
@@ -354,14 +385,14 @@ const handleDeleteLayer = async () => {
 const duplicateLayer = async (layerName: string) => {
   const newName = `${layerName}-copy`;
   const summary = layerSummaries.value[layerName];
-  
+
   const request: CreateConfigLayerRequest = {
     name: newName,
     title: `${summary?.title || layerName} (Copy)`,
     description: `Copy of ${layerName}`,
     copyFrom: layerName,
   };
-  
+
   const success = await createLayer(request);
   if (success) {
     router.push(`/config/${newName}`);
@@ -370,42 +401,52 @@ const duplicateLayer = async (layerName: string) => {
 
 const exportLayer = async (layerName: string) => {
   try {
-    // This would export the layer configuration as JSON
-    const response = await fetch(`/api/config/layers/${encodeURIComponent(layerName)}`);
+    const response = await fetch(
+      `/api/config/layers/${encodeURIComponent(layerName)}`,
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch layer: ${response.statusText}`);
+    }
+
     const config = await response.json();
-    
+
     const dataStr = JSON.stringify(config, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
     const exportFileDefaultName = `${layerName}-config.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
     linkElement.click();
   } catch (err) {
-    console.error('Failed to export layer:', err);
+    console.error("Failed to export layer:", err);
   }
 };
 
 const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "unknown";
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) {
-      return 'today';
+      return "today";
     } else if (diffDays === 1) {
-      return 'yesterday';
+      return "yesterday";
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
     } else {
       return date.toLocaleDateString();
     }
   } catch {
-    return 'unknown';
+    return "unknown";
   }
 };
 
@@ -414,17 +455,3 @@ onMounted(() => {
   loadLayers();
 });
 </script>
-
-<style scoped>
-.layer-card {
-  @apply transition-all duration-200;
-}
-
-.layer-card:hover {
-  @apply transform scale-[1.02];
-}
-
-.modal-open {
-  @apply flex items-center justify-center;
-}
-</style>
