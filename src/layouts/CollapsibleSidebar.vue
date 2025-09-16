@@ -67,9 +67,9 @@ const navItems: NavItem[] = [
     to: "/actor",
   },
   {
-    label: "Wallet",
+    label: "Wallets",
     icon: WalletIcon,
-    to: "/wallet",
+    to: "/wallets",
   },
   {
     label: "IPNI",
