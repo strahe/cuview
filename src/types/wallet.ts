@@ -1,5 +1,3 @@
-// Wallet management types based on Curio RPC API documentation
-
 export interface WalletInfo {
   Address: string;
   Name: string;
@@ -7,7 +5,6 @@ export interface WalletInfo {
   Balance: string;
 }
 
-// Enhanced wallet interface based on Curio's WalletInfoShort API
 export interface WalletInfoShort {
   id_address: string;
   key_address: string;
@@ -15,10 +12,10 @@ export interface WalletInfoShort {
   pending_messages: number;
 }
 
-// Enhanced wallet balance info for async loading
 export interface WalletBalanceInfo {
   address: string;
   balance: string;
+  pendingMessages: number;
   loading: boolean;
   error?: string;
   lastUpdated?: Date;
@@ -28,13 +25,23 @@ export interface WalletNames {
   [address: string]: string;
 }
 
-export interface MarketBalanceStatus {
-  Miner: string;
+export interface WalletBalances {
+  Address: string;
   Balance: string;
-  EscrowBalance: string;
-  LockedBalance: string;
-  Available: string;
-  Wallets: WalletInfo[];
+}
+
+export interface MarketBalanceStatus {
+  miner: string;
+  market_balance: string; // AVAILABLE market balance (Escrow - Locked), not total escrow
+  balances: WalletBalances[] | null;
+}
+
+export interface MarketBalanceDisplay {
+  Miner: string;
+  MarketAvailable: string;
+  WalletCount: number;
+  TotalWalletBalance: string;
+  Wallets: WalletBalances[];
 }
 
 export interface PendingMessage {
@@ -78,9 +85,8 @@ export interface MessageDetail {
 }
 
 export interface AllowDeny {
-  Wallet: string;
-  Allow: boolean;
-  Status: "allowed" | "denied";
+  wallet: string;
+  status: boolean;
 }
 
 export interface TransferRequest {
@@ -112,40 +118,103 @@ export interface MessageFilters {
   wallet: string;
 }
 
-export interface AccessControlFilters {
+export interface ClientAccessFilters {
   search: string;
   status: "all" | "allowed" | "denied";
 }
 
-// Extended wallet info for table display with enhanced features
 export interface WalletTableEntry extends WalletInfo {
-  id: string; // Address used as unique identifier
+  id: string;
   hasBalance: boolean;
-  balanceNumber: number; // For sorting purposes
-  balanceLoading?: boolean; // Individual balance loading state
-  balanceError?: string; // Individual balance error
-  pendingMessages?: number; // Number of pending messages
-  isEditing?: boolean; // Inline editing state
-  tempName?: string; // Temporary name during editing
+  balanceNumber: number;
+  balanceLoading?: boolean;
+  balanceError?: string;
+  pendingMessages?: number;
+  isEditing?: boolean;
+  tempName?: string;
 }
 
-// Market balance table entry
-export interface MarketBalanceTableEntry extends MarketBalanceStatus {
-  id: string; // Miner used as unique identifier
-  totalBalance: number; // For numeric sorting
-  availableNumber: number; // For sorting
+export interface MarketBalanceTableEntry extends MarketBalanceDisplay {
+  id: string;
+  marketAvailableNumber: number;
+  totalWalletBalanceNumber: number;
 }
 
-// Pending message table entry
 export interface PendingMessageTableEntry extends PendingMessage {
-  id: string; // Cid used as unique identifier
-  valueNumber: number; // For sorting
-  gasFeeCapNumber: number; // For sorting
-  age: string; // Human readable time since creation
+  id: string;
+  valueNumber: number;
+  gasFeeCapNumber: number;
+  age: string;
 }
 
-// Access control table entry
-export interface AccessControlTableEntry extends AllowDeny {
-  id: string; // Wallet used as unique identifier
-  statusBadgeClass: string; // CSS class for status badge
+export interface AccessControlTableEntry {
+  id: string;
+  wallet: string;
+  status: boolean;
+  statusText: "allowed" | "denied";
+  statusBadgeClass: string;
+}
+
+export interface BalanceManagerRule {
+  id: number;
+  subject_address: string;
+  second_address: string;
+  action_type: "requester" | "active-provider";
+  subject_type: "wallet" | "proofshare";
+  low_watermark: string;
+  high_watermark: string;
+  task_id: number | null;
+  last_msg_cid: string | null;
+  last_msg_sent_at: string | null;
+  last_msg_landed_at: string | null;
+}
+
+export interface BalanceManagerRuleDisplay {
+  ID: number;
+  SubjectAddress: string;
+  SecondAddress: string;
+  ActionType: "requester" | "active-provider";
+  SubjectType: "wallet" | "proofshare";
+  LowWatermark: string;
+  HighWatermark: string;
+  Status: "active" | "inactive" | "pending";
+  LastMessageCid: string | null;
+  LastMessageSent: string | null;
+  LastMessageLanded: string | null;
+}
+
+export interface BalanceManagerTableEntry extends BalanceManagerRuleDisplay {
+  id: string;
+  lowWatermarkNumber: number;
+  highWatermarkNumber: number;
+  statusBadgeClass: string;
+  actionTypeBadgeClass: string;
+  age: string;
+  lastActionAge: string;
+}
+
+export interface BalanceManagerRuleAddRequest {
+  subject: string;
+  second: string;
+  actionType: "requester" | "active-provider";
+  subjectType: "wallet" | "proofshare";
+  lowWatermark: string;
+  highWatermark: string;
+}
+
+export interface BalanceManagerRuleUpdateRequest {
+  id: number;
+  lowWatermark: string;
+  highWatermark: string;
+}
+
+export interface BalanceManagerRuleRemoveRequest {
+  id: number;
+}
+
+export interface BalanceManagerFilters {
+  search: string;
+  actionType: "all" | "requester" | "active-provider";
+  subjectType: "all" | "wallet" | "proofshare";
+  status: "all" | "active" | "inactive" | "pending";
 }

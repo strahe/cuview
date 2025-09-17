@@ -60,6 +60,7 @@ const navItems: NavItem[] = [
     label: "Market",
     icon: BuildingStorefrontIcon,
     to: "/market",
+    activePattern: "^/market.*", // Match all /market/* routes
   },
   {
     label: "Actor",

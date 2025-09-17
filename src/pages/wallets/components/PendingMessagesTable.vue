@@ -9,6 +9,7 @@ import { EyeIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 import { formatDistanceToNow } from "date-fns";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useItemModal } from "@/composables/useItemModal";
+import { formatFIL } from "@/utils/format";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ItemDetailsModal from "@/components/table/ItemDetailsModal.vue";
@@ -44,13 +45,6 @@ const { showModal, selectedItem, openModal, handleModalClose } =
   useItemModal<PendingMessageTableEntry>();
 
 const manualRefreshLoading = ref(false);
-
-const formatFIL = (value: string) => {
-  const num = parseFloat(value);
-  if (num === 0) return "0 FIL";
-  if (num < 0.001) return `${(num * 1000).toFixed(6)} mFIL`;
-  return `${num.toFixed(6)} FIL`;
-};
 
 const getStateClass = (state: string) => {
   switch (state) {
@@ -179,7 +173,7 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions",
-    header: "Actions",
+    header: "Action",
     size: 80,
     enableGrouping: false,
     enableSorting: false,
@@ -187,7 +181,7 @@ const columns = [
       return h(
         "button",
         {
-          class: "btn btn-outline btn-xs",
+          class: "btn btn-ghost btn-xs hover:bg-base-200",
           title: "View message details",
           onClick: () => handleMessageClick(info.row.original),
         },

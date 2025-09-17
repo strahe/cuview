@@ -214,7 +214,11 @@ const columns = [
     cell: (info) => {
       const wallet = info.row.original;
       const balance = info.getValue();
-      const hasBalance = parseFloat(balance) > 0;
+      // Parse balance value, removing "FIL" suffix if present
+      const balanceValue = parseFloat(
+        balance.replace(/\s*FIL$/i, "").trim() || "0",
+      );
+      const hasBalance = balanceValue > 0;
 
       if (wallet.balanceLoading) {
         return h(
@@ -254,7 +258,11 @@ const columns = [
               ? "font-mono text-sm text-success"
               : "font-mono text-sm text-base-content/60",
           },
-          hasBalance ? `${balance} FIL` : "0 FIL",
+          hasBalance
+            ? balance.endsWith(" FIL")
+              ? balance
+              : `${balance} FIL`
+            : "0 FIL",
         ),
         h(
           "button",
@@ -271,7 +279,7 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions",
-    header: "Actions",
+    header: "Action",
     size: 100,
     enableGrouping: false,
     enableSorting: false,
@@ -292,8 +300,8 @@ const columns = [
           "button",
           {
             class: isRemoving
-              ? "btn btn-error btn-xs loading cursor-not-allowed"
-              : "btn btn-error btn-xs",
+              ? "btn btn-ghost btn-xs text-error hover:bg-error hover:text-error-content loading cursor-not-allowed"
+              : "btn btn-ghost btn-xs text-error hover:bg-error hover:text-error-content",
             disabled: isRemoving,
             title: "Remove wallet",
             onClick: () => handleDeleteClick(wallet),

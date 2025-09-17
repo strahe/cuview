@@ -7,24 +7,14 @@
 </route>
 
 <script setup lang="ts">
-import {
-  WalletIcon,
-  ScaleIcon,
-  ClockIcon,
-  ShieldCheckIcon,
-} from "@heroicons/vue/24/outline";
+import { WalletIcon, ClockIcon, CogIcon } from "@heroicons/vue/24/outline";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useWalletData } from "@/composables/useWalletData";
 import SectionCard from "@/components/ui/SectionCard.vue";
 import WalletsTable from "./components/WalletsTable.vue";
-import MarketBalanceTable from "./components/MarketBalanceTable.vue";
 import PendingMessagesTable from "./components/PendingMessagesTable.vue";
-import WalletFiltersTable from "./components/WalletFiltersTable.vue";
-import type {
-  MarketBalanceStatus,
-  PendingMessages,
-  AllowDeny,
-} from "@/types/wallet";
+import BalanceManagerTable from "./components/BalanceManagerTable.vue";
+import type { PendingMessages, BalanceManagerRule } from "@/types/wallet";
 
 const {
   tableData: walletTableData,
@@ -39,15 +29,6 @@ const {
 });
 
 const {
-  data: marketBalance,
-  loading: marketLoading,
-  error: marketError,
-  refresh: refreshMarket,
-} = useCachedQuery<MarketBalanceStatus[]>("MarketBalance", [], {
-  pollingInterval: 30000,
-});
-
-const {
   data: pendingMessages,
   loading: messagesLoading,
   error: messagesError,
@@ -57,11 +38,11 @@ const {
 });
 
 const {
-  data: allowDenyList,
-  loading: filtersLoading,
-  error: filtersError,
-  refresh: refreshFilters,
-} = useCachedQuery<AllowDeny[]>("GetAllowDenyList", [], {
+  data: balanceManagerRules,
+  loading: balanceManagerLoading,
+  error: balanceManagerError,
+  refresh: refreshBalanceManager,
+} = useCachedQuery<BalanceManagerRule[]>("BalanceMgrRules", [], {
   pollingInterval: 30000,
 });
 </script>
@@ -84,15 +65,15 @@ const {
     </SectionCard>
 
     <SectionCard
-      title="Market Balance"
-      :icon="ScaleIcon"
-      tooltip="Transfer funds to market escrow"
+      title="Balance Manager Rules"
+      :icon="CogIcon"
+      tooltip="Automatic balance management between wallet addresses"
     >
-      <MarketBalanceTable
-        :items="marketBalance || []"
-        :loading="marketLoading"
-        :error="marketError"
-        :on-refresh="refreshMarket"
+      <BalanceManagerTable
+        :items="balanceManagerRules || []"
+        :loading="balanceManagerLoading"
+        :error="balanceManagerError"
+        :on-refresh="refreshBalanceManager"
       />
     </SectionCard>
 
@@ -106,19 +87,6 @@ const {
         :loading="messagesLoading"
         :error="messagesError"
         :on-refresh="refreshMessages"
-      />
-    </SectionCard>
-
-    <SectionCard
-      title="Access Control"
-      :icon="ShieldCheckIcon"
-      tooltip="Manage wallet allow/deny list"
-    >
-      <WalletFiltersTable
-        :items="allowDenyList || []"
-        :loading="filtersLoading"
-        :error="filtersError"
-        :on-refresh="refreshFilters"
       />
     </SectionCard>
   </div>

@@ -6,15 +6,12 @@ import type {
   WalletBalanceInfo,
 } from "@/types/wallet";
 
-// Temporary API response types
-interface WalletInfoResponse {
-  Balance?: string;
-  [key: string]: unknown;
-}
-
-interface ActorDetailsResponse {
-  Balance?: string;
-  [key: string]: unknown;
+// API response types
+interface WalletInfoShortResponse {
+  id_address: string;
+  key_address: string;
+  balance: string;
+  pending_messages: number;
 }
 
 export interface UseWalletDataOptions {
@@ -64,6 +61,7 @@ export function useWalletData(options: UseWalletDataOptions = {}) {
           walletBalances.value.set(address, {
             address,
             balance: "0",
+            pendingMessages: 0,
             loading: false,
           });
         }
@@ -97,23 +95,15 @@ export function useWalletData(options: UseWalletDataOptions = {}) {
       balanceInfo.loading = true;
       balanceInfo.error = undefined;
 
-      // Try to get wallet info which includes balance
-      const walletInfo = (await call("WalletInfo", [
+      // Use WalletInfoShort API as used by curio built-in UI
+      const walletInfo = (await call("WalletInfoShort", [
         address,
-      ])) as WalletInfoResponse;
+      ])) as WalletInfoShortResponse;
 
-      if (walletInfo && walletInfo.Balance !== undefined) {
-        balanceInfo.balance = walletInfo.Balance;
+      if (walletInfo && walletInfo.balance !== undefined) {
+        balanceInfo.balance = walletInfo.balance;
+        balanceInfo.pendingMessages = walletInfo.pending_messages || 0;
         balanceInfo.lastUpdated = new Date();
-      } else {
-        // Fallback to actor details if WalletInfo doesn't include balance
-        const actorDetails = (await call("GetActorDetails", [
-          address,
-        ])) as ActorDetailsResponse;
-        if (actorDetails && actorDetails.Balance !== undefined) {
-          balanceInfo.balance = actorDetails.Balance;
-          balanceInfo.lastUpdated = new Date();
-        }
       }
     } catch (error) {
       balanceInfo.error =
@@ -147,7 +137,10 @@ export function useWalletData(options: UseWalletDataOptions = {}) {
       const balanceInfo = walletBalances.value.get(address);
       const uiState = walletUIState.value.get(address) || { isEditing: false };
       const balance = balanceInfo?.balance || "0";
-      const balanceNumber = parseFloat(balance);
+      // Parse balance value, removing "FIL" suffix if present
+      const balanceNumber = parseFloat(
+        balance.replace(/\s*FIL$/i, "").trim() || "0",
+      );
 
       return {
         id: address,
@@ -184,7 +177,7 @@ export function useWalletData(options: UseWalletDataOptions = {}) {
         balanceNumber,
         balanceLoading: balanceInfo?.loading || false,
         balanceError: balanceInfo?.error,
-        pendingMessages: 0, // TODO: Implement if WalletInfoShort API is available
+        pendingMessages: balanceInfo?.pendingMessages || 0,
         isEditing: uiState.isEditing,
         tempName: uiState.tempName,
       } as WalletTableEntry;
