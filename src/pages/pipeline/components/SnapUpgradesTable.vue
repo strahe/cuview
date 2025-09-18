@@ -250,7 +250,7 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions",
-    header: "Actions",
+    header: "Action",
     size: 120,
     enableGrouping: false,
     enableSorting: false,

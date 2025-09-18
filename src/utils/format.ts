@@ -86,3 +86,10 @@ export const formatNumber = (num: number | undefined | null): string => {
 
   return scaled.toFixed(1).replace(/\.0$/, "") + suffix;
 };
+
+export const formatFIL = (value: string | number): string => {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num) || num === 0) return "0 FIL";
+  if (num < 0.001) return `${(num * 1000).toFixed(6)} mFIL`;
+  return `${num.toFixed(6)} FIL`;
+};

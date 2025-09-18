@@ -90,7 +90,6 @@ const {
   },
 });
 
-// Computed property for compatibility with ConfirmationDialog loading prop
 const operationLoading = computed(() => {
   return selectedMachine.value ? hasLoadingActions.value : false;
 });
@@ -246,13 +245,13 @@ const columns = [
       }
 
       return h("div", { class: "text-sm font-mono flex items-center gap-1" }, [
-        h("span", { class: "text-primary" }, parts[0]), // CPU
+        h("span", { class: "text-primary" }, parts[0]),
         h("span", { class: "text-base-content/60" }, "•"),
-        h("span", { class: "text-base-content" }, parts[1]), // RAM
+        h("span", { class: "text-base-content" }, parts[1]),
         machine.Gpu > 0
           ? h("span", { class: "text-base-content/60" }, "•")
           : null,
-        machine.Gpu > 0 ? h("span", { class: "text-warning" }, parts[2]) : null, // GPU
+        machine.Gpu > 0 ? h("span", { class: "text-warning" }, parts[2]) : null,
       ]);
     },
   }),
@@ -286,7 +285,7 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions",
-    header: "Actions",
+    header: "Action",
     size: 140,
     enableGrouping: false,
     enableSorting: false,
@@ -294,7 +293,6 @@ const columns = [
       const machine = info.row.original;
       const buttons = [];
 
-      // Show uncordon button for cordoned machines
       if (machine.Unschedulable) {
         const isUncordoning = isActionLoading("uncordon", machine);
         buttons.push(
@@ -319,7 +317,6 @@ const columns = [
           ),
         );
       } else {
-        // Show cordon button for active machines
         const isCordoning = isActionLoading("cordon", machine);
         buttons.push(
           h(
@@ -344,7 +341,6 @@ const columns = [
         );
       }
 
-      // Restart/abort restart buttons based on machine state
       if (machine.Restarting) {
         const isAborting = isActionLoading("abortRestart", machine);
         buttons.push(
@@ -379,7 +375,6 @@ const columns = [
             ),
           );
         } else {
-          // Disabled restart button with tooltip for uncordoned machines
           buttons.push(
             h(
               "span",
@@ -447,7 +442,6 @@ const handleMachineClick = (machineId: number) => {
 };
 
 const handleRowClick = (row: Row<MachineSummary>, event: MouseEvent) => {
-  // Prevent row navigation when clicking interactive elements
   const target = event.target as HTMLElement;
   if (target.closest(".no-row-click")) {
     return;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { useCopyToClipboard } from "@/composables/useCopyToClipboard";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
@@ -34,14 +35,8 @@ const toggleTooltip = (actorAddress: string, deadlineIndex: number) => {
   openTooltipIndex.value = openTooltipIndex.value === key ? "" : key;
 };
 
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    console.log("Address copied to clipboard");
-  } catch (err) {
-    console.error("Failed to copy:", err);
-  }
-};
+// Copy functionality for actor addresses
+const { copy: copyAddress } = useCopyToClipboard();
 </script>
 
 <template>
@@ -77,7 +72,7 @@ const copyToClipboard = async (text: string) => {
                 <button
                   class="btn btn-ghost btn-xs"
                   title="Copy address"
-                  @click="copyToClipboard(entry.Address)"
+                  @click="copyAddress(entry.Address)"
                 >
                   <DocumentDuplicateIcon class="size-4" />
                 </button>

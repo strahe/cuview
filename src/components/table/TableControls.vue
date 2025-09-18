@@ -26,10 +26,11 @@
       <div class="border-base-300 border-l pl-3">
         <button
           class="btn btn-outline btn-sm"
-          :class="{ loading }"
+          :class="{ loading: refreshLoading }"
+          :disabled="refreshLoading"
           @click="$emit('refresh')"
         >
-          <span v-if="!loading">🔄</span>
+          <span v-if="!refreshLoading">🔄</span>
           Refresh
         </button>
       </div>
@@ -52,6 +53,7 @@ defineProps<{
   searchInput: string;
   searchPlaceholder?: string;
   loading?: boolean;
+  refreshLoading?: boolean;
 }>();
 
 defineEmits<{

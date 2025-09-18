@@ -28,7 +28,6 @@ const {
   immediate: true,
 });
 
-// Create a computed ref for the data to ensure proper reactivity
 const rawData = computed(() => composableData.value);
 
 const columnHelper = createColumnHelper<TaskHistorySummary>();
@@ -134,7 +133,7 @@ const { table, store, helpers, handlers } =
     tableId: "taskHistoryTable",
     columns: columns as ColumnDef<TaskHistorySummary>[],
     data: rawData,
-    // Disable sorting completely for scroll pagination - sorting defeats virtual scrolling purpose
+
     enableSorting: false,
     enableGrouping: false,
     getRowId: (row) => `task-${row.TaskID}`,
@@ -143,14 +142,10 @@ const { table, store, helpers, handlers } =
 const { hasData: tableHasData, totalItems } = helpers;
 const { handleCellRightClick, getCellTooltip } = handlers;
 
-// Table container ref and dynamic height
 const tableContainer = ref<HTMLDivElement>();
 const tableHeight = ref("600px");
 
-// Calculate dynamic height based on viewport
 const calculateTableHeight = () => {
-  // Use viewport height minus typical header/padding/margins
-  // Assuming ~200px for header, controls, and other page elements
   const availableHeight = window.innerHeight - 200;
   const minHeight = 400;
   const maxHeight = Math.max(availableHeight, minHeight);
@@ -166,17 +161,14 @@ onUnmounted(() => {
   window.removeEventListener("resize", calculateTableHeight);
 });
 
-// Get filtered and sorted rows from the table
 const tableRows = computed(() => table.getRowModel().rows);
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleTaskClick = (_taskId: number) => {
-  // TODO: Navigate to task details
+const handleTaskClick = (taskId: number) => {
+  console.log("Navigate to task details:", taskId);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleMachineClick = (_machineName: string) => {
-  // TODO: Navigate to machine details or filter by machine
+const handleMachineClick = (machineName: string) => {
+  console.log("Navigate to machine details or filter by machine:", machineName);
 };
 
 const handleScroll = (event: Event) => {
