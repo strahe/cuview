@@ -37,16 +37,23 @@ export interface StorageGCMark {
 }
 
 export interface StoragePathInfo {
-  ID: string;
-  Machine: string;
-  MachineID: number;
-  CanSeal: boolean;
-  CanStore: boolean;
-  Capacity: number;
-  Available: number;
-  Used: number;
-  UsedPercent: number;
-  LastHeartbeat: string;
-  HeartbeatErr?: string;
-  HealthStatus: "healthy" | "warning" | "error";
+  StorageID: string;
+  URLs: string | null;
+  Weight: number | null;
+  MaxStorage: number | null;
+  CanSeal: boolean | null;
+  CanStore: boolean | null;
+  Groups: string | null;
+  AllowTo: string | null;
+  AllowTypes: string | null;
+  DenyTypes: string | null;
+  Capacity: number | null;
+  Available: number | null;
+  FSAvailable: number | null;
+  Reserved: number | null;
+  Used: number | null;
+  LastHeartbeat: string | null;
+  HeartbeatErr: string | null;
+  AllowMiners: string;
+  DenyMiners: string;
 }

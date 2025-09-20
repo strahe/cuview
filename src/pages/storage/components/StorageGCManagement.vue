@@ -486,6 +486,7 @@ const getColumnAggregateInfo = (columnId: string) => {
         v-model:search-input="store.searchQuery"
         search-placeholder="Search GC marks..."
         :loading="loading"
+        :refresh-loading="loading"
         @refresh="refresh"
       >
         <div class="border-base-300 border-l pl-3">

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
-import { useRouter } from "vue-router";
+import { computed, h, ref } from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -15,27 +14,82 @@ import {
   XMarkIcon,
 } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
-import { formatBytes } from "@/utils/format";
+import { useCachedQuery } from "@/composables/useCachedQuery";
+import { formatBytes, formatDateTime } from "@/utils/format";
 import { getProgressColor } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import StoragePathDetailModal from "./StoragePathDetailModal.vue";
 import type { StoragePathInfo } from "@/types/storage";
 
-interface Props {
-  storagePathsData: StoragePathInfo[];
-  loading?: boolean;
-  error?: Error | null;
-  onRefresh?: () => void;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-  error: null,
-  onRefresh: () => {},
+// Self-contained data fetching
+const {
+  data: storagePathsData,
+  loading,
+  error,
+  refresh,
+} = useCachedQuery<StoragePathInfo[]>("StoragePathList", [], {
+  pollingInterval: 30000,
 });
 
-const rawData = computed(() => props.storagePathsData);
-const router = useRouter();
+const rawData = computed(() => storagePathsData.value || []);
+
+// Modal state
+const showDetailModal = ref(false);
+const selectedStorageId = ref<string | null>(null);
+
+const handleRowClick = (storageId: string) => {
+  selectedStorageId.value = storageId;
+  showDetailModal.value = true;
+};
+
+// Helper functions for derived data
+const getHealthStatus = (
+  path: StoragePathInfo,
+): "healthy" | "warning" | "error" => {
+  // If there's a heartbeat error, it's an error
+  if (path.HeartbeatErr && path.HeartbeatErr.trim() !== "") {
+    return "error";
+  }
+
+  // If no heartbeat timestamp, it's an error
+  if (!path.LastHeartbeat) {
+    return "error";
+  }
+
+  // Check if heartbeat is recent (within last 5 minutes)
+  try {
+    const heartbeatTime = new Date(path.LastHeartbeat);
+    const now = new Date();
+    const timeDiff = now.getTime() - heartbeatTime.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+
+    if (minutesDiff > 30) {
+      return "error";
+    } else if (minutesDiff > 10) {
+      return "warning";
+    }
+
+    return "healthy";
+  } catch {
+    return "error";
+  }
+};
+
+const getUsagePercent = (path: StoragePathInfo): number => {
+  if (!path.Capacity || path.Capacity <= 0 || !path.Used) {
+    return 0;
+  }
+  return Math.min((path.Used / path.Capacity) * 100, 100);
+};
+
+const formatNullableBytes = (value: number | null): string => {
+  return value !== null && value !== undefined ? formatBytes(value) : "-";
+};
+
+const formatNullableDateTime = (value: string | null): string => {
+  return value ? formatDateTime(value) : "-";
+};
 
 const getHealthStatusColor = (status: string) => {
   switch (status) {
@@ -66,32 +120,48 @@ const getHealthStatusIcon = (status: string) => {
 const columnHelper = createColumnHelper<StoragePathInfo>();
 
 const columns = [
-  columnHelper.accessor("ID", {
-    header: "Path ID",
+  columnHelper.accessor("StorageID", {
+    header: "Storage ID",
     size: 200,
     enableColumnFilter: true,
     cell: (info) => {
-      const pathId = info.getValue();
-      return h("div", { class: "font-mono text-sm" }, pathId);
+      const storageId = info.getValue();
+      return h("div", { class: "font-mono text-sm" }, storageId);
     },
   }),
-  columnHelper.accessor("Machine", {
-    header: "Machine",
-    size: 150,
+  columnHelper.accessor("URLs", {
+    header: "URLs",
+    size: 200,
     enableColumnFilter: true,
     cell: (info) => {
-      const machine = info.getValue();
-      const machineId = info.row.original.MachineID;
+      const urls = info.getValue();
+      if (!urls) {
+        return h("div", { class: "text-base-content/50 text-sm" }, "-");
+      }
+
+      // Handle multiple URLs (comma or space separated)
+      const urlList = urls.split(/[,\s]+/).filter((url) => url.trim());
+      if (urlList.length <= 1) {
+        return h("div", { class: "font-mono text-xs" }, urls);
+      }
+
       return h(
-        "button",
-        {
-          class: "link link-primary text-sm hover:link-hover",
-          onClick: () => {
-            // Navigate to machine detail page
-            router.push(`/machines/${machineId}`);
-          },
-        },
-        machine,
+        "div",
+        { class: "space-y-1" },
+        urlList
+          .slice(0, 2)
+          .map((url) => h("div", { class: "font-mono text-xs" }, url))
+          .concat(
+            urlList.length > 2
+              ? [
+                  h(
+                    "div",
+                    { class: "text-base-content/50 text-xs" },
+                    `+${urlList.length - 2} more`,
+                  ),
+                ]
+              : [],
+          ),
       );
     },
   }),
@@ -104,13 +174,17 @@ const columns = [
       const path = info.row.original;
       const types = [];
 
-      if (path.CanSeal) {
+      if (path.CanSeal === true) {
         types.push(h("div", { class: "badge badge-primary badge-sm" }, "Seal"));
       }
-      if (path.CanStore) {
+      if (path.CanStore === true) {
         types.push(
           h("div", { class: "badge badge-secondary badge-sm" }, "Store"),
         );
+      }
+
+      if (types.length === 0) {
+        return h("div", { class: "text-base-content/50 text-sm" }, "-");
       }
 
       return h("div", { class: "flex flex-wrap gap-1" }, types);
@@ -120,9 +194,17 @@ const columns = [
       const path = row.original;
       const searchValue = filterValue.toLowerCase();
 
-      if (searchValue === "seal" && path.CanSeal) return true;
-      if (searchValue === "store" && path.CanStore) return true;
+      if (searchValue === "seal" && path.CanSeal === true) return true;
+      if (searchValue === "store" && path.CanStore === true) return true;
       return false;
+    },
+  }),
+  columnHelper.accessor("Weight", {
+    header: "Weight",
+    size: 100,
+    cell: (info) => {
+      const weight = info.getValue();
+      return h("div", { class: "text-sm" }, weight?.toString() || "-");
     },
   }),
   columnHelper.accessor("Capacity", {
@@ -130,7 +212,7 @@ const columns = [
     size: 120,
     cell: (info) => {
       const capacity = info.getValue();
-      return h("div", { class: "font-medium" }, formatBytes(capacity));
+      return h("div", { class: "font-medium" }, formatNullableBytes(capacity));
     },
   }),
   columnHelper.accessor("Used", {
@@ -138,7 +220,7 @@ const columns = [
     size: 120,
     cell: (info) => {
       const used = info.getValue();
-      return h("div", { class: "font-medium" }, formatBytes(used));
+      return h("div", { class: "font-medium" }, formatNullableBytes(used));
     },
   }),
   columnHelper.accessor("Available", {
@@ -146,14 +228,21 @@ const columns = [
     size: 120,
     cell: (info) => {
       const available = info.getValue();
-      return h("div", { class: "font-medium" }, formatBytes(available));
+      return h("div", { class: "font-medium" }, formatNullableBytes(available));
     },
   }),
-  columnHelper.accessor("UsedPercent", {
+  columnHelper.display({
+    id: "usage",
     header: "Usage",
     size: 150,
     cell: (info) => {
-      const usedPercent = info.getValue();
+      const path = info.row.original;
+      const usedPercent = getUsagePercent(path);
+
+      if (!path.Capacity || !path.Used) {
+        return h("div", { class: "text-base-content/50 text-sm" }, "-");
+      }
+
       return h("div", { class: "flex items-center gap-3" }, [
         h("progress", {
           class: `progress w-16 ${getProgressColor(usedPercent)}`,
@@ -175,26 +264,26 @@ const columns = [
     enableColumnFilter: true,
     cell: (info) => {
       const path = info.row.original;
-      const Icon = getHealthStatusIcon(path.HealthStatus);
+      const healthStatus = getHealthStatus(path);
+      const Icon = getHealthStatusIcon(healthStatus);
 
       return h("div", { class: "flex items-center gap-2" }, [
         h(Icon, {
-          class: `h-4 w-4 ${getHealthStatusColor(path.HealthStatus)}`,
+          class: `h-4 w-4 ${getHealthStatusColor(healthStatus)}`,
         }),
         h(
           "span",
           {
-            class: `text-sm capitalize ${getHealthStatusColor(path.HealthStatus)}`,
+            class: `text-sm capitalize ${getHealthStatusColor(healthStatus)}`,
           },
-          path.HealthStatus,
+          healthStatus,
         ),
       ]);
     },
     filterFn: (row, _columnId, filterValue) => {
       if (!filterValue) return true;
-      return row.original.HealthStatus.toLowerCase().includes(
-        filterValue.toLowerCase(),
-      );
+      const healthStatus = getHealthStatus(row.original);
+      return healthStatus.toLowerCase().includes(filterValue.toLowerCase());
     },
   }),
   columnHelper.accessor("LastHeartbeat", {
@@ -204,13 +293,21 @@ const columns = [
       const heartbeat = info.getValue();
       const path = info.row.original;
 
-      if (path.HeartbeatErr) {
-        return h("div", [
-          h("div", { class: "text-error text-sm font-medium" }, heartbeat),
+      if (!heartbeat) {
+        return h("div", { class: "text-base-content/50 text-sm" }, "Never");
+      }
+
+      if (path.HeartbeatErr && path.HeartbeatErr.trim() !== "") {
+        return h("div", { class: "space-y-1" }, [
+          h(
+            "div",
+            { class: "text-error text-sm font-medium" },
+            formatNullableDateTime(heartbeat),
+          ),
           h(
             "div",
             {
-              class: "text-error text-xs",
+              class: "text-error text-xs truncate max-w-32",
               title: path.HeartbeatErr,
             },
             path.HeartbeatErr,
@@ -218,17 +315,64 @@ const columns = [
         ]);
       }
 
-      return h("div", { class: "text-sm" }, heartbeat);
+      return h("div", { class: "text-sm" }, formatNullableDateTime(heartbeat));
+    },
+  }),
+  columnHelper.display({
+    id: "groups",
+    header: "Groups",
+    size: 120,
+    enableColumnFilter: true,
+    cell: (info) => {
+      const path = info.row.original;
+      const groups = path.Groups;
+
+      if (!groups || groups.trim() === "") {
+        return h("div", { class: "text-base-content/50 text-sm" }, "-");
+      }
+
+      // Handle comma-separated groups
+      const groupList = groups
+        .split(",")
+        .map((g) => g.trim())
+        .filter((g) => g);
+      if (groupList.length <= 2) {
+        return h(
+          "div",
+          { class: "space-y-1" },
+          groupList.map((group) =>
+            h("div", { class: "badge badge-outline badge-xs" }, group),
+          ),
+        );
+      }
+
+      return h("div", { class: "space-y-1" }, [
+        ...groupList
+          .slice(0, 2)
+          .map((group) =>
+            h("div", { class: "badge badge-outline badge-xs" }, group),
+          ),
+        h(
+          "div",
+          { class: "text-base-content/50 text-xs" },
+          `+${groupList.length - 2} more`,
+        ),
+      ]);
+    },
+    filterFn: (row, _columnId, filterValue) => {
+      if (!filterValue) return true;
+      const groups = row.original.Groups;
+      return groups?.toLowerCase().includes(filterValue.toLowerCase()) ?? false;
     },
   }),
 ];
 
 const { table, store, helpers, handlers } = useStandardTable<StoragePathInfo>({
-  tableId: "storagePathsTable",
+  tableId: "storagePathsTableV2",
   columns: columns as ColumnDef<StoragePathInfo>[],
   data: rawData,
-  defaultSorting: [{ id: "UsedPercent", desc: true }],
-  getRowId: (row) => `storage-path-${row.ID}`,
+  defaultSorting: [{ id: "usage", desc: true }],
+  getRowId: (row) => `storage-path-${row.StorageID}`,
 });
 
 const { hasData: tableHasData, totalItems, hasActiveFilters } = helpers;
@@ -240,44 +384,78 @@ const getColumnAggregateInfo = (columnId: string) => {
   if (!data || !data.length) return "";
 
   switch (columnId) {
-    case "ID":
+    case "StorageID":
       return `${data.length} storage paths`;
-    case "Machine": {
-      const machines = new Set(data.map((path) => path.Machine));
-      return `${machines.size} unique machines`;
+    case "URLs": {
+      const withUrls = data.filter(
+        (path) => path.URLs && path.URLs.trim() !== "",
+      ).length;
+      return `${withUrls} configured`;
     }
     case "type": {
-      const sealPaths = data.filter((path) => path.CanSeal).length;
-      const storePaths = data.filter((path) => path.CanStore).length;
+      const sealPaths = data.filter((path) => path.CanSeal === true).length;
+      const storePaths = data.filter((path) => path.CanStore === true).length;
       return `${sealPaths} seal, ${storePaths} store`;
     }
+    case "Weight": {
+      const withWeight = data.filter((path) => path.Weight !== null).length;
+      return `${withWeight} configured`;
+    }
     case "Capacity": {
-      const total = data.reduce((sum, path) => sum + path.Capacity, 0);
+      const withCapacity = data.filter(
+        (path) => path.Capacity !== null && path.Capacity > 0,
+      );
+      if (withCapacity.length === 0) return "No data";
+      const total = withCapacity.reduce(
+        (sum, path) => sum + (path.Capacity || 0),
+        0,
+      );
       return formatBytes(total);
     }
     case "Used": {
-      const total = data.reduce((sum, path) => sum + path.Used, 0);
+      const withUsed = data.filter(
+        (path) => path.Used !== null && path.Used > 0,
+      );
+      if (withUsed.length === 0) return "No data";
+      const total = withUsed.reduce((sum, path) => sum + (path.Used || 0), 0);
       return formatBytes(total);
     }
     case "Available": {
-      const total = data.reduce((sum, path) => sum + path.Available, 0);
+      const withAvailable = data.filter(
+        (path) => path.Available !== null && path.Available > 0,
+      );
+      if (withAvailable.length === 0) return "No data";
+      const total = withAvailable.reduce(
+        (sum, path) => sum + (path.Available || 0),
+        0,
+      );
       return formatBytes(total);
     }
-    case "UsedPercent": {
-      if (data.length === 0) return "";
+    case "usage": {
+      const withUsage = data.filter((path) => path.Capacity && path.Used);
+      if (withUsage.length === 0) return "No data";
       const average =
-        data.reduce((sum, path) => sum + path.UsedPercent, 0) / data.length;
+        withUsage.reduce((sum, path) => sum + getUsagePercent(path), 0) /
+        withUsage.length;
       return `${Math.round(average)}% average`;
     }
     case "health": {
       const healthy = data.filter(
-        (path) => path.HealthStatus === "healthy",
+        (path) => getHealthStatus(path) === "healthy",
       ).length;
       const warning = data.filter(
-        (path) => path.HealthStatus === "warning",
+        (path) => getHealthStatus(path) === "warning",
       ).length;
-      const error = data.filter((path) => path.HealthStatus === "error").length;
+      const error = data.filter(
+        (path) => getHealthStatus(path) === "error",
+      ).length;
       return `${healthy} healthy, ${warning} warnings, ${error} errors`;
+    }
+    case "groups": {
+      const withGroups = data.filter(
+        (path) => path.Groups && path.Groups.trim() !== "",
+      ).length;
+      return `${withGroups} grouped`;
     }
     default:
       return "";
@@ -290,8 +468,9 @@ const getColumnAggregateInfo = (columnId: string) => {
     <TableControls
       v-model:search-input="store.searchQuery"
       search-placeholder="Search storage paths..."
-      :loading="props.loading"
-      @refresh="props.onRefresh"
+      :loading="loading"
+      :refresh-loading="loading"
+      @refresh="refresh"
     >
       <div class="border-base-300 border-l pl-3">
         <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap">
@@ -372,7 +551,7 @@ const getColumnAggregateInfo = (columnId: string) => {
           </tr>
         </thead>
         <tbody>
-          <template v-if="props.error">
+          <template v-if="error">
             <tr>
               <td :colspan="columns.length" class="py-12 text-center">
                 <div
@@ -384,25 +563,25 @@ const getColumnAggregateInfo = (columnId: string) => {
                   Storage Paths Error
                 </h3>
                 <p class="text-base-content/70 mb-4 text-sm">
-                  {{ props.error.message }}
+                  {{ error.message }}
                 </p>
                 <button
                   class="btn btn-outline btn-sm"
-                  :disabled="props.loading"
-                  @click="props.onRefresh"
+                  :disabled="loading"
+                  @click="refresh"
                 >
                   <span
-                    v-if="props.loading"
+                    v-if="loading"
                     class="loading loading-spinner loading-xs"
                   ></span>
                   <span class="ml-2">{{
-                    props.loading ? "Retrying..." : "Retry"
+                    loading ? "Retrying..." : "Retry"
                   }}</span>
                 </button>
               </td>
             </tr>
           </template>
-          <template v-else-if="props.loading && !tableHasData">
+          <template v-else-if="loading && !tableHasData">
             <tr>
               <td
                 :colspan="columns.length"
@@ -433,6 +612,7 @@ const getColumnAggregateInfo = (columnId: string) => {
               v-for="row in table.getRowModel().rows"
               :key="row.id"
               class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+              @click="handleRowClick(row.original.StorageID)"
             >
               <td
                 v-for="cell in row.getVisibleCells()"
@@ -449,5 +629,11 @@ const getColumnAggregateInfo = (columnId: string) => {
         </tbody>
       </table>
     </div>
+
+    <!-- Detail Modal -->
+    <StoragePathDetailModal
+      v-model:open="showDetailModal"
+      :storage-id="selectedStorageId"
+    />
   </div>
 </template>
