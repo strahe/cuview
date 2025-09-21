@@ -39,7 +39,6 @@ const store = useCurioDataStore();
 
 const refreshDetail = async () => {
   if (!props.storageId) {
-    console.warn("StoragePathDetailModal: Cannot refresh with null storageId");
     return;
   }
 
@@ -183,13 +182,6 @@ const getCapabilityBadges = (path: StoragePathInfo | null) => {
 const handleClose = () => {
   emit("update:open", false);
 };
-
-// Handle escape key
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && props.open) {
-    handleClose();
-  }
-});
 </script>
 
 <template>
@@ -270,7 +262,9 @@ document.addEventListener("keydown", (e) => {
                 </div>
 
                 <div
-                  v-if="storageData.Capacity && storageData.Used"
+                  v-if="
+                    storageData.Capacity !== null && storageData.Used !== null
+                  "
                   class="space-y-3"
                 >
                   <progress

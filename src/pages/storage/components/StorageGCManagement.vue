@@ -72,7 +72,6 @@ const approveGCMark = async (mark: StorageGCMark) => {
     ]);
     return { success: true };
   } catch (error) {
-    console.error("Failed to approve GC mark:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -90,7 +89,6 @@ const unapproveGCMark = async (mark: StorageGCMark) => {
     ]);
     return { success: true };
   } catch (error) {
-    console.error("Failed to unapprove GC mark:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

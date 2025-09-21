@@ -318,53 +318,6 @@ const columns = [
       return h("div", { class: "text-sm" }, formatNullableDateTime(heartbeat));
     },
   }),
-  columnHelper.display({
-    id: "groups",
-    header: "Groups",
-    size: 120,
-    enableColumnFilter: true,
-    cell: (info) => {
-      const path = info.row.original;
-      const groups = path.Groups;
-
-      if (!groups || groups.trim() === "") {
-        return h("div", { class: "text-base-content/50 text-sm" }, "-");
-      }
-
-      // Handle comma-separated groups
-      const groupList = groups
-        .split(",")
-        .map((g) => g.trim())
-        .filter((g) => g);
-      if (groupList.length <= 2) {
-        return h(
-          "div",
-          { class: "space-y-1" },
-          groupList.map((group) =>
-            h("div", { class: "badge badge-outline badge-xs" }, group),
-          ),
-        );
-      }
-
-      return h("div", { class: "space-y-1" }, [
-        ...groupList
-          .slice(0, 2)
-          .map((group) =>
-            h("div", { class: "badge badge-outline badge-xs" }, group),
-          ),
-        h(
-          "div",
-          { class: "text-base-content/50 text-xs" },
-          `+${groupList.length - 2} more`,
-        ),
-      ]);
-    },
-    filterFn: (row, _columnId, filterValue) => {
-      if (!filterValue) return true;
-      const groups = row.original.Groups;
-      return groups?.toLowerCase().includes(filterValue.toLowerCase()) ?? false;
-    },
-  }),
 ];
 
 const { table, store, helpers, handlers } = useStandardTable<StoragePathInfo>({
@@ -451,12 +404,7 @@ const getColumnAggregateInfo = (columnId: string) => {
       ).length;
       return `${healthy} healthy, ${warning} warnings, ${error} errors`;
     }
-    case "groups": {
-      const withGroups = data.filter(
-        (path) => path.Groups && path.Groups.trim() !== "",
-      ).length;
-      return `${withGroups} grouped`;
-    }
+
     default:
       return "";
   }
