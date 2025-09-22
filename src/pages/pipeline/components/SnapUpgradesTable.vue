@@ -78,19 +78,11 @@ const getCurrentState = (sector: SnapSectorEntry): string => {
 const getStateBadgeClass = (state: string) => {
   switch (state.toLowerCase()) {
     case "completed":
-      return "badge-success";
+      return "text-success";
     case "failed":
-      return "badge-error";
-    case "encoding":
-      return "badge-info";
-    case "proving":
-      return "badge-warning";
-    case "submitting":
-      return "badge-primary";
-    case "moving":
-      return "badge-secondary";
+      return "text-error";
     default:
-      return "badge-ghost";
+      return "";
   }
 };
 

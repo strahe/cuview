@@ -101,21 +101,24 @@ const {
               {{ item.Address }}
             </td>
             <td class="border-base-300/30 border-r px-3 py-3">
-              <div v-if="item.Reachable" class="badge badge-success badge-sm">
-                ok
-              </div>
-              <div v-else class="badge badge-error badge-sm">FAIL</div>
-            </td>
-            <td class="border-base-300/30 border-r px-3 py-3">
-              <div
-                v-if="item.SyncState === 'ok'"
-                class="badge badge-success badge-sm"
+              <span
+                v-if="item.Reachable"
+                class="text-success text-sm font-medium"
               >
                 ok
-              </div>
-              <div v-else class="badge badge-warning badge-sm">
+              </span>
+              <span v-else class="text-error text-sm font-medium">FAIL</span>
+            </td>
+            <td class="border-base-300/30 border-r px-3 py-3">
+              <span
+                v-if="item.SyncState === 'ok'"
+                class="text-success text-sm font-medium"
+              >
+                ok
+              </span>
+              <span v-else class="text-warning text-sm font-medium">
                 No{{ item.SyncState ? ", " + item.SyncState : "" }}
-              </div>
+              </span>
             </td>
             <td class="text-base-content/70 px-3 py-3 text-sm">
               {{ item.Version }}

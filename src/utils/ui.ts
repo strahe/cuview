@@ -1,26 +1,8 @@
 export const getTaskBadgeColor = (taskType: string): string => {
-  if (!taskType) return "badge-neutral";
+  if (!taskType) return "badge-outline";
 
-  // Simple hash function for consistent color assignment
-
-  let hash = 0;
-  for (let i = 0; i < taskType.length; i++) {
-    hash = ((hash << 5) - hash + taskType.charCodeAt(i)) & 0xffffffff;
-  }
-
-  // Available badge colors for task types
-  const badgeColors = [
-    "badge-primary",
-    "badge-secondary",
-    "badge-accent",
-    "badge-info",
-    "badge-success",
-    "badge-warning",
-  ];
-
-  // Use absolute value and modulo to get consistent color index
-  const colorIndex = Math.abs(hash) % badgeColors.length;
-  return badgeColors[colorIndex];
+  // Use badge-outline for all categorical task types per design standards
+  return "badge-outline";
 };
 
 export const getTaskStatusBadgeColor = (outcome: string): string => {

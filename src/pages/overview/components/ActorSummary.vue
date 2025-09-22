@@ -22,7 +22,6 @@ const {
 const getDeadlineClass = (deadline: Deadline): string => {
   const classes = ["deadline-entry"];
 
-  // Determine color based on actual Count data
   if (deadline.Count) {
     const { Fault, Recovering, Live, Active } = deadline.Count;
 
@@ -35,11 +34,9 @@ const getDeadlineClass = (deadline: Deadline): string => {
     }
   }
 
-  // Boolean flags override
   if (deadline.Proven) classes.push("deadline-proven");
   if (deadline.PartFaulty) classes.push("deadline-partial-fault");
   if (deadline.Faulty) classes.push("deadline-faulty");
-
   if (deadline.Current) classes.push("deadline-current");
 
   return classes.join(" ");
@@ -120,7 +117,6 @@ const { copy: copyAddress } = useCopyToClipboard();
                     @click="toggleTooltip(entry.Address, index)"
                   ></div>
 
-                  <!-- Tooltip -->
                   <div
                     v-if="openTooltipIndex === `${entry.Address}-${index}`"
                     class="absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform"
@@ -137,7 +133,6 @@ const { copy: copyAddress } = useCopyToClipboard();
                       </div>
                       <div v-else>No Count Info</div>
 
-                      <!-- Arrow -->
                       <div
                         class="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 transform border-t-4 border-r-4 border-l-4 border-transparent"
                         style="border-top-color: oklch(var(--n))"
@@ -153,15 +148,15 @@ const { copy: copyAddress } = useCopyToClipboard();
 
             <td>
               <div class="flex items-center gap-1 text-sm">
-                <span class="badge badge-outline badge-sm">{{
+                <span class="text-base-content/70 font-medium">{{
                   entry.Win1
                 }}</span>
                 <span class="text-base-content/60">/</span>
-                <span class="badge badge-outline badge-sm">{{
+                <span class="text-base-content/70 font-medium">{{
                   entry.Win7
                 }}</span>
                 <span class="text-base-content/60">/</span>
-                <span class="badge badge-outline badge-sm">{{
+                <span class="text-base-content/70 font-medium">{{
                   entry.Win30
                 }}</span>
               </div>
@@ -170,7 +165,6 @@ const { copy: copyAddress } = useCopyToClipboard();
         </tbody>
       </DataTable>
 
-      <!-- Legend -->
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
           <div
@@ -195,8 +189,13 @@ const { copy: copyAddress } = useCopyToClipboard();
         </div>
         <div class="flex items-center gap-2">
           <div
-            class="bg-neutral border-neutral-content h-4 w-4 rounded-sm border"
-            style="border-bottom: 3px solid oklch(var(--p))"
+            class="w-4 rounded-sm border"
+            style="
+              background-color: oklch(var(--n));
+              border: 1px solid oklch(var(--nc));
+              border-bottom: 3px solid deepskyblue;
+              height: 13px;
+            "
           ></div>
           <span>Current</span>
         </div>
@@ -214,10 +213,6 @@ const { copy: copyAddress } = useCopyToClipboard();
   min-height: 16px;
 }
 
-.deadline-current {
-  border-bottom: 3px solid oklch(var(--p));
-}
-
 .deadline-proven {
   background-color: #10b981 !important;
   border: 1px solid #10b981 !important;
@@ -231,6 +226,19 @@ const { copy: copyAddress } = useCopyToClipboard();
 .deadline-faulty {
   background-color: #ef4444 !important;
   border: 1px solid #ef4444 !important;
+}
+
+.deadline-current {
+  border-bottom: 3px solid deepskyblue !important;
+  height: 13px !important;
+}
+
+/* For current deadlines with no other status, use neutral background */
+.deadline-entry.deadline-current:not(.deadline-proven):not(
+    .deadline-partial-fault
+  ):not(.deadline-faulty) {
+  background-color: oklch(var(--n)) !important;
+  border: 1px solid oklch(var(--nc)) !important;
 }
 
 .grid-cols-16 {
