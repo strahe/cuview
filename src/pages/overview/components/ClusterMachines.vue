@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { ArrowRightIcon } from "@heroicons/vue/24/outline";
@@ -8,7 +8,6 @@ import DataSection from "@/components/ui/DataSection.vue";
 import type { ClusterMachine } from "@/types/cluster";
 
 const router = useRouter();
-const detailed = ref(false);
 
 const {
   data: machines,
@@ -42,20 +41,61 @@ const getStatusBadge = (item: ClusterMachine) => {
   }
   return { text: "cordoned", class: "badge-warning" };
 };
+
+// Calculate summary metrics for overview display
+const summaryStats = computed(() => {
+  if (!machines.value?.length) return null;
+
+  const total = machines.value.length;
+  const online = machines.value.filter((m) => {
+    const contactMatch = m.SinceContact.match(/(\d+)s/);
+    const secondsSinceContact = contactMatch ? parseInt(contactMatch[1]) : 0;
+    return secondsSinceContact <= 60 && !m.Unschedulable && !m.Restarting;
+  }).length;
+
+  const totalRunningTasks = machines.value.reduce(
+    (sum, m) => sum + (m.RunningTasks || 0),
+    0,
+  );
+
+  return { total, online, totalRunningTasks };
+});
 </script>
 
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between gap-3">
-      <label class="label cursor-pointer gap-2">
-        <input
-          v-model="detailed"
-          type="checkbox"
-          class="toggle toggle-primary"
-        />
-        <span class="label-text">Detailed View</span>
-      </label>
+    <!-- Summary Statistics -->
+    <div
+      v-if="summaryStats && hasData"
+      class="bg-base-200/50 flex items-center justify-between rounded-lg p-4"
+    >
+      <div class="flex items-center gap-6">
+        <div class="text-center">
+          <div class="text-2xl font-bold">{{ summaryStats.total }}</div>
+          <div class="text-base-content/70 text-sm">Total Machines</div>
+        </div>
+        <div class="text-center">
+          <div class="text-base-content text-2xl font-bold">
+            {{ summaryStats.online }}
+          </div>
+          <div class="text-base-content/70 text-sm">Online</div>
+        </div>
+        <div class="text-center">
+          <div class="text-base-content text-2xl font-bold">
+            {{ summaryStats.totalRunningTasks }}
+          </div>
+          <div class="text-base-content/70 text-sm">Running Tasks</div>
+        </div>
+      </div>
 
+      <button class="btn btn-primary btn-sm gap-2" @click="navigateToMachines">
+        Manage Machines
+        <ArrowRightIcon class="size-4" />
+      </button>
+    </div>
+
+    <!-- Fallback button when no data -->
+    <div v-else-if="!loading" class="flex items-center justify-end">
       <button class="btn btn-primary btn-sm gap-2" @click="navigateToMachines">
         Manage Machines
         <ArrowRightIcon class="size-4" />
@@ -78,63 +118,40 @@ const getStatusBadge = (item: ClusterMachine) => {
           <tr>
             <th class="w-32">Name</th>
             <th class="w-40">Host</th>
-            <th class="w-16">ID</th>
-            <th v-if="detailed" class="w-16">CPUs</th>
-            <th v-if="detailed" class="w-20">RAM</th>
-            <th v-if="detailed" class="w-16">GPUs</th>
-            <th class="w-32">Last Contact</th>
-            <th class="w-24">Uptime</th>
-            <th class="w-48">Status</th>
-            <th v-if="detailed" class="w-40">Tasks</th>
-            <th v-if="detailed" class="w-40">Layers</th>
+            <th class="w-24">Resources</th>
+            <th class="w-16">Tasks</th>
+            <th class="w-20">Uptime</th>
+            <th class="w-24">Last Contact</th>
+            <th class="w-36">Status</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in machines" :key="item.ID">
             <td class="truncate font-medium">{{ item.Name }}</td>
             <td class="truncate font-mono text-sm">{{ item.Address }}</td>
-            <td class="text-base-content/70 text-sm">{{ item.ID }}</td>
-
-            <td v-if="detailed">{{ item.Cpu }}</td>
-            <td v-if="detailed">{{ item.RamHumanized }}</td>
-            <td v-if="detailed">{{ item.Gpu }}</td>
-
+            <td class="font-mono text-sm">
+              <div class="flex items-center gap-1">
+                <span class="text-primary">{{ item.Cpu }}C</span>
+                <span class="text-base-content/60">•</span>
+                <span class="text-base-content">{{ item.RamHumanized }}</span>
+                <template v-if="item.Gpu > 0">
+                  <span class="text-base-content/60">•</span>
+                  <span class="text-warning">{{ item.Gpu }}G</span>
+                </template>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="text-primary font-medium">{{
+                item.RunningTasks || 0
+              }}</span>
+            </td>
+            <td class="text-base-content/70 text-sm">
+              {{ item.Uptime || "-" }}
+            </td>
             <td class="text-sm">{{ item.SinceContact }}</td>
-            <td class="text-sm">{{ item.Uptime }}</td>
-
             <td>
               <div :class="['badge', getStatusBadge(item).class]">
                 {{ getStatusBadge(item).text }}
-              </div>
-            </td>
-
-            <td v-if="detailed">
-              <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
-                <span
-                  v-for="task in (item.Tasks || '')
-                    .split(',')
-                    .map((t) => t.trim())
-                    .filter((t) => t)"
-                  :key="task"
-                  class="badge badge-outline badge-sm"
-                >
-                  {{ task }}
-                </span>
-              </div>
-            </td>
-
-            <td v-if="detailed">
-              <div class="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
-                <span
-                  v-for="layer in (item.Layers || '')
-                    .split(',')
-                    .map((l) => l.trim())
-                    .filter((l) => l)"
-                  :key="layer"
-                  class="badge badge-outline badge-sm"
-                >
-                  {{ layer }}
-                </span>
               </div>
             </td>
           </tr>

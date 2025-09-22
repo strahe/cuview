@@ -188,7 +188,7 @@ const totalWins7d = computed(() => {
       :subtitle="`${machineHealthPercentage}% cluster health`"
       :trend="machineHealthPercentage > 80 ? 'up' : 'down'"
       :icon="ServerIcon"
-      icon-color="success"
+      :icon-color="machineHealthPercentage > 80 ? 'success' : 'warning'"
     />
 
     <!-- Active Tasks -->
@@ -198,7 +198,6 @@ const totalWins7d = computed(() => {
       :subtitle="`${formatNumber(totalSuccessfulTasks)} completed successfully`"
       :trend="'neutral'"
       :icon="ClockIcon"
-      icon-color="info"
     />
 
     <!-- Task Success Rate -->
@@ -218,7 +217,6 @@ const totalWins7d = computed(() => {
       subtitle="Across all machines"
       :trend="'neutral'"
       :icon="CpuChipIcon"
-      icon-color="primary"
     />
 
     <!-- Storage Usage -->
@@ -297,11 +295,11 @@ const totalWins7d = computed(() => {
           <div class="text-base-content mb-2 text-3xl font-bold tracking-tight">
             {{ totalActorBalance }}
           </div>
-          <div class="text-accent text-xs font-medium">
+          <div class="text-base-content/70 text-xs font-medium">
             {{ actorCount }} storage providers
           </div>
         </div>
-        <div class="bg-accent/10 text-accent ml-3 rounded-lg p-2.5">
+        <div class="bg-base-200 text-base-content/60 ml-3 rounded-lg p-2.5">
           <WalletIcon class="size-5" />
         </div>
       </div>

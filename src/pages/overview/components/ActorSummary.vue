@@ -35,7 +35,6 @@ const toggleTooltip = (actorAddress: string, deadlineIndex: number) => {
   openTooltipIndex.value = openTooltipIndex.value === key ? "" : key;
 };
 
-// Copy functionality for actor addresses
 const { copy: copyAddress } = useCopyToClipboard();
 </script>
 
@@ -139,15 +138,15 @@ const { copy: copyAddress } = useCopyToClipboard();
 
             <td>
               <div class="flex items-center gap-1 text-sm">
-                <span class="badge badge-success badge-sm">{{
+                <span class="badge badge-outline badge-sm">{{
                   entry.Win1
                 }}</span>
-                <span>/</span>
-                <span class="badge badge-primary badge-sm">{{
+                <span class="text-base-content/60">/</span>
+                <span class="badge badge-outline badge-sm">{{
                   entry.Win7
                 }}</span>
-                <span>/</span>
-                <span class="badge badge-secondary badge-sm">{{
+                <span class="text-base-content/60">/</span>
+                <span class="badge badge-outline badge-sm">{{
                   entry.Win30
                 }}</span>
               </div>
