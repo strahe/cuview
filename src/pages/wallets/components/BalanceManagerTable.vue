@@ -85,7 +85,7 @@ const rawData = computed(() => {
           lowWatermarkNumber: lowWatermark,
           highWatermarkNumber: highWatermark,
           statusBadgeClass: getStatusBadgeClass(status),
-          actionTypeBadgeClass: getActionTypeBadgeClass(item.action_type),
+          actionTypeBadgeClass: getActionTypeBadgeClass(),
           age: "",
           lastActionAge: "",
         };
@@ -130,24 +130,17 @@ const { call } = useCurioQuery();
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case "active":
-      return "badge badge-success";
+      return "text-success";
     case "pending":
-      return "badge badge-warning";
+      return "text-warning";
     case "inactive":
     default:
-      return "badge badge-outline";
+      return "";
   }
 };
 
-const getActionTypeBadgeClass = (actionType: string) => {
-  switch (actionType) {
-    case "requester":
-      return "badge badge-info badge-outline";
-    case "active-provider":
-      return "badge badge-secondary badge-outline";
-    default:
-      return "badge badge-neutral badge-outline";
-  }
+const getActionTypeBadgeClass = () => {
+  return "badge badge-outline";
 };
 
 const getActionTypeDisplayText = (actionType: string) => {
@@ -189,7 +182,7 @@ const columns = [
     enableGrouping: false,
     enableColumnFilter: true,
     cell: (info) =>
-      h("span", { class: "badge badge-neutral badge-sm" }, info.getValue()),
+      h("span", { class: "badge badge-outline badge-sm" }, info.getValue()),
   }),
   columnHelper.accessor("SubjectAddress", {
     header: "Monitored Address",
@@ -321,7 +314,11 @@ const columns = [
     cell: (info) => {
       const item = info.row.original;
       if (item.Status === "pending") {
-        return h("span", { class: "badge badge-warning badge-sm" }, "Running");
+        return h(
+          "span",
+          { class: "badge badge-outline text-warning badge-sm" },
+          "Running",
+        );
       }
       return h("span", { class: "text-base-content/50" }, "-");
     },

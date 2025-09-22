@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { getTaskStatusBadgeColor } from "@/utils/ui";
 
 interface Props {
   unschedulable: boolean;
@@ -18,8 +17,7 @@ const status = computed(() => {
     return {
       label: "Restarting",
       additionalInfo: [props.restartRequest],
-      class: getTaskStatusBadgeColor("running"),
-      icon: "🔄",
+      class: "text-info",
       tooltip: `Machine restart requested: ${props.restartRequest}`,
     };
   }
@@ -33,8 +31,7 @@ const status = computed(() => {
     return {
       label: "Offline",
       additionalInfo: [`Last contact ${props.sinceContact}`],
-      class: getTaskStatusBadgeColor("error"),
-      icon: "🔴",
+      class: "text-error",
       tooltip: `Machine is offline. Last contact: ${props.sinceContact}`,
     };
   }
@@ -47,16 +44,14 @@ const status = computed(() => {
 
     return {
       label: "Cordoned",
-      class: getTaskStatusBadgeColor("pending"),
-      icon: "⚠️",
+      class: "text-warning",
       tooltip,
     };
   }
 
   return {
     label: "Online",
-    class: getTaskStatusBadgeColor("success"),
-    icon: "🟢",
+    class: "text-success",
     tooltip: `Machine is online. Last contact: ${props.sinceContact}`,
   };
 });
@@ -65,11 +60,10 @@ const status = computed(() => {
 <template>
   <div class="flex flex-col gap-1">
     <div
-      class="badge gap-1 text-xs"
+      class="badge badge-outline text-xs"
       :class="status.class"
       :title="status.tooltip"
     >
-      <span>{{ status.icon }}</span>
       <span>{{ status.label }}</span>
       <span
         v-if="props.runningTasks && props.runningTasks > 0"

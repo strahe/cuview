@@ -13,33 +13,22 @@ withDefaults(defineProps<StatusBadgeProps>(), {
 
 const statusConfig = {
   success: {
-    badgeClass: "badge-success",
-    indicatorClass: "bg-success",
+    textClass: "text-success",
   },
   info: {
-    badgeClass: "badge-info",
-    indicatorClass: "bg-info",
+    textClass: "text-info",
   },
   warning: {
-    badgeClass: "badge-warning",
-    indicatorClass: "bg-warning",
+    textClass: "text-warning",
   },
   error: {
-    badgeClass: "badge-error",
-    indicatorClass: "bg-error",
+    textClass: "text-error",
   },
 };
 </script>
 
 <template>
-  <div class="flex items-center gap-3">
-    <span
-      v-if="showIndicator"
-      class="size-2 rounded-full"
-      :class="statusConfig[status].indicatorClass"
-    />
-    <div :class="`badge badge-${size} ${statusConfig[status].badgeClass}`">
-      {{ label }}
-    </div>
-  </div>
+  <span class="font-medium" :class="statusConfig[status].textClass">
+    {{ label }}
+  </span>
 </template>

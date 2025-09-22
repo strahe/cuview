@@ -48,7 +48,7 @@ const toggleExpanded = () => {
         <span
           v-for="task in displayedTasks"
           :key="task"
-          class="bg-base-200/50 rounded px-2 py-1 text-xs font-medium"
+          class="badge badge-outline text-xs"
           :title="task"
         >
           {{ task }}
@@ -58,7 +58,7 @@ const toggleExpanded = () => {
         <button
           v-if="hasMoreTasks"
           type="button"
-          class="badge badge-ghost hover:badge-secondary border-base-content/20 hover:border-secondary no-row-click cursor-pointer border text-xs transition-colors"
+          class="badge badge-outline hover:bg-base-200 no-row-click cursor-pointer text-xs transition-colors"
           :title="expanded ? 'Show less' : `Show ${remainingCount} more tasks`"
           @click="toggleExpanded"
         >

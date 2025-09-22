@@ -75,13 +75,13 @@ const getCurrentState = (sector: SectorListEntry): string => {
 const getStateBadgeClass = (state: string) => {
   switch (state.toLowerCase()) {
     case "completed":
-      return "badge-success";
+      return "text-success";
     case "failed":
-      return "badge-error";
+      return "text-error";
     case "waitseed":
-      return "badge-warning";
+      return "text-warning";
     default:
-      return "badge-info";
+      return "";
   }
 };
 

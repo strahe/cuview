@@ -21,7 +21,7 @@ const {
     :error="error"
     :has-data="hasData"
     :on-retry="refresh"
-    error-title="Connection Failed"
+    error-title="Chain Connection Error"
     empty-icon="🔗"
     empty-message="No RPC connections configured"
   >
@@ -40,16 +40,24 @@ const {
         <tr v-for="item in syncerData" :key="item.Address">
           <td class="font-mono text-sm">{{ item.Address }}</td>
           <td>
-            <div v-if="item.Reachable" class="badge badge-success">ok</div>
-            <div v-else class="badge badge-error">FAIL</div>
+            <span
+              v-if="item.Reachable"
+              class="text-success text-sm font-medium"
+            >
+              ok
+            </span>
+            <span v-else class="text-error text-sm font-medium">FAIL</span>
           </td>
           <td>
-            <div v-if="item.SyncState === 'ok'" class="badge badge-success">
+            <span
+              v-if="item.SyncState === 'ok'"
+              class="text-success text-sm font-medium"
+            >
               ok
-            </div>
-            <div v-else class="badge badge-warning">
+            </span>
+            <span v-else class="text-warning text-sm font-medium">
               No{{ item.SyncState ? ", " + item.SyncState : "" }}
-            </div>
+            </span>
           </td>
           <td class="text-base-content/70 text-sm">{{ item.Version }}</td>
         </tr>

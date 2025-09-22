@@ -17,7 +17,7 @@
     <!-- Chain Connectivity -->
     <SectionCard
       title="Chain Connectivity"
-      description="Blockchain RPC connections and sync status"
+      tooltip="Monitor blockchain RPC connections and sync status"
       :icon="LinkIcon"
     >
       <ChainConnectivity />
@@ -28,7 +28,7 @@
       <!-- Storage Stats -->
       <SectionCard
         title="Storage Usage"
-        description="Disk utilization across storage types"
+        tooltip="View disk utilization across storage types"
         :icon="ServerStackIcon"
       >
         <StorageStats />
@@ -37,7 +37,7 @@
       <!-- Task Counts -->
       <SectionCard
         title="Task Statistics"
-        description="Harmony task success rates and status"
+        tooltip="View Harmony task success rates and status"
         :icon="ChartBarIcon"
       >
         <TaskCounts />
@@ -47,7 +47,7 @@
     <!-- Machines & Infrastructure -->
     <SectionCard
       title="Cluster Machines"
-      description="Hardware status and task scheduling across the cluster"
+      tooltip="Monitor hardware status and task scheduling across the cluster"
       :icon="ServerIcon"
     >
       <ClusterMachines />
@@ -56,7 +56,7 @@
     <!-- Actor Summary -->
     <SectionCard
       title="Actor Summary"
-      description="Storage provider actors and deadline status"
+      tooltip="View storage provider actors and deadline status"
       :icon="UsersIcon"
     >
       <ActorSummary />
