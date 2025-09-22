@@ -85,7 +85,7 @@ const rawData = computed(() => {
           lowWatermarkNumber: lowWatermark,
           highWatermarkNumber: highWatermark,
           statusBadgeClass: getStatusBadgeClass(status),
-          actionTypeBadgeClass: getActionTypeBadgeClass(item.action_type),
+          actionTypeBadgeClass: getActionTypeBadgeClass(),
           age: "",
           lastActionAge: "",
         };

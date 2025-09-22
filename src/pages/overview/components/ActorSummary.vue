@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
-import { useCopyToClipboard } from "@/composables/useCopyToClipboard";
-import { DocumentDuplicateIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
+import CopyButton from "@/components/ui/CopyButton.vue";
 import type { ActorSummaryData, Deadline } from "@/types/actor";
 
 const openTooltipIndex = ref<string>("");
+const tooltipPosition = ref({ x: 0, y: 0 });
 
 const {
   data: actors,
@@ -42,12 +42,29 @@ const getDeadlineClass = (deadline: Deadline): string => {
   return classes.join(" ");
 };
 
-const toggleTooltip = (actorAddress: string, deadlineIndex: number) => {
+const toggleTooltip = (
+  event: Event,
+  actorAddress: string,
+  deadlineIndex: number,
+) => {
   const key = `${actorAddress}-${deadlineIndex}`;
-  openTooltipIndex.value = openTooltipIndex.value === key ? "" : key;
-};
 
-const { copy: copyAddress } = useCopyToClipboard();
+  if (openTooltipIndex.value === key) {
+    openTooltipIndex.value = "";
+    return;
+  }
+
+  const target = event.target as HTMLElement;
+  const rect = target.getBoundingClientRect();
+
+  // Position tooltip above the element to avoid clipping
+  tooltipPosition.value = {
+    x: rect.left + rect.width / 2,
+    y: rect.top - 10,
+  };
+
+  openTooltipIndex.value = key;
+};
 </script>
 
 <template>
@@ -59,6 +76,7 @@ const { copy: copyAddress } = useCopyToClipboard();
     error-title="Actor Data Error"
     empty-icon="🎭"
     empty-message="No actors available"
+    @click="openTooltipIndex = ''"
   >
     <template #loading>Loading actor summary...</template>
 
@@ -80,13 +98,7 @@ const { copy: copyAddress } = useCopyToClipboard();
             <td>
               <div class="flex items-center gap-2">
                 <span class="font-mono text-sm">{{ entry.Address }}</span>
-                <button
-                  class="btn btn-ghost btn-xs"
-                  title="Copy address"
-                  @click="copyAddress(entry.Address)"
-                >
-                  <DocumentDuplicateIcon class="size-4" />
-                </button>
+                <CopyButton :text="entry.Address" title="Copy address" />
               </div>
             </td>
 
@@ -105,40 +117,81 @@ const { copy: copyAddress } = useCopyToClipboard();
             <td class="font-medium">{{ entry.QualityAdjustedPower }}</td>
 
             <td>
-              <div class="grid w-fit grid-cols-16 gap-1">
+              <div class="deadline-grid">
                 <div
                   v-for="(deadline, index) in entry.Deadlines"
-                  :key="index"
-                  class="relative"
+                  :key="`${entry.Address}-${index}`"
+                  class="deadline-container"
+                  @click.stop="
+                    (event) => toggleTooltip(event, entry.Address, index)
+                  "
                 >
                   <div
                     :class="getDeadlineClass(deadline)"
-                    class="h-4 w-4 cursor-pointer rounded-sm transition-transform hover:scale-110"
-                    @click="toggleTooltip(entry.Address, index)"
+                    class="deadline-square"
+                    :title="`Deadline ${index + 1} - Click for details`"
                   ></div>
 
-                  <div
-                    v-if="openTooltipIndex === `${entry.Address}-${index}`"
-                    class="absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform"
-                  >
+                  <Teleport to="body">
                     <div
-                      class="bg-neutral text-neutral-content rounded-lg px-3 py-2 text-xs whitespace-nowrap shadow-lg"
+                      v-if="openTooltipIndex === `${entry.Address}-${index}`"
+                      class="deadline-tooltip"
+                      :style="{
+                        position: 'fixed',
+                        left: `${tooltipPosition.x}px`,
+                        top: `${tooltipPosition.y}px`,
+                        transform: 'translateX(-50%)',
+                        zIndex: 1000,
+                        pointerEvents: 'auto',
+                      }"
                     >
-                      <div v-if="deadline.Count" class="space-y-1">
-                        <div>Total: {{ deadline.Count.Total }}</div>
-                        <div>Active: {{ deadline.Count.Active }}</div>
-                        <div>Live: {{ deadline.Count.Live }}</div>
-                        <div>Fault: {{ deadline.Count.Fault }}</div>
-                        <div>Recovering: {{ deadline.Count.Recovering }}</div>
-                      </div>
-                      <div v-else>No Count Info</div>
+                      <div class="deadline-tooltip-content">
+                        <div class="deadline-tooltip-header">
+                          Deadline {{ index + 1 }}
+                          <span v-if="deadline.Current" class="text-info"
+                            >(Current)</span
+                          >
+                        </div>
 
-                      <div
-                        class="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 transform border-t-4 border-r-4 border-l-4 border-transparent"
-                        style="border-top-color: oklch(var(--n))"
-                      ></div>
+                        <div
+                          v-if="deadline.Count"
+                          class="deadline-tooltip-stats"
+                        >
+                          <div class="stat-row">
+                            <span>Total:</span>
+                            <span>{{ deadline.Count.Total }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span>Active:</span>
+                            <span>{{ deadline.Count.Active }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span>Live:</span>
+                            <span>{{ deadline.Count.Live }}</span>
+                          </div>
+                          <div v-if="deadline.Count.Fault > 0" class="stat-row">
+                            <span>Fault:</span>
+                            <span class="text-error">{{
+                              deadline.Count.Fault
+                            }}</span>
+                          </div>
+                          <div
+                            v-if="deadline.Count.Recovering > 0"
+                            class="stat-row"
+                          >
+                            <span>Recovering:</span>
+                            <span class="text-warning">{{
+                              deadline.Count.Recovering
+                            }}</span>
+                          </div>
+                        </div>
+
+                        <div v-else class="text-base-content/60">
+                          No sector data
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </Teleport>
                 </div>
               </div>
             </td>
@@ -189,13 +242,8 @@ const { copy: copyAddress } = useCopyToClipboard();
         </div>
         <div class="flex items-center gap-2">
           <div
-            class="w-4 rounded-sm border"
-            style="
-              background-color: oklch(var(--n));
-              border: 1px solid oklch(var(--nc));
-              border-bottom: 3px solid deepskyblue;
-              height: 13px;
-            "
+            class="h-4 w-4 rounded-sm"
+            style="background-color: deepskyblue"
           ></div>
           <span>Current</span>
         </div>
@@ -205,12 +253,39 @@ const { copy: copyAddress } = useCopyToClipboard();
 </template>
 
 <style scoped>
-.deadline-entry {
+/* Deadline grid layout */
+.deadline-grid {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: fit-content;
+}
+
+.deadline-container {
   position: relative;
-  background-color: #6b7280;
-  border: 1px solid #4b5563;
+  cursor: pointer;
+}
+
+.deadline-square {
+  position: relative;
+  background-color: #4b5563;
+  border: 1px solid #374151;
   min-width: 16px;
   min-height: 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 0.125rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.deadline-square:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Deadline states */
+.deadline-entry {
+  position: relative;
 }
 
 .deadline-proven {
@@ -233,15 +308,78 @@ const { copy: copyAddress } = useCopyToClipboard();
   height: 13px !important;
 }
 
-/* For current deadlines with no other status, use neutral background */
+/* For current deadlines with no other status, use blue background */
 .deadline-entry.deadline-current:not(.deadline-proven):not(
     .deadline-partial-fault
   ):not(.deadline-faulty) {
-  background-color: oklch(var(--n)) !important;
-  border: 1px solid oklch(var(--nc)) !important;
+  background-color: deepskyblue !important;
+  border: 1px solid deepskyblue !important;
 }
 
-.grid-cols-16 {
-  grid-template-columns: repeat(16, minmax(0, 1fr));
+/* Simple tooltip */
+.deadline-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.deadline-tooltip-content {
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 160px;
+  backdrop-filter: blur(8px);
+}
+
+.deadline-tooltip-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid oklch(var(--b3));
+}
+
+.deadline-tooltip-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.125rem 0;
+}
+
+.stat-row span:first-child {
+  color: oklch(var(--nc) / 0.7);
+}
+
+.stat-row span:last-child {
+  font-weight: 500;
+}
+
+/* Responsive grid for smaller screens */
+@media (max-width: 1024px) {
+  .deadline-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .deadline-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .deadline-square {
+    min-width: 14px;
+    min-height: 14px;
+    width: 14px;
+    height: 14px;
+  }
 }
 </style>
