@@ -22,10 +22,25 @@ const {
 const getDeadlineClass = (deadline: Deadline): string => {
   const classes = ["deadline-entry"];
 
-  if (deadline.Current) classes.push("deadline-current");
+  // Determine color based on actual Count data
+  if (deadline.Count) {
+    const { Fault, Recovering, Live, Active } = deadline.Count;
+
+    if (Fault > 0 && Recovering === 0) {
+      classes.push("deadline-faulty");
+    } else if (Fault > 0 || Recovering > 0) {
+      classes.push("deadline-partial-fault");
+    } else if (Live > 0 || Active > 0) {
+      classes.push("deadline-proven");
+    }
+  }
+
+  // Boolean flags override
   if (deadline.Proven) classes.push("deadline-proven");
   if (deadline.PartFaulty) classes.push("deadline-partial-fault");
   if (deadline.Faulty) classes.push("deadline-faulty");
+
+  if (deadline.Current) classes.push("deadline-current");
 
   return classes.join(" ");
 };
@@ -158,15 +173,24 @@ const { copy: copyAddress } = useCopyToClipboard();
       <!-- Legend -->
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
-          <div class="bg-success h-4 w-4 rounded-sm"></div>
+          <div
+            class="h-4 w-4 rounded-sm"
+            style="background-color: #10b981"
+          ></div>
           <span>Proven</span>
         </div>
         <div class="flex items-center gap-2">
-          <div class="bg-warning h-4 w-4 rounded-sm"></div>
+          <div
+            class="h-4 w-4 rounded-sm"
+            style="background-color: #f59e0b"
+          ></div>
           <span>Partially Faulty</span>
         </div>
         <div class="flex items-center gap-2">
-          <div class="bg-error h-4 w-4 rounded-sm"></div>
+          <div
+            class="h-4 w-4 rounded-sm"
+            style="background-color: #ef4444"
+          ></div>
           <span>Faulty</span>
         </div>
         <div class="flex items-center gap-2">
@@ -184,8 +208,10 @@ const { copy: copyAddress } = useCopyToClipboard();
 <style scoped>
 .deadline-entry {
   position: relative;
-  background-color: oklch(var(--n));
-  border: 1px solid oklch(var(--nc));
+  background-color: #6b7280;
+  border: 1px solid #4b5563;
+  min-width: 16px;
+  min-height: 16px;
 }
 
 .deadline-current {
@@ -193,18 +219,18 @@ const { copy: copyAddress } = useCopyToClipboard();
 }
 
 .deadline-proven {
-  background-color: oklch(var(--su)) !important;
-  border: 1px solid oklch(var(--su)) !important;
+  background-color: #10b981 !important;
+  border: 1px solid #10b981 !important;
 }
 
 .deadline-partial-fault {
-  background-color: oklch(var(--wa)) !important;
-  border: 1px solid oklch(var(--wa)) !important;
+  background-color: #f59e0b !important;
+  border: 1px solid #f59e0b !important;
 }
 
 .deadline-faulty {
-  background-color: oklch(var(--er)) !important;
-  border: 1px solid oklch(var(--er)) !important;
+  background-color: #ef4444 !important;
+  border: 1px solid #ef4444 !important;
 }
 
 .grid-cols-16 {
