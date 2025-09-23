@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
+import { computed, h, watch } from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -11,7 +11,7 @@ import { XMarkIcon } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
-import TaskStatusBadge from "./TaskStatusBadge.vue";
+
 import type { TaskSummary } from "@/types/task";
 
 interface Props {
@@ -19,12 +19,16 @@ interface Props {
   loading?: boolean;
   error?: Error | null;
   onRefresh?: () => void;
+  initialSearch?: string;
+  currentSearch?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: null,
   onRefresh: () => {},
+  initialSearch: "",
+  currentSearch: "",
 });
 
 const rawData = computed(() => props.items);
@@ -60,10 +64,9 @@ const columns = [
     cell: (info) => {
       const taskId = info.getValue();
       return h(
-        "button",
+        "span",
         {
-          class: "link link-primary font-mono text-sm hover:link-hover",
-          onClick: () => handleTaskClick(taskId),
+          class: "font-mono text-sm text-base-content/70",
         },
         `#${taskId.toString()}`,
       );
@@ -94,16 +97,16 @@ const columns = [
     cell: (info) => {
       const owner = info.getValue();
       if (!owner) {
-        return h("div", { class: "flex items-center gap-2" }, [
-          h(TaskStatusBadge, { status: "pending", size: "xs" }),
-          h("span", { class: "text-xs text-base-content/60" }, "Pending"),
-        ]);
+        return h(
+          "span",
+          { class: "text-sm text-base-content/60 italic" },
+          "Unassigned",
+        );
       }
       return h(
-        "button",
+        "span",
         {
-          class: "link link-secondary font-mono text-sm hover:link-hover",
-          onClick: () => handleMachineClick(owner),
+          class: "font-mono text-sm text-base-content/80",
         },
         owner,
       );
@@ -124,7 +127,18 @@ const { table, store, helpers, handlers } = useStandardTable<TaskSummary>({
   defaultSorting: [{ id: "SincePosted", desc: true }],
   groupingOptions,
   getRowId: (row) => `task-${row.ID}`,
+  initialSearch: props.initialSearch,
 });
+
+watch(
+  () => props.currentSearch,
+  (newSearch) => {
+    if (newSearch !== undefined) {
+      store.setSearchQuery(newSearch);
+    }
+  },
+  { immediate: false },
+);
 
 const {
   hasData: tableHasData,
@@ -139,19 +153,9 @@ const {
   clearAllFilters,
 } = handlers;
 
-const handleTaskClick = (taskId: number) => {
-  console.log("Task clicked:", taskId);
-};
-
-const handleMachineClick = (machineName: string) => {
-  console.log("Machine clicked:", machineName);
-};
-
 const handleRowClick = (row: Row<TaskSummary>) => {
   if (row.getCanExpand()) {
     row.getToggleExpandedHandler()();
-  } else if (!row.getIsGrouped()) {
-    handleTaskClick(row.original.ID);
   }
 };
 
@@ -182,8 +186,8 @@ const getColumnAggregateInfo = (columnId: string) => {
     }
     case "Owner": {
       const owners = new Set(data.map((task) => task.Owner).filter(Boolean));
-      const pendingCount = data.filter((task) => !task.Owner).length;
-      return `${owners.size} assigned, ${pendingCount} pending`;
+      const unassignedCount = data.filter((task) => !task.Owner).length;
+      return `${owners.size} assigned, ${unassignedCount} unassigned`;
     }
     case "Miner": {
       const miners = new Set(data.map((task) => task.Miner).filter(Boolean));
@@ -238,7 +242,6 @@ const getColumnAggregateInfo = (columnId: string) => {
         </label>
       </div>
 
-      <!-- Clear Filters Button moved to actions slot to appear after refresh -->
       <template #actions>
         <div v-if="hasActiveFilters">
           <button

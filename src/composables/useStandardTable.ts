@@ -32,6 +32,7 @@ export interface StandardTableConfig<T> {
   globalFilterFn?: string;
   autoResetExpanded?: boolean;
   autoResetPageIndex?: boolean;
+  initialSearch?: string;
 }
 
 // Standard table return interface
@@ -77,6 +78,7 @@ export function useStandardTable<T>(
   // Initialize table state with configuration
   const stateConfig: TableStateConfig = {
     defaultSorting: config.defaultSorting || [],
+    initialSearch: config.initialSearch,
   };
 
   const store = useTableState(config.tableId, stateConfig);

@@ -1,13 +1,15 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import TasksLayout from "./components/TasksLayout.vue";
 import ActiveTasksTable from "./components/ActiveTasksTable.vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { usePageTitle } from "@/composables/usePageTitle";
 import type { TaskSummary } from "@/types/task";
 
-// Data fetching for active tasks
+const route = useRoute();
+
 const { data, loading, error, refresh } = useCachedQuery<TaskSummary[]>(
   "ClusterTaskSummary",
   [],
@@ -18,16 +20,33 @@ const { data, loading, error, refresh } = useCachedQuery<TaskSummary[]>(
 
 const { updateTitle } = usePageTitle();
 
-// Update title with active task count
 const dynamicTitle = computed(() => {
   if (loading.value && !data.value) return "Loading...";
   if (error.value && !data.value) return "Error";
 
   const count = data.value?.length ?? 0;
+  const searchParam = route.query.search as string;
+
+  if (searchParam) {
+    return `Active Tasks (${count}) - ${searchParam}`;
+  }
+
   return `Active Tasks (${count})`;
 });
 
 updateTitle(dynamicTitle);
+
+const initialSearch = computed(() => (route.query.search as string) || "");
+
+const currentSearch = ref(initialSearch.value);
+
+watch(
+  () => route.query.search,
+  (newSearch) => {
+    currentSearch.value = (newSearch as string) || "";
+  },
+  { immediate: true },
+);
 </script>
 
 <route>
@@ -45,6 +64,8 @@ updateTitle(dynamicTitle);
       :loading="loading"
       :error="error"
       :on-refresh="refresh"
+      :initial-search="initialSearch"
+      :current-search="currentSearch"
     />
   </TasksLayout>
 </template>

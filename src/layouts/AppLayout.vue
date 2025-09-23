@@ -5,6 +5,7 @@ import SettingsModal from "@/components/composed/SettingsModal.vue";
 import ConnectionStatus from "@/components/ui/ConnectionStatus.vue";
 import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import NetworkSimulationToggle from "@/components/ui/NetworkSimulationToggle.vue";
+import ActiveTasksDropdown from "@/components/composed/ActiveTasksDropdown.vue";
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -27,12 +28,10 @@ const mainContentMargin = computed(() =>
 );
 
 const handleSearch = (query: string) => {
-  // TODO: Implement global search functionality
   console.log("Search query:", query);
 };
 
 const handleNotifications = () => {
-  // TODO: Open notifications panel
   console.log("Open notifications");
 };
 
@@ -43,12 +42,10 @@ const handleSettings = () => {
 
 <template>
   <div class="bg-base-200/30 flex min-h-screen">
-    <!-- Desktop Collapsible Sidebar -->
     <div class="fixed top-0 left-0 z-30 hidden lg:block">
       <CollapsibleSidebar :is-collapsed="layoutStore.sidebarCollapsed" />
     </div>
 
-    <!-- Mobile Layout -->
     <div class="w-full lg:hidden">
       <div class="drawer">
         <input
@@ -58,9 +55,7 @@ const handleSettings = () => {
           class="drawer-toggle"
         />
 
-        <!-- Drawer content -->
         <div class="drawer-content flex flex-col">
-          <!-- Mobile Top Navigation -->
           <div class="navbar bg-base-100 shadow-sm">
             <div class="navbar-start">
               <label
@@ -80,18 +75,14 @@ const handleSettings = () => {
                 <span class="text-lg font-semibold">Cuview</span>
               </div>
             </div>
-            <div class="navbar-end">
-              <!-- User menu placeholder -->
-            </div>
+            <div class="navbar-end"></div>
           </div>
 
-          <!-- Mobile Main content -->
           <main class="flex-1">
             <slot />
           </main>
         </div>
 
-        <!-- Mobile Drawer sidebar -->
         <div class="drawer-side">
           <label
             for="mobile-drawer-toggle"
@@ -105,17 +96,14 @@ const handleSettings = () => {
       </div>
     </div>
 
-    <!-- Desktop Main content -->
     <main
       class="hidden h-screen flex-1 overflow-y-auto transition-all duration-300 lg:block"
       :style="{ marginLeft: mainContentMargin }"
     >
-      <!-- Enhanced top bar -->
       <div
         class="bg-base-100/90 border-base-300/50 sticky top-0 z-20 border-b backdrop-blur-md"
       >
         <div class="flex items-center justify-between px-6 py-3">
-          <!-- Left section -->
           <div class="flex items-center gap-3">
             <button
               class="btn btn-ghost btn-sm size-9 p-0"
@@ -130,11 +118,9 @@ const handleSettings = () => {
               <ChevronLeftIcon v-else class="size-5" />
             </button>
 
-            <!-- Connection status indicator -->
             <ConnectionStatus />
           </div>
 
-          <!-- Center section - Search -->
           <div class="mx-8 max-w-md flex-1">
             <div class="relative">
               <div
@@ -157,9 +143,7 @@ const handleSettings = () => {
             </div>
           </div>
 
-          <!-- Right section -->
           <div class="flex items-center gap-1">
-            <!-- Quick actions -->
             <div class="mr-2 flex items-center gap-1">
               <button
                 class="btn btn-ghost btn-sm relative size-9 p-0"
@@ -171,6 +155,8 @@ const handleSettings = () => {
                   class="bg-warning absolute -top-1 -right-1 size-3 rounded-full"
                 ></div>
               </button>
+
+              <ActiveTasksDropdown />
 
               <ThemeToggle />
 
@@ -185,7 +171,6 @@ const handleSettings = () => {
               </button>
             </div>
 
-            <!-- User menu -->
             <div class="dropdown dropdown-end">
               <div
                 tabindex="0"
@@ -240,7 +225,6 @@ const handleSettings = () => {
       </div>
     </main>
 
-    <!-- Settings Modal -->
     <SettingsModal v-model:open="settingsModalOpen" />
   </div>
 </template>

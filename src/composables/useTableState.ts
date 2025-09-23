@@ -11,6 +11,7 @@ export interface TableStateConfig {
   defaultSorting: SortingState;
   customFilters?: Record<string, unknown>;
   persistKeys?: string[];
+  initialSearch?: string;
 }
 
 export function useTableState(tableId: string, config: TableStateConfig) {
@@ -142,5 +143,13 @@ export function useTableState(tableId: string, config: TableStateConfig) {
     },
   );
 
-  return store();
+  const storeInstance = store();
+
+  // Override persisted search query with initialSearch when provided
+  // This ensures URL parameters take precedence over persisted state
+  if (config.initialSearch) {
+    storeInstance.setSearchQuery(config.initialSearch);
+  }
+
+  return storeInstance;
 }
