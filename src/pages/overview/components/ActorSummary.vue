@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { getDeadlineSquareClasses } from "@/utils/ui";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import CopyButton from "@/components/ui/CopyButton.vue";
-import type { ActorSummaryData, Deadline } from "@/types/actor";
+import type { ActorSummaryData } from "@/types/actor";
 
 const openTooltipIndex = ref<string>("");
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -19,51 +20,26 @@ const {
   pollingInterval: 30000,
 });
 
-const getDeadlineClass = (deadline: Deadline): string => {
-  const classes = ["deadline-entry"];
-
-  if (deadline.Count) {
-    const { Fault, Recovering, Live, Active } = deadline.Count;
-
-    if (Fault > 0 && Recovering === 0) {
-      classes.push("deadline-faulty");
-    } else if (Fault > 0 || Recovering > 0) {
-      classes.push("deadline-partial-fault");
-    } else if (Live > 0 || Active > 0) {
-      classes.push("deadline-proven");
-    }
-  }
-
-  if (deadline.Proven) classes.push("deadline-proven");
-  if (deadline.PartFaulty) classes.push("deadline-partial-fault");
-  if (deadline.Faulty) classes.push("deadline-faulty");
-  if (deadline.Current) classes.push("deadline-current");
-
-  return classes.join(" ");
-};
-
-const toggleTooltip = (
-  event: Event,
+const showTooltip = (
+  event: MouseEvent,
   actorAddress: string,
   deadlineIndex: number,
 ) => {
   const key = `${actorAddress}-${deadlineIndex}`;
-
-  if (openTooltipIndex.value === key) {
-    openTooltipIndex.value = "";
-    return;
-  }
-
-  const target = event.target as HTMLElement;
+  const target = event.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
 
-  // Position tooltip above the element to avoid clipping
+  // Position tooltip to the right with some offset
   tooltipPosition.value = {
-    x: rect.left + rect.width / 2,
-    y: rect.top - 10,
+    x: rect.right + 12,
+    y: rect.top - 8,
   };
 
   openTooltipIndex.value = key;
+};
+
+const hideTooltip = () => {
+  openTooltipIndex.value = "";
 };
 </script>
 
@@ -76,7 +52,6 @@ const toggleTooltip = (
     error-title="Actor Data Error"
     empty-icon="🎭"
     empty-message="No actors available"
-    @click="openTooltipIndex = ''"
   >
     <template #loading>Loading actor summary...</template>
 
@@ -122,15 +97,12 @@ const toggleTooltip = (
                   v-for="(deadline, index) in entry.Deadlines"
                   :key="`${entry.Address}-${index}`"
                   class="deadline-container"
-                  @click.stop="
-                    (event) => toggleTooltip(event, entry.Address, index)
+                  @mouseenter="
+                    (event) => showTooltip(event, entry.Address, index)
                   "
+                  @mouseleave="hideTooltip"
                 >
-                  <div
-                    :class="getDeadlineClass(deadline)"
-                    class="deadline-square"
-                    :title="`Deadline ${index + 1} - Click for details`"
-                  ></div>
+                  <div :class="getDeadlineSquareClasses(deadline)"></div>
 
                   <Teleport to="body">
                     <div
@@ -140,9 +112,7 @@ const toggleTooltip = (
                         position: 'fixed',
                         left: `${tooltipPosition.x}px`,
                         top: `${tooltipPosition.y}px`,
-                        transform: 'translateX(-50%)',
                         zIndex: 1000,
-                        pointerEvents: 'auto',
                       }"
                     >
                       <div class="deadline-tooltip-content">
@@ -220,31 +190,19 @@ const toggleTooltip = (
 
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
-          <div
-            class="h-4 w-4 rounded-sm"
-            style="background-color: #10b981"
-          ></div>
+          <div class="bg-success h-4 w-4 rounded-sm"></div>
           <span>Proven</span>
         </div>
         <div class="flex items-center gap-2">
-          <div
-            class="h-4 w-4 rounded-sm"
-            style="background-color: #f59e0b"
-          ></div>
+          <div class="bg-warning h-4 w-4 rounded-sm"></div>
           <span>Partially Faulty</span>
         </div>
         <div class="flex items-center gap-2">
-          <div
-            class="h-4 w-4 rounded-sm"
-            style="background-color: #ef4444"
-          ></div>
+          <div class="bg-error h-4 w-4 rounded-sm"></div>
           <span>Faulty</span>
         </div>
         <div class="flex items-center gap-2">
-          <div
-            class="h-4 w-4 rounded-sm"
-            style="background-color: deepskyblue"
-          ></div>
+          <div class="bg-info h-4 w-4 rounded-sm"></div>
           <span>Current</span>
         </div>
       </div>
@@ -264,63 +222,43 @@ const toggleTooltip = (
 .deadline-container {
   position: relative;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
 }
 
 .deadline-square {
   position: relative;
-  background-color: #4b5563;
-  border: 1px solid #374151;
   min-width: 16px;
   min-height: 16px;
   width: 16px;
   height: 16px;
-  border-radius: 0.125rem;
-  transition: all 0.15s ease-in-out;
 }
 
-.deadline-square:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+.deadline-container:hover .deadline-square {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-/* Deadline states */
-.deadline-entry {
-  position: relative;
-}
+/* Deadline states handled by utility function */
 
-.deadline-proven {
-  background-color: #10b981 !important;
-  border: 1px solid #10b981 !important;
-}
-
-.deadline-partial-fault {
-  background-color: #f59e0b !important;
-  border: 1px solid #f59e0b !important;
-}
-
-.deadline-faulty {
-  background-color: #ef4444 !important;
-  border: 1px solid #ef4444 !important;
-}
-
-.deadline-current {
-  border-bottom: 3px solid deepskyblue !important;
-  height: 13px !important;
-}
-
-/* For current deadlines with no other status, use blue background */
-.deadline-entry.deadline-current:not(.deadline-proven):not(
-    .deadline-partial-fault
-  ):not(.deadline-faulty) {
-  background-color: deepskyblue !important;
-  border: 1px solid deepskyblue !important;
-}
-
-/* Simple tooltip */
+/* Tooltip styling */
 .deadline-tooltip {
   position: fixed;
   z-index: 1000;
   pointer-events: none;
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .deadline-tooltip-content {

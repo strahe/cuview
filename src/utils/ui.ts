@@ -139,3 +139,49 @@ export const getButtonVariantClasses = (
 ): string => {
   return `btn btn-${variant}`;
 };
+
+export const getDeadlineSquareClasses = (deadline: {
+  Proven?: boolean;
+  PartFaulty?: boolean;
+  Faulty?: boolean;
+  Current?: boolean;
+  Count?: {
+    Fault?: number;
+    Recovering?: number;
+    Live?: number;
+    Active?: number;
+  };
+}): string => {
+  const baseClasses =
+    "deadline-square bg-base-300 border border-base-content/20 rounded-sm transition-shadow duration-200";
+  const classes = [baseClasses];
+
+  // Determine status based on count first
+  if (deadline.Count) {
+    const { Fault = 0, Recovering = 0, Live = 0, Active = 0 } = deadline.Count;
+
+    if (Fault > 0 && Recovering === 0) {
+      classes.push("!bg-error !border-error");
+    } else if (Fault > 0 || Recovering > 0) {
+      classes.push("!bg-warning !border-warning");
+    } else if (Live > 0 || Active > 0) {
+      classes.push("!bg-success !border-success");
+    }
+  }
+
+  // Override with direct flags if present
+  if (deadline.Proven) classes.push("!bg-success !border-success");
+  if (deadline.PartFaulty) classes.push("!bg-warning !border-warning");
+  if (deadline.Faulty) classes.push("!bg-error !border-error");
+
+  // Current deadline styling
+  if (deadline.Current) {
+    classes.push("!border-b-[3px] !border-info");
+    // If current has no other status, use blue background
+    if (!deadline.Proven && !deadline.PartFaulty && !deadline.Faulty) {
+      classes.push("!bg-info !border-info");
+    }
+  }
+
+  return classes.join(" ");
+};
