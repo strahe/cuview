@@ -801,7 +801,10 @@ const goBack = () => {
                   </thead>
                   <tbody>
                     <tr
-                      v-for="task in machineData.FinishedTasks.slice(0, 20)"
+                      v-for="task in (machineData.FinishedTasks || []).slice(
+                        0,
+                        20,
+                      )"
                       :key="task.ID"
                     >
                       <td>
@@ -895,7 +898,10 @@ const goBack = () => {
                   </thead>
                   <tbody>
                     <tr
-                      v-for="task in machineData.RunningTasks.slice(0, 20)"
+                      v-for="task in (machineData.RunningTasks || []).slice(
+                        0,
+                        20,
+                      )"
                       :key="task.ID"
                     >
                       <td>
@@ -928,12 +934,12 @@ const goBack = () => {
                 </DataTable>
 
                 <div
-                  v-if="machineData.RunningTasks.length > 20"
+                  v-if="(machineData.RunningTasks?.length || 0) > 20"
                   class="mt-4 text-center"
                 >
                   <div class="text-base-content/60 text-sm">
-                    Showing 20 of {{ machineData.RunningTasks.length }} running
-                    tasks
+                    Showing 20 of
+                    {{ machineData.RunningTasks?.length || 0 }} running tasks
                   </div>
                 </div>
               </div>

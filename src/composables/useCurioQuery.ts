@@ -323,7 +323,8 @@ export function createCurioQuery() {
         });
       }
 
-      return await api.call<T>(method, params || []);
+      const result = await api.call<T>(method, params || []);
+      return result;
     },
 
     // Batch query

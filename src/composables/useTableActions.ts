@@ -156,10 +156,6 @@ export function useTableActions<T>(
       if (onRefresh) {
         onRefresh();
       }
-
-      console.log(
-        `Successfully executed action "${actionName}" for item with key "${itemKey}"`,
-      );
     } catch (error) {
       const err = error as Error;
 

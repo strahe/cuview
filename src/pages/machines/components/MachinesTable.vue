@@ -58,7 +58,7 @@ const {
     cordon: {
       name: "cordon",
       handler: async (machine) => {
-        await call("CordonMachine", [machine.ID]);
+        await call("Cordon", [machine.ID]);
       },
       loadingKey: (machine) => `cordon-${machine.ID}`,
       onSuccess: () => props.onRefresh(),
@@ -66,7 +66,7 @@ const {
     uncordon: {
       name: "uncordon",
       handler: async (machine) => {
-        await call("UncordonMachine", [machine.ID]);
+        await call("Uncordon", [machine.ID]);
       },
       loadingKey: (machine) => `uncordon-${machine.ID}`,
       onSuccess: () => props.onRefresh(),
@@ -74,7 +74,7 @@ const {
     restart: {
       name: "restart",
       handler: async (machine) => {
-        await call("RestartMachine", [machine.ID]);
+        await call("Restart", [machine.ID]);
       },
       loadingKey: (machine) => `restart-${machine.ID}`,
       onSuccess: () => props.onRefresh(),
@@ -82,7 +82,7 @@ const {
     abortRestart: {
       name: "abortRestart",
       handler: async (machine) => {
-        await call("AbortRestartMachine", [machine.ID]);
+        await call("AbortRestart", [machine.ID]);
       },
       loadingKey: (machine) => `abortRestart-${machine.ID}`,
       onSuccess: () => props.onRefresh(),
@@ -478,11 +478,17 @@ const handleAbortRestartClick = (machine: MachineSummary) => {
 };
 
 const handleConfirmAction = async () => {
-  if (!selectedMachine.value) return;
+  // Save references immediately before they can be reset by dialog close
+  const machineToProcess = selectedMachine.value;
+  const actionToExecute = confirmAction.value;
+
+  if (!machineToProcess) {
+    return;
+  }
 
   try {
     operationError.value = null;
-    await executeAction(confirmAction.value, selectedMachine.value);
+    await executeAction(actionToExecute, machineToProcess);
 
     showConfirmDialog.value = false;
     selectedMachine.value = null;

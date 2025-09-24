@@ -1,4 +1,5 @@
 <template>
+  <!-- Use simple modal approach without portal -->
   <div v-if="show" class="modal modal-open">
     <div class="modal-box max-w-2xl">
       <div class="mb-4 flex items-center justify-between">
@@ -16,6 +17,7 @@
 
       <slot name="actions" :item="item" />
     </div>
+    <div class="modal-backdrop" @click="handleClose"></div>
   </div>
 </template>
 
