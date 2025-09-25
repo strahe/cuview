@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { LinkIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
+import { getTableRowClasses } from "@/utils/ui";
 import type { SyncerStateItem } from "@/types/sync";
 
 const {
@@ -22,7 +24,7 @@ const {
     :has-data="hasData"
     :on-retry="refresh"
     error-title="Chain Connection Error"
-    empty-icon="🔗"
+    :empty-icon="LinkIcon"
     empty-message="No RPC connections configured"
   >
     <template #loading>Connecting to blockchain...</template>
@@ -37,7 +39,11 @@ const {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in syncerData" :key="item.Address">
+        <tr
+          v-for="item in syncerData"
+          :key="item.Address"
+          :class="getTableRowClasses()"
+        >
           <td class="font-mono text-sm">{{ item.Address }}</td>
           <td>
             <span
@@ -59,7 +65,7 @@ const {
               No{{ item.SyncState ? ", " + item.SyncState : "" }}
             </span>
           </td>
-          <td class="text-base-content/70 text-sm">{{ item.Version }}</td>
+          <td class="text-sm">{{ item.Version }}</td>
         </tr>
       </tbody>
     </DataTable>

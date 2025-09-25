@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from "vue";
-import { ArrowPathIcon, XMarkIcon } from "@heroicons/vue/24/outline";
+import {
+  ArrowPathIcon,
+  XMarkIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/vue/24/outline";
 
 interface Props {
   error?: Error | null;
@@ -78,7 +82,7 @@ onUnmounted(() => {
       class="absolute top-4 left-1/2 z-30 mx-4 max-w-md -translate-x-1/2 transform"
     >
       <div class="alert alert-error shadow-lg">
-        <div class="text-lg">⚠️</div>
+        <ExclamationTriangleIcon class="h-6 w-6" />
         <div class="min-w-0 flex-1">
           <div class="font-semibold">{{ title }}</div>
           <div class="text-xs opacity-90">{{ error?.message }}</div>

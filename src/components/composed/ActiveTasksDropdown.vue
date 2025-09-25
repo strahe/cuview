@@ -10,6 +10,7 @@ import {
 } from "@heroicons/vue/24/outline";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import type { TaskSummary } from "@/types/task";
+import { getTableRowClasses } from "@/utils/ui";
 
 const router = useRouter();
 
@@ -157,13 +158,12 @@ const handleRefresh = (event: Event) => {
         </div>
         <button
           class="btn btn-ghost btn-sm"
-          :class="{ 'loading loading-spinner': loading }"
           :disabled="loading"
           title="Refresh"
           @click="handleRefresh"
         >
-          <ArrowPathIcon v-if="!loading" class="size-4" />
-          <span v-if="!loading" class="hidden sm:inline">Refresh</span>
+          <ArrowPathIcon class="size-4" :class="{ 'animate-spin': loading }" />
+          <span class="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
@@ -222,7 +222,10 @@ const handleRefresh = (event: Event) => {
                   <tr
                     v-for="group in taskGroups"
                     :key="group.name"
-                    class="hover:bg-base-200 bg-base-100 border-base-300/30 hover:[&>td]:bg-base-200 cursor-pointer transition-colors"
+                    :class="[
+                      getTableRowClasses(true),
+                      'bg-base-100 border-base-300/30 hover:[&>td]:bg-base-200',
+                    ]"
                     @click="handleTaskGroupClick(group.name)"
                   >
                     <td class="bg-base-100 py-3">

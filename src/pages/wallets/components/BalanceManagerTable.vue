@@ -11,11 +11,13 @@ import {
   PencilIcon,
   TrashIcon,
   ExclamationTriangleIcon,
+  ScaleIcon,
 } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import { getTableRowClasses } from "@/utils/ui";
 import type {
   BalanceManagerRule,
   BalanceManagerRuleDisplay,
@@ -146,9 +148,9 @@ const getActionTypeBadgeClass = () => {
 const getActionTypeDisplayText = (actionType: string) => {
   switch (actionType) {
     case "requester":
-      return "📈 Auto Top-up";
+      return "Auto Top-up";
     case "active-provider":
-      return "📉 Auto Withdraw";
+      return "Auto Withdraw";
     default:
       return actionType;
   }
@@ -169,12 +171,7 @@ const columns = [
     size: 60,
     enableGrouping: false,
     enableColumnFilter: true,
-    cell: (info) =>
-      h(
-        "span",
-        { class: "font-mono text-sm text-base-content/70" },
-        info.getValue(),
-      ),
+    cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
   }),
   columnHelper.accessor("SubjectType", {
     header: "Type",
@@ -743,7 +740,9 @@ const getColumnAggregateInfo = (columnId: string) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-8 text-center"
               >
-                <div class="mb-2 text-4xl">⚖️</div>
+                <ScaleIcon
+                  class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+                />
                 <div>No balance-manager rules found</div>
                 <div class="mt-2 text-sm">
                   Add rules to automatically manage wallet balances
@@ -755,7 +754,7 @@ const getColumnAggregateInfo = (columnId: string) => {
             <tr
               v-for="row in table.getRowModel().rows"
               :key="row.id"
-              class="bg-base-100 hover:bg-primary hover:text-primary-content transition-all duration-200"
+              :class="[getTableRowClasses(true), 'bg-base-100']"
             >
               <td
                 v-for="cell in row.getVisibleCells()"
@@ -842,8 +841,8 @@ const getColumnAggregateInfo = (columnId: string) => {
             class="select select-bordered select-sm"
             :disabled="isOperating"
           >
-            <option value="requester">📈 Auto Top-up</option>
-            <option value="active-provider">📉 Auto Withdraw</option>
+            <option value="requester">Auto Top-up</option>
+            <option value="active-provider">Auto Withdraw</option>
           </select>
         </div>
 
@@ -948,7 +947,7 @@ const getColumnAggregateInfo = (columnId: string) => {
           </label>
           <input
             class="input input-bordered input-sm bg-base-200 text-base-content"
-            value="📈 Auto Top-up"
+            value="Auto Top-up"
             readonly
           />
         </div>

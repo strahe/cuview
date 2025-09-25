@@ -12,11 +12,14 @@ import {
   ArrowPathIcon,
   XCircleIcon,
   XMarkIcon,
+  ExclamationTriangleIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/vue/24/outline";
 import { useRouter } from "vue-router";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useTableActions } from "@/composables/useTableActions";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { getTableRowClasses } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
@@ -223,12 +226,7 @@ const columns = [
     header: "Address",
     size: 200,
     enableGrouping: false,
-    cell: (info) =>
-      h(
-        "span",
-        { class: "text-base-content/70 font-mono text-sm" },
-        info.getValue(),
-      ),
+    cell: (info) => h("span", { class: "font-mono text-sm" }, info.getValue()),
   }),
   columnHelper.display({
     id: "Resources",
@@ -269,19 +267,13 @@ const columns = [
     header: "Uptime",
     size: 120,
     enableGrouping: false,
-    cell: (info) =>
-      h(
-        "span",
-        { class: "text-base-content/70 text-sm" },
-        info.getValue() || "-",
-      ),
+    cell: (info) => h("span", { class: "text-sm" }, info.getValue() || "-"),
   }),
   columnHelper.accessor("SinceContact", {
     header: "Last Contact",
     size: 120,
     enableGrouping: false,
-    cell: (info) =>
-      h("span", { class: "text-base-content/60 text-sm" }, info.getValue()),
+    cell: (info) => h("span", { class: "text-sm" }, info.getValue()),
   }),
   columnHelper.display({
     id: "actions",
@@ -534,7 +526,7 @@ const getConfirmationProps = () => {
   } else if (confirmAction.value === "restart") {
     return {
       title: "Restart Machine",
-      message: `Are you sure you want to restart machine "${machineName}"?\n\n⚠️ This is a long-running operation:\n• Machine will be cordoned automatically\n• All running tasks must complete first\n• Restart process may take several minutes\n• Machine status will show "Restarting" until complete`,
+      message: `Are you sure you want to restart machine "${machineName}"?\n\nThis is a long-running operation:\n• Machine will be cordoned automatically\n• All running tasks must complete first\n• Restart process may take several minutes\n• Machine status will show "Restarting" until complete`,
       confirmText: "Start Restart",
       type: "danger" as const,
     };
@@ -759,7 +751,7 @@ const getColumnAggregateInfo = (columnId: string) => {
                 <div
                   class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
                 >
-                  <div class="text-error text-2xl">⚠️</div>
+                  <ExclamationTriangleIcon class="text-error h-8 w-8" />
                 </div>
                 <h3 class="text-base-content mb-2 text-lg font-semibold">
                   Connection Error
@@ -802,7 +794,9 @@ const getColumnAggregateInfo = (columnId: string) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-8 text-center"
               >
-                <div class="mb-2 text-4xl">🖥️</div>
+                <ComputerDesktopIcon
+                  class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+                />
                 <div>No machines found</div>
               </td>
             </tr>
@@ -811,7 +805,7 @@ const getColumnAggregateInfo = (columnId: string) => {
             <tr
               v-for="row in table.getRowModel().rows"
               :key="row.id"
-              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
+              :class="[getTableRowClasses(true), 'bg-base-100']"
               @click="handleRowClick(row, $event)"
             >
               <td

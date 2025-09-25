@@ -123,8 +123,23 @@ export const getIconColor = (status: string): string => {
 };
 
 export const getTableRowClasses = (clickable: boolean = false): string => {
-  const baseClasses = "hover:bg-base-200/30 transition-colors";
-  return clickable ? `${baseClasses} cursor-pointer` : baseClasses;
+  const baseClasses = [
+    "transition-colors",
+    "duration-150",
+    "hover:bg-base-300",
+    "focus-within:bg-base-300",
+    "hover:text-base-content",
+    "focus-within:text-base-content",
+    "hover:shadow-sm",
+    "focus-within:shadow-sm",
+    "focus-visible:outline-none",
+  ];
+
+  if (clickable) {
+    baseClasses.push("cursor-pointer");
+  }
+
+  return baseClasses.join(" ");
 };
 
 export const getButtonVariantClasses = (
@@ -138,6 +153,22 @@ export const getButtonVariantClasses = (
     | "outline" = "primary",
 ): string => {
   return `btn btn-${variant}`;
+};
+
+export const getKPICardClasses = (
+  value: number,
+  status: "success" | "error" | "warning" | "info" = "info",
+): string => {
+  if (value <= 0) return "";
+
+  const statusMap = {
+    success: "bg-success/10",
+    error: "bg-error/10",
+    warning: "bg-warning/10",
+    info: "bg-info/10",
+  };
+
+  return statusMap[status];
 };
 
 export const getDeadlineSquareClasses = (deadline: {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 defineOptions({
   name: "BaseCard",
@@ -172,7 +173,10 @@ const toggleCollapse = () => {
     <div :class="bodyClasses">
       <!-- Error state -->
       <div v-if="error && !$slots.error" class="text-error py-8 text-center">
-        <div class="mb-2 text-lg">⚠️ Error</div>
+        <div class="mb-2 flex items-center justify-center gap-2 text-lg">
+          <ExclamationTriangleIcon class="h-5 w-5" />
+          Error
+        </div>
         <div class="text-sm">{{ errorMessage || "Something went wrong" }}</div>
       </div>
 

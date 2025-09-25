@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/vue/24/outline";
+import {
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+} from "@heroicons/vue/24/outline";
 import type { MachineFilters } from "@/types/machine";
 
 interface Props {
@@ -61,13 +65,12 @@ const hasActiveFilters = computed(() => {
 
       <!-- Refresh button -->
       <button
-        class="btn btn-outline btn-sm min-w-[80px]"
+        class="btn btn-outline btn-sm"
         :disabled="loading"
         @click="$emit('refresh')"
       >
-        <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-        <span v-else>🔄</span>
-        <span>Refresh</span>
+        <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+        Refresh
       </button>
     </div>
 

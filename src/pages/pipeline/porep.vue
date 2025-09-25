@@ -89,7 +89,7 @@
           <div v-else-if="porepSummary.data.value" class="overflow-x-auto">
             <table class="table w-full">
               <thead>
-                <tr class="text-base-content/60">
+                <tr>
                   <th>Actor</th>
                   <th class="text-center">SDR</th>
                   <th class="text-center">Trees</th>
@@ -106,7 +106,7 @@
                 <tr
                   v-for="summary in porepSummary.data.value"
                   :key="summary.Actor"
-                  class="hover"
+                  :class="getTableRowClasses()"
                 >
                   <td class="font-medium">{{ summary.Actor }}</td>
                   <td class="text-center">
@@ -228,6 +228,7 @@ import type {
   SectorListEntry,
   PipelineStats,
 } from "@/types/pipeline";
+import { getTableRowClasses } from "@/utils/ui";
 
 // Direct queries for each data need
 const porepSectors = useCachedQuery<SectorListEntry[]>(

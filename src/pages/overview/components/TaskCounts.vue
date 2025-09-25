@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClipboardDocumentListIcon,
+} from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
+import { getTableRowClasses } from "@/utils/ui";
 import type { HarmonyTaskStat, TaskStatWithPercentage } from "@/types/cluster";
 
 const {
@@ -51,7 +56,7 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
     :has-data="hasData"
     :on-retry="refresh"
     error-title="Task Stats Error"
-    empty-icon="📊"
+    :empty-icon="ClipboardDocumentListIcon"
     empty-message="No task statistics available"
   >
     <template #loading>Loading task statistics...</template>
@@ -68,7 +73,7 @@ const getStatusBadge = (task: TaskStatWithPercentage) => {
         <tr
           v-for="task in processedData"
           :key="task.Name"
-          :class="{ 'bg-error/10': task.isError }"
+          :class="[getTableRowClasses(), { 'bg-error/10': task.isError }]"
         >
           <td class="truncate font-medium">
             <span

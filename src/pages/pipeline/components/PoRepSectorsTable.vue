@@ -7,7 +7,14 @@ import {
   type Row,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
-import { XMarkIcon } from "@heroicons/vue/24/outline";
+import {
+  XMarkIcon,
+  ExclamationTriangleIcon,
+  ChartBarIcon,
+  FolderOpenIcon,
+  FolderIcon,
+  CheckIcon,
+} from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useItemModal } from "@/composables/useItemModal";
 import { useCurioQuery } from "@/composables/useCurioQuery";
@@ -16,6 +23,7 @@ import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ItemDetailsModal from "@/components/table/ItemDetailsModal.vue";
 import type { SectorListEntry } from "@/types/pipeline";
+import { getTableRowClasses } from "@/utils/ui";
 
 interface Props {
   sectors: SectorListEntry[];
@@ -97,7 +105,7 @@ const columns = [
       const count = info.row.subRows.length;
       return h(
         "span",
-        { class: "text-sm text-base-content/70" },
+        { class: "text-sm text-base-content/80" },
         `${count} sectors`,
       );
     },
@@ -134,7 +142,7 @@ const columns = [
       const count = info.row.subRows.length;
       return h(
         "span",
-        { class: "text-sm text-base-content/70" },
+        { class: "text-sm text-base-content/80" },
         `${count} sectors`,
       );
     },
@@ -156,7 +164,7 @@ const columns = [
         return h(
           "span",
           {
-            class: "text-sm text-base-content/80",
+            class: "text-sm",
             title: date.toLocaleString(),
           },
           formatDistanceToNow(date, { addSuffix: true }),
@@ -190,7 +198,7 @@ const columns = [
             readyTime,
             error,
           );
-          return h("div", { class: "text-sm text-success" }, "✓");
+          return h(CheckIcon, { class: "h-4 w-4 text-success" });
         }
       }
       return h("div", { class: "text-base-content/30" }, "—");
@@ -220,7 +228,7 @@ const columns = [
             readyTime,
             error,
           );
-          return h("div", { class: "text-sm text-success" }, "✓");
+          return h(CheckIcon, { class: "h-4 w-4 text-success" });
         }
       }
       return h("div", { class: "text-base-content/30" }, "—");
@@ -555,7 +563,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 <div
                   class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
                 >
-                  <div class="text-error text-2xl">⚠️</div>
+                  <ExclamationTriangleIcon class="text-error h-8 w-8" />
                 </div>
                 <h3 class="text-base-content mb-2 text-lg font-semibold">
                   Connection Error
@@ -598,7 +606,9 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-8 text-center"
               >
-                <div class="mb-2 text-4xl">📊</div>
+                <ChartBarIcon
+                  class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+                />
                 <div>No active sectors found</div>
               </td>
             </tr>
@@ -607,8 +617,11 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
             <tr
               v-for="row in table.getRowModel().rows"
               :key="row.id"
-              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-              :class="{ 'bg-base-200/30 font-medium': row.getIsGrouped() }"
+              :class="[
+                getTableRowClasses(true),
+                'bg-base-100',
+                { 'bg-base-200/30 font-medium': row.getIsGrouped() },
+              ]"
               @click="handleRowClick(row)"
             >
               <td
@@ -625,7 +638,11 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 <template v-if="cell.getIsGrouped()">
                   <div class="flex items-center gap-2 font-semibold">
                     <span class="text-primary">
-                      {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
+                      <FolderOpenIcon
+                        v-if="cell.row.getIsExpanded()"
+                        class="h-4 w-4"
+                      />
+                      <FolderIcon v-else class="h-4 w-4" />
                     </span>
                     <!-- Special handling for state grouping -->
                     <template v-if="cell.column.id === 'state'">
@@ -652,7 +669,7 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                 </template>
 
                 <template v-else-if="cell.getIsAggregated()">
-                  <div class="text-base-content/70 text-center">
+                  <div class="text-base-content/80 text-center">
                     <FlexRender
                       :render="
                         cell.column.columnDef.aggregatedCell ??
@@ -753,7 +770,8 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
                       : 'bg-base-300 text-base-content/50'
                   "
                 >
-                  {{ step.completed ? "✓" : step.number }}
+                  <CheckIcon v-if="step.completed" class="h-4 w-4" />
+                  <span v-else>{{ step.number }}</span>
                 </div>
                 <div
                   class="text-center text-[10px] leading-tight"

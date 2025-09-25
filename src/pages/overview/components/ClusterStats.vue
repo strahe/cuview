@@ -14,6 +14,7 @@ import {
   ClockIcon,
   CircleStackIcon,
   WalletIcon,
+  ChartBarIcon,
 } from "@heroicons/vue/24/outline";
 
 const {
@@ -396,7 +397,10 @@ const totalWins7d = computed(() => {
   </div>
 
   <div v-if="error" class="text-error py-8 text-center">
-    <div class="mb-2 text-lg">📊 Stats Error</div>
+    <div class="mb-2 flex items-center justify-center gap-2 text-lg">
+      <ChartBarIcon class="h-5 w-5" />
+      Stats Error
+    </div>
     <div class="text-sm">{{ error.message }}</div>
   </div>
 </template>

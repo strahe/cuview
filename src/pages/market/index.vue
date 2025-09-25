@@ -58,7 +58,7 @@ const {
       tooltip="Storage deal statistics and market activity"
     >
       <div class="text-base-content/70 py-8 text-center">
-        <div class="mb-2 text-4xl">📊</div>
+        <ChartBarIcon class="text-base-content/40 mx-auto mb-2 h-12 w-12" />
         <div>Market overview coming soon</div>
         <div class="text-base-content/50 mt-1 text-xs">
           Deal statistics, pricing trends, and market activity

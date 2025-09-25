@@ -4,12 +4,17 @@ import {
   createColumnHelper,
   FlexRender,
   type ColumnDef,
-  type Row,
 } from "@tanstack/vue-table";
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/vue/24/outline";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  ChartBarIcon,
+} from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { usePaginatedTaskHistory } from "../composables/usePaginatedTaskHistory";
 import TableControls from "@/components/table/TableControls.vue";
+import { getTableRowClasses } from "@/utils/ui";
 import type { TaskHistorySummary } from "@/types/task";
 
 const {
@@ -38,14 +43,7 @@ const columns = [
     size: 120,
     cell: (info) => {
       const taskId = info.getValue();
-      return h(
-        "button",
-        {
-          class: "link link-primary font-mono text-sm hover:link-hover",
-          onClick: () => handleTaskClick(taskId),
-        },
-        `#${taskId}`,
-      );
+      return h("span", { class: "font-mono text-sm" }, `#${taskId}`);
     },
   }),
   columnHelper.accessor("Name", {
@@ -81,14 +79,7 @@ const columns = [
     size: 150,
     cell: (info) => {
       const machine = info.getValue();
-      return h(
-        "button",
-        {
-          class: "link link-secondary font-mono text-sm hover:link-hover",
-          onClick: () => handleMachineClick(machine),
-        },
-        machine,
-      );
+      return h("span", { class: "font-mono text-sm" }, machine);
     },
   }),
   columnHelper.accessor("Result", {
@@ -163,14 +154,6 @@ onUnmounted(() => {
 
 const tableRows = computed(() => table.getRowModel().rows);
 
-const handleTaskClick = (taskId: number) => {
-  console.log("Navigate to task details:", taskId);
-};
-
-const handleMachineClick = (machineName: string) => {
-  console.log("Navigate to machine details or filter by machine:", machineName);
-};
-
 const handleScroll = (event: Event) => {
   const target = event.target as HTMLElement;
   const { scrollTop, scrollHeight, clientHeight } = target;
@@ -180,10 +163,6 @@ const handleScroll = (event: Event) => {
   if (scrolledPercentage > 0.7 && hasMore.value && !loadingMore.value) {
     loadMore();
   }
-};
-
-const handleRowClick = (row: Row<TaskHistorySummary>) => {
-  handleTaskClick(row.original.TaskID);
 };
 </script>
 
@@ -209,7 +188,7 @@ const handleRowClick = (row: Row<TaskHistorySummary>) => {
           <div
             class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
           >
-            <div class="text-error text-2xl">⚠️</div>
+            <ExclamationTriangleIcon class="text-error h-8 w-8" />
           </div>
           <h3 class="text-base-content mb-2 text-lg font-semibold">
             Connection Error
@@ -248,7 +227,7 @@ const handleRowClick = (row: Row<TaskHistorySummary>) => {
         class="border-base-300/30 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
       >
         <div class="text-base-content/60 py-8 text-center">
-          <div class="mb-2 text-4xl">📊</div>
+          <ChartBarIcon class="text-base-content/40 mx-auto mb-2 h-12 w-12" />
           <div>No task history found</div>
         </div>
       </div>
@@ -296,8 +275,7 @@ const handleRowClick = (row: Row<TaskHistorySummary>) => {
               row.original.Result,
               row.original.Err,
             ]"
-            class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-            @click="handleRowClick(row)"
+            :class="[getTableRowClasses(true), 'bg-base-100']"
           >
             <td
               v-for="cell in row.getVisibleCells()"

@@ -7,10 +7,17 @@ import {
   type Row,
 } from "@tanstack/vue-table";
 import { formatDistanceToNow } from "date-fns";
-import { XMarkIcon } from "@heroicons/vue/24/outline";
+import {
+  XMarkIcon,
+  ExclamationTriangleIcon,
+  ClipboardDocumentListIcon,
+  FolderOpenIcon,
+  FolderIcon,
+} from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import { getTableRowClasses } from "@/utils/ui";
 
 import type { TaskSummary } from "@/types/task";
 
@@ -52,7 +59,7 @@ const columns = [
       const count = info.table.getRowModel().rows.length;
       return h(
         "span",
-        { class: "text-sm text-base-content/70" },
+        { class: "text-sm text-base-content/80" },
         `${count} tasks`,
       );
     },
@@ -66,7 +73,7 @@ const columns = [
       return h(
         "span",
         {
-          class: "font-mono text-sm text-base-content/70",
+          class: "font-mono text-sm",
         },
         `#${taskId.toString()}`,
       );
@@ -83,7 +90,7 @@ const columns = [
       return h(
         "span",
         {
-          class: "text-sm text-base-content/80",
+          class: "text-sm",
           title: date.toLocaleString(),
         },
         timeAgo,
@@ -99,14 +106,14 @@ const columns = [
       if (!owner) {
         return h(
           "span",
-          { class: "text-sm text-base-content/60 italic" },
+          { class: "text-sm text-base-content/70 italic" },
           "Unassigned",
         );
       }
       return h(
         "span",
         {
-          class: "font-mono text-sm text-base-content/80",
+          class: "font-mono text-sm",
         },
         owner,
       );
@@ -319,7 +326,7 @@ const getColumnAggregateInfo = (columnId: string) => {
                 <div
                   class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
                 >
-                  <div class="text-error text-2xl">⚠️</div>
+                  <ExclamationTriangleIcon class="text-error h-8 w-8" />
                 </div>
                 <h3 class="text-base-content mb-2 text-lg font-semibold">
                   Connection Error
@@ -362,7 +369,9 @@ const getColumnAggregateInfo = (columnId: string) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-8 text-center"
               >
-                <div class="mb-2 text-4xl">📋</div>
+                <ClipboardDocumentListIcon
+                  class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+                />
                 <div>No active tasks found</div>
               </td>
             </tr>
@@ -371,8 +380,11 @@ const getColumnAggregateInfo = (columnId: string) => {
             <tr
               v-for="row in table.getRowModel().rows"
               :key="row.id"
-              class="bg-base-100 hover:bg-primary hover:text-primary-content cursor-pointer transition-all duration-200"
-              :class="{ 'bg-base-200/30 font-medium': row.getIsGrouped() }"
+              :class="[
+                getTableRowClasses(true),
+                'bg-base-100',
+                { 'bg-base-200/30 font-medium': row.getIsGrouped() },
+              ]"
               @click="handleRowClick(row)"
             >
               <td
@@ -389,7 +401,11 @@ const getColumnAggregateInfo = (columnId: string) => {
                 <template v-if="cell.getIsGrouped()">
                   <div class="flex items-center gap-2 font-semibold">
                     <span class="text-primary">
-                      {{ cell.row.getIsExpanded() ? "📂" : "📁" }}
+                      <FolderOpenIcon
+                        v-if="cell.row.getIsExpanded()"
+                        class="h-4 w-4"
+                      />
+                      <FolderIcon v-else class="h-4 w-4" />
                     </span>
                     <span class="capitalize">
                       {{ cell.getValue() || "Unassigned" }}
@@ -401,7 +417,7 @@ const getColumnAggregateInfo = (columnId: string) => {
                 </template>
 
                 <template v-else-if="cell.getIsAggregated()">
-                  <div class="text-base-content/70 text-center">
+                  <div class="text-base-content/80 text-center">
                     <FlexRender
                       :render="
                         cell.column.columnDef.aggregatedCell ??

@@ -2,9 +2,10 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useCachedQuery } from "@/composables/useCachedQuery";
-import { ArrowRightIcon } from "@heroicons/vue/24/outline";
+import { ArrowRightIcon, ComputerDesktopIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
+import { getTableRowClasses } from "@/utils/ui";
 import type { ClusterMachine } from "@/types/cluster";
 
 const router = useRouter();
@@ -108,7 +109,7 @@ const summaryStats = computed(() => {
       :has-data="hasData"
       :on-retry="refresh"
       error-title="Connection Error"
-      empty-icon="🖥️"
+      :empty-icon="ComputerDesktopIcon"
       empty-message="No cluster machines available"
     >
       <template #loading>Loading cluster machines...</template>
@@ -126,7 +127,11 @@ const summaryStats = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in machines" :key="item.ID">
+          <tr
+            v-for="item in machines"
+            :key="item.ID"
+            :class="getTableRowClasses()"
+          >
             <td class="truncate font-medium">{{ item.Name }}</td>
             <td class="truncate font-mono text-sm">{{ item.Address }}</td>
             <td class="font-mono text-sm">
@@ -145,7 +150,7 @@ const summaryStats = computed(() => {
                 item.RunningTasks || 0
               }}</span>
             </td>
-            <td class="text-base-content/70 text-sm">
+            <td class="text-sm">
               {{ item.Uptime || "-" }}
             </td>
             <td class="text-sm">{{ item.SinceContact }}</td>

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { ArrowPathIcon } from "@heroicons/vue/24/outline";
+import { computed, type Component } from "vue";
+import {
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  ChartBarIcon,
+} from "@heroicons/vue/24/outline";
 
 interface Props {
   loading?: boolean;
@@ -9,7 +13,7 @@ interface Props {
   onRetry?: () => void;
   errorTitle?: string;
   emptyTitle?: string;
-  emptyIcon?: string;
+  emptyIcon?: Component;
   emptyMessage?: string;
 }
 
@@ -20,9 +24,12 @@ const props = withDefaults(defineProps<Props>(), {
   onRetry: undefined,
   errorTitle: "Connection Error",
   emptyTitle: "No Data Available",
-  emptyIcon: "📊",
+  emptyIcon: undefined,
   emptyMessage: "No data available",
 });
+
+// Provide default icon if none is provided
+const emptyIconComponent = computed(() => props.emptyIcon || ChartBarIcon);
 
 const isInitialLoading = computed(() => props.loading && !props.hasData);
 </script>
@@ -34,7 +41,7 @@ const isInitialLoading = computed(() => props.loading && !props.hasData);
       <div
         class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
       >
-        <div class="text-error text-2xl">⚠️</div>
+        <ExclamationTriangleIcon class="text-error h-8 w-8" />
       </div>
       <h3 class="text-base-content mb-2 text-lg font-semibold">
         {{ errorTitle }}
@@ -65,7 +72,10 @@ const isInitialLoading = computed(() => props.loading && !props.hasData);
 
     <!-- Empty state -->
     <div v-else-if="!hasData" class="text-base-content/60 py-12 text-center">
-      <div class="mb-2 text-4xl">{{ emptyIcon }}</div>
+      <component
+        :is="emptyIconComponent"
+        class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+      />
       <div>{{ emptyMessage }}</div>
     </div>
 

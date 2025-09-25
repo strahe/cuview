@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { useDebugStore } from "@/stores/debug";
-import { CheckCircleIcon } from "@heroicons/vue/24/outline";
+import {
+  CheckCircleIcon,
+  GlobeAltIcon,
+  NoSymbolIcon,
+  ClockIcon,
+} from "@heroicons/vue/24/outline";
 
 const debugStore = useDebugStore();
 
@@ -8,28 +13,28 @@ const networkOptions = [
   {
     value: "normal",
     label: "Normal",
-    icon: "🌐",
+    icon: GlobeAltIcon,
     desc: "Normal connection speed",
     class: "text-success",
   },
   {
     value: "offline",
     label: "Offline",
-    icon: "📵",
+    icon: NoSymbolIcon,
     desc: "Connection failed",
     class: "text-error",
   },
   {
     value: "slow",
     label: "Slow Network",
-    icon: "🐌",
+    icon: ClockIcon,
     desc: "3 second delay",
     class: "text-warning",
   },
   {
     value: "timeout",
     label: "Timeout",
-    icon: "⏱️",
+    icon: ClockIcon,
     desc: "30 second timeout",
     class: "text-warning",
   },
@@ -56,7 +61,7 @@ const setNetworkMode = (mode: "normal" | "offline" | "slow" | "timeout") => {
       class="btn btn-ghost btn-sm gap-2 px-2"
       :class="getCurrentOption()?.class"
     >
-      <span class="text-sm">{{ getCurrentOption()?.icon }}</span>
+      <component :is="getCurrentOption()?.icon" class="h-4 w-4" />
       <span class="hidden text-xs sm:inline">{{
         getCurrentOption()?.label
       }}</span>
@@ -89,7 +94,11 @@ const setNetworkMode = (mode: "normal" | "offline" | "slow" | "timeout") => {
           "
         >
           <div class="flex items-center gap-3">
-            <span class="text-base">{{ option.icon }}</span>
+            <component
+              :is="option.icon"
+              class="h-5 w-5"
+              :class="option.class"
+            />
             <div class="flex flex-col items-start">
               <span class="font-medium">{{ option.label }}</span>
               <span class="text-xs opacity-70">{{ option.desc }}</span>

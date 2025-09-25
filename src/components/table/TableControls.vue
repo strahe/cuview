@@ -26,11 +26,10 @@
       <div class="border-base-300 border-l pl-3">
         <button
           class="btn btn-outline btn-sm"
-          :class="{ loading: refreshLoading }"
-          :disabled="refreshLoading"
+          :disabled="loading"
           @click="$emit('refresh')"
         >
-          <span v-if="!refreshLoading">🔄</span>
+          <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': loading }" />
           Refresh
         </button>
       </div>
@@ -49,11 +48,12 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowPathIcon } from "@heroicons/vue/24/outline";
+
 defineProps<{
   searchInput: string;
   searchPlaceholder?: string;
   loading?: boolean;
-  refreshLoading?: boolean;
 }>();
 
 defineEmits<{

@@ -32,6 +32,12 @@ import type { MachineInfo } from "@/types/machine";
 import DataTable from "@/components/ui/DataTable.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
 import { formatBytes, formatDuration } from "@/utils/format";
+import {
+  getMachineStatusStyle,
+  getIconColor,
+  getContactStatusColor,
+  getTableRowClasses,
+} from "@/utils/ui";
 
 const router = useRouter();
 const route = useRoute();
@@ -299,12 +305,16 @@ const goBack = () => {
               <div class="flex items-start gap-4">
                 <div
                   class="flex-shrink-0 rounded-lg p-3"
-                  :class="`bg-${machineHealthStatus.color}/10 border border-${machineHealthStatus.color}/20`"
+                  :class="[
+                    getMachineStatusStyle(machineHealthStatus.status).bgColor,
+                    getMachineStatusStyle(machineHealthStatus.status)
+                      .borderColor,
+                  ]"
                 >
                   <component
                     :is="machineHealthStatus.icon"
                     class="h-8 w-8"
-                    :class="`text-${machineHealthStatus.color}`"
+                    :class="getIconColor(machineHealthStatus.color)"
                   />
                 </div>
 
@@ -319,7 +329,7 @@ const goBack = () => {
                     <div>
                       <span class="text-base-content/60">Status:</span>
                       <span
-                        :class="`ml-2 font-medium text-${machineHealthStatus.color} capitalize`"
+                        :class="`ml-2 font-medium capitalize ${getIconColor(machineHealthStatus.color)}`"
                       >
                         {{ machineHealthStatus.status.replace("-", " ") }}
                       </span>
@@ -339,7 +349,7 @@ const goBack = () => {
                     <div>
                       <span class="text-base-content/60">Last Contact:</span>
                       <span
-                        :class="`ml-2 font-medium ${parseInt(machineData.Info.LastContact) > 60 ? 'text-error' : 'text-success'}`"
+                        :class="`ml-2 font-medium ${getContactStatusColor(machineData.Info.LastContact)}`"
                       >
                         {{ machineData.Info.LastContact }} ago
                       </span>
@@ -358,7 +368,6 @@ const goBack = () => {
                     </div>
                     <div class="md:col-span-2">
                       <span class="text-base-content/60">Supported Tasks:</span>
-                      <!-- TODO: Add Supported Tasks field to RPC response -->
                       <div class="mt-1">
                         <span class="text-base-content/40 text-xs">
                           Not available
@@ -671,7 +680,11 @@ const goBack = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="volume in machineData.Storage" :key="volume.ID">
+                    <tr
+                      v-for="volume in machineData.Storage"
+                      :key="volume.ID"
+                      :class="getTableRowClasses()"
+                    >
                       <td>
                         <div class="font-mono font-semibold">
                           {{ volume.ID }}
@@ -806,6 +819,7 @@ const goBack = () => {
                         20,
                       )"
                       :key="task.ID"
+                      :class="getTableRowClasses()"
                     >
                       <td>
                         <div class="font-mono font-semibold">
@@ -903,6 +917,7 @@ const goBack = () => {
                         20,
                       )"
                       :key="task.ID"
+                      :class="getTableRowClasses()"
                     >
                       <td>
                         <div class="font-mono font-semibold">

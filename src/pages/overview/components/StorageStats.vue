@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useCachedQuery } from "@/composables/useCachedQuery";
+import { CircleStackIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { StorageUseStat, StorageBreakdown } from "@/types/storage";
 import { formatPercentage } from "@/utils/format";
-import { getProgressColor } from "@/utils/ui";
+import { getProgressColor, getTableRowClasses } from "@/utils/ui";
 
 const {
   data: summary,
@@ -78,7 +79,7 @@ const getAvailablePercentage = (
     :has-data="hasData"
     :on-retry="refresh"
     error-title="Storage Error"
-    empty-icon="💾"
+    :empty-icon="CircleStackIcon"
     empty-message="No storage data available"
   >
     <template #loading>Loading storage statistics...</template>
@@ -93,7 +94,7 @@ const getAvailablePercentage = (
       </thead>
       <tbody>
         <template v-for="row in data" :key="row.Type">
-          <tr>
+          <tr :class="getTableRowClasses()">
             <td class="font-medium">{{ row.Type }}</td>
             <td>
               <div class="space-y-1">
@@ -129,9 +130,9 @@ const getAvailablePercentage = (
           <tr
             v-for="sub in row.subEntries"
             :key="`${row.Type}-${sub.type}`"
-            class="bg-base-200/30"
+            :class="[getTableRowClasses(), 'bg-base-200/30']"
           >
-            <td class="text-base-content/80 pl-8 text-sm">└ {{ sub.type }}</td>
+            <td class="pl-8 text-sm">└ {{ sub.type }}</td>
             <td class="text-sm">
               <div class="space-y-1">
                 <div>Available: {{ sub.avail_str }}</div>
