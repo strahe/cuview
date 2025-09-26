@@ -1,66 +1,86 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  ClipboardDocumentIcon,
-  CheckCircleIcon,
-} from "@heroicons/vue/24/outline";
+import { ClipboardDocumentIcon, CheckIcon } from "@heroicons/vue/24/outline";
 import { useCopyToClipboard } from "@/composables/useCopyToClipboard";
 
-interface Props {
-  text: string;
-  title?: string;
-  size?: "xs" | "sm" | "md";
-  variant?: "ghost" | "outline" | "primary";
-}
+const props = withDefaults(
+  defineProps<{
+    value?: string | null;
+    label?: string;
+    variant?:
+      | "ghost"
+      | "link"
+      | "outline"
+      | "primary"
+      | "secondary"
+      | "success"
+      | "warning"
+      | "info"
+      | "error";
+    size?: "xs" | "sm" | "md";
+    disabled?: boolean;
+    iconOnly?: boolean;
+    extraClass?: string;
+    ariaLabel?: string;
+  }>(),
+  {
+    value: "",
+    label: "Copy",
+    variant: "ghost",
+    size: "xs",
+    disabled: false,
+    iconOnly: false,
+    extraClass: "",
+    ariaLabel: "Copy value",
+  },
+);
 
-const props = withDefaults(defineProps<Props>(), {
-  title: "Copy",
-  size: "xs",
-  variant: "ghost",
-});
+const emit = defineEmits<{ (event: "copied"): void }>();
 
-const { copy, copied } = useCopyToClipboard({
-  resetDelay: 2000,
-});
-
-const buttonClass = computed(() => {
-  const classes = ["btn"];
-
-  classes.push(`btn-${props.variant}`);
-  classes.push(`btn-${props.size}`);
-
-  if (copied.value) {
-    classes.push("text-success");
-  }
-
-  return classes.join(" ");
-});
-
-const currentTitle = computed(() => {
-  return copied.value ? "Copied!" : props.title;
-});
-
-const iconClass = computed(() => {
-  const baseClass = "transition-colors duration-150";
-
+const sizeClass = computed(() => {
   switch (props.size) {
     case "sm":
-      return `${baseClass} size-4`;
+      return "btn-sm";
     case "md":
-      return `${baseClass} size-5`;
+      return "btn-md";
     default:
-      return `${baseClass} size-4`;
+      return "btn-xs";
   }
 });
 
-const handleCopy = () => {
-  copy(props.text);
+const variantClass = computed(() => `btn-${props.variant}`);
+
+const { copy, copied } = useCopyToClipboard({ resetDelay: 1500 });
+
+const handleCopy = async () => {
+  if (!props.value || props.disabled) return;
+  const success = await copy(props.value);
+  if (success) {
+    emit("copied");
+  }
 };
 </script>
 
 <template>
-  <button :class="buttonClass" :title="currentTitle" @click="handleCopy">
-    <CheckCircleIcon v-if="copied" :class="iconClass" />
-    <ClipboardDocumentIcon v-else :class="iconClass" />
+  <button
+    type="button"
+    :aria-label="ariaLabel"
+    :disabled="disabled || !value"
+    :class="[
+      'btn flex items-center gap-1 no-underline',
+      variantClass,
+      sizeClass,
+      iconOnly ? 'px-2' : '',
+      props.extraClass,
+    ]"
+    @click="handleCopy"
+  >
+    <component
+      :is="copied ? CheckIcon : ClipboardDocumentIcon"
+      :class="size === 'md' ? 'size-5' : 'size-4'"
+    />
+    <span v-if="!iconOnly" class="text-xs font-semibold">
+      {{ copied ? "Copied" : label }}
+    </span>
   </button>
 </template>
