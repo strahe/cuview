@@ -97,7 +97,7 @@ const handleSettings = () => {
     </div>
 
     <main
-      class="hidden h-screen flex-1 overflow-y-auto transition-all duration-300 lg:block"
+      class="hidden min-h-screen flex-1 transition-all duration-300 lg:block"
       :style="{ marginLeft: mainContentMargin }"
     >
       <div
