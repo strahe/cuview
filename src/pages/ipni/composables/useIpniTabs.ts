@@ -43,37 +43,42 @@ export const useIpniTabs = () => {
         activeTab.value = normalized;
       }
     },
+    { immediate: true },
   );
+
+  const syncQuery = (next: IpniTabId) => {
+    const normalizedNext = resolveTab(next);
+    const current = resolveTab(route.query.tab);
+
+    if (normalizedNext === current) {
+      return;
+    }
+
+    const nextQuery = { ...route.query };
+
+    if (normalizedNext === DEFAULT_TAB) {
+      delete nextQuery.tab;
+    } else {
+      nextQuery.tab = normalizedNext;
+    }
+
+    if (normalizedNext !== "ads") {
+      delete nextQuery.ad;
+    }
+
+    if (normalizedNext !== "entries") {
+      delete nextQuery.entry;
+    }
+
+    router.replace({ query: nextQuery });
+  };
 
   watch(activeTab, (next, prev) => {
     if (next === prev) {
       return;
     }
 
-    const currentQuery = { ...route.query };
-    const normalizedQueryTab = resolveTab(route.query.tab);
-    if (normalizedQueryTab === next) {
-      return;
-    }
-
-    if (next === DEFAULT_TAB) {
-      delete currentQuery.tab;
-    } else {
-      currentQuery.tab = next;
-    }
-
-    // Remove tab-specific parameters when leaving their context
-    if (next !== "ads") {
-      delete currentQuery.ad;
-    }
-
-    if (next !== "entries") {
-      delete currentQuery.entry;
-    }
-
-    router.replace({
-      query: currentQuery,
-    });
+    syncQuery(next);
   });
 
   const tabs = computed(() => IPNI_TABS);

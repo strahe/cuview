@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { LocationQueryRaw } from "vue-router";
 import {
@@ -12,28 +12,15 @@ import SectionCard from "@/components/ui/SectionCard.vue";
 import { useIpniEntryLookup } from "../composables/useIpniEntryLookup";
 import CopyButton from "@/components/ui/CopyButton.vue";
 import { formatBytes } from "@/utils/format";
+import {
+  mergeCidQuery,
+  normalizeQueryString,
+} from "../composables/useIpniQueryParams";
 
 const route = useRoute();
 const router = useRouter();
 
-const normalizeCid = (value: unknown): string => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (typeof raw !== "string") return "";
-  return raw.trim();
-};
-
-const buildEntryQuery = (cid: string) => {
-  const next = { ...router.currentRoute.value.query } as LocationQueryRaw;
-  const trimmed = cid.trim();
-  if (trimmed.length) {
-    next.entry = trimmed;
-  } else {
-    delete next.entry;
-  }
-  return next;
-};
-
-const searchTerm = ref<string>(normalizeCid(route.query.entry));
+const searchTerm = ref<string>(normalizeQueryString(route.query.entry));
 
 const { entry, loading, error, lastQuery, search } = useIpniEntryLookup();
 
@@ -62,7 +49,12 @@ const firstCid = computed(() => {
 });
 
 const handleSearch = () => {
-  router.replace({ query: buildEntryQuery(searchTerm.value) });
+  const nextQuery = mergeCidQuery(
+    router.currentRoute.value.query as LocationQueryRaw,
+    "entry",
+    searchTerm.value,
+  );
+  router.replace({ query: nextQuery });
 };
 
 const handleSubmit = (event: Event) => {
@@ -75,27 +67,32 @@ const handleLoadPrevious = () => {
   const target = prevCid.value;
   if (!target) return;
   searchTerm.value = target;
-  router.replace({ query: buildEntryQuery(target) });
+  const nextQuery = mergeCidQuery(
+    router.currentRoute.value.query as LocationQueryRaw,
+    "entry",
+    target,
+  );
+  router.replace({ query: nextQuery });
 };
 
-watch(
-  () => route.query.entry,
-  (value) => {
-    const cid = normalizeCid(value);
-    if (cid !== searchTerm.value) {
-      searchTerm.value = cid;
-    }
+watchEffect(() => {
+  const cid = normalizeQueryString(route.query.entry);
 
-    if (!cid) {
-      search("");
-      return;
-    }
+  if (cid !== searchTerm.value) {
+    searchTerm.value = cid;
+  }
 
-    if (cid === lastQuery.value) return;
-    search(cid);
-  },
-  { immediate: true },
-);
+  if (!cid) {
+    search("");
+    return;
+  }
+
+  if (cid === lastQuery.value) {
+    return;
+  }
+
+  search(cid);
+});
 </script>
 
 <template>

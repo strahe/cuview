@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { formatDistanceToNow } from "date-fns";
 import { useRoute, useRouter } from "vue-router";
 import type { LocationQueryRaw } from "vue-router";
@@ -18,6 +18,10 @@ import CopyButton from "@/components/ui/CopyButton.vue";
 import IpniAdsTable from "./IpniAdsTable.vue";
 import { useIpniAdSearch } from "../composables/useIpniAdSearch";
 import { useIpniAdsList } from "../composables/useIpniAdsList";
+import {
+  mergeCidQuery,
+  normalizeQueryString,
+} from "../composables/useIpniQueryParams";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import { formatBytes } from "@/utils/format";
 import type { IpniAdRow } from "@/types/ipni";
@@ -25,24 +29,7 @@ import type { IpniAdRow } from "@/types/ipni";
 const route = useRoute();
 const router = useRouter();
 
-const normalizeCid = (value: unknown): string => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (typeof raw !== "string") return "";
-  return raw.trim();
-};
-
-const buildAdQuery = (cid: string) => {
-  const next = { ...router.currentRoute.value.query } as LocationQueryRaw;
-  const trimmed = cid.trim();
-  if (trimmed.length) {
-    next.ad = trimmed;
-  } else {
-    delete next.ad;
-  }
-  return next;
-};
-
-const searchTerm = ref<string>(normalizeCid(route.query.ad));
+const searchTerm = ref<string>(normalizeQueryString(route.query.ad));
 
 const {
   ad,
@@ -110,7 +97,12 @@ const pendingTableAd = ref<string | null>(null);
 const tableMutationError = ref<Error | null>(null);
 
 const handleSearch = () => {
-  router.replace({ query: buildAdQuery(searchTerm.value) });
+  const nextQuery = mergeCidQuery(
+    router.currentRoute.value.query as LocationQueryRaw,
+    "ad",
+    searchTerm.value,
+  );
+  router.replace({ query: nextQuery });
 };
 
 const handleSubmit = async (event: Event) => {
@@ -127,24 +119,38 @@ const handleToggleSkip = async () => {
 
 const navigateToEntries = () => {
   if (!ad.value?.entries) return;
-  router.replace({
-    query: {
-      ...router.currentRoute.value.query,
-      tab: "entries",
-      entry: ad.value.entries,
-    },
-  });
+
+  const baseQuery = {
+    ...router.currentRoute.value.query,
+    tab: "entries",
+  } as LocationQueryRaw;
+
+  delete baseQuery.ad;
+
+  const nextQuery = mergeCidQuery(baseQuery, "entry", ad.value.entries);
+
+  router.replace({ query: nextQuery });
 };
 
 const handleTableView = (row: IpniAdRow) => {
   searchTerm.value = row.ad_cid;
-  router.replace({ query: buildAdQuery(row.ad_cid) });
+  const nextQuery = mergeCidQuery(
+    router.currentRoute.value.query as LocationQueryRaw,
+    "ad",
+    row.ad_cid,
+  );
+  router.replace({ query: nextQuery });
 };
 
 const handleChainSelect = (cid: string) => {
   if (!cid) return;
   searchTerm.value = cid;
-  router.replace({ query: buildAdQuery(cid) });
+  const nextQuery = mergeCidQuery(
+    router.currentRoute.value.query as LocationQueryRaw,
+    "ad",
+    cid,
+  );
+  router.replace({ query: nextQuery });
 };
 
 const handleTableToggle = async (row: IpniAdRow) => {
@@ -165,24 +171,24 @@ const handleTableToggle = async (row: IpniAdRow) => {
   }
 };
 
-watch(
-  () => route.query.ad,
-  (value) => {
-    const cid = normalizeCid(value);
-    if (cid !== searchTerm.value) {
-      searchTerm.value = cid;
-    }
+watchEffect(() => {
+  const cid = normalizeQueryString(route.query.ad);
 
-    if (!cid) {
-      search("");
-      return;
-    }
+  if (cid !== searchTerm.value) {
+    searchTerm.value = cid;
+  }
 
-    if (cid === lastQuery.value) return;
-    search(cid);
-  },
-  { immediate: true },
-);
+  if (!cid) {
+    search("");
+    return;
+  }
+
+  if (cid === lastQuery.value) {
+    return;
+  }
+
+  search(cid);
+});
 </script>
 
 <template>
