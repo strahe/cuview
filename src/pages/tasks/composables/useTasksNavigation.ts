@@ -4,24 +4,20 @@ import { useRouter } from "vue-router";
 export interface TaskTab {
   id: string;
   label: string;
-  icon: string;
 }
 
 export const TASK_TABS: TaskTab[] = [
   {
     id: "overview",
     label: "Overview",
-    icon: "📊",
   },
   {
     id: "active",
     label: "Active Tasks",
-    icon: "⚡",
   },
   {
     id: "history",
     label: "History",
-    icon: "📜",
   },
 ];
 
