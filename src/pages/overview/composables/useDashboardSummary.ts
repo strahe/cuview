@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { formatDistanceToNow, formatDistanceToNowStrict } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
 import type { StorageUseStat } from "@/types/storage";
@@ -33,20 +33,6 @@ export interface DashboardStatus {
   issues: number;
   endpointIssues: number;
   offlineMachines: number;
-}
-
-export interface DashboardRecentTaskItem {
-  id: number;
-  title: string;
-  status: "success" | "error";
-  statusLabel: string;
-  completedBy: string | null;
-  duration: string | null;
-  queued: string | null;
-  started: string | null;
-  startedAgo: string | null;
-  errorMessage: string | null;
-  warningMessage: string | null;
 }
 
 interface HeroCardSnapshot {
@@ -162,7 +148,7 @@ export const useDashboardSummary = () => {
     error: recentTasksError,
     lastUpdated: recentTasksUpdated,
     refresh: refreshRecentTasks,
-  } = useCachedQuery<TaskHistorySummary[]>("ClusterTaskHistory", [15, 0], {
+  } = useCachedQuery<TaskHistorySummary[]>("ClusterTaskHistory", [20, 0], {
     pollingInterval: 20000,
   });
 
@@ -299,29 +285,8 @@ export const useDashboardSummary = () => {
     actorCount: actorCount.value,
   }));
 
-  const recentTasks = computed<DashboardRecentTaskItem[]>(() => {
-    if (!taskHistory.value || taskHistory.value.length === 0) {
-      return [];
-    }
-
-    return taskHistory.value.slice(0, 8).map((task) => ({
-      id: task.TaskID,
-      title: task.Name,
-      status: task.Result ? "success" : "error",
-      statusLabel: task.Result ? "Success" : "Failed",
-      completedBy: task.CompletedBy || null,
-      duration: task.Took || null,
-      queued: task.Queued || null,
-      started: task.Start || null,
-      startedAgo:
-        task.Start && !Number.isNaN(Date.parse(task.Start))
-          ? formatDistanceToNowStrict(new Date(task.Start), {
-              addSuffix: true,
-            })
-          : null,
-      errorMessage: !task.Result && task.Err ? task.Err : null,
-      warningMessage: task.Result && task.Err ? task.Err : null,
-    }));
+  const recentTasks = computed(() => {
+    return taskHistory.value?.slice(0, 20) || [];
   });
 
   const lastUpdated = computed(() => {

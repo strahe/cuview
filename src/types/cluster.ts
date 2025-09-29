@@ -23,6 +23,5 @@ export interface HarmonyTaskStat {
 }
 
 export interface TaskStatWithPercentage extends HarmonyTaskStat {
-  FailedPercentage: string;
   isError: boolean;
 }

@@ -22,7 +22,9 @@ type IconColor =
   | "info"
   | "success"
   | "warning"
-  | "error";
+  | "error"
+  | "neutral"
+  | "muted";
 
 type HeroCardPreset = "machines" | "tasks" | "storage" | "actors";
 
@@ -47,10 +49,10 @@ const cardIconMap: Record<
   HeroCardPreset,
   { icon: Component; fallbackColor: IconColor }
 > = {
-  machines: { icon: ServerStackIcon, fallbackColor: "success" },
-  tasks: { icon: BoltIcon, fallbackColor: "accent" },
-  storage: { icon: CircleStackIcon, fallbackColor: "info" },
-  actors: { icon: UserGroupIcon, fallbackColor: "secondary" },
+  machines: { icon: ServerStackIcon, fallbackColor: "neutral" },
+  tasks: { icon: BoltIcon, fallbackColor: "neutral" },
+  storage: { icon: CircleStackIcon, fallbackColor: "neutral" },
+  actors: { icon: UserGroupIcon, fallbackColor: "neutral" },
 };
 
 const cards = computed(() =>
@@ -135,7 +137,6 @@ const handleRefresh = async () => {
         :subtitle="card.subtitle"
         :icon="card.icon"
         :icon-color="card.iconColor"
-        size="compact"
       />
     </div>
 
@@ -157,7 +158,7 @@ const handleRefresh = async () => {
         </span>
         <div class="bg-base-200 h-1.5 w-36 rounded-full">
           <div
-            class="bg-primary h-1.5 rounded-full"
+            class="bg-base-content/60 h-1.5 rounded-full"
             :style="{ width: storageUsageWidth }"
           />
         </div>

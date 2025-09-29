@@ -67,10 +67,10 @@ const handleCopy = async () => {
     :aria-label="ariaLabel"
     :disabled="disabled || !value"
     :class="[
-      'btn flex items-center gap-1 no-underline',
+      'btn flex items-center no-underline',
+      iconOnly ? 'px-1' : 'gap-1',
       variantClass,
       sizeClass,
-      iconOnly ? 'px-2' : '',
       props.extraClass,
     ]"
     @click="handleCopy"

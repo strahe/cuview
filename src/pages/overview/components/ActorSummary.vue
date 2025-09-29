@@ -52,9 +52,13 @@ const {
             :class="getTableRowClasses()"
           >
             <td>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <span class="font-mono text-sm">{{ entry.Address }}</span>
-                <CopyButton :text="entry.Address" title="Copy address" />
+                <CopyButton
+                  :value="entry.Address"
+                  :icon-only="true"
+                  aria-label="Copy address"
+                />
               </div>
             </td>
 

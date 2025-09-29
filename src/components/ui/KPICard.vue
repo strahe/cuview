@@ -17,7 +17,9 @@ interface KPICardProps {
     | "info"
     | "success"
     | "warning"
-    | "error";
+    | "error"
+    | "neutral"
+    | "muted";
   size?: CardSize;
 }
 
@@ -25,7 +27,7 @@ const props = withDefaults(defineProps<KPICardProps>(), {
   subtitle: "",
   trend: "neutral",
   icon: undefined,
-  iconColor: "primary",
+  iconColor: "neutral",
   size: "default",
 });
 
@@ -43,24 +45,24 @@ const iconBgColors = {
   success: "bg-success/10 text-success",
   warning: "bg-warning/10 text-warning",
   error: "bg-error/10 text-error",
+  neutral: "bg-base-300/50 text-base-content/70",
+  muted: "bg-base-200/50 text-base-content/50",
 };
 
 const sizeMap = {
   default: {
-    container: "p-5",
-    value: "text-3xl",
+    container: "",
+    value: "",
     icon: "p-2.5",
-    gap: "mb-3",
   },
   compact: {
-    container: "p-4",
-    value: "text-2xl",
+    container: "",
+    value: "text-xl",
     icon: "p-2",
-    gap: "mb-2",
   },
 } as const satisfies Record<
   CardSize,
-  { container: string; value: string; icon: string; gap: string }
+  { container: string; value: string; icon: string }
 >;
 
 const sizeClasses = computed(() => sizeMap[props.size]);
@@ -68,37 +70,28 @@ const sizeClasses = computed(() => sizeMap[props.size]);
 
 <template>
   <div
-    class="bg-base-100 border-base-300 hover:border-primary/20 rounded-xl border transition-all duration-200 hover:shadow-lg"
+    class="stats bg-base-100 border-base-300 hover:border-base-content/30 w-full rounded-xl border transition-all duration-200 hover:shadow-lg"
     :class="sizeClasses.container"
   >
-    <div class="flex items-start justify-between" :class="sizeClasses.gap">
-      <div class="flex-1">
-        <div class="text-base-content/60 mb-1 text-sm font-medium">
-          {{ label }}
-        </div>
-        <div
-          class="text-base-content font-bold tracking-tight"
-          :class="sizeClasses.value"
-        >
-          {{ value }}
-        </div>
-      </div>
-
+    <div class="stat">
       <div
         v-if="icon"
-        class="ml-3 rounded-lg"
+        class="stat-figure rounded-lg"
         :class="[iconBgColors[iconColor], sizeClasses.icon]"
       >
         <component :is="icon" class="size-5" />
       </div>
-    </div>
 
-    <div
-      v-if="subtitle"
-      class="text-xs font-medium"
-      :class="trendColors[trend]"
-    >
-      {{ subtitle }}
+      <div class="stat-title">
+        {{ label }}
+      </div>
+      <div class="stat-value" :class="sizeClasses.value">
+        {{ value }}
+      </div>
+
+      <div v-if="subtitle" class="stat-desc" :class="trendColors[trend]">
+        {{ subtitle }}
+      </div>
     </div>
   </div>
 </template>

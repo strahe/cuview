@@ -87,7 +87,10 @@ const machineHealthPercentage = computed(() => {
 
 const activeTasks = computed(() => {
   if (!machines.value) return 0;
-  return machines.value.reduce((sum, machine) => sum + machine.RunningTasks, 0);
+  return machines.value.reduce(
+    (sum, machine) => sum + (machine.RunningTasks || 0),
+    0,
+  );
 });
 
 const totalCPUs = computed(() => {

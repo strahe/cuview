@@ -55,7 +55,7 @@ const setActiveTab = (tabId: string) => {
           :class="[
             'relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-all duration-300',
             activeTab === tab.id
-              ? 'text-primary-content bg-primary shadow-primary/25 scale-105 transform shadow-lg'
+              ? 'bg-neutral text-neutral-content shadow-neutral/30 hover:bg-neutral-focus scale-105 transform shadow-lg'
               : 'text-base-content/75 hover:text-base-content hover:bg-base-100 hover:shadow-sm',
           ]"
           @click="setActiveTab(tab.id)"
@@ -66,7 +66,7 @@ const setActiveTab = (tabId: string) => {
           <!-- Active indicator -->
           <div
             v-if="activeTab === tab.id"
-            class="from-primary to-primary-focus absolute inset-0 -z-10 rounded-lg bg-gradient-to-r opacity-90"
+            class="bg-neutral absolute inset-0 -z-10 rounded-lg"
           />
         </button>
       </div>

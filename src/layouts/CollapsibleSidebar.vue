@@ -112,7 +112,7 @@ const sidebarClasses = computed(() => [
     <div class="border-base-300 flex h-20 flex-col justify-center border-b p-4">
       <div v-if="!isCollapsed" class="flex items-center gap-3">
         <div
-          class="from-primary to-secondary text-primary-content grid size-10 place-items-center rounded-xl bg-gradient-to-br text-lg font-bold"
+          class="bg-neutral text-neutral-content grid size-10 place-items-center rounded-xl text-lg font-bold"
         >
           C
         </div>
@@ -124,7 +124,7 @@ const sidebarClasses = computed(() => [
 
       <div v-else class="flex items-center justify-center">
         <div
-          class="from-primary to-secondary text-primary-content grid size-10 place-items-center rounded-xl bg-gradient-to-br text-lg font-bold"
+          class="bg-neutral text-neutral-content grid size-10 place-items-center rounded-xl text-lg font-bold"
         >
           C
         </div>
@@ -141,8 +141,8 @@ const sidebarClasses = computed(() => [
               :class="[
                 isCollapsed ? 'w-10 justify-center px-2' : 'gap-3 px-3',
                 isNavItemActive(item)
-                  ? 'bg-primary text-primary-content hover:bg-primary/90'
-                  : '',
+                  ? 'bg-neutral text-neutral-content hover:bg-neutral-focus shadow-inner'
+                  : 'text-base-content/80',
               ]"
               :title="isCollapsed ? item.label : ''"
             >

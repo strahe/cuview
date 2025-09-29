@@ -63,13 +63,6 @@ const data = computed(() => {
 const getUsagePercentage = (capacity: number, available: number): number => {
   return capacity > 0 ? 100 - (100 * available) / capacity : 0;
 };
-
-const getAvailablePercentage = (
-  capacity: number,
-  available: number,
-): number => {
-  return capacity > 0 ? (100 * available) / capacity : 0;
-};
 </script>
 
 <template>
@@ -97,32 +90,33 @@ const getAvailablePercentage = (
           <tr :class="getTableRowClasses()">
             <td class="font-medium">{{ row.Type }}</td>
             <td>
-              <div class="space-y-1">
-                <div class="text-sm">
-                  {{ row.UseStr || row.Capacity - row.Available }} /
-                  {{ row.CapStr || row.Capacity }}
-                </div>
-                <div class="text-base-content/70 text-xs">
+              <div class="text-sm font-medium">
+                {{ row.UseStr || row.Capacity - row.Available }} /
+                {{ row.CapStr || row.Capacity }}
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center gap-3">
+                <progress
+                  class="progress flex-1"
+                  :class="
+                    getProgressColor(
+                      getUsagePercentage(row.Capacity, row.Available),
+                    )
+                  "
+                  :value="getUsagePercentage(row.Capacity, row.Available)"
+                  max="100"
+                ></progress>
+                <span
+                  class="text-base-content/70 min-w-[3rem] text-xs font-medium"
+                >
                   {{
                     formatPercentage(
                       getUsagePercentage(row.Capacity, row.Available),
                     )
                   }}
-                  used
-                </div>
+                </span>
               </div>
-            </td>
-            <td>
-              <progress
-                class="progress w-56"
-                :class="
-                  getProgressColor(
-                    getUsagePercentage(row.Capacity, row.Available),
-                  )
-                "
-                :value="getUsagePercentage(row.Capacity, row.Available)"
-                max="100"
-              ></progress>
             </td>
           </tr>
 
@@ -134,29 +128,30 @@ const getAvailablePercentage = (
           >
             <td class="pl-8 text-sm">└ {{ sub.type }}</td>
             <td class="text-sm">
-              <div class="space-y-1">
-                <div>Available: {{ sub.avail_str }}</div>
-                <div class="text-base-content/70 text-xs">
-                  {{
-                    formatPercentage(
-                      getAvailablePercentage(sub.capacity, sub.available),
-                    )
-                  }}
-                  available
-                </div>
-              </div>
+              <div class="font-medium">Available: {{ sub.avail_str }}</div>
             </td>
             <td>
-              <progress
-                class="progress w-48"
-                :class="
-                  getProgressColor(
-                    getUsagePercentage(sub.capacity, sub.available),
-                  )
-                "
-                :value="getUsagePercentage(sub.capacity, sub.available)"
-                max="100"
-              ></progress>
+              <div class="flex items-center gap-3">
+                <progress
+                  class="progress flex-1"
+                  :class="
+                    getProgressColor(
+                      getUsagePercentage(sub.capacity, sub.available),
+                    )
+                  "
+                  :value="getUsagePercentage(sub.capacity, sub.available)"
+                  max="100"
+                ></progress>
+                <span
+                  class="text-base-content/70 min-w-[3rem] text-xs font-medium"
+                >
+                  {{
+                    formatPercentage(
+                      getUsagePercentage(sub.capacity, sub.available),
+                    )
+                  }}
+                </span>
+              </div>
             </td>
           </tr>
         </template>
