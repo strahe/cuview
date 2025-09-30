@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.1.12",
     "@tanstack/vue-table": "^8.21.3",
     "@vueuse/core": "^13.7.0",
+    "apexcharts": "^5.3.5",
     "daisyui": "^5.0.50",
     "date-fns": "^4.1.0",
     "pinia": "^3.0.3",
@@ -26,7 +27,8 @@
     "reka-ui": "^2.4.1",
     "tailwindcss": "^4.1.12",
     "vue": "^3.5.18",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vue3-apexcharts": "^1.8.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

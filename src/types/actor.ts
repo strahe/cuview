@@ -25,3 +25,52 @@ export interface Deadline {
   Faulty: boolean;
   Count?: DeadlineCount;
 }
+
+// Enhanced types for actor detail and management
+export interface ActorDetail {
+  Summary: ActorSummaryData;
+  OwnerAddress: string;
+  Beneficiary: string;
+  WorkerAddress: string;
+  WorkerBalance: string;
+  PeerID: string;
+  Address: string[];
+  SectorSize: number;
+  PendingOwnerAddress?: string;
+  BeneficiaryTerm?: BeneficiaryTerm;
+  PendingBeneficiaryTerm?: PendingBeneficiaryChange;
+  Wallets: WalletInfo[];
+}
+
+export interface WalletInfo {
+  Type: string;
+  Address: string;
+  Balance: string;
+}
+
+export interface BeneficiaryTerm {
+  Quota: string;
+  UsedQuota: string;
+  Expiration: number;
+}
+
+export interface PendingBeneficiaryChange {
+  NewBeneficiary: string;
+  NewQuota: string;
+  NewExpiration: number;
+  ApprovedByBeneficiary: boolean;
+  ApprovedByNominee: boolean;
+}
+
+export interface SectorBuckets {
+  All: SectorBucket[];
+  CC: SectorBucket[];
+}
+
+export interface SectorBucket {
+  BucketEpoch: number;
+  Count: number;
+  QAP: string;
+  Days: number;
+  VestedLockedFunds: string;
+}

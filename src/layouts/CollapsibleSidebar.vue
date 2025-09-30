@@ -66,6 +66,7 @@ const navItems: NavItem[] = [
     label: "Actor",
     icon: UserIcon,
     to: "/actor",
+    activePattern: "^/actor.*", // Match all /actor/* routes
   },
   {
     label: "Wallets",

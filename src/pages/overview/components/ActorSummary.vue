@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { UserGroupIcon } from "@heroicons/vue/24/outline";
+import { useRouter } from "vue-router";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { getTableRowClasses } from "@/utils/ui";
 import DataTable from "@/components/ui/DataTable.vue";
@@ -8,6 +9,8 @@ import CopyButton from "@/components/ui/CopyButton.vue";
 import DeadlineGrid from "@/components/ui/DeadlineGrid.vue";
 import DeadlineLegend from "@/components/ui/DeadlineLegend.vue";
 import type { ActorSummaryData } from "@/types/actor";
+
+const router = useRouter();
 
 const {
   data: actors,
@@ -18,6 +21,14 @@ const {
 } = useCachedQuery<ActorSummaryData[]>("ActorSummary", [], {
   pollingInterval: 30000,
 });
+
+const handleActorClick = (address: string, event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (target.closest(".no-row-click")) {
+    return;
+  }
+  router.push(`/actor/${encodeURIComponent(address)}`);
+};
 </script>
 
 <template>
@@ -49,15 +60,18 @@ const {
           <tr
             v-for="entry in actors"
             :key="entry.Address"
-            :class="getTableRowClasses()"
+            :class="getTableRowClasses(true)"
+            @click="handleActorClick(entry.Address, $event)"
           >
             <td>
               <div class="flex items-center gap-1">
                 <span class="font-mono text-sm">{{ entry.Address }}</span>
                 <CopyButton
                   :value="entry.Address"
+                  :aria-label="`Copy address ${entry.Address}`"
+                  size="xs"
                   :icon-only="true"
-                  aria-label="Copy address"
+                  extra-class="no-row-click"
                 />
               </div>
             </td>

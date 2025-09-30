@@ -29,4 +29,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vue-core": ["vue", "vue-router"],
+          "vue-state": ["pinia", "pinia-plugin-persistedstate"],
+          "vue-use": ["@vueuse/core"],
+          "apexcharts-vendor": ["apexcharts", "vue3-apexcharts"],
+          "table-vendor": ["@tanstack/vue-table"],
+          "ui-vendor": ["reka-ui", "@heroicons/vue", "daisyui"],
+          "date-vendor": ["date-fns"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 });
