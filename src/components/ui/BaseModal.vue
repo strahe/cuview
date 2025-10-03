@@ -15,6 +15,7 @@ interface Props {
   title?: string;
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
+  modal?: boolean;
 }
 
 interface Emits {
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: "",
   size: "md",
   showCloseButton: true,
+  modal: false,
 });
 
 const emit = defineEmits<Emits>();
@@ -49,7 +51,7 @@ const handleClose = () => {
 <template>
   <DialogRoot
     :open="open"
-    :modal="false"
+    :modal="modal"
     @update:open="(value) => !value && handleClose()"
   >
     <DialogPortal>

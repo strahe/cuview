@@ -120,9 +120,12 @@ const getButtonClass = computed(() => {
                     {{ title }}
                   </AlertDialogTitle>
                   <AlertDialogDescription
+                    v-if="message || !!$slots.description"
                     class="text-base-content/70 mt-2 text-sm"
                   >
-                    {{ message }}
+                    <slot name="description">
+                      {{ message }}
+                    </slot>
                   </AlertDialogDescription>
                 </div>
 

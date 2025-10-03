@@ -14,12 +14,22 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/vue/24/outline";
+import { useForm } from "@tanstack/vue-form";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { AllowDeny, AccessControlTableEntry } from "@/types/wallet";
 import { getTableRowClasses } from "@/utils/ui";
+import BaseModal from "@/components/ui/BaseModal.vue";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
+import {
+  FormFieldWrapper,
+  FormInput,
+  FormLayout,
+  FormSection,
+  FormActions,
+} from "@/components/ui/form";
 
 interface Props {
   items?: AllowDeny[];
@@ -48,15 +58,19 @@ const rawData = computed(() => {
 const showAddDialog = ref(false);
 const showRemoveDialog = ref(false);
 const selectedEntry = ref<AccessControlTableEntry | null>(null);
-const newEntry = ref({ wallet: "", status: true });
-const operationError = ref<string | null>(null);
+const tableOperationError = ref<string | null>(null);
+const addDialogError = ref<string | null>(null);
+const removeDialogError = ref<string | null>(null);
 const operationSuccess = ref<string | null>(null);
 const manualRefreshLoading = ref(false);
 
-const isAddingFilter = ref(false);
 const removingFilters = ref(new Set<string>());
 
 const { call } = useCurioQuery();
+const isRemovingSelected = computed(() => {
+  if (!selectedEntry.value) return false;
+  return removingFilters.value.has(selectedEntry.value.wallet);
+});
 
 const columnHelper = createColumnHelper<AccessControlTableEntry>();
 
@@ -170,86 +184,128 @@ const statusDistribution = computed(() => {
   );
 });
 
+type AddClientFormValues = {
+  wallet: string;
+  status: boolean;
+};
+
+const lastAddedEntry = ref<AddClientFormValues>({ wallet: "", status: true });
+
+const addClientFormDefaultValues: AddClientFormValues = {
+  wallet: "",
+  status: true,
+};
+
+const addClientForm = useForm({
+  defaultValues: addClientFormDefaultValues,
+  onSubmit: async ({ value }) => {
+    const trimmedWallet = value.wallet.trim();
+
+    const exists = rawData.value.some(
+      (entry) => entry.wallet === trimmedWallet,
+    );
+    if (exists) {
+      addDialogError.value = "Client already exists in access control list";
+      return;
+    }
+
+    try {
+      addDialogError.value = null;
+      tableOperationError.value = null;
+      operationSuccess.value = null;
+
+      await call("AddAllowDenyList", [trimmedWallet, value.status]);
+
+      lastAddedEntry.value = {
+        wallet: trimmedWallet,
+        status: value.status,
+      };
+      operationSuccess.value = "success";
+      props.onRefresh();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to add client access filter";
+      addDialogError.value = errorMessage;
+      tableOperationError.value = errorMessage;
+    }
+  },
+});
+
+const addClientFormIsSubmitting = addClientForm.useStore(
+  (state) => state.isSubmitting,
+);
+const canSubmitAddClient = addClientForm.useStore((state) => state.canSubmit);
+const AddClientField = addClientForm.Field;
+
+const trimInput = (value: string) => value.trim();
+
+const addClientWalletValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Client address is required";
+    }
+    if (!/^[ft][0-3][0-9a-z]+$/i.test(trimmed)) {
+      return "Invalid wallet address format (must be f0-f3 or t0-t3)";
+    }
+    if (rawData.value.some((entry) => entry.wallet === trimmed)) {
+      return "Client already exists in access control list";
+    }
+    return undefined;
+  },
+};
+
 const handleAddClick = () => {
-  newEntry.value = { wallet: "", status: true };
-  operationError.value = null;
+  addClientForm.reset({ wallet: "", status: true });
+  addDialogError.value = null;
+  tableOperationError.value = null;
   operationSuccess.value = null;
   showAddDialog.value = true;
 };
 
 const handleAddCancel = () => {
   showAddDialog.value = false;
-  newEntry.value = { wallet: "", status: true };
-  operationError.value = null;
+  addDialogError.value = null;
   operationSuccess.value = null;
-};
-
-const handleAddConfirm = async () => {
-  if (!newEntry.value.wallet.trim()) {
-    operationError.value = "Client address is required";
-    return;
-  }
-
-  const exists = rawData.value.some(
-    (entry) => entry.wallet === newEntry.value.wallet.trim(),
-  );
-  if (exists) {
-    operationError.value = "Client already exists in access control list";
-    return;
-  }
-
-  try {
-    operationError.value = null;
-    operationSuccess.value = null;
-    isAddingFilter.value = true;
-
-    await call("AddAllowDenyList", [
-      newEntry.value.wallet.trim(),
-      newEntry.value.status,
-    ]);
-
-    operationSuccess.value = "success";
-    props.onRefresh();
-  } catch (error) {
-    operationError.value =
-      error instanceof Error
-        ? error.message
-        : "Failed to add client access filter";
-  } finally {
-    isAddingFilter.value = false;
-  }
+  addClientForm.reset({ wallet: "", status: true });
 };
 
 const handleRemoveClick = (entry: AccessControlTableEntry) => {
   selectedEntry.value = entry;
-  operationError.value = null;
+  removeDialogError.value = null;
   showRemoveDialog.value = true;
 };
 
 const handleRemoveCancel = () => {
   showRemoveDialog.value = false;
   selectedEntry.value = null;
-  operationError.value = null;
+  removeDialogError.value = null;
 };
 
 const handleRemoveConfirm = async () => {
   if (!selectedEntry.value) return;
 
-  try {
-    operationError.value = null;
-    removingFilters.value.add(selectedEntry.value.wallet);
+  const wallet = selectedEntry.value.wallet;
 
-    await call("RemoveAllowFilter", [selectedEntry.value.wallet]);
+  try {
+    removeDialogError.value = null;
+    removingFilters.value.add(wallet);
+
+    await call("RemoveAllowFilter", [wallet]);
 
     props.onRefresh();
     handleRemoveCancel();
   } catch (error) {
-    operationError.value =
+    const errorMessage =
       error instanceof Error
         ? error.message
         : "Failed to remove client access filter";
+    removeDialogError.value = errorMessage;
+    tableOperationError.value = errorMessage;
   } finally {
-    removingFilters.value.delete(selectedEntry.value!.wallet);
+    removingFilters.value.delete(wallet);
   }
 };
 
@@ -479,223 +535,202 @@ const getColumnAggregateInfo = (columnId: string) => {
       </table>
     </div>
 
-    <div v-if="operationError" class="alert alert-error">
+    <div
+      v-if="tableOperationError && !showAddDialog && !showRemoveDialog"
+      class="alert alert-error"
+    >
       <div class="flex items-start justify-between">
-        <span>{{ operationError }}</span>
-        <button class="btn btn-ghost btn-xs" @click="operationError = null">
+        <span>{{ tableOperationError }}</span>
+        <button
+          class="btn btn-ghost btn-xs"
+          @click="tableOperationError = null"
+        >
           ×
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Add Client Access Filter Dialog -->
-  <div
-    v-if="showAddDialog"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  <BaseModal
+    :open="showAddDialog"
+    title="Add Client Access Rule"
+    size="md"
+    :modal="true"
+    :show-close-button="!addClientFormIsSubmitting"
+    @close="handleAddCancel"
   >
-    <div class="bg-base-100 w-full max-w-md rounded-lg p-6 shadow-xl">
-      <!-- Success State -->
-      <template v-if="operationSuccess">
-        <!-- Header: Success Icon + Title -->
-        <div class="mb-6 text-center">
-          <div class="mx-auto mb-3 flex size-16 items-center justify-center">
-            <CheckCircleIcon class="text-success size-16" />
-          </div>
-          <h3 class="text-lg font-semibold">Client Access Rule Added</h3>
-        </div>
-
-        <!-- Primary Info: Client & Permission -->
-        <div class="bg-base-200/30 mb-4 rounded-lg p-4">
-          <div class="mb-2 text-center">
-            <div class="font-mono text-lg font-bold">
-              {{ newEntry.wallet }}
+    <template v-if="operationSuccess">
+      <FormLayout>
+        <div class="space-y-6 text-center">
+          <div>
+            <div class="mx-auto mb-3 flex size-16 items-center justify-center">
+              <CheckCircleIcon class="text-success size-16" />
             </div>
-            <div class="text-base-content/70 text-sm">can now</div>
-            <div class="mt-2 flex items-center justify-center gap-2">
-              <ShieldCheckIcon
-                v-if="newEntry.status"
-                class="text-success size-5"
-              />
-              <ShieldExclamationIcon v-else class="text-error size-5" />
-              <span
-                class="badge badge-outline"
-                :class="newEntry.status ? 'badge-success' : 'badge-error'"
-              >
-                {{ newEntry.status ? "MAKE DEALS" : "BLOCKED" }}
-              </span>
+            <h3 class="text-lg font-semibold">Client Access Rule Added</h3>
+          </div>
+          <div class="bg-base-200/30 rounded-lg p-4">
+            <div class="mb-2 text-center">
+              <div class="font-mono text-lg font-bold">
+                {{ lastAddedEntry.wallet }}
+              </div>
+              <div class="text-base-content/70 text-sm">can now</div>
+              <div class="mt-2 flex items-center justify-center gap-2">
+                <ShieldCheckIcon
+                  v-if="lastAddedEntry.status"
+                  class="text-success size-5"
+                />
+                <ShieldExclamationIcon v-else class="text-error size-5" />
+                <span
+                  class="badge badge-outline"
+                  :class="
+                    lastAddedEntry.status ? 'badge-success' : 'badge-error'
+                  "
+                >
+                  {{ lastAddedEntry.status ? "MAKE DEALS" : "BLOCKED" }}
+                </span>
+              </div>
             </div>
           </div>
+          <div class="text-base-content/70 text-sm">
+            This client
+            {{
+              lastAddedEntry.status
+                ? "is now authorized to"
+                : "is now blocked from"
+            }}
+            {{
+              lastAddedEntry.status
+                ? "make storage deals"
+                : "making storage deals"
+            }}
+            with your Curio cluster.
+          </div>
         </div>
+      </FormLayout>
+    </template>
 
-        <!-- Secondary Info: Description -->
-        <div class="text-base-content/70 mb-6 text-center text-sm">
-          This client
-          {{ newEntry.status ? "is now authorized to" : "is now blocked from" }}
-          {{ newEntry.status ? "make storage deals" : "making storage deals" }}
-          with your Curio cluster.
-        </div>
-
-        <!-- Action: Close -->
-        <div class="flex justify-end">
-          <button class="btn btn-primary" @click="handleAddCancel">
-            Close
-          </button>
-        </div>
-      </template>
-
-      <!-- Form State -->
-      <template v-else>
-        <h3 class="mb-4 text-lg font-semibold">Add Client Access Rule</h3>
-
-        <!-- Client Address Input -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Client Address</span>
-          </label>
-          <input
-            v-model="newEntry.wallet"
-            type="text"
+    <template v-else>
+      <FormLayout>
+        <FormSection>
+          <FormInput
+            :form="addClientForm"
+            name="wallet"
+            label="Client Address"
             placeholder="f1abc... or f3xyz..."
-            class="input input-bordered font-mono"
-            :disabled="isAddingFilter"
+            input-class="font-mono"
+            :disabled="addClientFormIsSubmitting"
+            :normalize="trimInput"
+            :validators="addClientWalletValidators"
           />
-        </div>
-
-        <!-- Deal Permission Selection -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Deal Permission</span>
-          </label>
-          <div class="flex gap-4">
-            <label class="flex cursor-pointer items-center gap-2">
-              <input
-                v-model="newEntry.status"
-                type="radio"
-                :value="true"
-                class="radio radio-success"
-                :disabled="isAddingFilter"
-              />
-              <div class="flex items-center gap-2">
-                <ShieldCheckIcon class="text-success size-4" />
-                <span>Allow Deals</span>
-              </div>
-            </label>
-            <label class="flex cursor-pointer items-center gap-2">
-              <input
-                v-model="newEntry.status"
-                type="radio"
-                :value="false"
-                class="radio radio-error"
-                :disabled="isAddingFilter"
-              />
-              <div class="flex items-center gap-2">
-                <ShieldExclamationIcon class="text-error size-4" />
-                <span>Block Deals</span>
-              </div>
-            </label>
+          <component :is="AddClientField" name="status">
+            <template #default="{ field }">
+              <FormFieldWrapper label="Deal Permission">
+                <div class="flex flex-col gap-2 sm:flex-row">
+                  <label class="flex cursor-pointer items-center gap-2">
+                    <input
+                      :checked="field.state.value === true"
+                      type="radio"
+                      class="radio radio-success"
+                      :disabled="addClientFormIsSubmitting"
+                      @change="() => field.handleChange(true)"
+                    />
+                    <div class="flex items-center gap-2">
+                      <ShieldCheckIcon class="text-success size-4" />
+                      <span>Allow Deals</span>
+                    </div>
+                  </label>
+                  <label class="flex cursor-pointer items-center gap-2">
+                    <input
+                      :checked="field.state.value === false"
+                      type="radio"
+                      class="radio radio-error"
+                      :disabled="addClientFormIsSubmitting"
+                      @change="() => field.handleChange(false)"
+                    />
+                    <div class="flex items-center gap-2">
+                      <ShieldExclamationIcon class="text-error size-4" />
+                      <span>Block Deals</span>
+                    </div>
+                  </label>
+                </div>
+              </FormFieldWrapper>
+            </template>
+          </component>
+          <div class="border-info/20 bg-info/5 rounded-lg border p-4 text-sm">
+            <div class="text-info mb-1 font-medium">Note</div>
+            <p class="text-base-content/70">
+              Client access rules control which storage deal clients can
+              interact with your Curio cluster. Allowed clients can make storage
+              deals, while blocked clients are rejected.
+            </p>
           </div>
-        </div>
-
-        <!-- Info Note -->
-        <div class="bg-info/10 mb-4 rounded-lg p-3 text-sm">
-          <div class="text-info mb-1 font-medium">Note:</div>
-          <div class="text-base-content/80">
-            Client access rules control which storage deal clients can interact
-            with your Curio cluster. Allowed clients can make storage deals,
-            while blocked clients are rejected.
-          </div>
-        </div>
-
-        <!-- Error Message -->
-        <div v-if="operationError" class="mb-4">
           <div
-            class="bg-error/10 border-error/20 text-error flex items-start gap-3 rounded-lg border p-3"
+            v-if="addDialogError"
+            class="alert alert-error flex items-center gap-2"
           >
-            <ExclamationTriangleIcon class="text-error mt-0.5 h-5 w-5" />
-            <div class="flex-1 text-sm">{{ operationError }}</div>
+            <ExclamationTriangleIcon class="size-4" />
+            <span class="text-sm">{{ addDialogError }}</span>
           </div>
-        </div>
+        </FormSection>
+      </FormLayout>
+    </template>
 
-        <!-- Actions -->
-        <div class="flex justify-end gap-2">
-          <button
-            class="btn btn-ghost"
-            :disabled="isAddingFilter"
-            @click="handleAddCancel"
-          >
-            Cancel
-          </button>
-          <button
-            class="btn btn-primary"
-            :disabled="isAddingFilter"
-            @click="handleAddConfirm"
-          >
-            <span
-              v-if="isAddingFilter"
-              class="loading loading-spinner loading-sm"
-            ></span>
-            Add Rule
-          </button>
-        </div>
-      </template>
-    </div>
-  </div>
-
-  <!-- Remove Confirmation Dialog -->
-  <div
-    v-if="showRemoveDialog"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-  >
-    <div class="bg-base-100 w-full max-w-md rounded-lg p-6 shadow-xl">
-      <h3 class="text-error mb-4 text-lg font-semibold">
-        Remove Client Access Rule
-      </h3>
-
-      <div class="mb-4">
-        <p class="text-base-content/70 mb-3">
-          Are you sure you want to remove the access rule for client:
-        </p>
-        <div class="bg-base-200/50 rounded p-3 font-mono text-sm break-all">
-          {{ selectedEntry?.wallet }}
-        </div>
-        <p class="text-base-content/70 mt-3 text-sm">
-          This will remove all access control restrictions for this client
-          regarding storage deals.
-        </p>
-      </div>
-
-      <!-- Error Message -->
-      <div v-if="operationError" class="mb-4">
-        <div
-          class="bg-error/10 border-error/20 text-error flex items-start gap-3 rounded-lg border p-3"
-        >
-          <ExclamationTriangleIcon class="text-error mt-0.5 h-5 w-5" />
-          <div class="flex-1 text-sm">{{ operationError }}</div>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2">
+    <template #footer>
+      <FormActions v-if="operationSuccess">
+        <button class="btn btn-primary" @click="handleAddCancel">Close</button>
+      </FormActions>
+      <FormActions v-else>
         <button
           class="btn btn-ghost"
-          :disabled="removingFilters.has(selectedEntry?.wallet || '')"
-          @click="handleRemoveCancel"
+          :disabled="addClientFormIsSubmitting"
+          @click="handleAddCancel"
         >
           Cancel
         </button>
         <button
-          class="btn btn-error"
-          :disabled="removingFilters.has(selectedEntry?.wallet || '')"
-          @click="handleRemoveConfirm"
+          class="btn btn-primary"
+          :disabled="addClientFormIsSubmitting || !canSubmitAddClient"
+          @click="addClientForm.handleSubmit"
         >
           <span
-            v-if="removingFilters.has(selectedEntry?.wallet || '')"
+            v-if="addClientFormIsSubmitting"
             class="loading loading-spinner loading-sm"
           ></span>
-          Remove Rule
+          Add Rule
         </button>
+      </FormActions>
+    </template>
+  </BaseModal>
+
+  <ConfirmationDialog
+    v-model:show="showRemoveDialog"
+    title="Remove Client Access Rule"
+    message="Confirm removal of client access rule."
+    confirm-text="Remove Rule"
+    cancel-text="Cancel"
+    type="danger"
+    :loading="isRemovingSelected"
+    @confirm="handleRemoveConfirm"
+    @cancel="handleRemoveCancel"
+  >
+    <template #description>
+      <p class="text-base-content/70 text-sm">
+        Are you sure you want to remove the access rule for client:
+      </p>
+      <div class="bg-base-200/50 mt-2 rounded p-3 font-mono text-sm break-all">
+        {{ selectedEntry?.wallet }}
       </div>
-    </div>
-  </div>
+      <p class="text-base-content/70 mt-3 text-sm">
+        This will remove all access control restrictions for this client
+        regarding storage deals.
+      </p>
+      <div
+        v-if="removeDialogError"
+        class="alert alert-error mt-4 flex items-center gap-2"
+      >
+        <ExclamationTriangleIcon class="size-4" />
+        <div class="text-sm">{{ removeDialogError }}</div>
+      </div>
+    </template>
+  </ConfirmationDialog>
 </template>

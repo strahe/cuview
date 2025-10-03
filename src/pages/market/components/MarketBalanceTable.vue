@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, ref, nextTick } from "vue";
+import { computed, h, ref } from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -13,6 +13,15 @@ import {
   ExclamationTriangleIcon,
   ScaleIcon,
 } from "@heroicons/vue/24/outline";
+import { useForm } from "@tanstack/vue-form";
+import BaseModal from "@/components/ui/BaseModal.vue";
+import {
+  FormFieldWrapper,
+  FormInput,
+  FormLayout,
+  FormSection,
+  FormActions,
+} from "@/components/ui/form";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useCurioQuery } from "@/composables/useCurioQuery";
 import { useCopyToClipboard } from "@/composables/useCopyToClipboard";
@@ -114,15 +123,19 @@ const rawData = computed(() => {
 
 const showTransferDialog = ref(false);
 const selectedBalance = ref<MarketBalanceTableEntry | null>(null);
-const transferData = ref<TransferRequest>({
+const tableOperationError = ref<string | null>(null);
+const operationSuccess = ref<string | null>(null);
+const manualRefreshLoading = ref(false);
+const messageCid = ref<string>("");
+const submissionError = ref<string | null>(null);
+const transferModalTitle = computed(() =>
+  operationSuccess.value ? "Transfer Successful" : "Move Funds to Escrow",
+);
+const lastSubmittedTransfer = ref<TransferRequest>({
   miner: "",
   amount: "",
   wallet: "",
 });
-const operationError = ref<string | null>(null);
-const operationSuccess = ref<string | null>(null);
-const manualRefreshLoading = ref(false);
-const messageCid = ref<string>("");
 
 const {
   copy: copyMessageCid,
@@ -133,7 +146,70 @@ const {
 });
 
 const { call } = useCurioQuery();
-const isTransferring = ref(false);
+
+const transferForm = useForm({
+  defaultValues: {
+    miner: "",
+    amount: "",
+    wallet: "",
+  },
+  onSubmit: async ({ value }) => {
+    try {
+      tableOperationError.value = null;
+      submissionError.value = null;
+      operationSuccess.value = null;
+
+      const amountWithUnit = `${value.amount} FIL`;
+      const cid = await call("MoveBalanceToEscrow", [
+        value.miner,
+        amountWithUnit,
+        value.wallet.trim(),
+      ]);
+
+      messageCid.value = String(cid);
+      lastSubmittedTransfer.value = {
+        miner: value.miner,
+        amount: value.amount,
+        wallet: value.wallet.trim(),
+      };
+      operationSuccess.value = "success";
+      props.onRefresh();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Transfer failed";
+      submissionError.value = errorMessage;
+      tableOperationError.value = errorMessage;
+    }
+  },
+});
+
+const isTransferring = transferForm.useStore((state) => state.isSubmitting);
+const canSubmitTransfer = transferForm.useStore((state) => state.canSubmit);
+const transferValues = transferForm.useStore((state) => state.values);
+const transferAmountValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const amount = Number.parseFloat(value);
+    if (!value || Number.isNaN(amount)) {
+      return "Amount is required";
+    }
+    if (amount <= 0) {
+      return "Amount must be greater than 0";
+    }
+    return undefined;
+  },
+};
+
+const transferWalletValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Wallet address is required";
+    }
+    return undefined;
+  },
+};
+
+const trimInput = (value: string) => value.trim();
 
 const getBalanceClass = (balance: string) => {
   const num = parseFloat(balance);
@@ -204,7 +280,8 @@ const columns = [
     enableSorting: false,
     cell: (info) => {
       const item = info.row.original;
-      const isItemTransferring = isTransferring.value;
+      const isItemTransferring =
+        isTransferring.value && selectedBalance.value?.Miner === item.Miner;
 
       return h(
         "button",
@@ -244,12 +321,18 @@ const { handleCellRightClick, getCellTooltip, clearAllFilters } = handlers;
 
 const handleTransferClick = (item: MarketBalanceTableEntry) => {
   selectedBalance.value = item;
-  transferData.value = {
+  transferForm.reset({
+    miner: item.Miner,
+    amount: "",
+    wallet: "",
+  });
+  lastSubmittedTransfer.value = {
     miner: item.Miner,
     amount: "",
     wallet: "",
   };
-  operationError.value = null;
+  tableOperationError.value = null;
+  submissionError.value = null;
   operationSuccess.value = null;
   messageCid.value = "";
   resetCopyState();
@@ -259,59 +342,12 @@ const handleTransferClick = (item: MarketBalanceTableEntry) => {
 const handleTransferCancel = () => {
   showTransferDialog.value = false;
   selectedBalance.value = null;
-  transferData.value = { miner: "", amount: "", wallet: "" };
-  operationError.value = null;
+  tableOperationError.value = null;
+  submissionError.value = null;
   operationSuccess.value = null;
   messageCid.value = "";
   resetCopyState();
-};
-
-const handleTransferConfirm = async () => {
-  if (!selectedBalance.value) return;
-
-  const amount = parseFloat(transferData.value.amount);
-
-  if (
-    !transferData.value.amount ||
-    transferData.value.amount === "" ||
-    isNaN(amount)
-  ) {
-    operationError.value = "Amount is required";
-    return;
-  }
-
-  if (amount <= 0) {
-    operationError.value = "Amount must be greater than 0";
-    return;
-  }
-
-  const trimmedWallet = transferData.value.wallet.trim();
-  if (!trimmedWallet) {
-    operationError.value = "Wallet address is required";
-    return;
-  }
-
-  try {
-    operationError.value = null;
-    operationSuccess.value = null;
-    isTransferring.value = true;
-
-    const amountWithUnit = `${transferData.value.amount} FIL`;
-    const cid = await call("MoveBalanceToEscrow", [
-      transferData.value.miner,
-      amountWithUnit,
-      trimmedWallet,
-    ]);
-
-    messageCid.value = String(cid);
-    operationSuccess.value = "success";
-    props.onRefresh();
-  } catch (error) {
-    operationError.value =
-      error instanceof Error ? error.message : "Transfer failed";
-  } finally {
-    isTransferring.value = false;
-  }
+  transferForm.reset({ miner: "", amount: "", wallet: "" });
 };
 
 const handleManualRefresh = async () => {
@@ -525,153 +561,153 @@ const getColumnAggregateInfo = (columnId: string) => {
       </table>
     </div>
 
-    <div v-if="operationError" class="alert alert-error">
+    <div
+      v-if="tableOperationError && !showTransferDialog"
+      class="alert alert-error"
+    >
       <div class="flex items-start justify-between">
-        <span>{{ operationError }}</span>
-        <button class="btn btn-ghost btn-xs" @click="operationError = null">
+        <span>{{ tableOperationError }}</span>
+        <button
+          class="btn btn-ghost btn-xs"
+          @click="tableOperationError = null"
+        >
           ×
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Move Funds to Escrow Dialog -->
-  <div
-    v-if="showTransferDialog"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  <BaseModal
+    :open="showTransferDialog"
+    :title="transferModalTitle"
+    size="md"
+    :modal="true"
+    @close="handleTransferCancel"
   >
-    <div class="bg-base-100 w-full max-w-md rounded-lg p-6 shadow-xl">
-      <!-- Success State -->
-      <template v-if="operationSuccess">
-        <!-- Header: Success Icon + Title -->
-        <div class="mb-6 text-center">
-          <div class="mx-auto mb-3 flex size-16 items-center justify-center">
-            <CheckCircleIcon class="text-success size-16" />
-          </div>
-          <h3 class="text-lg font-semibold">Transfer Successful</h3>
-        </div>
-
-        <!-- Primary Info: Amount & Miner -->
-        <div class="bg-base-200/30 mb-4 rounded-lg p-4">
-          <div class="mb-2 text-center">
-            <div class="font-mono text-2xl font-bold">
-              {{ transferData.amount }} FIL
+    <template v-if="operationSuccess">
+      <FormLayout>
+        <div class="space-y-6 text-center">
+          <div>
+            <div class="mx-auto mb-3 flex size-16 items-center justify-center">
+              <CheckCircleIcon class="text-success size-16" />
             </div>
-            <div class="text-base-content/70 text-sm">moved to escrow for</div>
-            <div class="font-mono font-medium">{{ transferData.miner }}</div>
+            <h3 class="text-lg font-semibold">Transfer Successful</h3>
           </div>
-        </div>
-
-        <!-- Secondary Info: Transaction ID -->
-        <div class="mb-6">
-          <div
-            class="text-base-content/70 mb-2 text-xs font-medium tracking-wide uppercase"
-          >
-            Transaction Message
-          </div>
-          <div class="bg-base-200/50 flex items-center gap-2 rounded p-3">
-            <div class="flex-1 font-mono text-xs break-all">
-              {{ messageCid }}
+          <div class="bg-base-200/30 rounded-lg p-4 text-left">
+            <div class="text-base-content/70 text-xs font-medium uppercase">
+              Transfer Summary
             </div>
-            <button
-              class="btn btn-ghost btn-xs"
-              :class="{ 'text-success': copiedCid }"
-              :title="copiedCid ? 'Copied!' : 'Copy Message CID'"
-              @click="copyMessageCid(messageCid)"
+            <div class="mt-3 space-y-2">
+              <div>
+                <div class="text-base-content/60 text-xs">Amount</div>
+                <div class="font-mono text-2xl font-bold">
+                  {{ lastSubmittedTransfer.amount }} FIL
+                </div>
+              </div>
+              <div>
+                <div class="text-base-content/60 text-xs">Storage Provider</div>
+                <div class="font-mono font-medium">
+                  {{ lastSubmittedTransfer.miner }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              class="text-base-content/70 mb-2 text-xs font-medium tracking-wide uppercase"
             >
-              <CheckCircleIcon v-if="copiedCid" class="size-4" />
-              <ClipboardDocumentIcon v-else class="size-4" />
-            </button>
+              Transaction Message
+            </div>
+            <div class="bg-base-200/50 flex items-center gap-2 rounded p-3">
+              <div class="flex-1 font-mono text-xs break-all">
+                {{ messageCid }}
+              </div>
+              <button
+                class="btn btn-ghost btn-xs"
+                :class="{ 'text-success': copiedCid }"
+                :title="copiedCid ? 'Copied!' : 'Copy Message CID'"
+                @click="copyMessageCid(messageCid)"
+              >
+                <CheckCircleIcon v-if="copiedCid" class="size-4" />
+                <ClipboardDocumentIcon v-else class="size-4" />
+              </button>
+            </div>
           </div>
         </div>
+      </FormLayout>
+    </template>
 
-        <!-- Action: Close -->
-        <div class="flex justify-end">
-          <button class="btn btn-primary" @click="handleTransferCancel">
-            Close
-          </button>
-        </div>
-      </template>
+    <template v-else>
+      <FormLayout>
+        <FormSection>
+          <FormFieldWrapper label="Storage Provider">
+            <input
+              :value="transferValues.miner"
+              type="text"
+              class="input input-bordered input-sm font-mono"
+              readonly
+              tabindex="-1"
+            />
+          </FormFieldWrapper>
 
-      <!-- Form State -->
-      <template v-else>
-        <h3 class="mb-4 text-lg font-semibold">Move Funds to Escrow</h3>
-
-        <!-- Storage Provider Info -->
-        <div class="bg-base-200/30 mb-4 rounded-lg p-3">
-          <div class="text-base-content/70 text-sm">Storage Provider</div>
-          <div class="font-mono font-medium">{{ selectedBalance?.Miner }}</div>
-        </div>
-
-        <!-- Amount Input -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Amount (FIL)</span>
-          </label>
-          <input
-            v-model="transferData.amount"
+          <FormInput
+            :form="transferForm"
+            name="amount"
+            label="Amount (FIL)"
             type="number"
-            step="0.000001"
-            min="0"
             placeholder="0.000000"
-            class="input input-bordered font-mono"
+            input-class="font-mono"
             :disabled="isTransferring"
+            :validators="transferAmountValidators"
           />
-        </div>
 
-        <!-- Wallet Address Input -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">From Wallet Address</span>
-          </label>
-          <input
-            v-model="transferData.wallet"
-            type="text"
+          <FormInput
+            :form="transferForm"
+            name="wallet"
+            label="From Wallet Address"
             placeholder="Enter wallet address..."
-            class="input input-bordered font-mono"
+            input-class="font-mono"
             :disabled="isTransferring"
-            @input="transferData.wallet = transferData.wallet.trim()"
-            @paste="
-              () =>
-                nextTick(
-                  () => (transferData.wallet = transferData.wallet.trim()),
-                )
-            "
+            :normalize="trimInput"
+            :validators="transferWalletValidators"
           />
-        </div>
-
-        <!-- Error Message -->
-        <div v-if="operationError" class="mb-4">
           <div
-            class="bg-error/10 border-error/20 text-error flex items-start gap-3 rounded-lg border p-3"
+            v-if="submissionError"
+            class="alert alert-error flex items-center gap-2"
           >
-            <ExclamationTriangleIcon class="text-error mt-0.5 h-5 w-5" />
-            <div class="flex-1 text-sm">{{ operationError }}</div>
+            <ExclamationTriangleIcon class="size-4" />
+            <span class="text-sm">{{ submissionError }}</span>
           </div>
-        </div>
+        </FormSection>
+      </FormLayout>
+    </template>
 
-        <!-- Actions -->
-        <div class="flex justify-end gap-2">
-          <button
-            class="btn btn-ghost"
-            :disabled="isTransferring"
-            @click="handleTransferCancel"
-          >
-            Cancel
-          </button>
-          <button
-            class="btn btn-primary"
-            :disabled="isTransferring"
-            @click="handleTransferConfirm"
-          >
-            <span
-              v-if="isTransferring"
-              class="loading loading-spinner loading-sm"
-            ></span>
-            Move Funds
-          </button>
-        </div>
-      </template>
-    </div>
-  </div>
+    <template #footer>
+      <FormActions v-if="operationSuccess">
+        <button class="btn btn-primary" @click="handleTransferCancel">
+          Close
+        </button>
+      </FormActions>
+      <FormActions v-else>
+        <button
+          class="btn btn-ghost"
+          :disabled="isTransferring"
+          @click="handleTransferCancel"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          :disabled="isTransferring || !canSubmitTransfer"
+          @click="transferForm.handleSubmit"
+        >
+          <span
+            v-if="isTransferring"
+            class="loading loading-spinner loading-sm"
+          ></span>
+          Move Funds
+        </button>
+      </FormActions>
+    </template>
+  </BaseModal>
 </template>

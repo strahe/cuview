@@ -71,6 +71,11 @@ const iconComponent = computed(() => props.icon);
       </div>
     </template>
 
+    <!-- Forward actions slot to Card when no tooltip -->
+    <template v-if="$slots.actions" #actions>
+      <slot name="actions" />
+    </template>
+
     <slot />
   </Card>
 </template>
