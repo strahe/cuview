@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description } = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   title: "",
   description: "",
 });
@@ -12,12 +12,12 @@ const { title, description } = withDefaults(defineProps<Props>(), {
 
 <template>
   <section class="flex flex-col gap-4">
-    <header v-if="title || description" class="flex flex-col gap-1">
-      <h3 v-if="title" class="text-base-content text-sm font-semibold">
-        {{ title }}
+    <header v-if="props.title || props.description" class="flex flex-col gap-1">
+      <h3 v-if="props.title" class="text-base-content text-sm font-semibold">
+        {{ props.title }}
       </h3>
-      <p v-if="description" class="text-base-content/60 text-xs">
-        {{ description }}
+      <p v-if="props.description" class="text-base-content/60 text-xs">
+        {{ props.description }}
       </p>
     </header>
     <slot />
