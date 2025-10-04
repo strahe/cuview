@@ -17,6 +17,7 @@ import type {
   PricingFilter,
   ClientFilter,
   AllowDenyEntry,
+  DefaultFilterBehaviour,
 } from "@/types/market";
 
 // Pricing Filters
@@ -79,6 +80,26 @@ const { execute: addAllowDeny } = useLazyQuery("AddAllowDenyList");
 const { execute: toggleAllowDeny } = useLazyQuery("SetAllowDenyList");
 const { loading: removeAllowDenyLoading, execute: removeAllowDeny } =
   useLazyQuery("RemoveAllowFilter");
+
+// Default Filter Behaviour
+const {
+  data: defaultFilter,
+  loading: defaultFilterLoading,
+  error: defaultFilterError,
+  refresh: refreshDefaultFilter,
+} = useCachedQuery<DefaultFilterBehaviour>("DefaultFilterBehaviour", [], {
+  pollingInterval: 60000,
+});
+
+const cidGravityEntries = computed(() => {
+  if (!defaultFilter.value) {
+    return [] as Array<{ miner: string; enabled: boolean }>;
+  }
+
+  return Object.entries(defaultFilter.value.cid_gravity_status || {}).map(
+    ([miner, enabled]) => ({ miner, enabled }),
+  );
+});
 
 // Common
 const operationError = ref<string | null>(null);
@@ -339,6 +360,134 @@ const clearError = () => {
           <button class="btn btn-ghost btn-xs" @click="clearError">×</button>
         </div>
       </div>
+
+      <!-- Default Filter Behaviour -->
+      <SectionCard title="Default Filter Behaviour">
+        <template #actions>
+          <button
+            class="btn btn-ghost btn-sm"
+            :disabled="defaultFilterLoading"
+            @click="refreshDefaultFilter"
+          >
+            <span
+              v-if="defaultFilterLoading"
+              class="loading loading-spinner loading-xs"
+            ></span>
+            <span class="ml-1">Refresh</span>
+          </button>
+        </template>
+
+        <div v-if="defaultFilterError" class="alert alert-error">
+          <div class="flex w-full items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">Failed to load default behaviour</h3>
+              <p class="text-sm">{{ defaultFilterError.message }}</p>
+            </div>
+            <button class="btn btn-ghost btn-xs" @click="refreshDefaultFilter">
+              Retry
+            </button>
+          </div>
+        </div>
+        <div
+          v-else-if="defaultFilterLoading && !defaultFilter"
+          class="text-base-content/60 flex items-center gap-2"
+        >
+          <span class="loading loading-spinner loading-sm"></span>
+          <span>Loading default behaviour...</span>
+        </div>
+        <div v-else-if="defaultFilter" class="space-y-6">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div
+              class="bg-base-200/60 border-base-300/60 rounded-lg border p-4"
+            >
+              <div class="text-base-content/70 text-xs tracking-wide uppercase">
+                Allow deals from unknown clients
+              </div>
+              <div class="mt-2 text-lg font-semibold">
+                {{
+                  defaultFilter.allow_deals_from_unknown_clients
+                    ? "Enabled"
+                    : "Disabled"
+                }}
+              </div>
+              <div
+                class="badge mt-2"
+                :class="
+                  defaultFilter.allow_deals_from_unknown_clients
+                    ? 'badge-success'
+                    : 'badge-error'
+                "
+              >
+                {{
+                  defaultFilter.allow_deals_from_unknown_clients
+                    ? "Allow"
+                    : "Deny"
+                }}
+              </div>
+            </div>
+            <div
+              class="bg-base-200/60 border-base-300/60 rounded-lg border p-4"
+            >
+              <div class="text-base-content/70 text-xs tracking-wide uppercase">
+                Reject deals when CIDGravity unavailable
+              </div>
+              <div class="mt-2 text-lg font-semibold">
+                {{
+                  defaultFilter.is_deal_rejected_when_cid_gravity_not_reachable
+                    ? "Enabled"
+                    : "Disabled"
+                }}
+              </div>
+              <div
+                class="badge mt-2"
+                :class="
+                  defaultFilter.is_deal_rejected_when_cid_gravity_not_reachable
+                    ? 'badge-error'
+                    : 'badge-success'
+                "
+              >
+                {{
+                  defaultFilter.is_deal_rejected_when_cid_gravity_not_reachable
+                    ? "Reject"
+                    : "Allow"
+                }}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div
+              class="text-base-content/70 mb-2 text-xs tracking-wide uppercase"
+            >
+              CIDGravity status by storage provider
+            </div>
+            <div
+              v-if="cidGravityEntries.length"
+              class="border-base-300/60 divide-base-300/40 rounded-lg border"
+            >
+              <div
+                v-for="entry in cidGravityEntries"
+                :key="entry.miner"
+                class="flex items-center justify-between gap-4 border-b px-3 py-2 last:border-b-0"
+              >
+                <span class="font-mono text-sm">{{ entry.miner }}</span>
+                <span
+                  class="badge"
+                  :class="entry.enabled ? 'badge-success' : 'badge-neutral'"
+                >
+                  {{ entry.enabled ? "Enabled" : "Disabled" }}
+                </span>
+              </div>
+            </div>
+            <div v-else class="text-base-content/60 text-sm">
+              No configured storage providers.
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-base-content/60 text-sm">
+          No default behaviour information available.
+        </div>
+      </SectionCard>
 
       <!-- Section 1: Pricing Filters -->
       <SectionCard title="Pricing Filters">

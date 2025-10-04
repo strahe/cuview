@@ -24,12 +24,38 @@ interface ActorInfo {
 }
 
 const {
-  data: actors,
+  data: actorAddresses,
   loading: actorsLoading,
   error: actorsError,
-  refresh: refreshActors,
-} = useCachedQuery<ActorInfo[]>("ActorList", [], {
+  refresh: refreshActorAddresses,
+} = useCachedQuery<string[]>("ActorList", [], {
   pollingInterval: 60000,
+});
+
+const actors = computed<ActorInfo[]>(() => {
+  if (!actorAddresses.value || actorAddresses.value.length === 0) {
+    return [];
+  }
+
+  return actorAddresses.value
+    .map((address) => {
+      if (!address || typeof address !== "string") {
+        return null;
+      }
+      const match = address.match(/^[ft](\d+)$/);
+      if (!match) {
+        return null;
+      }
+      const parsedId = Number.parseInt(match[1], 10);
+      if (Number.isNaN(parsedId)) {
+        return null;
+      }
+      return {
+        ID: parsedId,
+        Address: address,
+      } satisfies ActorInfo;
+    })
+    .filter((actor): actor is ActorInfo => actor !== null);
 });
 
 const { execute: fetchStorageAsk } = useLazyQuery<StorageAsk>("GetStorageAsk");
@@ -56,20 +82,21 @@ const fetchAllAsks = async () => {
 
   loadingAsks.value = true;
   askError.value = null;
-  const fetchedAsks: StorageAsk[] = [];
 
   try {
-    for (const actor of actors.value) {
-      try {
-        const ask = await fetchStorageAsk(actor.ID);
-        if (ask) {
-          fetchedAsks.push(ask);
+    const responses = await Promise.all(
+      actors.value.map(async (actor) => {
+        try {
+          const ask = await fetchStorageAsk(actor.ID);
+          return ask ?? null;
+        } catch (err) {
+          console.debug(`No storage ask for SP ${actor.ID}`, err);
+          return null;
         }
-      } catch (err) {
-        console.debug(`No storage ask for SP ${actor.ID}`, err);
-      }
-    }
-    asks.value = fetchedAsks;
+      }),
+    );
+
+    asks.value = responses.filter((ask): ask is StorageAsk => ask !== null);
   } catch (err) {
     askError.value = err as Error;
   } finally {
@@ -92,13 +119,39 @@ const handleUpdateAsk = async (spId: number) => {
 
 const handleSaveAsk = async (askData: Partial<StorageAsk>) => {
   try {
-    await setStorageAsk(
-      askData.SpID,
-      askData.Price,
-      askData.VerifiedPrice,
-      askData.MinSize,
-      askData.MaxSize,
-    );
+    const spId = askData.SpID ?? selectedSpId.value;
+    if (!spId) {
+      throw new Error("Storage provider ID is required.");
+    }
+
+    if (
+      askData.Price === undefined ||
+      askData.VerifiedPrice === undefined ||
+      askData.MinSize === undefined ||
+      askData.MaxSize === undefined
+    ) {
+      throw new Error("Incomplete storage ask payload.");
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const actorMatch = actors.value.find((actor) => actor.ID === spId);
+    const payload: StorageAsk = {
+      SpID: spId,
+      Price: askData.Price,
+      VerifiedPrice: askData.VerifiedPrice,
+      MinSize: askData.MinSize,
+      MaxSize: askData.MaxSize,
+      CreatedAt: now,
+      Expiry: now + 365 * 24 * 60 * 60,
+      Sequence: askData.Sequence ?? currentAsk.value?.Sequence ?? 0,
+      Miner:
+        askData.Miner ??
+        currentAsk.value?.Miner ??
+        actorMatch?.Address ??
+        `f0${spId}`,
+    };
+
+    await setStorageAsk(payload);
 
     await fetchAllAsks();
     showAskForm.value = false;
@@ -109,18 +162,15 @@ const handleSaveAsk = async (askData: Partial<StorageAsk>) => {
 };
 
 const handleRefreshAsks = async () => {
-  await refreshActors();
+  await refreshActorAddresses();
   await fetchAllAsks();
 };
 
-watch(
-  () => actors.value,
-  () => {
-    if (actors.value && actors.value.length > 0) {
-      fetchAllAsks();
-    }
-  },
-);
+watch(actors, (next) => {
+  if (next && next.length > 0) {
+    fetchAllAsks();
+  }
+});
 
 onMounted(() => {
   fetchAllAsks();

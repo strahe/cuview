@@ -8,7 +8,6 @@ import {
 import {
   ExclamationTriangleIcon,
   ClipboardDocumentListIcon,
-  DocumentDuplicateIcon,
 } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { getTableRowClasses } from "@/utils/ui";
@@ -16,6 +15,7 @@ import { formatBytes, formatDateTime } from "@/utils/format";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { OpenDealInfo, PendingDealTableEntry } from "@/types/market";
+import CopyButton from "@/components/ui/CopyButton.vue";
 
 interface Props {
   items?: OpenDealInfo[];
@@ -51,27 +51,32 @@ const rawData = computed(() => {
   );
 });
 
-const truncateWithCopy = (text: string, startLen: number, endLen: number) => {
-  if (text.length <= startLen + endLen) {
-    return h("span", { class: "font-mono text-sm" }, text);
-  }
-
-  const start = text.substring(0, startLen);
-  const end = text.substring(text.length - endLen);
+const truncateWithCopy = (
+  text: string,
+  startLen: number,
+  endLen: number,
+  ariaLabel: string,
+) => {
+  const displayText =
+    text.length <= startLen + endLen
+      ? text
+      : `${text.substring(0, startLen)}...${text.substring(text.length - endLen)}`;
 
   return h("div", { class: "flex items-center gap-2" }, [
-    h("span", { class: "font-mono text-sm" }, `${start}...${end}`),
+    h("span", { class: "font-mono text-sm" }, displayText),
     h(
-      "button",
+      "div",
       {
-        class: "btn btn-ghost btn-xs",
-        title: "Copy to clipboard",
-        onClick: (e: MouseEvent) => {
-          e.stopPropagation();
-          navigator.clipboard.writeText(text);
-        },
+        onClick: (event: MouseEvent) => event.stopPropagation(),
       },
-      [h(DocumentDuplicateIcon, { class: "size-3" })],
+      [
+        h(CopyButton, {
+          value: text,
+          iconOnly: true,
+          ariaLabel,
+          extraClass: "border border-transparent",
+        }),
+      ],
     ),
   ]);
 };
@@ -128,7 +133,13 @@ const columns = [
     size: 220,
     enableGrouping: false,
     enableColumnFilter: true,
-    cell: (info) => truncateWithCopy(info.getValue(), 12, 6),
+    cell: (info) =>
+      truncateWithCopy(
+        info.getValue(),
+        12,
+        6,
+        `Copy piece CID ${info.getValue()}`,
+      ),
   }),
   columnHelper.accessor("PieceSize", {
     header: "Piece Size",

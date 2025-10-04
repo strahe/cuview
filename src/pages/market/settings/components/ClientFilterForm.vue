@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useForm } from "@tanstack/vue-form";
 import BaseModal from "@/components/ui/BaseModal.vue";
 import {
@@ -9,7 +9,6 @@ import {
   FormToggle,
   FormActions,
 } from "@/components/ui/form";
-import { formatBytes } from "@/utils/format";
 import type { ClientFilter } from "@/types/market";
 import { useFormFieldState } from "@/composables/useFormFieldState";
 
@@ -64,11 +63,24 @@ const emptyFormValues: ClientFilterFormValues = {
   additionalInfo: "",
 };
 
+const submissionError = ref<string | null>(null);
+
 const clientFilterForm = useForm({
   defaultValues: emptyFormValues,
   onSubmit: async ({ value }) => {
+    submissionError.value = null;
     const wallets = parseLines(value.walletsText);
     const peerIds = parseLines(value.peerIdsText);
+
+    if (wallets.length === 0 && peerIds.length === 0) {
+      submissionError.value = "Provide at least one wallet address or Peer ID.";
+      return;
+    }
+
+    if (!value.selectedPricingFilters.length) {
+      submissionError.value = "Select at least one pricing filter.";
+      return;
+    }
 
     const payload: ClientFilter = {
       name: value.name.trim(),
@@ -108,7 +120,7 @@ const walletsValidators = {
     const wallets = parseLines(value);
     const peers = parseLines(formValues.value.peerIdsText);
     if (wallets.length === 0 && peers.length === 0) {
-      return "At least one wallet address or Peer ID is required";
+      return "Provide at least one wallet address or Peer ID";
     }
     for (const wallet of wallets) {
       if (!isValidFilecoinAddress(wallet)) {
@@ -124,7 +136,7 @@ const peerValidators = {
     const peers = parseLines(value);
     const wallets = parseLines(formValues.value.walletsText);
     if (wallets.length === 0 && peers.length === 0) {
-      return "At least one wallet address or Peer ID is required";
+      return "Provide at least one wallet address or Peer ID";
     }
     return undefined;
   },
@@ -172,12 +184,6 @@ const infoValidators = {
   },
 };
 
-const maxDealSizePreview = computed(() => {
-  const values = formValues.value;
-  const size = values.maxDealSizeGiB * GIB_BYTES;
-  return formatBytes(size);
-});
-
 watch(
   () => [props.visible, props.initialFilter, props.mode],
   ([visible]) => {
@@ -201,24 +207,26 @@ watch(
       : { ...emptyFormValues };
 
     clientFilterForm.reset(nextValues);
+    submissionError.value = null;
   },
   { immediate: true },
 );
 
 const handleClose = () => {
+  submissionError.value = null;
   emit("cancel");
   emit("update:visible", false);
 };
 
-const togglePricingFilter = (filter: string) => {
-  const current = [...formValues.value.selectedPricingFilters];
-  const index = current.indexOf(filter);
+const handlePricingChipToggle = (current: string[], filter: string) => {
+  const next = [...current];
+  const index = next.indexOf(filter);
   if (index === -1) {
-    current.push(filter);
+    next.push(filter);
   } else {
-    current.splice(index, 1);
+    next.splice(index, 1);
   }
-  clientFilterForm.setFieldValue("selectedPricingFilters", current);
+  clientFilterForm.setFieldValue("selectedPricingFilters", next);
 };
 
 const parseLines = (text: string) =>
@@ -314,13 +322,19 @@ const deriveMaxDealSizeGiB = (sizeBytes: number) => {
                 :class="
                   field.state.value.includes(filter)
                     ? 'btn-primary'
-                    : 'btn-ghost'
+                    : 'btn-outline'
                 "
-                @click="togglePricingFilter(filter)"
+                @click="handlePricingChipToggle(field.state.value, filter)"
               >
                 {{ filter }}
               </button>
             </div>
+            <p
+              v-if="!field.state.value.length"
+              class="text-warning mt-2 text-xs font-medium"
+            >
+              Select at least one pricing filter.
+            </p>
           </FormFieldWrapper>
         </template>
       </component>
@@ -345,13 +359,7 @@ const deriveMaxDealSizeGiB = (sizeBytes: number) => {
           :disabled="isSubmitting"
           :normalize="toNumber"
           :validators="maxDealSizeValidators"
-        >
-          <template #hint>
-            <p class="text-base-content/60 text-xs">
-              ≈ {{ maxDealSizePreview }}
-            </p>
-          </template>
-        </FormInput>
+        />
       </div>
 
       <FormTextarea
@@ -363,6 +371,10 @@ const deriveMaxDealSizeGiB = (sizeBytes: number) => {
         :disabled="isSubmitting"
         :validators="infoValidators"
       />
+
+      <p v-if="submissionError" class="text-error text-sm">
+        {{ submissionError }}
+      </p>
     </div>
 
     <template #footer>

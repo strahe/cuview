@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
+import { computed, h, ref } from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -17,6 +17,7 @@ import { getTableRowClasses } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { ClientFilter, ClientFilterTableEntry } from "@/types/market";
+import BaseModal from "@/components/ui/BaseModal.vue";
 
 interface Props {
   items: ClientFilter[];
@@ -48,6 +49,27 @@ const rawData = computed<ClientFilterTableEntry[]>(() =>
 );
 
 const columnHelper = createColumnHelper<ClientFilterTableEntry>();
+
+const showDetailsModal = ref(false);
+const selectedDetails = ref<{
+  name: string;
+  wallets: string[];
+  peerIds: string[];
+} | null>(null);
+
+const openDetailsModal = (filter: ClientFilterTableEntry) => {
+  selectedDetails.value = {
+    name: filter.name,
+    wallets: filter.wallets || [],
+    peerIds: filter.peer_ids || [],
+  };
+  showDetailsModal.value = true;
+};
+
+const closeDetailsModal = () => {
+  showDetailsModal.value = false;
+  selectedDetails.value = null;
+};
 
 const columns = [
   columnHelper.accessor("name", {
@@ -86,33 +108,6 @@ const columns = [
       const peersCount = filter.peer_ids?.length || 0;
       const totalCount = walletsCount + peersCount;
 
-      const detailsHtml = [
-        walletsCount > 0
-          ? h("div", { class: "mb-1" }, [
-              h(
-                "span",
-                { class: "font-semibold" },
-                `Wallets (${walletsCount}):`,
-              ),
-              ...filter.wallets.map((w) =>
-                h("div", { class: "font-mono text-xs ml-2" }, w),
-              ),
-            ])
-          : null,
-        peersCount > 0
-          ? h("div", {}, [
-              h(
-                "span",
-                { class: "font-semibold" },
-                `Peer IDs (${peersCount}):`,
-              ),
-              ...filter.peer_ids.map((p) =>
-                h("div", { class: "font-mono text-xs ml-2 truncate" }, p),
-              ),
-            ])
-          : null,
-      ].filter(Boolean);
-
       return h("div", { class: "flex items-center gap-2" }, [
         h(
           "span",
@@ -123,29 +118,15 @@ const columns = [
           `${totalCount}`,
         ),
         h(
-          "div",
+          "button",
           {
-            class: "dropdown dropdown-hover",
+            class: "btn btn-ghost btn-xs no-row-click",
+            onClick: (event: MouseEvent) => {
+              event.stopPropagation();
+              openDetailsModal(filter);
+            },
           },
-          [
-            h(
-              "div",
-              {
-                tabindex: 0,
-                class: "btn btn-ghost btn-xs no-row-click",
-              },
-              "Details",
-            ),
-            h(
-              "div",
-              {
-                tabindex: 0,
-                class:
-                  "dropdown-content z-50 bg-base-100 border border-base-300 rounded-lg shadow-xl p-3 w-96 max-h-64 overflow-y-auto",
-              },
-              detailsHtml,
-            ),
-          ],
+          "Details",
         ),
       ]);
     },
@@ -493,5 +474,69 @@ const getColumnAggregateInfo = (columnId: string) => {
         </tbody>
       </table>
     </div>
+
+    <BaseModal
+      :open="showDetailsModal"
+      title="Client Targets"
+      size="md"
+      :modal="true"
+      @close="closeDetailsModal"
+    >
+      <template v-if="selectedDetails">
+        <div class="space-y-4">
+          <div>
+            <div class="text-base-content/70 text-xs tracking-wide uppercase">
+              Filter
+            </div>
+            <div class="font-mono text-sm">{{ selectedDetails.name }}</div>
+          </div>
+
+          <div v-if="selectedDetails.wallets.length" class="space-y-1">
+            <div class="text-sm font-semibold">Wallet Addresses</div>
+            <ul
+              class="border-base-300/60 bg-base-200/40 max-h-40 space-y-1 overflow-y-auto rounded-lg border p-3"
+            >
+              <li
+                v-for="wallet in selectedDetails.wallets"
+                :key="wallet"
+                class="font-mono text-xs"
+              >
+                {{ wallet }}
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="selectedDetails.peerIds.length" class="space-y-1">
+            <div class="text-sm font-semibold">Peer IDs</div>
+            <ul
+              class="border-base-300/60 bg-base-200/40 max-h-40 space-y-1 overflow-y-auto rounded-lg border p-3"
+            >
+              <li
+                v-for="peer in selectedDetails.peerIds"
+                :key="peer"
+                class="font-mono text-xs break-all"
+              >
+                {{ peer }}
+              </li>
+            </ul>
+          </div>
+
+          <div
+            v-if="
+              !selectedDetails.wallets.length && !selectedDetails.peerIds.length
+            "
+            class="text-base-content/60 text-sm"
+          >
+            No wallets or Peer IDs configured.
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <button class="btn btn-sm btn-primary" @click="closeDetailsModal">
+          Close
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>

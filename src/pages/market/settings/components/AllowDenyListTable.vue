@@ -5,18 +5,13 @@ import {
   FlexRender,
   type ColumnDef,
 } from "@tanstack/vue-table";
-import {
-  TrashIcon,
-  ExclamationTriangleIcon,
-  ClipboardDocumentIcon,
-  CheckIcon,
-} from "@heroicons/vue/24/outline";
+import { TrashIcon, ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { getTableRowClasses } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import type { AllowDenyEntry, AllowDenyTableEntry } from "@/types/market";
-import { ref } from "vue";
+import CopyButton from "@/components/ui/CopyButton.vue";
 
 interface Props {
   items: AllowDenyEntry[];
@@ -46,20 +41,6 @@ const rawData = computed<AllowDenyTableEntry[]>(() =>
 
 const columnHelper = createColumnHelper<AllowDenyTableEntry>();
 
-const copiedWallet = ref<string | null>(null);
-
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    copiedWallet.value = text;
-    setTimeout(() => {
-      copiedWallet.value = null;
-    }, 2000);
-  } catch (err) {
-    console.error("Failed to copy:", err);
-  }
-};
-
 const columns = [
   columnHelper.accessor("wallet", {
     header: "Wallet Address",
@@ -68,23 +49,21 @@ const columns = [
     enableColumnFilter: true,
     cell: (info) => {
       const wallet = info.getValue();
-      const isCopied = copiedWallet.value === wallet;
       return h("div", { class: "flex items-center gap-2" }, [
         h("span", { class: "font-mono text-sm" }, wallet),
         h(
-          "button",
+          "div",
           {
-            class: "btn btn-ghost btn-xs no-row-click",
-            title: isCopied ? "Copied" : "Copy address",
-            onClick: (e: Event) => {
-              e.stopPropagation();
-              copyToClipboard(wallet);
-            },
+            class: "no-row-click",
+            onClick: (event: MouseEvent) => event.stopPropagation(),
           },
           [
-            isCopied
-              ? h(CheckIcon, { class: "size-4 text-success" })
-              : h(ClipboardDocumentIcon, { class: "size-4" }),
+            h(CopyButton, {
+              value: wallet,
+              iconOnly: true,
+              ariaLabel: `Copy wallet address ${wallet}`,
+              extraClass: "border border-transparent",
+            }),
           ],
         ),
       ]);

@@ -77,6 +77,8 @@ const storageAskForm = useForm({
       VerifiedPrice: filToAttoFilPerGiBPerEpoch(verifiedPrice),
       MinSize: value.minSize,
       MaxSize: value.maxSize,
+      Sequence: props.initialAsk?.Sequence,
+      Miner: props.initialAsk?.Miner,
     });
 
     emit("update:visible", false);

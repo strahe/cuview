@@ -158,3 +158,9 @@ export interface AllowDenyEntry {
 export interface AllowDenyTableEntry extends AllowDenyEntry {
   id: string;
 }
+
+export interface DefaultFilterBehaviour {
+  allow_deals_from_unknown_clients: boolean;
+  is_deal_rejected_when_cid_gravity_not_reachable: boolean;
+  cid_gravity_status: Record<string, boolean>;
+}

@@ -29,6 +29,7 @@ import { formatFIL } from "@/utils/format";
 import { getTableRowClasses } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
+import CopyButton from "@/components/ui/CopyButton.vue";
 import type {
   MarketBalanceStatus,
   MarketBalanceDisplay,
@@ -109,6 +110,7 @@ const rawData = computed(() => {
           id: item.miner || `unknown-${Math.random()}`,
           marketAvailableNumber: escrowBalance,
           totalWalletBalanceNumber: totalWalletBalance,
+          WalletDetails: wallets,
         } as MarketBalanceTableEntry;
 
         return tableEntry;
@@ -130,6 +132,9 @@ const messageCid = ref<string>("");
 const submissionError = ref<string | null>(null);
 const transferModalTitle = computed(() =>
   operationSuccess.value ? "Transfer Successful" : "Move Funds to Escrow",
+);
+const availableWallets = computed(
+  () => selectedBalance.value?.WalletDetails || [],
 );
 const lastSubmittedTransfer = ref<TransferRequest>({
   miner: "",
@@ -273,6 +278,54 @@ const columns = [
     },
   }),
   columnHelper.display({
+    id: "wallets",
+    header: "Deal Publish Wallets",
+    size: 240,
+    enableGrouping: false,
+    enableSorting: false,
+    cell: (info) => {
+      const wallets = info.row.original.WalletDetails || [];
+      if (!wallets.length) {
+        return h("span", { class: "text-base-content/60 text-xs" }, "None");
+      }
+
+      return h(
+        "div",
+        { class: "flex flex-wrap gap-2" },
+        wallets.map((wallet) =>
+          h(
+            "div",
+            {
+              class:
+                "bg-base-200/60 border-base-300/60 flex items-center gap-2 rounded-md border px-2 py-1",
+            },
+            [
+              h(
+                "span",
+                { class: "font-mono text-xs" },
+                wallet.Address || "unknown",
+              ),
+              h(
+                "div",
+                {
+                  onClick: (event: MouseEvent) => event.stopPropagation(),
+                },
+                [
+                  h(CopyButton, {
+                    value: wallet.Address,
+                    iconOnly: true,
+                    ariaLabel: `Copy wallet address ${wallet.Address}`,
+                    extraClass: "border border-transparent",
+                  }),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  }),
+  columnHelper.display({
     id: "actions",
     header: "Action",
     size: 120,
@@ -321,15 +374,16 @@ const { handleCellRightClick, getCellTooltip, clearAllFilters } = handlers;
 
 const handleTransferClick = (item: MarketBalanceTableEntry) => {
   selectedBalance.value = item;
+  const defaultWallet = item.WalletDetails?.[0]?.Address ?? "";
   transferForm.reset({
     miner: item.Miner,
     amount: "",
-    wallet: "",
+    wallet: defaultWallet,
   });
   lastSubmittedTransfer.value = {
     miner: item.Miner,
     amount: "",
-    wallet: "",
+    wallet: defaultWallet,
   };
   tableOperationError.value = null;
   submissionError.value = null;
@@ -670,7 +724,21 @@ const getColumnAggregateInfo = (columnId: string) => {
             :disabled="isTransferring"
             :normalize="trimInput"
             :validators="transferWalletValidators"
-          />
+          >
+            <template v-if="availableWallets.length" #hint>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="wallet in availableWallets"
+                  :key="wallet.Address"
+                  type="button"
+                  class="btn btn-ghost btn-xs"
+                  @click="transferForm.setFieldValue('wallet', wallet.Address)"
+                >
+                  {{ wallet.Address }}
+                </button>
+              </div>
+            </template>
+          </FormInput>
           <div
             v-if="submissionError"
             class="alert alert-error flex items-center gap-2"

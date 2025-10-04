@@ -138,6 +138,7 @@ export interface MarketBalanceTableEntry extends MarketBalanceDisplay {
   id: string;
   marketAvailableNumber: number;
   totalWalletBalanceNumber: number;
+  WalletDetails?: WalletInfo[];
 }
 
 export interface PendingMessageTableEntry extends PendingMessage {

@@ -89,66 +89,74 @@ const handleRemove = (taskType: FailedTaskType) => {
 </script>
 
 <template>
-  <div v-if="failedTasks.length > 0" class="alert alert-warning mb-4 shadow-lg">
-    <div class="flex w-full items-start gap-3">
-      <ExclamationTriangleIcon class="size-6 flex-shrink-0" />
+  <div
+    v-if="failedTasks.length > 0"
+    class="border-warning/40 bg-warning/5 mb-4 flex items-center gap-3 rounded-xl border px-4 py-3"
+  >
+    <ExclamationTriangleIcon class="text-warning size-5 flex-shrink-0" />
 
-      <div class="flex-1 space-y-3">
-        <div>
-          <h3 class="text-lg font-semibold">Failed Tasks</h3>
-          <p class="text-sm opacity-90">
-            The following tasks have failed. You can choose to restart or remove
-            them
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <div
-            v-for="task in failedTasks"
-            :key="task.type"
-            class="bg-base-100 flex items-center justify-between gap-3 rounded-lg p-3"
-          >
-            <div class="flex-1">
-              <span class="font-medium">{{ task.label }}</span>
-              <span class="text-base-content/70 ml-2">
-                Failed: {{ task.count }}
-              </span>
-            </div>
-
-            <div class="flex gap-2">
-              <details class="dropdown dropdown-end">
-                <summary class="btn btn-sm btn-ghost gap-1" :disabled="loading">
-                  <span class="text-xs">Actions</span>
-                </summary>
-                <ul
-                  class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-[1] w-40 border p-2 shadow-lg"
-                >
-                  <li>
-                    <button
-                      class="gap-2 text-sm"
-                      :disabled="loading"
-                      @click="handleRestart(task.type)"
-                    >
-                      <ArrowPathIcon class="size-4" />
-                      Restart All
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      class="text-error gap-2 text-sm"
-                      :disabled="loading"
-                      @click="handleRemove(task.type)"
-                    >
-                      <TrashIcon class="size-4" />
-                      Remove All
-                    </button>
-                  </li>
-                </ul>
-              </details>
-            </div>
-          </div>
-        </div>
+    <div class="flex-1 space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <h3 class="text-warning text-sm font-semibold tracking-wide uppercase">
+          Failed Tasks
+        </h3>
+        <span class="text-base-content/70 text-xs">
+          {{ failedTasks.length }} issue(s) detected
+        </span>
       </div>
+
+      <div class="flex flex-wrap gap-2">
+        <span
+          v-for="task in failedTasks"
+          :key="task.type"
+          class="bg-warning/10 border-warning/40 text-warning-content/90 flex items-center gap-2 rounded-lg border px-2 py-1 text-xs"
+        >
+          <span class="font-semibold">{{ task.label }}</span>
+          <span class="text-warning-content/70">{{ task.count }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="dropdown dropdown-end">
+      <button
+        type="button"
+        tabindex="0"
+        class="btn btn-sm btn-warning text-warning-content"
+        :disabled="loading"
+      >
+        Actions
+      </button>
+      <ul
+        tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-[1] w-48 border p-2 shadow-lg"
+      >
+        <template v-for="(task, index) in failedTasks" :key="task.type">
+          <li class="menu-title">
+            <span class="text-xs font-semibold">{{ task.label }}</span>
+          </li>
+          <li>
+            <button
+              class="gap-2 text-sm"
+              :disabled="loading"
+              @click="handleRestart(task.type)"
+            >
+              <ArrowPathIcon class="size-4" />
+              Restart
+            </button>
+          </li>
+          <li>
+            <button
+              class="text-error gap-2 text-sm"
+              :disabled="loading"
+              @click="handleRemove(task.type)"
+            >
+              <TrashIcon class="size-4" />
+              Remove
+            </button>
+          </li>
+          <li v-if="index < failedTasks.length - 1" class="divider my-1"></li>
+        </template>
+      </ul>
     </div>
   </div>
 </template>

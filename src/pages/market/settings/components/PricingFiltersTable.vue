@@ -107,7 +107,7 @@ const columns = [
       ]),
   }),
   columnHelper.accessor("verified", {
-    header: "Type",
+    header: "Verified",
     size: 100,
     enableGrouping: false,
     cell: (info) => {
@@ -116,10 +116,10 @@ const columns = [
         "span",
         {
           class: isVerified
-            ? "badge badge-success badge-sm"
-            : "badge badge-neutral badge-sm",
+            ? "text-success font-semibold"
+            : "text-base-content/70 font-medium",
         },
-        isVerified ? "Verified" : "Regular",
+        isVerified ? "Yes" : "No",
       );
     },
   }),
