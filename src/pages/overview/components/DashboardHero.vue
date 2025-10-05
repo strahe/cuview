@@ -55,12 +55,21 @@ const cardIconMap: Record<
   actors: { icon: UserGroupIcon, fallbackColor: "neutral" },
 };
 
+const statusColorMap: Record<
+  HeroSnapshot["cards"][number]["status"],
+  IconColor
+> = {
+  success: "success",
+  warning: "warning",
+  info: "info",
+  accent: "accent",
+};
+
 const cards = computed(() =>
   props.heroSnapshot.cards.map((card) => {
     const preset = cardIconMap[card.id];
-    const iconColor = (
-      card.status === "warning" ? "warning" : preset.fallbackColor
-    ) as IconColor;
+    const iconColor = (statusColorMap[card.status] ??
+      preset.fallbackColor) as IconColor;
 
     return {
       ...card,
@@ -68,12 +77,6 @@ const cards = computed(() =>
       iconColor,
     };
   }),
-);
-
-const secondaryStats = computed(() => props.heroSnapshot.secondary);
-
-const storageUsageWidth = computed(
-  () => `${props.heroSnapshot.storageUsagePercent}%`,
 );
 
 const handleRefresh = async () => {
@@ -97,7 +100,7 @@ const handleRefresh = async () => {
           {{ props.status.label }}
         </span>
         <span class="text-base-content text-sm font-semibold">
-          Cluster At A Glance
+          Cluster Overview
         </span>
       </div>
       <div
@@ -138,34 +141,6 @@ const handleRefresh = async () => {
         :icon="card.icon"
         :icon-color="card.iconColor"
       />
-    </div>
-
-    <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
-      <div
-        v-for="stat in secondaryStats"
-        :key="stat.id"
-        class="border-base-200 bg-base-200/40 text-base-content flex items-center gap-2 rounded-lg border px-3 py-2"
-      >
-        <span class="text-base-content/60 text-xs tracking-wide uppercase">
-          {{ stat.label }}
-        </span>
-        <span class="text-base-content font-semibold">{{ stat.value }}</span>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <span class="text-base-content/60 text-xs tracking-wide uppercase">
-          Storage Utilization
-        </span>
-        <div class="bg-base-200 h-1.5 w-36 rounded-full">
-          <div
-            class="bg-base-content/60 h-1.5 rounded-full"
-            :style="{ width: storageUsageWidth }"
-          />
-        </div>
-        <span class="text-base-content font-semibold">{{
-          props.heroSnapshot.storageUsageLabel
-        }}</span>
-      </div>
     </div>
   </div>
 </template>

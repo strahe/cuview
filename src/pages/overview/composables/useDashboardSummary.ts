@@ -24,6 +24,7 @@ export interface DashboardMetrics {
   storageUsagePercent: number;
   storageUsedLabel: string;
   storageCapacityLabel: string;
+  storageAvailableLabel: string;
   actorCount: number;
 }
 
@@ -43,17 +44,8 @@ interface HeroCardSnapshot {
   status: "success" | "warning" | "info" | "accent";
 }
 
-interface HeroSecondaryStat {
-  id: string;
-  label: string;
-  value: string;
-}
-
 export interface HeroSnapshot {
   cards: HeroCardSnapshot[];
-  secondary: HeroSecondaryStat[];
-  storageUsagePercent: number;
-  storageUsageLabel: string;
 }
 
 const calculateStorageTotals = (
@@ -282,6 +274,7 @@ export const useDashboardSummary = () => {
     storageUsagePercent: storageTotals.value.usagePercent,
     storageUsedLabel: formatBytes(storageTotals.value.used),
     storageCapacityLabel: formatBytes(storageTotals.value.capacity),
+    storageAvailableLabel: formatBytes(storageTotals.value.available),
     actorCount: actorCount.value,
   }));
 
@@ -330,11 +323,6 @@ export const useDashboardSummary = () => {
   );
 
   const heroSnapshot = computed<HeroSnapshot>(() => {
-    const storagePercent = storageTotals.value.usagePercent;
-    const clampedPercent = Number.isFinite(storagePercent)
-      ? Math.min(Math.max(storagePercent, 0), 100)
-      : 0;
-
     return {
       cards: [
         {
@@ -366,25 +354,6 @@ export const useDashboardSummary = () => {
           status: "success",
         },
       ],
-      secondary: [
-        {
-          id: "tasks",
-          label: "Running Tasks",
-          value: runningTasksLabel.value,
-        },
-        {
-          id: "success",
-          label: "Task Success",
-          value: formattedTaskSuccessRate.value,
-        },
-        {
-          id: "actors",
-          label: "Actors",
-          value: formatNumber(metrics.value.actorCount),
-        },
-      ],
-      storageUsagePercent: clampedPercent,
-      storageUsageLabel: `${clampedPercent.toFixed(1)}%`,
     };
   });
 
