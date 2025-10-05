@@ -1,7 +1,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-export type IpniTabId = "overview" | "ads" | "entries" | "ops" | "settings";
+export type IpniTabId = "overview" | "ads" | "entries";
 
 interface IpniTab {
   id: IpniTabId;
@@ -12,8 +12,6 @@ const IPNI_TABS: IpniTab[] = [
   { id: "overview", label: "Overview" },
   { id: "ads", label: "Advertisements" },
   { id: "entries", label: "Entries" },
-  { id: "ops", label: "Tasks & Ops" },
-  { id: "settings", label: "Settings" },
 ];
 
 const DEFAULT_TAB: IpniTabId = "overview";

@@ -55,8 +55,6 @@ const {
 
 const { call } = useCurioQuery();
 
-const instructions = `Enter an advertisement CID to load its metadata, toggle skip status, and inspect linked entries.`;
-
 const addresses = computed(() => {
   if (!ad.value?.addresses) return [] as string[];
   return ad.value.addresses
@@ -219,7 +217,6 @@ watchEffect(() => {
           <span>Search</span>
         </button>
       </div>
-      <p class="text-base-content/60 text-xs">{{ instructions }}</p>
     </form>
 
     <div v-if="searchLoading" class="flex justify-center py-12">
@@ -235,8 +232,7 @@ watchEffect(() => {
       v-else-if="!showResult"
       class="border-base-300/70 text-base-content/70 bg-base-200/40 mt-6 rounded-lg border border-dashed py-6 text-center text-sm"
     >
-      Enter an advertisement CID or pick one from the Active Advertisements
-      table to load details.
+      Enter a CID to search
     </div>
 
     <template v-else>
@@ -375,10 +371,6 @@ watchEffect(() => {
           >
             Additional Advertisement CIDs
           </h4>
-          <p class="text-base-content/60 text-xs">
-            Select to load a previous advertisement or copy the CID for external
-            diagnostics.
-          </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <span
               v-for="cid in alternativeCids"

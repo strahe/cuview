@@ -15,6 +15,8 @@ export interface IpniProviderSummary {
   sync_status?: IpniSyncStatus[];
 }
 
+export type IpniProvider = IpniProviderSummary;
+
 export interface IpniAdDetail {
   ad_cid: string;
   context_id: string;

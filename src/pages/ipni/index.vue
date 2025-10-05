@@ -15,12 +15,6 @@ const panelComponents: Record<
   entries: defineAsyncComponent(
     () => import("./components/IpniEntriesPanel.vue"),
   ),
-  ops: defineAsyncComponent(
-    () => import("./components/IpniOperationsPanel.vue"),
-  ),
-  settings: defineAsyncComponent(
-    () => import("./components/IpniSettingsPanel.vue"),
-  ),
 };
 
 const { tabs, activeTab } = useIpniTabs();

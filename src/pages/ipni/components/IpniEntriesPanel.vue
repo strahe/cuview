@@ -121,10 +121,6 @@ watchEffect(() => {
           <span>Lookup</span>
         </button>
       </div>
-      <p class="text-base-content/60 text-xs">
-        Provide a block CID to retrieve its entry metadata, including the linked
-        chunk in the advertisement chain.
-      </p>
     </form>
 
     <div v-if="loading" class="flex justify-center py-12">
@@ -140,8 +136,7 @@ watchEffect(() => {
       v-else-if="!hasResult"
       class="text-base-content/60 border-base-300 bg-base-200/40 mt-6 rounded-lg border border-dashed p-6 text-sm"
     >
-      Enter an entry CID or open one from the advertisements panel to start
-      inspecting chunk metadata.
+      Enter an entry CID to search
     </div>
 
     <template v-else>
