@@ -41,7 +41,7 @@ const handleSettings = () => {
 </script>
 
 <template>
-  <div class="bg-base-200/30 flex min-h-screen">
+  <div class="bg-base-300 flex min-h-screen">
     <div class="fixed top-0 left-0 z-30 hidden lg:block">
       <CollapsibleSidebar :is-collapsed="layoutStore.sidebarCollapsed" />
     </div>
