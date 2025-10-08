@@ -103,11 +103,19 @@ const nameValidators = {
 };
 
 const minDurationValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["maxDuration"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value < DEAL_MIN_DURATION) {
       return `Min duration cannot be less than ${DEAL_MIN_DURATION} days`;
     }
-    if (value > formValues.value.maxDuration) {
+    const maxDuration = fieldApi.form.state.values.maxDuration as number;
+    if (value > maxDuration) {
       return "Min duration cannot exceed max duration";
     }
     return undefined;
@@ -115,11 +123,19 @@ const minDurationValidators = {
 };
 
 const maxDurationValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["minDuration"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value > DEAL_MAX_DURATION) {
       return `Max duration cannot exceed ${DEAL_MAX_DURATION} days`;
     }
-    if (value < formValues.value.minDuration) {
+    const minDuration = fieldApi.form.state.values.minDuration as number;
+    if (value < minDuration) {
       return "Max duration cannot be less than min duration";
     }
     return undefined;
@@ -127,11 +143,19 @@ const maxDurationValidators = {
 };
 
 const minSizeValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["maxSize"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value <= 0) {
       return "Min size must be greater than zero";
     }
-    if (value > formValues.value.maxSize) {
+    const maxSize = fieldApi.form.state.values.maxSize as number;
+    if (value > maxSize) {
       return "Min size cannot exceed max size";
     }
     return undefined;
@@ -139,11 +163,19 @@ const minSizeValidators = {
 };
 
 const maxSizeValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["minSize"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value <= 0) {
       return "Max size must be greater than zero";
     }
-    if (value < formValues.value.minSize) {
+    const minSize = fieldApi.form.state.values.minSize as number;
+    if (value < minSize) {
       return "Max size cannot be less than min size";
     }
     return undefined;

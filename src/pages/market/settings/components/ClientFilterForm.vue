@@ -72,16 +72,6 @@ const clientFilterForm = useForm({
     const wallets = parseLines(value.walletsText);
     const peerIds = parseLines(value.peerIdsText);
 
-    if (wallets.length === 0 && peerIds.length === 0) {
-      submissionError.value = "Provide at least one wallet address or Peer ID.";
-      return;
-    }
-
-    if (!value.selectedPricingFilters.length) {
-      submissionError.value = "Select at least one pricing filter.";
-      return;
-    }
-
     const payload: ClientFilter = {
       name: value.name.trim(),
       active: value.active,
@@ -98,7 +88,6 @@ const clientFilterForm = useForm({
   },
 });
 
-const formValues = clientFilterForm.useStore((state) => state.values);
 const isSubmitting = clientFilterForm.useStore((state) => state.isSubmitting);
 const canSubmit = clientFilterForm.useStore((state) => state.canSubmit);
 const FieldComponent = clientFilterForm.Field;
@@ -116,9 +105,16 @@ const nameValidators = {
 };
 
 const walletsValidators = {
-  onChange: ({ value }: { value: string }) => {
+  onChangeListenTo: ["peerIdsText"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: string;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     const wallets = parseLines(value);
-    const peers = parseLines(formValues.value.peerIdsText);
+    const peers = parseLines(fieldApi.form.state.values.peerIdsText as string);
     if (wallets.length === 0 && peers.length === 0) {
       return "Provide at least one wallet address or Peer ID";
     }
@@ -132,9 +128,18 @@ const walletsValidators = {
 };
 
 const peerValidators = {
-  onChange: ({ value }: { value: string }) => {
+  onChangeListenTo: ["walletsText"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: string;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     const peers = parseLines(value);
-    const wallets = parseLines(formValues.value.walletsText);
+    const wallets = parseLines(
+      fieldApi.form.state.values.walletsText as string,
+    );
     if (wallets.length === 0 && peers.length === 0) {
       return "Provide at least one wallet address or Peer ID";
     }

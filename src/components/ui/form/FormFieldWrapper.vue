@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import type { FormControlTone } from "@/utils/formControl";
 
 interface Props {
   label?: string;
@@ -7,6 +8,8 @@ interface Props {
   errors?: string[];
   required?: boolean;
   disabled?: boolean;
+  controlId?: string;
+  tone?: FormControlTone;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,9 +18,17 @@ const props = withDefaults(defineProps<Props>(), {
   errors: () => [],
   required: false,
   disabled: false,
+  controlId: undefined,
+  tone: "default" as FormControlTone,
 });
 
 const errorMessages = computed(() => props.errors?.filter(Boolean) ?? []);
+
+const descriptionClass = computed(() => {
+  if (props.tone === "error") return "text-error";
+  if (props.tone === "success") return "text-success";
+  return "text-base-content/60";
+});
 </script>
 
 <template>
@@ -31,6 +42,7 @@ const errorMessages = computed(() => props.errors?.filter(Boolean) ?? []);
           v-if="label"
           class="text-base-content text-sm font-medium"
           :class="{ 'opacity-70': disabled }"
+          :for="controlId"
         >
           {{ label }}
           <span v-if="required" class="text-error">*</span>
@@ -43,7 +55,7 @@ const errorMessages = computed(() => props.errors?.filter(Boolean) ?? []);
       </div>
     </div>
 
-    <p v-if="description" class="text-base-content/60 text-xs">
+    <p v-if="description" :class="[descriptionClass, 'text-xs']">
       {{ description }}
     </p>
 

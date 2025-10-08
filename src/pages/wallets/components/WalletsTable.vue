@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, h, ref, nextTick, type VNode } from "vue";
+import { useForm } from "@tanstack/vue-form";
 import {
   createColumnHelper,
   FlexRender,
@@ -21,6 +22,13 @@ import { useCurioQuery } from "@/composables/useCurioQuery";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
+import BaseModal from "@/components/ui/BaseModal.vue";
+import {
+  FormLayout,
+  FormSection,
+  FormInput,
+  FormActions,
+} from "@/components/ui/form";
 import type { WalletTableEntry } from "@/types/wallet";
 import { getTableRowClasses } from "@/utils/ui";
 
@@ -86,6 +94,46 @@ const { isLoading: isActionLoading, executeAction } =
       },
     },
   });
+
+type AddWalletFormValues = {
+  address: string;
+  name: string;
+};
+
+const addWalletForm = useForm({
+  defaultValues: {
+    address: "",
+    name: "",
+  } as AddWalletFormValues,
+  onSubmit: async ({ value }) => {
+    operationError.value = null;
+
+    // Update newWallet ref for the API call
+    newWallet.value = {
+      address: value.address.trim(),
+      name: value.name.trim(),
+    };
+
+    await executeAction("add", {} as WalletTableEntry);
+  },
+});
+
+const isSubmittingAdd = addWalletForm.useStore((state) => state.isSubmitting);
+const canSubmitAdd = addWalletForm.useStore((state) => state.canSubmit);
+
+const addressValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Wallet address is required";
+    }
+    // Basic Filecoin address validation
+    if (!/^[ft][0-3]/.test(trimmed)) {
+      return "Invalid Filecoin address format";
+    }
+    return undefined;
+  },
+};
 
 const getWalletTypeClass = (type: string) => {
   switch (type) {
@@ -350,30 +398,19 @@ const handleCancelInlineEdit = (wallet: WalletTableEntry) => {
 };
 
 const handleAddClick = () => {
-  newWallet.value = { address: "", name: "" };
+  addWalletForm.reset({ address: "", name: "" });
   operationError.value = null;
   showAddDialog.value = true;
 };
 
 const handleAddCancel = () => {
   showAddDialog.value = false;
-  newWallet.value = { address: "", name: "" };
+  addWalletForm.reset({ address: "", name: "" });
   operationError.value = null;
 };
 
 const handleAddConfirm = async () => {
-  if (!newWallet.value.address.trim()) {
-    operationError.value = "Wallet address is required";
-    return;
-  }
-
-  try {
-    operationError.value = null;
-    await executeAction("add", {} as WalletTableEntry);
-  } catch (error) {
-    operationError.value =
-      error instanceof Error ? error.message : "Failed to add wallet";
-  }
+  await addWalletForm.handleSubmit();
 };
 
 const handleDeleteClick = (wallet: WalletTableEntry) => {
@@ -639,85 +676,103 @@ const getColumnAggregateInfo = (columnId: string) => {
     </div>
   </div>
 
-  <div v-if="showAddDialog" class="modal modal-open">
-    <div class="modal-box max-w-md">
-      <div class="mb-6 flex items-center gap-3">
-        <div class="bg-primary/10 rounded-lg p-2">
-          <PlusIcon class="text-primary size-6" />
-        </div>
-        <h3 class="text-xl font-semibold">Add Wallet</h3>
-      </div>
+  <BaseModal
+    :open="showAddDialog"
+    title="Add Wallet"
+    size="md"
+    :modal="true"
+    :show-close-button="!isSubmittingAdd"
+    @close="handleAddCancel"
+  >
+    <FormLayout>
+      <FormSection>
+        <FormInput
+          :form="addWalletForm"
+          name="address"
+          label="Wallet Address"
+          placeholder="f1abc123... or f3xyz789..."
+          input-class="font-mono"
+          :disabled="
+            isSubmittingAdd || isActionLoading('add', {} as WalletTableEntry)
+          "
+          :validators="addressValidators"
+          :autofocus="true"
+          :required="true"
+        >
+          <template #hint>
+            <p class="text-base-content/60 text-xs">
+              Enter Filecoin wallet address (f0-f3 or t0-t3)
+            </p>
+          </template>
+        </FormInput>
 
-      <form class="space-y-6" @submit.prevent="handleAddConfirm">
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Wallet Address</span>
-            <span class="label-text-alt text-error">*</span>
-          </label>
-          <div class="relative">
-            <input
-              v-model="newWallet.address"
-              type="text"
-              placeholder="f1abc123... or f3xyz789..."
-              class="input input-bordered w-full py-3 pr-4 pl-4 text-sm"
-              :class="{
-                'input-error': operationError && !newWallet.address.trim(),
-              }"
-              required
-              autofocus
-            />
-          </div>
-        </div>
-
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">Display Name</span>
-          </label>
-          <input
-            v-model="newWallet.name"
-            type="text"
-            placeholder="e.g., Main Wallet, Worker Wallet"
-            class="input input-bordered w-full py-3 pr-4 pl-4 text-sm"
-          />
-        </div>
+        <FormInput
+          :form="addWalletForm"
+          name="name"
+          label="Display Name"
+          placeholder="e.g., Main Wallet, Worker Wallet"
+          :disabled="
+            isSubmittingAdd || isActionLoading('add', {} as WalletTableEntry)
+          "
+        >
+          <template #hint>
+            <p class="text-base-content/60 text-xs">
+              Optional: Give this wallet a friendly name
+            </p>
+          </template>
+        </FormInput>
 
         <div v-if="operationError" class="alert alert-error">
           <XMarkIcon class="size-5" />
           <span>{{ operationError }}</span>
         </div>
+      </FormSection>
+    </FormLayout>
 
-        <div class="flex justify-end gap-3 pt-4">
-          <button type="button" class="btn btn-ghost" @click="handleAddCancel">
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="btn btn-primary gap-2"
-            :class="{
-              'loading cursor-not-allowed': isActionLoading(
-                'add',
-                {} as WalletTableEntry,
-              ),
-            }"
-            :disabled="
-              !newWallet.address.trim() ||
-              isActionLoading('add', {} as WalletTableEntry)
+    <template #footer>
+      <FormActions>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          :disabled="
+            isSubmittingAdd || isActionLoading('add', {} as WalletTableEntry)
+          "
+          @click="handleAddCancel"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary gap-2"
+          :disabled="
+            isSubmittingAdd ||
+            isActionLoading('add', {} as WalletTableEntry) ||
+            !canSubmitAdd
+          "
+          @click="handleAddConfirm"
+        >
+          <PlusIcon
+            v-if="
+              !isSubmittingAdd &&
+              !isActionLoading('add', {} as WalletTableEntry)
             "
-          >
-            <PlusIcon
-              v-if="!isActionLoading('add', {} as WalletTableEntry)"
-              class="size-4"
-            />
-            {{
-              isActionLoading("add", {} as WalletTableEntry)
-                ? "Adding..."
-                : "Add Wallet"
-            }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+            class="size-4"
+          />
+          <span
+            v-if="
+              isSubmittingAdd || isActionLoading('add', {} as WalletTableEntry)
+            "
+            class="loading loading-spinner loading-xs"
+          ></span>
+          {{
+            isSubmittingAdd || isActionLoading("add", {} as WalletTableEntry)
+              ? "Adding..."
+              : "Add Wallet"
+          }}
+        </button>
+      </FormActions>
+    </template>
+  </BaseModal>
 
   <ConfirmationDialog
     v-model:show="showDeleteDialog"

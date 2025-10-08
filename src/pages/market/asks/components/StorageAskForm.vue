@@ -58,18 +58,8 @@ const storageAskForm = useForm({
   onSubmit: async ({ value }) => {
     submissionError.value = null;
 
-    if (props.spId <= 0) {
-      submissionError.value = "Storage provider ID is required.";
-      return;
-    }
-
     const price = Number.parseFloat(value.priceFilPerTiB);
     const verifiedPrice = Number.parseFloat(value.verifiedPriceFilPerTiB);
-
-    if (Number.isNaN(price) || Number.isNaN(verifiedPrice)) {
-      submissionError.value = "Please enter valid price values.";
-      return;
-    }
 
     emit("save", {
       SpID: props.spId,
@@ -93,8 +83,6 @@ const priceValue = storageAskForm.useStore(
 const verifiedPriceValue = storageAskForm.useStore(
   (state) => state.values.verifiedPriceFilPerTiB,
 );
-const minSizeValue = storageAskForm.useStore((state) => state.values.minSize);
-const maxSizeValue = storageAskForm.useStore((state) => state.values.maxSize);
 
 const priceAttoFil = computed(() => {
   const parsed = Number.parseFloat(priceValue.value);
@@ -144,11 +132,19 @@ const verifiedPriceValidators = {
 };
 
 const minSizeValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["maxSize"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value <= 0) {
       return "Min size must be greater than zero";
     }
-    if (value > maxSizeValue.value) {
+    const maxSize = fieldApi.form.state.values.maxSize as number;
+    if (value > maxSize) {
       return "Min size cannot exceed max size";
     }
     return undefined;
@@ -156,11 +152,19 @@ const minSizeValidators = {
 };
 
 const maxSizeValidators = {
-  onChange: ({ value }: { value: number }) => {
+  onChangeListenTo: ["minSize"],
+  onChange: ({
+    value,
+    fieldApi,
+  }: {
+    value: number;
+    fieldApi: { form: { state: { values: Record<string, unknown> } } };
+  }) => {
     if (value <= 0) {
       return "Max size must be greater than zero";
     }
-    if (value < minSizeValue.value) {
+    const minSize = fieldApi.form.state.values.minSize as number;
+    if (value < minSize) {
       return "Max size cannot be less than min size";
     }
     return undefined;

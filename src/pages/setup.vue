@@ -8,8 +8,9 @@
 </route>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useForm } from "@tanstack/vue-form";
 import { useConfigStore } from "@/stores/config";
 import {
   Cog6ToothIcon,
@@ -19,14 +20,6 @@ import {
 
 const router = useRouter();
 const configStore = useConfigStore();
-const endpointInput = ref("");
-const isLoading = ref(false);
-const error = ref("");
-const isValid = ref(false);
-
-onMounted(() => {
-  endpointInput.value = configStore.getEndpoint();
-});
 
 const validateEndpoint = (endpoint: string): boolean => {
   if (!endpoint.trim()) return false;
@@ -80,46 +73,57 @@ const testConnection = async (endpoint: string): Promise<boolean> => {
   }
 };
 
-const handleSubmit = async () => {
-  if (!endpointInput.value.trim()) {
-    error.value = "Please enter a Curio API endpoint";
-    return;
-  }
+const connectionSuccess = ref(false);
+const submissionError = ref<string | null>(null);
 
-  error.value = "";
-  isValid.value = false;
-  isLoading.value = true;
+const setupForm = useForm({
+  defaultValues: {
+    endpoint: configStore.getEndpoint(),
+  },
+  onSubmit: async ({ value }) => {
+    submissionError.value = null;
 
-  try {
-    const isConnectionValid = await testConnection(endpointInput.value);
+    const normalizedEndpoint = normalizeEndpoint(value.endpoint);
+    const isConnectionValid = await testConnection(normalizedEndpoint);
 
     if (isConnectionValid) {
-      const normalizedEndpoint = normalizeEndpoint(endpointInput.value);
       configStore.setEndpoint(normalizedEndpoint);
-      isLoading.value = false;
-      isValid.value = true;
+      connectionSuccess.value = true;
 
       setTimeout(() => {
         router.replace("/overview");
       }, 2000);
     } else {
-      isLoading.value = false;
-      error.value =
+      submissionError.value =
         "Cannot connect to Curio server. Please verify the endpoint is correct and the server is running.";
+      throw new Error(submissionError.value);
     }
-  } catch (err) {
-    console.error("Connection test error:", err);
-    isLoading.value = false;
-    error.value =
-      "Connection test failed. Please check your network connection and try again.";
-  }
+  },
+});
+
+const isSubmitting = setupForm.useStore((state) => state.isSubmitting);
+const canSubmit = setupForm.useStore((state) => state.canSubmit);
+
+const endpointValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Please enter a Curio API endpoint";
+    }
+    if (!validateEndpoint(trimmed)) {
+      return "Invalid endpoint format. Use /path, ws://, wss://, http://, or https://";
+    }
+    return undefined;
+  },
 };
 
 const hasEnvEndpoint = import.meta.env.VITE_CURIO_ENDPOINT;
 
 const skipToOverview = () => {
   // Use default endpoint
-  configStore.setEndpoint(hasEnvEndpoint || "/api/webrpc/v0");
+  configStore.setEndpoint(
+    hasEnvEndpoint || "ws://localhost:4701/api/webrpc/v0",
+  );
   router.replace("/overview");
 };
 </script>
@@ -147,7 +151,7 @@ const skipToOverview = () => {
       <div
         class="bg-base-100 border-base-300/50 rounded-xl border p-8 shadow-xl"
       >
-        <form class="space-y-6" @submit.prevent="handleSubmit">
+        <form class="space-y-6" @submit.prevent="setupForm.handleSubmit">
           <!-- Form Header -->
           <div class="border-base-300/50 border-b pb-4">
             <h2 class="mb-2 text-xl font-semibold">API Configuration</h2>
@@ -164,25 +168,54 @@ const skipToOverview = () => {
               >
               <span class="badge badge-primary badge-xs">Required</span>
             </label>
-            <input
-              v-model="endpointInput"
-              type="text"
-              placeholder="e.g., /api/webrpc/v0 or ws://localhost:4701/api/webrpc/v0"
-              class="input input-bordered input-lg w-full text-base"
-              :class="{ 'input-error': error, 'input-success': isValid }"
-              :disabled="isLoading || isValid"
-            />
+
+            <component
+              :is="setupForm.Field"
+              name="endpoint"
+              :validators="endpointValidators"
+            >
+              <template #default="{ field }">
+                <input
+                  type="text"
+                  placeholder="e.g., /api/webrpc/v0 or ws://localhost:4701/api/webrpc/v0"
+                  class="input input-bordered input-lg w-full text-base"
+                  :value="field.state.value"
+                  :class="{
+                    'input-error':
+                      field.state.meta.errors.length > 0 &&
+                      field.state.meta.isTouched,
+                    'input-success': connectionSuccess,
+                  }"
+                  :disabled="isSubmitting || connectionSuccess"
+                  @input="
+                    (e) =>
+                      field.handleChange((e.target as HTMLInputElement).value)
+                  "
+                  @blur="field.handleBlur"
+                />
+                <p
+                  v-if="
+                    field.state.meta.errors.length > 0 &&
+                    field.state.meta.isTouched
+                  "
+                  class="text-error mt-1 text-sm"
+                >
+                  {{ field.state.meta.errors[0] }}
+                </p>
+              </template>
+            </component>
+
             <p class="text-base-content/60 mt-1 text-sm">
               WebSocket endpoint for your Curio API server
             </p>
 
             <!-- Status Messages -->
-            <div v-if="error" class="alert alert-error mt-3">
+            <div v-if="submissionError" class="alert alert-error mt-3">
               <ExclamationTriangleIcon class="size-5" />
-              <span>{{ error }}</span>
+              <span>{{ submissionError }}</span>
             </div>
 
-            <div v-if="isValid" class="alert alert-success mt-3">
+            <div v-if="connectionSuccess" class="alert alert-success mt-3">
               <CheckCircleIcon class="size-5" />
               <span>Connected successfully! Redirecting to dashboard...</span>
             </div>
@@ -193,13 +226,13 @@ const skipToOverview = () => {
             <button
               type="submit"
               class="btn btn-primary btn-lg flex-1"
-              :disabled="isLoading || isValid"
+              :disabled="isSubmitting || connectionSuccess || !canSubmit"
             >
-              <template v-if="isLoading">
+              <template v-if="isSubmitting">
                 <span class="loading loading-spinner loading-sm"></span>
                 Testing Connection...
               </template>
-              <template v-else-if="isValid">
+              <template v-else-if="connectionSuccess">
                 <CheckCircleIcon class="size-5" />
                 Connected Successfully!
               </template>
@@ -210,7 +243,7 @@ const skipToOverview = () => {
               v-if="hasEnvEndpoint"
               type="button"
               class="btn btn-outline"
-              :disabled="isLoading || isValid"
+              :disabled="isSubmitting || connectionSuccess"
               @click="skipToOverview"
             >
               Use Default Endpoint

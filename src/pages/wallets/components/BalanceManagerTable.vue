@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, h, ref } from "vue";
+import { useForm } from "@tanstack/vue-form";
 import {
   createColumnHelper,
   FlexRender,
@@ -15,9 +16,19 @@ import {
 } from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { useWatermarkValidators } from "@/composables/useWatermarkValidators";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import { getTableRowClasses } from "@/utils/ui";
+import BaseModal from "@/components/ui/BaseModal.vue";
+import {
+  FormFieldWrapper,
+  FormGrid,
+  FormInput,
+  FormLayout,
+  FormSelect,
+  FormActions,
+} from "@/components/ui/form";
 import type {
   BalanceManagerRule,
   BalanceManagerRuleDisplay,
@@ -109,7 +120,12 @@ const operationSuccess = ref<string | null>(null);
 const manualRefreshLoading = ref(false);
 const isOperating = ref(false);
 
-const walletFormData = ref<BalanceManagerRuleAddRequest>({
+const walletActionOptions = [
+  { label: "Auto Top-up", value: "requester" },
+  { label: "Auto Withdraw", value: "active-provider" },
+];
+
+const createWalletRuleDefaults = (): BalanceManagerRuleAddRequest => ({
   subject: "",
   second: "",
   actionType: "requester",
@@ -118,16 +134,125 @@ const walletFormData = ref<BalanceManagerRuleAddRequest>({
   highWatermark: "",
 });
 
-const proofshareFormData = ref<BalanceManagerRuleAddRequest>({
+const createProofshareRuleDefaults = (): BalanceManagerRuleAddRequest => ({
   subject: "",
   second: "",
-  actionType: "requester", // Always requester for proofshare
+  actionType: "requester",
   subjectType: "proofshare",
   lowWatermark: "",
   highWatermark: "",
 });
 
+const {
+  validateWatermarkPair,
+  createRequiredStringValidator,
+  createNonNegativeNumberValidator,
+  createHighWatermarkValidator,
+} = useWatermarkValidators();
+
+const walletSubjectValidators =
+  createRequiredStringValidator("Monitored address");
+const walletFundingValidators = createRequiredStringValidator("Funding source");
+const walletLowWatermarkValidators =
+  createNonNegativeNumberValidator("Min balance");
+const walletHighWatermarkValidators = createHighWatermarkValidator(
+  "Target balance",
+  "lowWatermark",
+  "Min balance",
+);
+
+const proofshareSubjectValidators =
+  createRequiredStringValidator("Monitored address");
+const proofshareLowWatermarkValidators =
+  createNonNegativeNumberValidator("Min balance");
+const proofshareHighWatermarkValidators = createHighWatermarkValidator(
+  "Target balance",
+  "lowWatermark",
+  "Min balance",
+);
+
 const { call } = useCurioQuery();
+
+const walletRuleForm = useForm({
+  defaultValues: createWalletRuleDefaults(),
+  onSubmit: async ({ value }) => {
+    const subject = value.subject.trim();
+    const fundingSource = value.second.trim();
+    const lowValue = value.lowWatermark.trim();
+    const highValue = value.highWatermark.trim();
+
+    try {
+      operationError.value = null;
+      isOperating.value = true;
+
+      await call("BalanceMgrRuleAdd", [
+        subject,
+        fundingSource,
+        value.actionType,
+        lowValue,
+        highValue,
+        value.subjectType,
+      ]);
+
+      walletRuleForm.reset(createWalletRuleDefaults());
+      showAddWalletDialog.value = false;
+      operationSuccess.value = "Wallet rule added successfully";
+      props.onRefresh();
+    } catch (error) {
+      operationError.value =
+        error instanceof Error ? error.message : "Failed to add wallet rule";
+    } finally {
+      isOperating.value = false;
+    }
+  },
+});
+
+const walletFormCanSubmit = walletRuleForm.useStore((state) => state.canSubmit);
+const walletFormIsSubmitting = walletRuleForm.useStore(
+  (state) => state.isSubmitting,
+);
+
+const proofshareRuleForm = useForm({
+  defaultValues: createProofshareRuleDefaults(),
+  onSubmit: async ({ value }) => {
+    const subject = value.subject.trim();
+    const lowValue = value.lowWatermark.trim();
+    const highValue = value.highWatermark.trim();
+
+    try {
+      operationError.value = null;
+      isOperating.value = true;
+
+      await call("BalanceMgrRuleAdd", [
+        subject,
+        subject,
+        "requester",
+        lowValue,
+        highValue,
+        "proofshare",
+      ]);
+
+      proofshareRuleForm.reset(createProofshareRuleDefaults());
+      showAddProofshareDialog.value = false;
+      operationSuccess.value = "SnarkMarket Client rule added successfully";
+      props.onRefresh();
+    } catch (error) {
+      operationError.value =
+        error instanceof Error
+          ? error.message
+          : "Failed to add proofshare rule";
+    } finally {
+      isOperating.value = false;
+    }
+  },
+});
+
+const proofshareFormCanSubmit = proofshareRuleForm.useStore(
+  (state) => state.canSubmit,
+);
+const proofshareFormIsSubmitting = proofshareRuleForm.useStore(
+  (state) => state.isSubmitting,
+);
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
@@ -409,6 +534,18 @@ const cancelEdit = () => {
 };
 
 const handleSaveEdit = async (item: BalanceManagerTableEntry) => {
+  const watermarkError = validateWatermarkPair(
+    editFormData.value.low,
+    editFormData.value.high,
+    "Min balance",
+    "Target balance",
+  );
+
+  if (watermarkError) {
+    operationError.value = watermarkError;
+    return;
+  }
+
   try {
     operationError.value = null;
     isOperating.value = true;
@@ -431,83 +568,22 @@ const handleSaveEdit = async (item: BalanceManagerTableEntry) => {
 };
 
 const handleAddWalletClick = () => {
-  walletFormData.value = {
-    subject: "",
-    second: "",
-    actionType: "requester",
-    subjectType: "wallet",
-    lowWatermark: "",
-    highWatermark: "",
-  };
+  walletRuleForm.reset(createWalletRuleDefaults());
   operationError.value = null;
   operationSuccess.value = null;
   showAddWalletDialog.value = true;
 };
 
 const handleAddProofshareClick = () => {
-  proofshareFormData.value = {
-    subject: "",
-    second: "",
-    actionType: "requester",
-    subjectType: "proofshare",
-    lowWatermark: "",
-    highWatermark: "",
-  };
+  proofshareRuleForm.reset(createProofshareRuleDefaults());
   operationError.value = null;
   operationSuccess.value = null;
   showAddProofshareDialog.value = true;
 };
 
-const handleWalletFormSubmit = async () => {
-  try {
-    operationError.value = null;
-    isOperating.value = true;
+const handleWalletFormSubmit = () => walletRuleForm.handleSubmit();
 
-    await call("BalanceMgrRuleAdd", [
-      walletFormData.value.subject.trim(),
-      walletFormData.value.second.trim(),
-      walletFormData.value.actionType,
-      walletFormData.value.lowWatermark,
-      walletFormData.value.highWatermark,
-      walletFormData.value.subjectType,
-    ]);
-
-    showAddWalletDialog.value = false;
-    operationSuccess.value = "Wallet rule added successfully";
-    props.onRefresh();
-  } catch (error) {
-    operationError.value =
-      error instanceof Error ? error.message : "Failed to add wallet rule";
-  } finally {
-    isOperating.value = false;
-  }
-};
-
-const handleProofshareFormSubmit = async () => {
-  try {
-    operationError.value = null;
-    isOperating.value = true;
-
-    // For proofshare, subject and second are the same
-    await call("BalanceMgrRuleAdd", [
-      proofshareFormData.value.subject.trim(),
-      proofshareFormData.value.subject.trim(),
-      "requester",
-      proofshareFormData.value.lowWatermark,
-      proofshareFormData.value.highWatermark,
-      "proofshare",
-    ]);
-
-    showAddProofshareDialog.value = false;
-    operationSuccess.value = "SnarkMarket Client rule added successfully";
-    props.onRefresh();
-  } catch (error) {
-    operationError.value =
-      error instanceof Error ? error.message : "Failed to add proofshare rule";
-  } finally {
-    isOperating.value = false;
-  }
-};
+const handleProofshareFormSubmit = () => proofshareRuleForm.handleSubmit();
 
 const handleRemoveClick = async (item: BalanceManagerTableEntry) => {
   if (!confirm("Delete this rule?")) {
@@ -795,92 +871,71 @@ const getColumnAggregateInfo = (columnId: string) => {
   </div>
 
   <!-- Add Wallet Rule Dialog -->
-  <div
-    v-if="showAddWalletDialog"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  <BaseModal
+    :open="showAddWalletDialog"
+    title="Add Wallet Rule"
+    size="lg"
+    :modal="true"
+    :show-close-button="!isOperating"
+    @close="showAddWalletDialog = false"
   >
-    <div class="bg-base-100 w-full max-w-2xl rounded-lg p-6 shadow-xl">
-      <h3 class="mb-4 text-lg font-semibold">Add Wallet Rule</h3>
-
-      <div class="mb-4 grid grid-cols-2 gap-4">
-        <!-- Subject Address -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Monitored Address</span>
-          </label>
-          <input
-            v-model="walletFormData.subject"
-            type="text"
+    <div class="space-y-6">
+      <FormLayout>
+        <FormGrid :columns="2">
+          <FormInput
+            :form="walletRuleForm"
+            name="subject"
+            label="Monitored Address"
             placeholder="Subject wallet address..."
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || walletFormIsSubmitting"
+            :validators="walletSubjectValidators"
           />
-        </div>
 
-        <!-- Second Address -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Funding Source</span>
-          </label>
-          <input
-            v-model="walletFormData.second"
-            type="text"
+          <FormInput
+            :form="walletRuleForm"
+            name="second"
+            label="Funding Source"
             placeholder="Second wallet address..."
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || walletFormIsSubmitting"
+            :validators="walletFundingValidators"
           />
-        </div>
 
-        <!-- Action Type -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Action</span>
-          </label>
-          <select
-            v-model="walletFormData.actionType"
-            class="select select-bordered select-sm"
-            :disabled="isOperating"
-          >
-            <option value="requester">Auto Top-up</option>
-            <option value="active-provider">Auto Withdraw</option>
-          </select>
-        </div>
+          <FormSelect
+            :form="walletRuleForm"
+            name="actionType"
+            label="Action"
+            :options="walletActionOptions"
+            :disabled="isOperating || walletFormIsSubmitting"
+          />
 
-        <div class="form-control">
-          <!-- Spacer for alignment -->
-        </div>
+          <div aria-hidden="true"></div>
 
-        <!-- Low Watermark -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Min Balance (FIL)</span>
-          </label>
-          <input
-            v-model="walletFormData.lowWatermark"
-            type="text"
+          <FormInput
+            :form="walletRuleForm"
+            name="lowWatermark"
+            label="Min Balance (FIL)"
             placeholder="0.0"
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || walletFormIsSubmitting"
+            :validators="walletLowWatermarkValidators"
           />
-        </div>
 
-        <!-- High Watermark -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Target Balance (FIL)</span>
-          </label>
-          <input
-            v-model="walletFormData.highWatermark"
-            type="text"
+          <FormInput
+            :form="walletRuleForm"
+            name="highWatermark"
+            label="Target Balance (FIL)"
             placeholder="0.0"
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || walletFormIsSubmitting"
+            :validators="walletHighWatermarkValidators"
           />
-        </div>
-      </div>
+        </FormGrid>
+      </FormLayout>
 
       <!-- Error Message -->
-      <div v-if="operationError" class="mb-4">
+      <div v-if="operationError">
         <div
           class="bg-error/10 border-error/20 text-error flex items-start gap-3 rounded-lg border p-3"
         >
@@ -888,105 +943,88 @@ const getColumnAggregateInfo = (columnId: string) => {
           <div class="flex-1 text-sm">{{ operationError }}</div>
         </div>
       </div>
+    </div>
 
-      <!-- Actions -->
-      <div class="flex justify-end gap-2">
+    <template #footer>
+      <FormActions>
         <button
-          class="btn btn-ghost btn-sm"
-          :disabled="isOperating"
+          class="btn btn-ghost"
+          :disabled="isOperating || walletFormIsSubmitting"
           @click="showAddWalletDialog = false"
         >
           Cancel
         </button>
         <button
-          class="btn btn-success btn-sm"
-          :disabled="isOperating"
+          class="btn btn-success"
+          :disabled="
+            isOperating || walletFormIsSubmitting || !walletFormCanSubmit
+          "
           @click="handleWalletFormSubmit"
         >
           <span
-            v-if="isOperating"
+            v-if="isOperating || walletFormIsSubmitting"
             class="loading loading-spinner loading-sm"
           ></span>
           Save
         </button>
-      </div>
-    </div>
-  </div>
+      </FormActions>
+    </template>
+  </BaseModal>
 
   <!-- Add SnarkMarket Client Rule Dialog -->
-  <div
-    v-if="showAddProofshareDialog"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  <BaseModal
+    :open="showAddProofshareDialog"
+    title="Add SnarkMarket Client Rule"
+    size="lg"
+    :modal="true"
+    :show-close-button="!isOperating"
+    @close="showAddProofshareDialog = false"
   >
-    <div class="bg-base-100 w-full max-w-2xl rounded-lg p-6 shadow-xl">
-      <h3 class="mb-4 text-lg font-semibold">Add SnarkMarket Client Rule</h3>
-
-      <div class="mb-4 grid grid-cols-2 gap-4">
-        <!-- Subject Address -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Monitored Address</span>
-          </label>
-          <input
-            v-model="proofshareFormData.subject"
-            type="text"
+    <div class="space-y-6">
+      <FormLayout>
+        <FormGrid :columns="2">
+          <FormInput
+            :form="proofshareRuleForm"
+            name="subject"
+            label="Monitored Address"
             placeholder="Subject address..."
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || proofshareFormIsSubmitting"
+            :validators="proofshareSubjectValidators"
           />
-        </div>
 
-        <div class="form-control">
-          <!-- Spacer -->
-        </div>
+          <FormFieldWrapper label="Action" :disabled="true">
+            <input
+              class="input input-bordered input-sm bg-base-200 text-base-content"
+              value="Auto Top-up"
+              readonly
+            />
+          </FormFieldWrapper>
 
-        <!-- Action Type (Read Only) -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Action</span>
-          </label>
-          <input
-            class="input input-bordered input-sm bg-base-200 text-base-content"
-            value="Auto Top-up"
-            readonly
-          />
-        </div>
-
-        <div class="form-control">
-          <!-- Spacer for alignment -->
-        </div>
-
-        <!-- Low Watermark -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Min Balance (FIL)</span>
-          </label>
-          <input
-            v-model="proofshareFormData.lowWatermark"
-            type="text"
+          <FormInput
+            :form="proofshareRuleForm"
+            name="lowWatermark"
+            label="Min Balance (FIL)"
             placeholder="0.0"
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || proofshareFormIsSubmitting"
+            :validators="proofshareLowWatermarkValidators"
           />
-        </div>
 
-        <!-- High Watermark -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Target Balance (FIL)</span>
-          </label>
-          <input
-            v-model="proofshareFormData.highWatermark"
-            type="text"
+          <FormInput
+            :form="proofshareRuleForm"
+            name="highWatermark"
+            label="Target Balance (FIL)"
             placeholder="0.0"
-            class="input input-bordered input-sm font-mono"
-            :disabled="isOperating"
+            input-class="font-mono"
+            :disabled="isOperating || proofshareFormIsSubmitting"
+            :validators="proofshareHighWatermarkValidators"
           />
-        </div>
-      </div>
+        </FormGrid>
+      </FormLayout>
 
       <!-- Error Message -->
-      <div v-if="operationError" class="mb-4">
+      <div v-if="operationError">
         <div
           class="bg-error/10 border-error/20 text-error flex items-start gap-3 rounded-lg border p-3"
         >
@@ -994,28 +1032,33 @@ const getColumnAggregateInfo = (columnId: string) => {
           <div class="flex-1 text-sm">{{ operationError }}</div>
         </div>
       </div>
+    </div>
 
-      <!-- Actions -->
-      <div class="flex justify-end gap-2">
+    <template #footer>
+      <FormActions>
         <button
-          class="btn btn-ghost btn-sm"
-          :disabled="isOperating"
+          class="btn btn-ghost"
+          :disabled="isOperating || proofshareFormIsSubmitting"
           @click="showAddProofshareDialog = false"
         >
           Cancel
         </button>
         <button
-          class="btn btn-success btn-sm"
-          :disabled="isOperating"
+          class="btn btn-success"
+          :disabled="
+            isOperating ||
+            proofshareFormIsSubmitting ||
+            !proofshareFormCanSubmit
+          "
           @click="handleProofshareFormSubmit"
         >
           <span
-            v-if="isOperating"
+            v-if="isOperating || proofshareFormIsSubmitting"
             class="loading loading-spinner loading-sm"
           ></span>
           Save
         </button>
-      </div>
-    </div>
-  </div>
+      </FormActions>
+    </template>
+  </BaseModal>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { useForm } from "@tanstack/vue-form";
 import { useConfigStore } from "@/stores/config";
 import { useDebugStore } from "@/stores/debug";
 import {
@@ -23,26 +24,13 @@ const emit = defineEmits<Emits>();
 
 const configStore = useConfigStore();
 const debugStore = useDebugStore();
-const endpointInput = ref("");
-const isLoading = ref(false);
-const error = ref("");
+const submissionError = ref<string | null>(null);
 const showSuccess = ref(false);
 const showTooltip = ref(false);
 const tooltipPosition = ref({ x: 0, y: 0 });
 const isDev = import.meta.env.DEV;
-
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen) {
-      endpointInput.value = configStore.getEndpoint();
-      error.value = "";
-      showSuccess.value = false;
-    } else {
-      showSuccess.value = false;
-    }
-  },
-);
+const defaultEndpoint =
+  import.meta.env.VITE_CURIO_ENDPOINT || "ws://localhost:4701/api/webrpc/v0";
 
 const validateEndpoint = (endpoint: string): boolean => {
   if (!endpoint.trim()) return false;
@@ -95,43 +83,67 @@ const testConnection = async (endpoint: string): Promise<boolean> => {
   }
 };
 
-const handleSave = async () => {
-  if (!endpointInput.value.trim()) {
-    error.value = "Please enter a Curio API endpoint";
-    return;
-  }
+const settingsForm = useForm({
+  defaultValues: {
+    endpoint: configStore.getEndpoint(),
+  },
+  onSubmit: async ({ value }) => {
+    submissionError.value = null;
 
-  isLoading.value = true;
-  error.value = "";
-
-  try {
-    const isConnectionValid = await testConnection(endpointInput.value);
+    const isConnectionValid = await testConnection(value.endpoint);
 
     if (isConnectionValid) {
-      const normalizedEndpoint = normalizeEndpoint(endpointInput.value);
+      const normalizedEndpoint = normalizeEndpoint(value.endpoint);
       configStore.setEndpoint(normalizedEndpoint);
       showSuccess.value = true;
     } else {
-      error.value =
+      submissionError.value =
         "Cannot connect to Curio server. Please verify the endpoint and server status.";
+      throw new Error(submissionError.value);
     }
-  } catch {
-    error.value =
-      "Connection test failed. Please check your network connection.";
-  } finally {
-    isLoading.value = false;
-  }
+  },
+});
+
+const isSubmitting = settingsForm.useStore((state) => state.isSubmitting);
+const canSubmit = settingsForm.useStore((state) => state.canSubmit);
+
+const endpointValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Please enter a Curio API endpoint";
+    }
+    if (!validateEndpoint(trimmed)) {
+      return "Invalid endpoint format. Use /path, ws://, wss://, http://, or https://";
+    }
+    return undefined;
+  },
+};
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      settingsForm.reset({ endpoint: configStore.getEndpoint() });
+      submissionError.value = null;
+      showSuccess.value = false;
+    } else {
+      showSuccess.value = false;
+    }
+  },
+);
+
+const handleSave = async () => {
+  await settingsForm.handleSubmit();
 };
 
 const handleClose = () => {
   emit("update:open", false);
 };
 
-const defaultEndpoint = import.meta.env.VITE_CURIO_ENDPOINT || "/api/webrpc/v0";
-
 const resetToDefault = () => {
-  endpointInput.value = defaultEndpoint;
-  error.value = "";
+  settingsForm.setFieldValue("endpoint", defaultEndpoint);
+  submissionError.value = null;
 };
 
 const toggleTooltip = (event: Event) => {
@@ -205,26 +217,49 @@ const handleClickOutside = () => {
           </label>
         </div>
 
-        <div class="relative">
-          <input
-            v-model="endpointInput"
-            type="text"
-            placeholder="/api/webrpc/v0"
-            class="input input-bordered w-full"
-            :class="{
-              'input-error': error,
-              'input-success': showSuccess,
-            }"
-            :disabled="isLoading"
-            @keyup.enter="handleSave"
-          />
-          <div
-            v-if="showSuccess"
-            class="absolute top-1/2 right-3 -translate-y-1/2"
-          >
-            <CheckCircleIcon class="text-success size-4" />
-          </div>
-        </div>
+        <component
+          :is="settingsForm.Field"
+          name="endpoint"
+          :validators="endpointValidators"
+        >
+          <template #default="{ field }">
+            <div class="relative">
+              <input
+                type="text"
+                placeholder="/api/webrpc/v0"
+                class="input input-bordered w-full"
+                :value="field.state.value"
+                :class="{
+                  'input-error':
+                    field.state.meta.errors.length > 0 &&
+                    field.state.meta.isTouched,
+                  'input-success': showSuccess,
+                }"
+                :disabled="isSubmitting"
+                @input="
+                  (e) =>
+                    field.handleChange((e.target as HTMLInputElement).value)
+                "
+                @blur="field.handleBlur"
+                @keyup.enter="handleSave"
+              />
+              <div
+                v-if="showSuccess"
+                class="absolute top-1/2 right-3 -translate-y-1/2"
+              >
+                <CheckCircleIcon class="text-success size-4" />
+              </div>
+            </div>
+            <p
+              v-if="
+                field.state.meta.errors.length > 0 && field.state.meta.isTouched
+              "
+              class="text-error mt-1 text-sm"
+            >
+              {{ field.state.meta.errors[0] }}
+            </p>
+          </template>
+        </component>
 
         <div class="mt-3 space-y-3">
           <div class="alert alert-warning py-2">
@@ -239,7 +274,7 @@ const handleClickOutside = () => {
             <button
               type="button"
               class="btn btn-ghost btn-sm"
-              :disabled="isLoading"
+              :disabled="isSubmitting"
               @click="resetToDefault"
             >
               Reset to Default
@@ -248,9 +283,9 @@ const handleClickOutside = () => {
         </div>
       </div>
 
-      <div v-if="error" class="alert alert-error py-2">
+      <div v-if="submissionError" class="alert alert-error py-2">
         <ExclamationTriangleIcon class="size-4" />
-        <div class="text-sm">{{ error }}</div>
+        <div class="text-sm">{{ submissionError }}</div>
       </div>
 
       <div v-if="showSuccess" class="alert alert-success py-2">
@@ -288,7 +323,7 @@ const handleClickOutside = () => {
         <button
           type="button"
           class="btn btn-outline"
-          :disabled="isLoading"
+          :disabled="isSubmitting"
           @click="handleClose"
         >
           Cancel
@@ -296,10 +331,10 @@ const handleClickOutside = () => {
         <button
           type="button"
           class="btn btn-primary"
-          :disabled="isLoading"
+          :disabled="isSubmitting || !canSubmit"
           @click="handleSave"
         >
-          <template v-if="isLoading">
+          <template v-if="isSubmitting">
             <span class="loading loading-spinner loading-sm"></span>
             Testing...
           </template>

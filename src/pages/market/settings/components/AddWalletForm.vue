@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { useForm } from "@tanstack/vue-form";
 import BaseModal from "@/components/ui/BaseModal.vue";
 import {
   FormLayout,
   FormSection,
-  FormFieldWrapper,
+  FormInput,
+  FormToggle,
   FormActions,
-  FormCheckbox,
 } from "@/components/ui/form";
 
 interface Props {
@@ -21,12 +22,12 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-// Form fields
-const wallet = ref("");
-const status = ref(true); // true = allow, false = deny
+type AddWalletFormValues = {
+  wallet: string;
+  status: boolean;
+};
 
-// Validation errors
-const walletError = ref("");
+const submissionError = ref<string | null>(null);
 
 // Validate Filecoin wallet address
 const isValidFilecoinAddress = (address: string): boolean => {
@@ -34,51 +35,55 @@ const isValidFilecoinAddress = (address: string): boolean => {
   return /^[ft][0-3]/.test(address);
 };
 
+const addWalletForm = useForm({
+  defaultValues: {
+    wallet: "",
+    status: true,
+  } as AddWalletFormValues,
+  onSubmit: async ({ value }) => {
+    submissionError.value = null;
+
+    emit("save", {
+      wallet: value.wallet.trim(),
+      status: value.status,
+    });
+
+    emit("update:visible", false);
+  },
+});
+
+const isSubmitting = addWalletForm.useStore((state) => state.isSubmitting);
+const canSubmit = addWalletForm.useStore((state) => state.canSubmit);
+
+const walletValidators = {
+  onChange: ({ value }: { value: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "Wallet address cannot be empty";
+    }
+    if (!isValidFilecoinAddress(trimmed)) {
+      return "Invalid wallet address format (must be f0-f3 or t0-t3)";
+    }
+    return undefined;
+  },
+};
+
+const trimInput = (value: string) => value.trim();
+
 // Initialize form when dialog opens
 watch(
   () => props.visible,
   (visible) => {
     if (visible) {
-      wallet.value = "";
-      status.value = true;
-      walletError.value = "";
+      addWalletForm.reset({ wallet: "", status: true });
+      submissionError.value = null;
     }
   },
   { immediate: true },
 );
 
-const validateForm = (): boolean => {
-  let isValid = true;
-
-  // Validate wallet address
-  if (!wallet.value || !wallet.value.trim()) {
-    walletError.value = "Wallet address cannot be empty";
-    isValid = false;
-  } else if (!isValidFilecoinAddress(wallet.value.trim())) {
-    walletError.value =
-      "Invalid wallet address format (must be f0-f3 or t0-t3)";
-    isValid = false;
-  } else {
-    walletError.value = "";
-  }
-
-  return isValid;
-};
-
-const handleSave = () => {
-  if (!validateForm()) {
-    return;
-  }
-
-  emit("save", {
-    wallet: wallet.value.trim(),
-    status: status.value,
-  });
-
-  emit("update:visible", false);
-};
-
 const handleClose = () => {
+  submissionError.value = null;
   emit("cancel");
   emit("update:visible", false);
 };
@@ -90,38 +95,57 @@ const handleClose = () => {
     title="Add Wallet Address"
     size="sm"
     :modal="true"
+    :show-close-button="!isSubmitting"
     @close="handleClose"
   >
     <FormLayout>
       <FormSection>
-        <FormFieldWrapper
+        <FormInput
+          :form="addWalletForm"
+          name="wallet"
           label="Wallet Address"
-          :errors="walletError ? [walletError] : []"
-        >
-          <input
-            v-model="wallet"
-            type="text"
-            placeholder="e.g., f01234 or t01234"
-            class="input input-bordered input-sm font-mono"
-            :class="{ 'input-error': walletError }"
-          />
-        </FormFieldWrapper>
+          placeholder="e.g., f01234 or t01234"
+          input-class="font-mono"
+          :disabled="isSubmitting"
+          :normalize="trimInput"
+          :validators="walletValidators"
+        />
 
-        <FormCheckbox
-          v-model="status"
+        <FormToggle
+          :form="addWalletForm"
+          name="status"
           label="Action"
           on-label="Allow deals"
           off-label="Deny deals"
+          :disabled="isSubmitting"
         />
+
+        <p v-if="submissionError" class="text-error text-sm">
+          {{ submissionError }}
+        </p>
       </FormSection>
     </FormLayout>
 
     <template #footer>
       <FormActions>
-        <button class="btn btn-sm btn-outline" @click="handleClose">
+        <button
+          class="btn btn-sm btn-outline"
+          :disabled="isSubmitting"
+          @click="handleClose"
+        >
           Cancel
         </button>
-        <button class="btn btn-sm btn-primary" @click="handleSave">Add</button>
+        <button
+          class="btn btn-sm btn-primary"
+          :disabled="isSubmitting || !canSubmit"
+          @click="addWalletForm.handleSubmit"
+        >
+          <span
+            v-if="isSubmitting"
+            class="loading loading-spinner loading-xs"
+          ></span>
+          Add
+        </button>
       </FormActions>
     </template>
   </BaseModal>
