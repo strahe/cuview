@@ -138,12 +138,12 @@ const sidebarClasses = computed(() => [
           <div class="relative">
             <router-link
               :to="item.to"
-              class="hover:bg-base-200 group relative flex h-10 items-center rounded-lg text-sm font-medium transition-all duration-200"
+              class="group relative flex h-10 items-center rounded-lg text-sm font-medium transition-all duration-200"
               :class="[
                 isCollapsed ? 'w-10 justify-center px-2' : 'gap-3 px-3',
                 isNavItemActive(item)
                   ? 'bg-neutral text-neutral-content hover:bg-neutral-focus shadow-inner'
-                  : 'text-base-content/80',
+                  : 'text-base-content/80 hover:bg-base-200',
               ]"
               :title="isCollapsed ? item.label : ''"
             >
