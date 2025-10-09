@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useForm } from "@tanstack/vue-form";
-import { useConfigStore } from "@/stores/config";
 import { useDebugStore } from "@/stores/debug";
 import {
   Cog6ToothIcon,
@@ -10,6 +8,7 @@ import {
   InformationCircleIcon,
 } from "@heroicons/vue/24/outline";
 import BaseModal from "@/components/ui/BaseModal.vue";
+import { useEndpointSettingsForm } from "@/composables/useEndpointSettingsForm";
 
 interface Props {
   open: boolean;
@@ -22,113 +21,32 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const configStore = useConfigStore();
 const debugStore = useDebugStore();
-const submissionError = ref<string | null>(null);
-const showSuccess = ref(false);
 const showTooltip = ref(false);
 const tooltipPosition = ref({ x: 0, y: 0 });
 const isDev = import.meta.env.DEV;
-const defaultEndpoint =
-  import.meta.env.VITE_CURIO_ENDPOINT || "ws://localhost:4701/api/webrpc/v0";
 
-const validateEndpoint = (endpoint: string): boolean => {
-  if (!endpoint.trim()) return false;
-
-  try {
-    if (endpoint.startsWith("/")) return true;
-
-    if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
-      new URL(endpoint);
-      return true;
-    }
-
-    if (endpoint.startsWith("ws://") || endpoint.startsWith("wss://")) {
-      const httpUrl = endpoint.replace(/^wss?:/, "http:");
-      new URL(httpUrl);
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-};
-
-const normalizeEndpoint = (endpoint: string): string => {
-  if (endpoint.startsWith("/")) return endpoint;
-
-  if (endpoint.startsWith("http://")) {
-    return endpoint.replace("http://", "ws://");
-  }
-
-  if (endpoint.startsWith("https://")) {
-    return endpoint.replace("https://", "wss://");
-  }
-
-  return endpoint;
-};
-
-const testConnection = async (endpoint: string): Promise<boolean> => {
-  if (!validateEndpoint(endpoint)) {
-    return false;
-  }
-
-  try {
-    const normalizedEndpoint = normalizeEndpoint(endpoint);
-    const { testEndpointConnection } = await import("@/utils/testConnection");
-    return await testEndpointConnection(normalizedEndpoint, 8000);
-  } catch {
-    return false;
-  }
-};
-
-const settingsForm = useForm({
-  defaultValues: {
-    endpoint: configStore.getEndpoint(),
-  },
-  onSubmit: async ({ value }) => {
-    submissionError.value = null;
-
-    const isConnectionValid = await testConnection(value.endpoint);
-
-    if (isConnectionValid) {
-      const normalizedEndpoint = normalizeEndpoint(value.endpoint);
-      configStore.setEndpoint(normalizedEndpoint);
-      showSuccess.value = true;
-    } else {
-      submissionError.value =
-        "Cannot connect to Curio server. Please verify the endpoint and server status.";
-      throw new Error(submissionError.value);
-    }
-  },
-});
-
-const isSubmitting = settingsForm.useStore((state) => state.isSubmitting);
-const canSubmit = settingsForm.useStore((state) => state.canSubmit);
-
-const endpointValidators = {
-  onChange: ({ value }: { value: string }) => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return "Please enter a Curio API endpoint";
-    }
-    if (!validateEndpoint(trimmed)) {
-      return "Invalid endpoint format. Use /path, ws://, wss://, http://, or https://";
-    }
-    return undefined;
-  },
-};
+const {
+  form: settingsForm,
+  isSubmitting,
+  canSubmit,
+  submissionError,
+  isSuccessful,
+  endpointValidators,
+  resetFormFromConfig,
+  resetToDefault,
+  clearSuccess,
+} = useEndpointSettingsForm({ timeout: 3000 });
 
 watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
-      settingsForm.reset({ endpoint: configStore.getEndpoint() });
-      submissionError.value = null;
-      showSuccess.value = false;
+      resetFormFromConfig();
+      showTooltip.value = false;
     } else {
-      showSuccess.value = false;
+      clearSuccess();
+      showTooltip.value = false;
     }
   },
 );
@@ -138,12 +56,8 @@ const handleSave = async () => {
 };
 
 const handleClose = () => {
+  clearSuccess();
   emit("update:open", false);
-};
-
-const resetToDefault = () => {
-  settingsForm.setFieldValue("endpoint", defaultEndpoint);
-  submissionError.value = null;
 };
 
 const toggleTooltip = (event: Event) => {
@@ -226,16 +140,16 @@ const handleClickOutside = () => {
             <div class="relative">
               <input
                 type="text"
-                placeholder="/api/webrpc/v0"
+                placeholder="e.g., /api/webrpc/v0 or ws://localhost:4701/api/webrpc/v0"
                 class="input input-bordered w-full"
                 :value="field.state.value"
                 :class="{
                   'input-error':
                     field.state.meta.errors.length > 0 &&
                     field.state.meta.isTouched,
-                  'input-success': showSuccess,
+                  'input-success': isSuccessful,
                 }"
-                :disabled="isSubmitting"
+                :disabled="isSuccessful"
                 @input="
                   (e) =>
                     field.handleChange((e.target as HTMLInputElement).value)
@@ -244,7 +158,7 @@ const handleClickOutside = () => {
                 @keyup.enter="handleSave"
               />
               <div
-                v-if="showSuccess"
+                v-if="isSuccessful"
                 class="absolute top-1/2 right-3 -translate-y-1/2"
               >
                 <CheckCircleIcon class="text-success size-4" />
@@ -274,7 +188,6 @@ const handleClickOutside = () => {
             <button
               type="button"
               class="btn btn-ghost btn-sm"
-              :disabled="isSubmitting"
               @click="resetToDefault"
             >
               Reset to Default
@@ -288,7 +201,7 @@ const handleClickOutside = () => {
         <div class="text-sm">{{ submissionError }}</div>
       </div>
 
-      <div v-if="showSuccess" class="alert alert-success py-2">
+      <div v-if="isSuccessful" class="alert alert-success py-2">
         <CheckCircleIcon class="size-4" />
         <div class="text-sm">Configuration saved successfully!</div>
       </div>
@@ -320,12 +233,7 @@ const handleClickOutside = () => {
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button
-          type="button"
-          class="btn btn-outline"
-          :disabled="isSubmitting"
-          @click="handleClose"
-        >
+        <button type="button" class="btn btn-outline" @click="handleClose">
           Cancel
         </button>
         <button
@@ -336,13 +244,13 @@ const handleClickOutside = () => {
         >
           <template v-if="isSubmitting">
             <span class="loading loading-spinner loading-sm"></span>
-            Testing...
+            Testing Connection...
           </template>
-          <template v-else-if="showSuccess">
+          <template v-else-if="isSuccessful">
             <CheckCircleIcon class="size-4" />
             Saved!
           </template>
-          <template v-else> Test & Save </template>
+          <template v-else> Test Connection & Save </template>
         </button>
       </div>
     </template>

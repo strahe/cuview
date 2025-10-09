@@ -8,10 +8,13 @@
 </route>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import { useForm } from "@tanstack/vue-form";
 import { useConfigStore } from "@/stores/config";
+import {
+  useEndpointSettingsForm,
+  defaultEndpoint,
+} from "@/composables/useEndpointSettingsForm";
 import {
   Cog6ToothIcon,
   CheckCircleIcon,
@@ -21,111 +24,41 @@ import {
 const router = useRouter();
 const configStore = useConfigStore();
 
-const validateEndpoint = (endpoint: string): boolean => {
-  if (!endpoint.trim()) return false;
+let redirectTimer: number | null = null;
 
-  try {
-    if (endpoint.startsWith("/")) return true;
-
-    if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
-      new URL(endpoint);
-      return true;
-    }
-
-    if (endpoint.startsWith("ws://") || endpoint.startsWith("wss://")) {
-      const httpUrl = endpoint.replace(/^wss?:/, "http:");
-      new URL(httpUrl);
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
+const scheduleRedirect = () => {
+  if (redirectTimer) {
+    clearTimeout(redirectTimer);
   }
+  redirectTimer = window.setTimeout(() => {
+    router.replace("/overview");
+  }, 2000);
 };
 
-const normalizeEndpoint = (endpoint: string): string => {
-  if (endpoint.startsWith("/")) return endpoint;
-
-  if (endpoint.startsWith("http://")) {
-    return endpoint.replace("http://", "ws://");
-  }
-
-  if (endpoint.startsWith("https://")) {
-    return endpoint.replace("https://", "wss://");
-  }
-
-  return endpoint;
-};
-
-const testConnection = async (endpoint: string): Promise<boolean> => {
-  if (!validateEndpoint(endpoint)) {
-    return false;
-  }
-
-  try {
-    const normalizedEndpoint = normalizeEndpoint(endpoint);
-    const { testEndpointConnection } = await import("@/utils/testConnection");
-    return await testEndpointConnection(normalizedEndpoint, 10000);
-  } catch (err) {
-    console.error("Connection test failed:", err);
-    return false;
-  }
-};
-
-const connectionSuccess = ref(false);
-const submissionError = ref<string | null>(null);
-
-const setupForm = useForm({
-  defaultValues: {
-    endpoint: configStore.getEndpoint(),
-  },
-  onSubmit: async ({ value }) => {
-    submissionError.value = null;
-
-    const normalizedEndpoint = normalizeEndpoint(value.endpoint);
-    const isConnectionValid = await testConnection(normalizedEndpoint);
-
-    if (isConnectionValid) {
-      configStore.setEndpoint(normalizedEndpoint);
-      connectionSuccess.value = true;
-
-      setTimeout(() => {
-        router.replace("/overview");
-      }, 2000);
-    } else {
-      submissionError.value =
-        "Cannot connect to Curio server. Please verify the endpoint is correct and the server is running.";
-      throw new Error(submissionError.value);
-    }
-  },
+const {
+  form: endpointForm,
+  isSubmitting,
+  canSubmit,
+  submissionError,
+  isSuccessful,
+  endpointValidators,
+} = useEndpointSettingsForm({
+  timeout: 4000,
+  onSuccess: scheduleRedirect,
 });
-
-const isSubmitting = setupForm.useStore((state) => state.isSubmitting);
-const canSubmit = setupForm.useStore((state) => state.canSubmit);
-
-const endpointValidators = {
-  onChange: ({ value }: { value: string }) => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return "Please enter a Curio API endpoint";
-    }
-    if (!validateEndpoint(trimmed)) {
-      return "Invalid endpoint format. Use /path, ws://, wss://, http://, or https://";
-    }
-    return undefined;
-  },
-};
 
 const hasEnvEndpoint = import.meta.env.VITE_CURIO_ENDPOINT;
 
 const skipToOverview = () => {
-  // Use default endpoint
-  configStore.setEndpoint(
-    hasEnvEndpoint || "ws://localhost:4701/api/webrpc/v0",
-  );
+  configStore.setEndpoint(hasEnvEndpoint || defaultEndpoint);
   router.replace("/overview");
 };
+
+onBeforeUnmount(() => {
+  if (redirectTimer) {
+    clearTimeout(redirectTimer);
+  }
+});
 </script>
 
 <template>
@@ -151,7 +84,7 @@ const skipToOverview = () => {
       <div
         class="bg-base-100 border-base-300/50 rounded-xl border p-8 shadow-xl"
       >
-        <form class="space-y-6" @submit.prevent="setupForm.handleSubmit">
+        <form class="space-y-6" @submit.prevent="endpointForm.handleSubmit">
           <!-- Form Header -->
           <div class="border-base-300/50 border-b pb-4">
             <h2 class="mb-2 text-xl font-semibold">API Configuration</h2>
@@ -170,7 +103,7 @@ const skipToOverview = () => {
             </label>
 
             <component
-              :is="setupForm.Field"
+              :is="endpointForm.Field"
               name="endpoint"
               :validators="endpointValidators"
             >
@@ -184,9 +117,9 @@ const skipToOverview = () => {
                     'input-error':
                       field.state.meta.errors.length > 0 &&
                       field.state.meta.isTouched,
-                    'input-success': connectionSuccess,
+                    'input-success': isSuccessful,
                   }"
-                  :disabled="isSubmitting || connectionSuccess"
+                  :disabled="isSuccessful"
                   @input="
                     (e) =>
                       field.handleChange((e.target as HTMLInputElement).value)
@@ -215,9 +148,9 @@ const skipToOverview = () => {
               <span>{{ submissionError }}</span>
             </div>
 
-            <div v-if="connectionSuccess" class="alert alert-success mt-3">
+            <div v-if="isSuccessful" class="alert alert-success mt-3">
               <CheckCircleIcon class="size-5" />
-              <span>Connected successfully! Redirecting to dashboard...</span>
+              <span>Configuration saved successfully! Redirecting...</span>
             </div>
           </div>
 
@@ -226,24 +159,24 @@ const skipToOverview = () => {
             <button
               type="submit"
               class="btn btn-primary btn-lg flex-1"
-              :disabled="isSubmitting || connectionSuccess || !canSubmit"
+              :disabled="isSubmitting || isSuccessful || !canSubmit"
             >
               <template v-if="isSubmitting">
                 <span class="loading loading-spinner loading-sm"></span>
                 Testing Connection...
               </template>
-              <template v-else-if="connectionSuccess">
+              <template v-else-if="isSuccessful">
                 <CheckCircleIcon class="size-5" />
-                Connected Successfully!
+                Saved! Redirecting...
               </template>
-              <template v-else> Test Connection & Continue </template>
+              <template v-else> Test Connection & Save </template>
             </button>
 
             <button
               v-if="hasEnvEndpoint"
               type="button"
               class="btn btn-outline"
-              :disabled="isSubmitting || connectionSuccess"
+              :disabled="isSuccessful"
               @click="skipToOverview"
             >
               Use Default Endpoint
