@@ -31,7 +31,7 @@ const {
   loading: pipelinesLoading,
   error: pipelinesError,
   refresh: refreshPipelines,
-} = useCachedQuery<MK12Pipeline[]>("GetDealPipelines", [25, 0], {
+} = useCachedQuery<MK12Pipeline[]>("GetMK12DealPipelines", [25, 0], {
   pollingInterval: 5000,
 });
 

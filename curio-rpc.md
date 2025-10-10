@@ -601,7 +601,7 @@ Force immediate sealing of a sector with deals.
 
 **Returns**: `null` (void)
 
-#### `CurioWeb.GetDealPipelines(limit: number, offset: number)`
+#### `CurioWeb.GetMK12DealPipelines(limit: number, offset: number)`
 Get MK12 deal pipeline entries.
 
 **Parameters**:
