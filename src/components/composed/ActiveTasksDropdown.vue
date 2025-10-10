@@ -8,6 +8,7 @@ import {
   ExclamationTriangleIcon,
   ChevronRightIcon,
 } from "@heroicons/vue/24/outline";
+import { onClickOutside, useEventListener } from "@vueuse/core";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import type { TaskSummary } from "@/types/task";
 import { getTableRowClasses } from "@/utils/ui";
@@ -15,6 +16,8 @@ import { getTableRowClasses } from "@/utils/ui";
 const router = useRouter();
 
 const dropdownTrigger = ref<HTMLElement>();
+const dropdownContainer = ref<HTMLElement>();
+const isDropdownOpen = ref(false);
 
 interface TaskGroup {
   name: string;
@@ -99,17 +102,24 @@ const formatTimeRange = (oldest: Date, newest: Date) => {
   return `${oldestWithoutSuffix} - ${newestWithoutSuffix} ago`;
 };
 
+const closeDropdown = () => {
+  if (!isDropdownOpen.value) return;
+
+  isDropdownOpen.value = false;
+  dropdownTrigger.value?.blur();
+};
+
 const handleTaskGroupClick = (taskName: string) => {
   router.push({
     path: "/tasks/active",
     query: { search: taskName },
   });
-  dropdownTrigger.value?.blur();
+  closeDropdown();
 };
 
 const handleViewAllTasks = () => {
   router.push("/tasks/active");
-  dropdownTrigger.value?.blur();
+  closeDropdown();
 };
 
 const handleRefresh = (event: Event) => {
@@ -121,10 +131,60 @@ const handleRefresh = (event: Event) => {
     dropdownTrigger.value.focus();
   }
 };
+
+onClickOutside(dropdownContainer, () => {
+  if (!isDropdownOpen.value) return;
+  closeDropdown();
+});
+
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    closeDropdown();
+  }
+});
+
+const handleFocusIn = () => {
+  isDropdownOpen.value = true;
+};
+
+const handleFocusOut = (event: FocusEvent) => {
+  const relatedTarget = event.relatedTarget as Node | null;
+  if (
+    dropdownContainer.value &&
+    relatedTarget &&
+    dropdownContainer.value.contains(relatedTarget)
+  ) {
+    return;
+  }
+
+  closeDropdown();
+};
 </script>
 
 <template>
-  <div class="dropdown dropdown-end">
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-150"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isDropdownOpen"
+        class="bg-base-300/80 fixed inset-0 z-[15] backdrop-blur-sm transition-all"
+        @click="closeDropdown"
+      ></div>
+    </Transition>
+  </Teleport>
+
+  <div
+    ref="dropdownContainer"
+    :class="['dropdown dropdown-end', { 'dropdown-open': isDropdownOpen }]"
+    @focusin="handleFocusIn"
+    @focusout="handleFocusOut"
+  >
     <div
       ref="dropdownTrigger"
       tabindex="0"
@@ -143,8 +203,10 @@ const handleRefresh = (event: Event) => {
     </div>
 
     <div
+      v-if="isDropdownOpen"
       tabindex="0"
-      class="dropdown-content menu rounded-box border-base-300 bg-base-100 z-[1] w-[600px] border-2 p-0 shadow-2xl"
+      class="dropdown-content menu rounded-box border-base-300 bg-base-100/95 ring-base-content/10 z-[130] w-[600px] border-2 p-0 shadow-2xl ring-1 backdrop-blur-sm"
+      @keydown.esc.stop.prevent="closeDropdown"
     >
       <div
         class="border-base-300/50 flex items-center justify-between border-b p-4"
