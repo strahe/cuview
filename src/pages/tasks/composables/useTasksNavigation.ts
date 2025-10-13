@@ -8,16 +8,16 @@ export interface TaskTab {
 
 export const TASK_TABS: TaskTab[] = [
   {
-    id: "overview",
-    label: "Overview",
-  },
-  {
     id: "active",
     label: "Active Tasks",
   },
   {
     id: "history",
     label: "History",
+  },
+  {
+    id: "overview",
+    label: "Overview",
   },
 ];
 

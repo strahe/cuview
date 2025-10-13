@@ -12,9 +12,9 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-// Redirect to overview by default
+// Redirect to active tasks by default
 onMounted(() => {
-  router.replace("/tasks/overview");
+  router.replace("/tasks/active");
 });
 </script>
 
@@ -22,7 +22,7 @@ onMounted(() => {
   <div class="p-6">
     <div class="text-center">
       <div class="loading loading-spinner loading-lg"></div>
-      <p class="text-base-content/70 mt-4">Redirecting to tasks overview...</p>
+      <p class="text-base-content/70 mt-4">Redirecting to active tasks...</p>
     </div>
   </div>
 </template>

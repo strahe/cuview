@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
   {
     label: "Tasks",
     icon: WrenchScrewdriverIcon,
-    to: "/tasks/overview",
+    to: "/tasks/active",
     activePattern: "^/tasks/.*", // Match all /tasks/* routes
   },
   {
