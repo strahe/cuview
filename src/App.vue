@@ -5,9 +5,15 @@ import AppLayout from "@/layouts/AppLayout.vue";
 
 const route = useRoute();
 
-// Pages that should not use the main layout
-const standalonePages = ["/setup"];
-const useLayout = computed(() => !standalonePages.includes(route.path));
+const standaloneRoutes = new Set<string>(["/setup"]);
+
+const useLayout = computed(() => {
+  if (route.meta?.layout === "standalone") {
+    return false;
+  }
+
+  return !standaloneRoutes.has(route.path);
+});
 </script>
 
 <template>

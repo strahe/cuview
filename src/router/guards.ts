@@ -8,17 +8,18 @@ export const configGuard = (
 ) => {
   const configStore = useConfigStore();
 
-  // Initialize config from environment if not already done
   configStore.initializeFromEnv();
 
-  // Allow access to setup page
-  if (to.path === "/setup") {
-    next();
+  if (to.path === "/") {
+    if (configStore.isConfigured) {
+      next("/overview");
+    } else {
+      next("/setup");
+    }
     return;
   }
 
-  // Allow access to root page (it will handle redirection)
-  if (to.path === "/") {
+  if (to.path === "/setup") {
     next();
     return;
   }
