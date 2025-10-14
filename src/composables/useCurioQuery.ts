@@ -275,7 +275,7 @@ export function createCurioQuery() {
       }),
 
     pipelineFailedTasksMarket: (options?: QueryOptions) =>
-      createQuery<unknown>("PipelineFailedTasksMarket", [], {
+      createQuery<unknown>("MK12PipelineFailedTasks", [], {
         polling: true,
         pollingInterval: 30000,
         ...options,

@@ -48,7 +48,7 @@ const {
   data: failedStats,
   loading: failedStatsLoading,
   refresh: refreshFailedStats,
-} = useCachedQuery<PipelineFailedStats>("PipelineFailedTasksMarket", [], {
+} = useCachedQuery<PipelineFailedStats>("MK12PipelineFailedTasks", [], {
   pollingInterval: 5000,
 });
 
