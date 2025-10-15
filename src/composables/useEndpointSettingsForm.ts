@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { useForm } from "@tanstack/vue-form";
 import { useConfigStore } from "@/stores/config";
+import { testEndpointConnection } from "@/utils/testConnection";
 
 const FALLBACK_ENDPOINT = "ws://localhost:4701/api/webrpc/v0";
 
@@ -75,7 +76,6 @@ export const useEndpointSettingsForm = (
 
     try {
       const normalized = normalizeEndpoint(value);
-      const { testEndpointConnection } = await import("@/utils/testConnection");
 
       const connectionPromise = (async () => {
         const passed = await testEndpointConnection(normalized, timeout);

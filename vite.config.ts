@@ -18,6 +18,7 @@ export default defineConfig({
       ],
       extensions: [".vue"],
       dts: "./typed-router.d.ts",
+      importMode: "sync",
     }),
     vue(),
     tailwindcss(),
@@ -25,7 +26,8 @@ export default defineConfig({
       typescript: true,
       vueTsc: true,
       eslint: {
-        lintCommand: "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+        lintCommand:
+          "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
         watchPath: "./src",
         useFlatConfig: true,
       },
@@ -39,17 +41,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vue-core": ["vue", "vue-router"],
-          "vue-state": ["pinia", "pinia-plugin-persistedstate"],
-          "vue-use": ["@vueuse/core"],
-          "apexcharts-vendor": ["apexcharts", "vue3-apexcharts"],
-          "table-vendor": ["@tanstack/vue-table"],
-          "ui-vendor": ["reka-ui", "@heroicons/vue", "daisyui"],
-          "date-vendor": ["date-fns"],
+        manualChunks(id) {
+          if (
+            id.includes("node_modules/apexcharts") ||
+            id.includes("node_modules/vue3-apexcharts")
+          ) {
+            return "apexcharts-vendor";
+          }
         },
       },
     },
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 1000,
   },
 });
