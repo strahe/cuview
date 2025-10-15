@@ -19,9 +19,9 @@ import { usePageTitle } from "@/composables/usePageTitle";
 import { formatBytes } from "@/utils/format";
 import { formatEpochRelative } from "@/utils/filecoin";
 
-const route = useRoute();
+const route = useRoute("/actor/[id]");
 const router = useRouter();
-const actorId = route.params.id as string;
+const actorId = route.params.id;
 
 const { actorDetail, loading, error, refresh } = useActorDetail(actorId);
 

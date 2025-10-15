@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import routes from "~pages";
+import { routes, handleHotUpdate } from "vue-router/auto-routes";
 import { configGuard } from "@/router/guards";
 import "./style.css";
 import App from "./App.vue";
@@ -36,6 +36,10 @@ router.afterEach((to) => {
     }
   }
 });
+
+if (import.meta.hot) {
+  handleHotUpdate(router);
+}
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);

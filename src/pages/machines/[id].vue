@@ -40,9 +40,9 @@ import {
 } from "@/utils/ui";
 
 const router = useRouter();
-const route = useRoute();
+const route = useRoute("/machines/[id]");
 
-const machineId = computed(() => parseInt(route.params.id as string));
+const machineId = computed(() => Number.parseInt(route.params.id, 10));
 
 const {
   data: machineData,

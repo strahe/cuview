@@ -2,18 +2,25 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import Pages from "vite-plugin-pages";
+import VueRouter from "unplugin-vue-router/vite";
 import checker from "vite-plugin-checker";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    VueRouter({
+      routesFolder: [
+        {
+          src: "src/pages",
+          path: "",
+          exclude: ["**/components/**/*.vue"],
+        },
+      ],
+      extensions: [".vue"],
+      dts: "./typed-router.d.ts",
+    }),
     vue(),
     tailwindcss(),
-    Pages({
-      dirs: "src/pages",
-      extensions: ["vue"],
-    }),
     checker({
       typescript: true,
       vueTsc: true,
