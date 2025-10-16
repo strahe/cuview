@@ -48,6 +48,10 @@ function getApi(): CurioApiService {
   return globalApi;
 }
 
+export function useCurioApi(): CurioApiService {
+  return getApi();
+}
+
 export interface QueryOptions {
   immediate?: boolean;
   polling?: boolean;
