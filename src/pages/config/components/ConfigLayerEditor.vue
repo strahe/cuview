@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { SwitchRoot, SwitchThumb } from "reka-ui";
+import { computed, ref, watch } from "vue";
 import {
   ArrowUturnLeftIcon,
   ExclamationCircleIcon,
   InformationCircleIcon,
-  ShieldCheckIcon,
 } from "@heroicons/vue/24/outline";
+import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 import SectionCard from "@/components/ui/SectionCard.vue";
 import type { ConfigFieldRow } from "@/types/config";
 
@@ -56,6 +55,7 @@ const emit = defineEmits<{
 }>();
 
 const validationErrors = ref<Record<string, string>>({});
+const expandedSections = ref<Record<string, boolean>>({});
 
 const headerLabel = computed(() => {
   if (!props.selectedLayer) return "Select a layer";
@@ -152,9 +152,10 @@ const handleTextInput = (row: ConfigFieldRow, event: Event) => {
   }
 };
 
-const handleBooleanInput = (row: ConfigFieldRow, value: boolean) => {
+const handleBooleanInput = (row: ConfigFieldRow, value: boolean | string) => {
   if (!row.isOverride || props.isDefaultLayer) return;
-  emitUpdate(row, value);
+  const resolved = typeof value === "string" ? value === "true" : value;
+  emitUpdate(row, resolved);
 };
 
 const handleSelectInput = (row: ConfigFieldRow, event: Event) => {
@@ -172,8 +173,13 @@ const handleResetRow = (row: ConfigFieldRow) => {
   clearRowError(row.id);
 };
 
-const isRowDisabled = (row: ConfigFieldRow) =>
-  !row.isOverride || !row.isEditable || props.isDefaultLayer;
+const isInputDisabled = (row: ConfigFieldRow) =>
+  props.isDefaultLayer || !row.isEditable || !row.isOverride;
+
+const handleOverrideChange = (row: ConfigFieldRow, enabled: boolean) => {
+  if (props.isDefaultLayer || !row.isEditable) return;
+  emitToggle(row, enabled);
+};
 
 const displayValue = (row: ConfigFieldRow) => {
   if (row.isOverride) {
@@ -182,10 +188,10 @@ const displayValue = (row: ConfigFieldRow) => {
   return row.effectiveValue ?? row.defaultValue ?? "";
 };
 
-const formatBadgeValue = (value: unknown) => {
-  if (value === null || value === undefined) return "—";
+const formatDefaultValue = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return "Not set";
   if (Array.isArray(value)) {
-    return `${value.length} item${value.length === 1 ? "" : "s"}`;
+    return value.length ? `${value.length} items` : "[]";
   }
   if (typeof value === "object") {
     return "Object";
@@ -213,17 +219,37 @@ const resolveInputValue = (row: ConfigFieldRow) => {
   if (value === null || value === undefined) {
     return "";
   }
-  return value;
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+  return String(value);
 };
+
+const isSectionExpanded = (key: string) => expandedSections.value[key] ?? true;
+
+const toggleSection = (key: string) => {
+  expandedSections.value = {
+    ...expandedSections.value,
+    [key]: !isSectionExpanded(key),
+  };
+};
+
+watch(
+  () => props.sections?.map((section) => section.key) ?? [],
+  (keys) => {
+    const next: Record<string, boolean> = {};
+    keys.forEach((key) => {
+      next[key] = expandedSections.value[key] ?? false;
+    });
+    expandedSections.value = next;
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <!-- eslint-disable vue/v-on-event-hyphenation -->
-  <SectionCard
-    title="Layer Editor"
-    tooltip="Review field-level defaults and enable overrides to customize this configuration layer."
-    class="h-full"
-  >
+  <SectionCard title="Layer Editor" class="h-full">
     <template #actions>
       <div class="flex items-center gap-2">
         <button
@@ -245,41 +271,31 @@ const resolveInputValue = (row: ConfigFieldRow) => {
       </div>
     </template>
 
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-5">
       <div class="flex items-center justify-between">
-        <div>
-          <div
-            class="text-base-content/60 text-sm font-semibold tracking-wide uppercase"
-          >
-            Active Layer
-          </div>
-          <div class="text-base-content text-xl font-bold">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base-content text-lg font-semibold">
             {{ headerLabel }}
-          </div>
-        </div>
-        <div class="flex items-center gap-3 text-sm">
-          <div
+          </h2>
+          <span
             v-if="dirty"
-            class="badge badge-warning badge-outline border-warning text-warning uppercase"
+            class="badge badge-warning badge-xs border-warning/60 bg-warning/10 text-warning tracking-wide uppercase"
           >
-            Unsaved changes
-          </div>
-          <div
+            Unsaved
+          </span>
+          <span
             v-else-if="selectedLayer"
-            class="badge badge-success badge-outline border-success text-success uppercase"
+            class="badge badge-success badge-xs border-success/40 bg-success/10 text-success tracking-wide uppercase"
           >
             Synced
-          </div>
+          </span>
+          <span
+            v-if="isDefaultLayer"
+            class="badge badge-outline badge-xs border-base-300 text-base-content/60 tracking-wide uppercase"
+          >
+            Read-only
+          </span>
         </div>
-      </div>
-
-      <div
-        v-if="isDefaultLayer"
-        class="bg-base-200 text-base-content/80 flex items-start gap-2 rounded-lg px-4 py-3 text-sm"
-      >
-        <InformationCircleIcon class="size-5 shrink-0" />
-        The default layer is read-only. Select another layer or create a new one
-        to customize configuration overrides.
       </div>
 
       <div
@@ -305,137 +321,157 @@ const resolveInputValue = (row: ConfigFieldRow) => {
       <div
         v-for="section in sections"
         :key="section.key"
-        class="border-base-200/70 rounded-xl border"
+        class="border-base-200/60 bg-base-200/20 rounded-xl border px-1"
       >
         <div
-          class="bg-base-200/60 text-base-content/80 flex items-center justify-between rounded-t-xl px-4 py-2 text-sm font-semibold tracking-wide uppercase"
+          class="text-base-content flex items-center justify-between rounded-t-xl px-3 py-3 text-sm font-semibold uppercase"
         >
-          <span>{{ section.label }}</span>
-          <span>{{ section.rows.length }} fields</span>
+          <button
+            type="button"
+            class="hover:text-base-content/80 flex items-center gap-2 text-left transition"
+            @click="toggleSection(section.key)"
+          >
+            <ChevronDownIcon
+              class="size-4 transition"
+              :class="[
+                isSectionExpanded(section.key)
+                  ? 'rotate-0'
+                  : '-rotate-90 opacity-60',
+              ]"
+            />
+            <span>{{ section.label }}</span>
+          </button>
+          <span class="text-base-content/60 text-xs font-semibold">
+            {{ section.rows.length }} fields
+          </span>
         </div>
 
-        <div class="divide-base-200 divide-y">
+        <div v-if="isSectionExpanded(section.key)" class="space-y-3 px-3 pb-4">
           <div
             v-for="row in section.rows"
             :key="row.id"
-            class="grid grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_180px]"
+            class="border-base-200 bg-base-200/60 rounded-xl border px-4 py-4"
           >
-            <div class="space-y-2">
-              <div class="flex items-center gap-2">
-                <span class="text-base-content font-medium">{{
-                  row.label
-                }}</span>
-                <span
-                  class="badge badge-outline badge-xs whitespace-nowrap uppercase"
-                >
-                  {{ row.type }}
-                </span>
-              </div>
-              <p v-if="row.description" class="text-base-content/70 text-xs">
-                {{ row.description }}
-              </p>
-              <div class="text-base-content/60 flex flex-wrap gap-2 text-xs">
-                <span class="badge badge-outline badge-xs">
-                  Default: {{ formatBadgeValue(row.defaultValue) }}
-                </span>
-                <span class="badge badge-outline badge-xs">
-                  Effective: {{ formatBadgeValue(row.effectiveValue) }}
-                </span>
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <template v-if="row.type === 'boolean'">
-                <!-- eslint-disable-next-line vue/v-on-event-hyphenation -->
-                <SwitchRoot
-                  :model-value="resolveBooleanValue(row)"
-                  :disabled="isRowDisabled(row)"
-                  class="focus-visible:ring-primary/70 data-[state=checked]:bg-primary/90 bg-base-200 relative inline-flex h-7 w-12 items-center rounded-full transition"
-                  @update:modelValue="
-                    (value: boolean) => handleBooleanInput(row, value)
-                  "
-                >
-                  <SwitchThumb
-                    class="bg-base-100 inline-block size-5 translate-x-1 rounded-full shadow transition-transform data-[state=checked]:translate-x-5"
-                  />
-                </SwitchRoot>
-              </template>
-
-              <template v-else-if="row.type === 'array'">
-                <textarea
-                  :disabled="isRowDisabled(row)"
-                  :value="formatArrayDisplay(resolveInputValue(row))"
-                  class="textarea textarea-bordered textarea-sm h-24 w-full"
-                  placeholder='Example: ["value-1","value-2"]'
-                  @change="handleTextInput(row, $event)"
-                />
-              </template>
-
-              <template v-else-if="row.options && row.options.length">
-                <select
-                  :disabled="isRowDisabled(row)"
-                  :value="String(resolveInputValue(row))"
-                  class="select select-bordered select-sm w-full"
-                  @change="handleSelectInput(row, $event)"
-                >
-                  <option
-                    v-for="option in row.options"
-                    :key="String(option.value)"
-                    :value="String(option.value)"
+            <div class="flex items-start gap-4">
+              <input
+                :checked="row.isOverride"
+                :disabled="isDefaultLayer || !row.isEditable"
+                class="checkbox checkbox-sm mt-1"
+                type="checkbox"
+                @change="
+                  (event) =>
+                    handleOverrideChange(
+                      row,
+                      (event.target as HTMLInputElement).checked,
+                    )
+                "
+              />
+              <div class="flex-1 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div
+                    class="flex flex-wrap items-center gap-2 text-sm font-medium"
                   >
-                    {{ option.label }}
-                  </option>
-                </select>
-              </template>
+                    <span>{{ row.label }}</span>
+                    <span class="badge badge-outline badge-xs uppercase">
+                      {{ row.type }}
+                    </span>
+                    <button
+                      v-if="row.helpText || row.description"
+                      type="button"
+                      class="text-base-content/60 hover:text-base-content transition"
+                      :title="row.helpText ?? row.description"
+                    >
+                      <InformationCircleIcon class="size-4" />
+                    </button>
+                  </div>
+                  <button
+                    v-if="row.isOverride && !isDefaultLayer"
+                    class="text-primary/80 hover:text-primary text-xs font-semibold uppercase transition"
+                    type="button"
+                    @click="handleResetRow(row)"
+                  >
+                    Reset
+                  </button>
+                </div>
 
-              <template v-else>
-                <input
-                  :disabled="isRowDisabled(row)"
-                  :type="
-                    row.type === 'number' || row.type === 'integer'
-                      ? 'number'
-                      : 'text'
-                  "
-                  :value="resolveInputValue(row)"
-                  class="input input-bordered input-sm w-full"
-                  @change="handleTextInput(row, $event)"
-                />
-              </template>
+                <div>
+                  <template v-if="row.type === 'boolean'">
+                    <select
+                      class="select select-bordered select-sm w-full"
+                      :disabled="isInputDisabled(row)"
+                      :value="resolveBooleanValue(row) ? 'true' : 'false'"
+                      @change="
+                        (event) =>
+                          handleBooleanInput(
+                            row,
+                            (event.target as HTMLSelectElement).value,
+                          )
+                      "
+                    >
+                      <option value="true">true</option>
+                      <option value="false">false</option>
+                    </select>
+                  </template>
+                  <template v-else-if="row.options && row.options.length">
+                    <select
+                      class="select select-bordered select-sm w-full"
+                      :disabled="isInputDisabled(row)"
+                      :value="resolveInputValue(row)"
+                      @change="handleSelectInput(row, $event)"
+                    >
+                      <option
+                        v-for="option in row.options"
+                        :key="String(option.value)"
+                        :value="String(option.value)"
+                      >
+                        {{ option.label }}
+                      </option>
+                    </select>
+                  </template>
+                  <template v-else-if="row.type === 'array'">
+                    <textarea
+                      class="textarea textarea-bordered textarea-sm min-h-24 w-full"
+                      :disabled="isInputDisabled(row)"
+                      :value="
+                        row.isOverride
+                          ? formatArrayDisplay(row.overrideValue)
+                          : formatArrayDisplay(row.effectiveValue)
+                      "
+                      placeholder='["value"]'
+                      @change="handleTextInput(row, $event)"
+                    ></textarea>
+                  </template>
+                  <template v-else>
+                    <input
+                      :type="
+                        row.type === 'number' || row.type === 'integer'
+                          ? 'number'
+                          : 'text'
+                      "
+                      class="input input-bordered input-sm w-full"
+                      :step="row.type === 'integer' ? 1 : 'any'"
+                      :disabled="isInputDisabled(row)"
+                      :value="resolveInputValue(row)"
+                      @input="handleTextInput(row, $event)"
+                    />
+                  </template>
+                </div>
 
-              <p
-                v-if="validationErrors[row.id]"
-                class="text-error text-xs font-medium"
-              >
-                {{ validationErrors[row.id] }}
-              </p>
-            </div>
-
-            <div class="flex items-center justify-between gap-2 md:justify-end">
-              <div class="flex items-center gap-2">
-                <!-- eslint-disable-next-line vue/v-on-event-hyphenation -->
-                <SwitchRoot
-                  :model-value="row.isOverride"
-                  :disabled="isDefaultLayer || !row.isEditable"
-                  class="focus-visible:ring-primary/70 data-[state=checked]:bg-primary/80 bg-base-200 relative inline-flex h-6 w-10 items-center rounded-full transition"
-                  @update:modelValue="
-                    (value: boolean) => emitToggle(row, value)
-                  "
+                <div
+                  class="text-base-content/60 flex flex-wrap items-center justify-between gap-2 text-xs"
                 >
-                  <SwitchThumb
-                    class="bg-base-100 inline-block size-4 translate-x-1 rounded-full shadow transition-transform data-[state=checked]:translate-x-4"
-                  />
-                </SwitchRoot>
-                <span class="text-base-content/70 text-xs"> Override </span>
+                  <span
+                    >Default: {{ formatDefaultValue(row.defaultValue) }}</span
+                  >
+                  <span
+                    v-if="validationErrors[row.id]"
+                    class="text-error flex items-center gap-1"
+                  >
+                    <ExclamationCircleIcon class="size-4" />
+                    <span>{{ validationErrors[row.id] }}</span>
+                  </span>
+                </div>
               </div>
-
-              <button
-                class="btn btn-ghost btn-xs"
-                :disabled="!row.isOverride || props.isDefaultLayer"
-                @click="handleResetRow(row)"
-              >
-                <ShieldCheckIcon class="size-4" />
-                Reset
-              </button>
             </div>
           </div>
         </div>

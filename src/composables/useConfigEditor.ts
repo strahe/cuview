@@ -56,9 +56,29 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
 
   const groupedRows = computed(() => groupFieldRows(fieldRows.value));
 
-  const tomlPreview = computed(() =>
-    serializeToml(effectiveConfig.value ?? {}),
-  );
+  const tomlPreview = computed(() => {
+    if (!options.selectedLayer.value) {
+      return "";
+    }
+
+    if (isDefaultLayer.value) {
+      return serializeToml(options.defaults.value ?? {});
+    }
+
+    return serializeToml(overrides.value);
+  });
+
+  const originalTomlPreview = computed(() => {
+    if (!options.selectedLayer.value) {
+      return "";
+    }
+
+    if (isDefaultLayer.value) {
+      return serializeToml(options.defaults.value ?? {});
+    }
+
+    return serializeToml(originalOverrides.value);
+  });
 
   const dirty = computed(
     () => !deepEqual(overrides.value, originalOverrides.value),
@@ -183,6 +203,7 @@ export function useConfigEditor(options: UseConfigEditorOptions) {
     groupedRows,
     effectiveConfig,
     tomlPreview,
+    originalTomlPreview,
     isDefaultLayer,
     dirty,
     updateFieldValue,

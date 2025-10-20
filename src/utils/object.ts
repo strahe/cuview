@@ -1,3 +1,5 @@
+import { isProxy, toRaw } from "vue";
+
 export function isPlainObject(
   value: unknown,
 ): value is Record<string, unknown> {
@@ -10,11 +12,7 @@ export function isPlainObject(
 }
 
 export function deepClone<T>(value: T): T {
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
-  }
-
-  return JSON.parse(JSON.stringify(value)) as T;
+  return cloneInternal(value, new WeakMap()) as T;
 }
 
 export function getAtPath<T = unknown>(
@@ -221,6 +219,103 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   }
 
   return false;
+}
+
+function cloneInternal(value: unknown, cache: WeakMap<object, unknown>) {
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+
+  const rawValue = isProxy(value) ? toRaw(value) : value;
+  if (typeof rawValue !== "object" || rawValue === null) {
+    return rawValue;
+  }
+
+  if (cache.has(rawValue as object)) {
+    return cache.get(rawValue as object);
+  }
+
+  if (rawValue instanceof Date) {
+    return new Date(rawValue.getTime());
+  }
+
+  if (rawValue instanceof RegExp) {
+    return new RegExp(rawValue.source, rawValue.flags);
+  }
+
+  if (rawValue instanceof Map) {
+    const mapClone = new Map();
+    cache.set(rawValue, mapClone);
+    rawValue.forEach((mapValue, mapKey) => {
+      mapClone.set(
+        cloneInternal(mapKey, cache),
+        cloneInternal(mapValue, cache),
+      );
+    });
+    return mapClone;
+  }
+
+  if (rawValue instanceof Set) {
+    const setClone = new Set();
+    cache.set(rawValue, setClone);
+    rawValue.forEach((setValue) => {
+      setClone.add(cloneInternal(setValue, cache));
+    });
+    return setClone;
+  }
+
+  if (Array.isArray(rawValue)) {
+    const arrayClone: unknown[] = [];
+    cache.set(rawValue, arrayClone);
+    rawValue.forEach((item, index) => {
+      arrayClone[index] = cloneInternal(item, cache);
+    });
+    return arrayClone;
+  }
+
+  if (rawValue instanceof ArrayBuffer) {
+    return rawValue.slice(0);
+  }
+
+  if (ArrayBuffer.isView(rawValue)) {
+    const view = rawValue as ArrayBufferView & {
+      slice?: (start?: number, end?: number) => ArrayBufferView;
+    };
+
+    if (typeof view.slice === "function") {
+      return view.slice(0) as typeof rawValue;
+    }
+
+    return new (view.constructor as {
+      new (
+        buffer: ArrayBufferLike,
+        byteOffset?: number,
+        length?: number,
+      ): typeof view;
+    })(
+      view.buffer.slice(0),
+      view.byteOffset,
+      view instanceof DataView ? view.byteLength : undefined,
+    );
+  }
+
+  const objectClone: Record<string | number | symbol, unknown> = {};
+  const source = rawValue as Record<string | number | symbol, unknown>;
+  cache.set(rawValue as object, objectClone);
+
+  Reflect.ownKeys(rawValue as object).forEach((key) => {
+    const descriptor = Object.getOwnPropertyDescriptor(rawValue as object, key);
+    if (!descriptor || !descriptor.enumerable) {
+      return;
+    }
+
+    objectClone[key as string | number | symbol] = cloneInternal(
+      source[key as string | number | symbol],
+      cache,
+    );
+  });
+
+  return objectClone;
 }
 
 export function toPathString(path: string[]): string {

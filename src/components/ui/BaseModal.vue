@@ -67,7 +67,7 @@ const handleClose = () => {
         <DialogOverlay
           v-if="open"
           force-mount
-          class="fixed inset-0 z-50 bg-black/50"
+          class="bg-base-content/40 fixed inset-0 z-50 backdrop-blur"
         />
       </Transition>
 

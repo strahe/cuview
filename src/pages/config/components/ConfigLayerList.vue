@@ -53,20 +53,16 @@ const handleRefresh = () => {
 </script>
 
 <template>
-  <SectionCard
-    title="Configuration Layers"
-    tooltip="Layers define configuration overrides for specific node groups. Select a layer to review and edit its settings."
-    class="h-full"
-  >
+  <SectionCard title="Layers" class="h-full">
     <template #actions>
-      <div class="flex flex-wrap items-center justify-end gap-2">
+      <div class="flex items-center justify-end gap-2">
         <button
-          class="btn btn-primary btn-sm whitespace-nowrap"
+          class="btn btn-ghost btn-sm btn-circle border-base-200 bg-base-100/60 hover:border-primary/40 hover:bg-primary/10 border"
           :disabled="disableCreate || loading"
           @click="handleCreateLayer"
         >
           <PlusIcon class="size-4" />
-          Add Layer
+          <span class="sr-only">Add layer</span>
         </button>
         <button
           class="btn btn-ghost btn-sm btn-square"
@@ -118,38 +114,33 @@ const handleRefresh = () => {
             :aria-label="`Select layer ${layer.name}`"
             class="border-base-200 text-left transition-colors"
             :class="[
-              'group bg-base-100 focus-visible:ring-primary/70 relative flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3.5 py-3 outline-none focus-visible:ring-2',
+              'group bg-base-100 focus-visible:ring-primary/70 relative flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2 outline-none focus-visible:ring-2',
               'data-[state=checked]:border-primary/40 data-[state=checked]:bg-primary/10',
             ]"
           >
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-2 text-sm font-medium">
-                <span class="truncate">{{ layer.name }}</span>
-                <span
-                  v-if="layer.isDefault"
-                  class="badge badge-outline badge-xs border-warning text-warning uppercase"
-                >
-                  Default
-                </span>
-              </div>
-              <div class="text-base-content/60 flex items-center gap-2 text-xs">
-                <span class="badge badge-outline badge-sm">
-                  {{ layer.nodeCount }} nodes
-                </span>
-                <span v-if="layer.isDefault">
-                  Read-only reference configuration
-                </span>
-              </div>
+            <div class="flex items-center gap-2 truncate text-sm font-medium">
+              <span class="truncate">{{ layer.name }}</span>
+              <span
+                v-if="layer.isDefault"
+                class="badge badge-outline badge-xs border-warning text-warning uppercase"
+              >
+                Default
+              </span>
             </div>
 
-            <span
-              class="border-primary group-data-[state=checked]:bg-primary/90 group-data-[state=checked]:shadow-primary/60 shadow-primary/20 pointer-events-none inline-flex size-3 items-center justify-center rounded-full border transition-all"
-              aria-hidden="true"
-            >
-              <RadioGroupIndicator
-                class="bg-primary/90 block size-2 rounded-full"
-              />
-            </span>
+            <div class="text-base-content/60 flex items-center gap-2 text-xs">
+              <span class="badge badge-outline badge-sm">
+                {{ layer.nodeCount }} nodes
+              </span>
+              <span
+                class="border-primary/50 group-data-[state=checked]:bg-primary group-data-[state=checked]:border-primary/70 pointer-events-none inline-flex size-3 items-center justify-center rounded-full border transition-all"
+                aria-hidden="true"
+              >
+                <RadioGroupIndicator
+                  class="bg-primary block size-2 rounded-full"
+                />
+              </span>
+            </div>
           </RadioGroupItem>
         </RadioGroupRoot>
       </div>

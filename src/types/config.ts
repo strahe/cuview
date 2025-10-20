@@ -24,6 +24,16 @@ export interface ConfigSchemaNode {
   minItems?: number;
   maxItems?: number;
   pattern?: string;
+  $ref?: string;
+  definitions?: Record<string, ConfigSchemaNode>;
+  $defs?: Record<string, ConfigSchemaNode>;
+  required?: string[];
+  allOf?: ConfigSchemaNode[];
+  anyOf?: ConfigSchemaNode[];
+  oneOf?: ConfigSchemaNode[];
+  options?: {
+    infoText?: string;
+  };
 }
 
 export interface ConfigLayerSummary {
@@ -36,6 +46,9 @@ export type ConfigLayerMap = Record<string, ConfigLayerResponse>;
 
 export interface ConfigSchemaDocument extends ConfigSchemaNode {
   properties?: Record<string, ConfigSchemaNode>;
+  definitions?: Record<string, ConfigSchemaNode>;
+  $defs?: Record<string, ConfigSchemaNode>;
+  $ref?: string;
 }
 
 export type ConfigFieldType =
@@ -59,6 +72,7 @@ export interface ConfigFieldRow {
   groupLabel: string;
   label: string;
   description?: string;
+  helpText?: string;
   type: ConfigFieldType;
   defaultValue: unknown;
   effectiveValue: unknown;
