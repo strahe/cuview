@@ -140,7 +140,7 @@ const handleOverrideToggle = (payload: {
 </script>
 
 <template>
-  <div class="space-y-6 p-6">
+  <div class="flex min-h-full flex-col gap-6 p-6">
     <div
       v-if="status"
       :class="[
@@ -163,41 +163,50 @@ const handleOverrideToggle = (payload: {
     </div>
 
     <div
-      class="grid gap-6 lg:grid-cols-[minmax(240px,0.85fr)_minmax(640px,1.9fr)_minmax(300px,1.05fr)] xl:grid-cols-[minmax(260px,0.9fr)_minmax(760px,1.95fr)_minmax(320px,1.1fr)] 2xl:grid-cols-[minmax(280px,0.95fr)_minmax(880px,2fr)_minmax(340px,1.1fr)]"
+      class="grid min-h-0 flex-1 items-stretch gap-6 lg:grid-cols-[minmax(240px,0.85fr)_minmax(640px,1.9fr)_minmax(300px,1.05fr)] xl:grid-cols-[minmax(260px,0.9fr)_minmax(760px,1.95fr)_minmax(320px,1.1fr)] 2xl:grid-cols-[minmax(280px,0.95fr)_minmax(880px,2fr)_minmax(340px,1.1fr)]"
     >
-      <ConfigLayerList
-        :layers="layers.layers.value"
-        :loading="layers.loading.value"
-        :error="layerListError"
-        :selected-layer="layers.selectedLayer.value"
-        :disable-create="definitions.loading.value || hasLoadError"
-        @update:selected="layers.selectLayer"
-        @refresh="layers.refresh"
-        @create="openCreateModal"
-      />
+      <div class="min-h-0">
+        <ConfigLayerList
+          class="h-full"
+          :layers="layers.layers.value"
+          :loading="layers.loading.value"
+          :error="layerListError"
+          :selected-layer="layers.selectedLayer.value"
+          :disable-create="definitions.loading.value || hasLoadError"
+          @update:selected="layers.selectLayer"
+          @refresh="layers.refresh"
+          @create="openCreateModal"
+        />
+      </div>
 
-      <ConfigLayerEditor
-        :sections="sections"
-        :loading="editor.loading.value || definitions.loading.value"
-        :error="editor.error.value"
-        :selected-layer="layers.selectedLayer.value"
-        :is-default-layer="editor.isDefaultLayer.value"
-        :dirty="editor.dirty.value"
-        :saving="editor.saving.value"
-        @update="({ path, value }) => editor.updateFieldValue(path, value)"
-        @toggle="handleOverrideToggle"
-        @reset-row="({ path }) => editor.disableFieldOverride(path)"
-        @reset-all="editor.reset"
-        @save="handleSave"
-      />
+      <div class="min-h-0">
+        <ConfigLayerEditor
+          class="h-full"
+          :sections="sections"
+          :loading="editor.loading.value || definitions.loading.value"
+          :error="editor.error.value"
+          :selected-layer="layers.selectedLayer.value"
+          :is-default-layer="editor.isDefaultLayer.value"
+          :dirty="editor.dirty.value"
+          :saving="editor.saving.value"
+          @update="({ path, value }) => editor.updateFieldValue(path, value)"
+          @toggle="handleOverrideToggle"
+          @reset-row="({ path }) => editor.disableFieldOverride(path)"
+          @reset-all="editor.reset"
+          @save="handleSave"
+        />
+      </div>
 
-      <ConfigTomlPreview
-        :toml="editor.tomlPreview.value"
-        :previous-toml="editor.originalTomlPreview.value"
-        :loading="definitions.loading.value || editor.loading.value"
-        :selected-layer="layers.selectedLayer.value"
-        :dirty="editor.dirty.value"
-      />
+      <div class="min-h-0">
+        <ConfigTomlPreview
+          class="h-full"
+          :toml="editor.tomlPreview.value"
+          :previous-toml="editor.originalTomlPreview.value"
+          :loading="definitions.loading.value || editor.loading.value"
+          :selected-layer="layers.selectedLayer.value"
+          :dirty="editor.dirty.value"
+        />
+      </div>
     </div>
 
     <BaseModal

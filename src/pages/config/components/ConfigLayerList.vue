@@ -75,7 +75,7 @@ const handleRefresh = () => {
       </div>
     </template>
 
-    <div class="flex flex-col gap-4">
+    <div class="flex h-full flex-col gap-4">
       <div
         v-if="error"
         class="bg-error/10 text-error flex items-start gap-2 rounded-lg px-3 py-2 text-sm"
@@ -96,53 +96,54 @@ const handleRefresh = () => {
         No layers found. Create a new layer to begin configuring overrides.
       </div>
 
-      <div
-        v-else
-        class="max-h-[calc(100vh-320px)] overflow-auto pr-1"
-        data-testid="config-layer-list"
-      >
-        <RadioGroupRoot
-          v-model="modelValue"
-          orientation="vertical"
-          class="flex flex-col gap-2"
-          :disabled="!layers.length"
+      <div v-else class="min-h-0 flex-1">
+        <div
+          class="flex h-full flex-col overflow-y-auto pr-1"
+          data-testid="config-layer-list"
         >
-          <RadioGroupItem
-            v-for="layer in layers"
-            :key="layer.name"
-            :value="layer.name"
-            :aria-label="`Select layer ${layer.name}`"
-            class="border-base-200 text-left transition-colors"
-            :class="[
-              'group bg-base-100 focus-visible:ring-primary/70 relative flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2 outline-none focus-visible:ring-2',
-              'data-[state=checked]:border-primary/40 data-[state=checked]:bg-primary/10',
-            ]"
+          <RadioGroupRoot
+            v-model="modelValue"
+            orientation="vertical"
+            class="flex flex-col gap-2"
+            :disabled="!layers.length"
           >
-            <div class="flex items-center gap-2 truncate text-sm font-medium">
-              <span class="truncate">{{ layer.name }}</span>
-              <span
-                v-if="layer.isDefault"
-                class="badge badge-outline badge-xs border-warning text-warning uppercase"
-              >
-                Default
-              </span>
-            </div>
+            <RadioGroupItem
+              v-for="layer in layers"
+              :key="layer.name"
+              :value="layer.name"
+              :aria-label="`Select layer ${layer.name}`"
+              class="border-base-200 text-left transition-colors"
+              :class="[
+                'group bg-base-100 focus-visible:ring-primary/70 relative flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2 outline-none focus-visible:ring-2',
+                'data-[state=checked]:border-primary/40 data-[state=checked]:bg-primary/10',
+              ]"
+            >
+              <div class="flex items-center gap-2 truncate text-sm font-medium">
+                <span class="truncate">{{ layer.name }}</span>
+                <span
+                  v-if="layer.isDefault"
+                  class="badge badge-outline badge-xs border-warning text-warning uppercase"
+                >
+                  Default
+                </span>
+              </div>
 
-            <div class="text-base-content/60 flex items-center gap-2 text-xs">
-              <span class="badge badge-outline badge-sm">
-                {{ layer.nodeCount }} nodes
-              </span>
-              <span
-                class="border-primary/50 group-data-[state=checked]:bg-primary group-data-[state=checked]:border-primary/70 pointer-events-none inline-flex size-3 items-center justify-center rounded-full border transition-all"
-                aria-hidden="true"
-              >
-                <RadioGroupIndicator
-                  class="bg-primary block size-2 rounded-full"
-                />
-              </span>
-            </div>
-          </RadioGroupItem>
-        </RadioGroupRoot>
+              <div class="text-base-content/60 flex items-center gap-2 text-xs">
+                <span class="badge badge-outline badge-sm">
+                  {{ layer.nodeCount }} nodes
+                </span>
+                <span
+                  class="border-primary/50 group-data-[state=checked]:bg-primary group-data-[state=checked]:border-primary/70 pointer-events-none inline-flex size-3 items-center justify-center rounded-full border transition-all"
+                  aria-hidden="true"
+                >
+                  <RadioGroupIndicator
+                    class="bg-primary block size-2 rounded-full"
+                  />
+                </span>
+              </div>
+            </RadioGroupItem>
+          </RadioGroupRoot>
+        </div>
       </div>
 
       <div v-if="loading" class="flex justify-center py-6">

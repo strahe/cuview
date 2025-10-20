@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { diffLinesRaw } from "diff";
+import { diffArrays } from "diff";
+import type { ChangeObject } from "diff";
 import CopyButton from "@/components/ui/CopyButton.vue";
 import SectionCard from "@/components/ui/SectionCard.vue";
 
@@ -12,6 +13,11 @@ interface Props {
   dirty?: boolean;
 }
 
+interface DiffEntry {
+  line: string;
+  type: "added" | "removed" | "unchanged";
+}
+
 const props = withDefaults(defineProps<Props>(), {
   toml: "",
   previousToml: "",
@@ -20,42 +26,55 @@ const props = withDefaults(defineProps<Props>(), {
   dirty: false,
 });
 
-const tomlLines = computed(() => (props.toml ? props.toml.split("\n") : []));
-const previousLines = computed(() =>
-  props.previousToml ? props.previousToml.split("\n") : [],
-);
+const normalizeLines = (value?: string) => {
+  if (!value) return [];
+  const normalized = value.replace(/\r\n/g, "\n");
+  const segments = normalized.split("\n");
+  if (segments.length && segments[segments.length - 1] === "") {
+    segments.pop();
+  }
+  return segments;
+};
 
-const diffMap = computed(() => {
-  const map = new Map<number, "added" | "removed">();
+const diffEntries = computed<DiffEntry[]>(() => {
+  const currentLines = normalizeLines(props.toml);
 
-  if (!props.dirty || !props.toml) {
-    return map;
+  if (!props.dirty) {
+    return currentLines.map((line) => ({ line, type: "unchanged" }));
   }
 
-  const diff = diffLinesRaw(props.previousToml ?? "", props.toml ?? "");
+  const previousLines = normalizeLines(props.previousToml);
+  const diff = diffArrays(previousLines, currentLines);
 
-  let currentIndex = 0;
-  diff.forEach((part) => {
-    const lines = part.value.split("\n");
-    // Remove trailing empty line introduced by split when string ends with newline
-    if (lines.at(-1) === "") {
-      lines.pop();
-    }
+  if (!diff) {
+    return currentLines.map((line) => ({ line, type: "unchanged" }));
+  }
+
+  const entries: DiffEntry[] = [];
+
+  diff.forEach((part: ChangeObject<string[]>) => {
+    const lines = part.value;
 
     if (part.added) {
-      lines.forEach((_, offset) => {
-        map.set(currentIndex + offset, "added");
+      lines.forEach((line) => {
+        entries.push({ line, type: "added" });
       });
-      currentIndex += lines.length;
-    } else if (part.removed) {
-      // Removed lines are not counted in the current preview, so we only mark the next line as context if it exists
       return;
-    } else {
-      currentIndex += lines.length;
     }
+
+    if (part.removed) {
+      lines.forEach((line) => {
+        entries.push({ line, type: "removed" });
+      });
+      return;
+    }
+
+    lines.forEach((line) => {
+      entries.push({ line, type: "unchanged" });
+    });
   });
 
-  return map;
+  return entries;
 });
 </script>
 
@@ -74,48 +93,81 @@ const diffMap = computed(() => {
     <div class="flex h-full flex-col gap-3">
       <div
         v-if="loading"
-        class="border-base-300 flex h-full items-center justify-center rounded-lg border border-dashed"
+        class="border-base-300 flex flex-1 items-center justify-center rounded-lg border border-dashed"
       >
         <div class="loading loading-spinner loading-md text-primary"></div>
       </div>
 
       <div
         v-else-if="!selectedLayer"
-        class="border-base-300 text-base-content/60 flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center text-sm"
+        class="border-base-300 text-base-content/60 flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center text-sm"
       >
         Select a configuration layer to generate the preview.
       </div>
 
       <div
-        v-else-if="!toml"
-        class="border-base-300 text-base-content/60 flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center text-sm"
+        v-else-if="!diffEntries.length"
+        class="border-base-300 text-base-content/60 flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center text-sm"
       >
         Preview will appear once configuration data is available.
       </div>
 
-      <div
-        v-else
-        class="border-base-300/60 bg-base-200/50 flex h-full flex-col overflow-hidden rounded-lg border font-mono text-xs leading-relaxed"
-      >
+      <div v-else class="min-h-0 flex-1">
         <div
-          v-for="(line, index) in tomlLines"
-          :key="`${index}-${line}`"
-          :class="[
-            'border-base-200/30 px-4 py-1.5 whitespace-pre-wrap',
-            index === tomlLines.length - 1 ? 'border-b-0' : 'border-b',
-            'text-base-content/80',
-          ]"
+          class="border-base-300/60 bg-base-200/50 flex h-full flex-col overflow-hidden rounded-lg border font-mono text-xs leading-relaxed"
         >
-          <template v-if="highlightedLines.has(index)">
-            <span
-              class="bg-warning/20 text-warning-content/90 rounded px-1 py-0.5"
+          <div class="flex-1 overflow-y-auto">
+            <div
+              v-for="(entry, index) in diffEntries"
+              :key="`${index}-${entry.type}-${entry.line}`"
+              :class="[
+                'border-base-200/30 text-base-content/80 flex items-start gap-3 px-4 py-1.5 whitespace-pre-wrap',
+                index === diffEntries.length - 1 ? 'border-b-0' : 'border-b',
+              ]"
             >
-              {{ line || " " }}
-            </span>
-          </template>
-          <template v-else>
-            {{ line || " " }}
-          </template>
+              <span
+                :class="[
+                  'mt-0.5 font-semibold select-none',
+                  entry.type === 'added'
+                    ? 'text-success'
+                    : entry.type === 'removed'
+                      ? 'text-error'
+                      : 'text-base-content/40',
+                ]"
+              >
+                {{
+                  entry.type === "added"
+                    ? "+"
+                    : entry.type === "removed"
+                      ? "-"
+                      : " "
+                }}
+              </span>
+              <span
+                class="flex-1"
+                :class="
+                  entry.type === 'added'
+                    ? 'text-success'
+                    : entry.type === 'removed'
+                      ? 'text-error'
+                      : 'text-base-content/80'
+                "
+              >
+                <span
+                  :class="[
+                    'rounded px-1.5 py-0.5',
+                    entry.type === 'added'
+                      ? 'bg-success/20'
+                      : entry.type === 'removed'
+                        ? 'bg-error/20'
+                        : 'bg-transparent',
+                  ]"
+                >
+                  {{ entry.line || " " }}
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

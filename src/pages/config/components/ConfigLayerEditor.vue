@@ -271,9 +271,9 @@ watch(
       </div>
     </template>
 
-    <div class="flex flex-col gap-5">
+    <div class="flex h-full flex-col gap-5">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <h2 class="text-base-content text-lg font-semibold">
             {{ headerLabel }}
           </h2>
@@ -306,170 +306,198 @@ watch(
         {{ error.message }}
       </div>
 
-      <div
-        v-if="!loading && !sections.length && !error"
-        class="bg-base-200 text-base-content/70 rounded-lg px-4 py-6 text-sm"
-      >
-        Select or create a configuration layer from the left panel to load
-        editable fields here.
-      </div>
-
-      <div v-if="loading" class="flex justify-center py-16">
-        <div class="loading loading-spinner loading-lg text-primary"></div>
-      </div>
-
-      <div
-        v-for="section in sections"
-        :key="section.key"
-        class="border-base-200/60 bg-base-200/20 rounded-xl border px-1"
-      >
-        <div
-          class="text-base-content flex items-center justify-between rounded-t-xl px-3 py-3 text-sm font-semibold uppercase"
-        >
-          <button
-            type="button"
-            class="hover:text-base-content/80 flex items-center gap-2 text-left transition"
-            @click="toggleSection(section.key)"
-          >
-            <ChevronDownIcon
-              class="size-4 transition"
-              :class="[
-                isSectionExpanded(section.key)
-                  ? 'rotate-0'
-                  : '-rotate-90 opacity-60',
-              ]"
-            />
-            <span>{{ section.label }}</span>
-          </button>
-          <span class="text-base-content/60 text-xs font-semibold">
-            {{ section.rows.length }} fields
-          </span>
+      <div class="min-h-0 flex-1">
+        <div v-if="loading" class="flex h-full items-center justify-center">
+          <div class="loading loading-spinner loading-lg text-primary"></div>
         </div>
 
-        <div v-if="isSectionExpanded(section.key)" class="space-y-3 px-3 pb-4">
-          <div
-            v-for="row in section.rows"
-            :key="row.id"
-            class="border-base-200 bg-base-200/60 rounded-xl border px-4 py-4"
-          >
-            <div class="flex items-start gap-4">
-              <input
-                :checked="row.isOverride"
-                :disabled="isDefaultLayer || !row.isEditable"
-                class="checkbox checkbox-sm mt-1"
-                type="checkbox"
-                @change="
-                  (event) =>
-                    handleOverrideChange(
-                      row,
-                      (event.target as HTMLInputElement).checked,
-                    )
-                "
-              />
-              <div class="flex-1 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div
-                    class="flex flex-wrap items-center gap-2 text-sm font-medium"
-                  >
-                    <span>{{ row.label }}</span>
-                    <span class="badge badge-outline badge-xs uppercase">
-                      {{ row.type }}
-                    </span>
-                    <button
-                      v-if="row.helpText || row.description"
-                      type="button"
-                      class="text-base-content/60 hover:text-base-content transition"
-                      :title="row.helpText ?? row.description"
-                    >
-                      <InformationCircleIcon class="size-4" />
-                    </button>
-                  </div>
-                  <button
-                    v-if="row.isOverride && !isDefaultLayer"
-                    class="text-primary/80 hover:text-primary text-xs font-semibold uppercase transition"
-                    type="button"
-                    @click="handleResetRow(row)"
-                  >
-                    Reset
-                  </button>
-                </div>
+        <div
+          v-else-if="!sections.length && !error"
+          class="bg-base-200 text-base-content/70 flex h-full items-center justify-center rounded-lg px-4 py-6 text-center text-sm"
+        >
+          Select or create a configuration layer from the left panel to load
+          editable fields here.
+        </div>
 
-                <div>
-                  <template v-if="row.type === 'boolean'">
-                    <select
-                      class="select select-bordered select-sm w-full"
-                      :disabled="isInputDisabled(row)"
-                      :value="resolveBooleanValue(row) ? 'true' : 'false'"
-                      @change="
-                        (event) =>
-                          handleBooleanInput(
-                            row,
-                            (event.target as HTMLSelectElement).value,
-                          )
-                      "
-                    >
-                      <option value="true">true</option>
-                      <option value="false">false</option>
-                    </select>
-                  </template>
-                  <template v-else-if="row.options && row.options.length">
-                    <select
-                      class="select select-bordered select-sm w-full"
-                      :disabled="isInputDisabled(row)"
-                      :value="resolveInputValue(row)"
-                      @change="handleSelectInput(row, $event)"
-                    >
-                      <option
-                        v-for="option in row.options"
-                        :key="String(option.value)"
-                        :value="String(option.value)"
-                      >
-                        {{ option.label }}
-                      </option>
-                    </select>
-                  </template>
-                  <template v-else-if="row.type === 'array'">
-                    <textarea
-                      class="textarea textarea-bordered textarea-sm min-h-24 w-full"
-                      :disabled="isInputDisabled(row)"
-                      :value="
-                        row.isOverride
-                          ? formatArrayDisplay(row.overrideValue)
-                          : formatArrayDisplay(row.effectiveValue)
-                      "
-                      placeholder='["value"]'
-                      @change="handleTextInput(row, $event)"
-                    ></textarea>
-                  </template>
-                  <template v-else>
-                    <input
-                      :type="
-                        row.type === 'number' || row.type === 'integer'
-                          ? 'number'
-                          : 'text'
-                      "
-                      class="input input-bordered input-sm w-full"
-                      :step="row.type === 'integer' ? 1 : 'any'"
-                      :disabled="isInputDisabled(row)"
-                      :value="resolveInputValue(row)"
-                      @input="handleTextInput(row, $event)"
+        <div
+          v-else
+          class="border-base-300/60 bg-base-100/80 flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm"
+        >
+          <div class="flex-1 overflow-y-auto pr-2">
+            <div class="space-y-4 px-4 py-4">
+              <div
+                v-for="section in sections"
+                :key="section.key"
+                class="border-base-200/60 bg-base-100 overflow-hidden rounded-2xl border shadow-sm transition-colors"
+              >
+                <div
+                  class="bg-base-200/70 text-base-content border-base-200 flex items-center justify-between border-b px-4 py-3 text-xs font-semibold tracking-wide uppercase"
+                >
+                  <button
+                    type="button"
+                    class="hover:text-base-content/80 flex items-center gap-2 text-left transition"
+                    @click="toggleSection(section.key)"
+                  >
+                    <ChevronDownIcon
+                      class="size-4 transition"
+                      :class="[
+                        isSectionExpanded(section.key)
+                          ? 'rotate-0'
+                          : '-rotate-90 opacity-60',
+                      ]"
                     />
-                  </template>
+                    <span>{{ section.label }}</span>
+                  </button>
+                  <span class="text-base-content/60 text-xs font-semibold">
+                    {{ section.rows.length }} fields
+                  </span>
                 </div>
 
                 <div
-                  class="text-base-content/60 flex flex-wrap items-center justify-between gap-2 text-xs"
+                  v-if="isSectionExpanded(section.key)"
+                  class="space-y-4 px-4 py-4"
                 >
-                  <span
-                    >Default: {{ formatDefaultValue(row.defaultValue) }}</span
+                  <div
+                    v-for="row in section.rows"
+                    :key="row.id"
+                    :class="[
+                      'rounded-xl border p-4 shadow-sm transition-colors',
+                      row.isOverride && !isDefaultLayer
+                        ? 'border-primary/50 bg-primary/10'
+                        : 'border-base-200/70 bg-base-100',
+                    ]"
                   >
-                  <span
-                    v-if="validationErrors[row.id]"
-                    class="text-error flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon class="size-4" />
-                    <span>{{ validationErrors[row.id] }}</span>
-                  </span>
+                    <div class="flex items-start gap-4">
+                      <input
+                        :checked="row.isOverride"
+                        :disabled="isDefaultLayer || !row.isEditable"
+                        class="checkbox checkbox-sm mt-1"
+                        type="checkbox"
+                        @change="
+                          (event) =>
+                            handleOverrideChange(
+                              row,
+                              (event.target as HTMLInputElement).checked,
+                            )
+                        "
+                      />
+                      <div class="flex-1 space-y-3">
+                        <div
+                          class="flex flex-wrap items-center justify-between gap-3"
+                        >
+                          <div
+                            class="flex flex-wrap items-center gap-2 text-sm font-medium"
+                          >
+                            <span>{{ row.label }}</span>
+                            <span
+                              class="badge badge-outline badge-xs uppercase"
+                            >
+                              {{ row.type }}
+                            </span>
+                            <button
+                              v-if="row.helpText || row.description"
+                              type="button"
+                              class="text-base-content/60 hover:text-base-content transition"
+                              :title="row.helpText ?? row.description"
+                            >
+                              <InformationCircleIcon class="size-4" />
+                            </button>
+                          </div>
+                          <button
+                            v-if="row.isOverride && !isDefaultLayer"
+                            class="text-primary/80 hover:text-primary text-xs font-semibold uppercase transition"
+                            type="button"
+                            @click="handleResetRow(row)"
+                          >
+                            Reset
+                          </button>
+                        </div>
+
+                        <div>
+                          <template v-if="row.type === 'boolean'">
+                            <select
+                              class="select select-bordered select-sm w-full"
+                              :disabled="isInputDisabled(row)"
+                              :value="
+                                resolveBooleanValue(row) ? 'true' : 'false'
+                              "
+                              @change="
+                                (event) =>
+                                  handleBooleanInput(
+                                    row,
+                                    (event.target as HTMLSelectElement).value,
+                                  )
+                              "
+                            >
+                              <option value="true">true</option>
+                              <option value="false">false</option>
+                            </select>
+                          </template>
+                          <template
+                            v-else-if="row.options && row.options.length"
+                          >
+                            <select
+                              class="select select-bordered select-sm w-full"
+                              :disabled="isInputDisabled(row)"
+                              :value="resolveInputValue(row)"
+                              @change="handleSelectInput(row, $event)"
+                            >
+                              <option
+                                v-for="option in row.options"
+                                :key="String(option.value)"
+                                :value="String(option.value)"
+                              >
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </template>
+                          <template v-else-if="row.type === 'array'">
+                            <textarea
+                              class="textarea textarea-bordered textarea-sm min-h-24 w-full"
+                              :disabled="isInputDisabled(row)"
+                              :value="
+                                row.isOverride
+                                  ? formatArrayDisplay(row.overrideValue)
+                                  : formatArrayDisplay(row.effectiveValue)
+                              "
+                              placeholder='["value"]'
+                              @change="handleTextInput(row, $event)"
+                            ></textarea>
+                          </template>
+                          <template v-else>
+                            <input
+                              :type="
+                                row.type === 'number' || row.type === 'integer'
+                                  ? 'number'
+                                  : 'text'
+                              "
+                              class="input input-bordered input-sm w-full"
+                              :step="row.type === 'integer' ? 1 : 'any'"
+                              :disabled="isInputDisabled(row)"
+                              :value="resolveInputValue(row)"
+                              @input="handleTextInput(row, $event)"
+                            />
+                          </template>
+                        </div>
+
+                        <div
+                          class="text-base-content/60 flex flex-wrap items-center justify-between gap-2 text-xs"
+                        >
+                          <span
+                            >Default:
+                            {{ formatDefaultValue(row.defaultValue) }}</span
+                          >
+                          <span
+                            v-if="validationErrors[row.id]"
+                            class="text-error flex items-center gap-1"
+                          >
+                            <ExclamationCircleIcon class="size-4" />
+                            <span>{{ validationErrors[row.id] }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
