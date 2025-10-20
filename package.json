@@ -29,7 +29,7 @@
     "tailwindcss": "^4.1.12",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
-    "vue3-apexcharts": "^1.8.0"
+    "vue3-apexcharts": "^1.10.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
