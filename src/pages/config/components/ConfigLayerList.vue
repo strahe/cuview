@@ -129,7 +129,7 @@ const handleRefresh = () => {
               </div>
 
               <div class="text-base-content/60 flex items-center gap-2 text-xs">
-                <span class="badge badge-outline badge-sm">
+                <span class="badge badge-outline badge-sm whitespace-nowrap">
                   {{ layer.nodeCount }} nodes
                 </span>
                 <span

@@ -1,9 +1,11 @@
 import { getAtPath, hasAtPath, mergeDeep, toPathString } from "@/utils/object";
 import type {
+  ConfigArrayItemProperty,
+  ConfigFieldOption,
   ConfigFieldRow,
+  ConfigFieldType,
   ConfigSchemaDocument,
   ConfigSchemaNode,
-  ConfigFieldType,
 } from "@/types/config";
 
 const UPPERCASE_PATTERN = /([a-z0-9])([A-Z])/g;
@@ -247,18 +249,12 @@ function collectRows(
       }))
     : undefined;
 
-  const arrayItemsType =
-    resolvedSchema.items && typeof resolvedSchema.items === "object"
-      ? normalizeType(resolveSchemaNode(document, resolvedSchema.items) ?? {})
+  const arrayDetails =
+    nodeType === "array"
+      ? resolveArrayDetails(resolvedSchema, document, schema)
       : undefined;
 
-  const isEditable =
-    nodeType !== "object" &&
-    !(
-      nodeType === "array" &&
-      arrayItemsType === "object" &&
-      resolveSchemaNode(document, resolvedSchema.items)?.properties
-    );
+  const isEditable = nodeType !== "object";
 
   rows.push({
     id,
@@ -276,6 +272,118 @@ function collectRows(
     isArray: nodeType === "array",
     isEditable,
     options,
+    arrayItemType: arrayDetails?.itemType,
+    arrayItemLabel: arrayDetails?.itemLabel,
+    arrayItemOptions: arrayDetails?.itemOptions,
+    arrayItemProperties: arrayDetails?.itemProperties,
+    minItems: resolvedSchema.minItems,
+    maxItems: resolvedSchema.maxItems,
+  });
+}
+
+function resolveArrayDetails(
+  schema: ConfigSchemaNode,
+  document: ConfigSchemaDocument | null,
+  original?: ConfigSchemaNode,
+):
+  | {
+      itemType?: ConfigFieldType;
+      itemLabel?: string;
+      itemOptions?: ConfigFieldOption[];
+      itemProperties?: ConfigArrayItemProperty[];
+    }
+  | undefined {
+  if (!schema.items || typeof schema.items !== "object") {
+    return undefined;
+  }
+
+  const rawItemsSchema =
+    typeof schema.items === "object"
+      ? (schema.items as ConfigSchemaNode)
+      : undefined;
+  const resolvedItemsSchema = resolveSchemaNode(
+    document,
+    schema.items as ConfigSchemaNode,
+  );
+  const itemSchema = resolvedItemsSchema ?? rawItemsSchema;
+
+  if (!itemSchema) {
+    return undefined;
+  }
+
+  const itemType = normalizeType(itemSchema);
+  const originalItems =
+    original && typeof original.items === "object"
+      ? (original.items as ConfigSchemaNode)
+      : undefined;
+
+  const itemLabel =
+    itemSchema.title ?? rawItemsSchema?.title ?? originalItems?.title;
+
+  const itemOptions = itemSchema.enum
+    ? itemSchema.enum.map((value) => ({
+        label: String(value),
+        value,
+      }))
+    : undefined;
+
+  const itemProperties =
+    itemType === "object"
+      ? buildArrayItemProperties(itemSchema, document)
+      : undefined;
+
+  return {
+    itemType,
+    itemLabel,
+    itemOptions,
+    itemProperties,
+  };
+}
+
+function buildArrayItemProperties(
+  schema: ConfigSchemaNode,
+  document: ConfigSchemaDocument | null,
+): ConfigArrayItemProperty[] | undefined {
+  if (!schema.properties || !Object.keys(schema.properties).length) {
+    return undefined;
+  }
+
+  const requiredKeys = new Set(schema.required ?? []);
+
+  return Object.entries(
+    schema.properties as Record<string, ConfigSchemaNode>,
+  ).map(([key, propertySchema]) => {
+    const resolvedProperty =
+      resolveSchemaNode(document, propertySchema) ?? propertySchema;
+    const propertyType = normalizeType(resolvedProperty);
+    const propertyOptions = resolvedProperty.enum
+      ? resolvedProperty.enum.map((value) => ({
+          label: String(value),
+          value,
+        }))
+      : undefined;
+
+    const arrayDetails =
+      propertyType === "array"
+        ? resolveArrayDetails(resolvedProperty, document, propertySchema)
+        : undefined;
+
+    return {
+      key,
+      label: resolvedProperty.title ?? formatLabel(key),
+      description: resolvedProperty.description,
+      helpText: resolvedProperty.options?.infoText,
+      type: propertyType,
+      required: requiredKeys.has(key),
+      options: propertyOptions,
+      defaultValue: resolvedProperty.default,
+      arrayItemType: arrayDetails?.itemType,
+      arrayItemLabel: arrayDetails?.itemLabel,
+      arrayItemOptions: arrayDetails?.itemOptions,
+      arrayItemProperties: arrayDetails?.itemProperties,
+      minItems: resolvedProperty.minItems,
+      maxItems: resolvedProperty.maxItems,
+    };
   });
 }
 

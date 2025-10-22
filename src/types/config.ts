@@ -65,6 +65,23 @@ export interface ConfigFieldOption<T = string | number | boolean> {
   value: T;
 }
 
+export interface ConfigArrayItemProperty {
+  key: string;
+  label: string;
+  description?: string;
+  helpText?: string;
+  type: ConfigFieldType;
+  required?: boolean;
+  options?: ConfigFieldOption[];
+  defaultValue?: unknown;
+  arrayItemType?: ConfigFieldType;
+  arrayItemLabel?: string;
+  arrayItemOptions?: ConfigFieldOption[];
+  arrayItemProperties?: ConfigArrayItemProperty[];
+  minItems?: number;
+  maxItems?: number;
+}
+
 export interface ConfigFieldRow {
   id: string;
   path: string[];
@@ -81,4 +98,10 @@ export interface ConfigFieldRow {
   isArray: boolean;
   isEditable: boolean;
   options?: ConfigFieldOption[];
+  arrayItemType?: ConfigFieldType;
+  arrayItemLabel?: string;
+  arrayItemOptions?: ConfigFieldOption[];
+  arrayItemProperties?: ConfigArrayItemProperty[];
+  minItems?: number;
+  maxItems?: number;
 }
