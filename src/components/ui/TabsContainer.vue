@@ -19,15 +19,33 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const activeTab = ref(props.modelValue || props.tabs[0]?.id);
+const isValidTabId = (value: unknown): value is string =>
+  typeof value === "string" && value.length > 0;
+
+const resolveFallbackTab = () => props.tabs[0]?.id ?? "";
+const activeTab = ref<string>(
+  isValidTabId(props.modelValue) ? props.modelValue : resolveFallbackTab(),
+);
 
 watch(
   () => props.modelValue,
   (newValue) => {
-    if (newValue) {
+    if (isValidTabId(newValue)) {
       activeTab.value = newValue;
+    } else if (!activeTab.value) {
+      activeTab.value = resolveFallbackTab();
     }
   },
+);
+
+watch(
+  () => props.tabs,
+  (newTabs) => {
+    if (!newTabs.some((tab) => tab.id === activeTab.value)) {
+      activeTab.value = newTabs[0]?.id ?? "";
+    }
+  },
+  { deep: true },
 );
 
 watch(activeTab, (newTab) => {

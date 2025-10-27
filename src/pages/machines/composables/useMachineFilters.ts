@@ -38,8 +38,9 @@ export function useMachineFilters(machines: Ref<MachineSummary[] | null>) {
         unschedulable++;
       } else {
         const contactMatch = machine.SinceContact.match(/(\d+)s/);
-        const secondsSinceContact = contactMatch
-          ? parseInt(contactMatch[1])
+        const secondsRaw = contactMatch?.[1];
+        const secondsSinceContact = secondsRaw
+          ? Number.parseInt(secondsRaw, 10)
           : 0;
         if (secondsSinceContact <= 60) {
           online++;
@@ -76,8 +77,9 @@ export function useMachineFilters(machines: Ref<MachineSummary[] | null>) {
       // Status filter
       if (filters.value.status !== "all") {
         const contactMatch = machine.SinceContact.match(/(\d+)s/);
-        const secondsSinceContact = contactMatch
-          ? parseInt(contactMatch[1])
+        const secondsRaw = contactMatch?.[1];
+        const secondsSinceContact = secondsRaw
+          ? Number.parseInt(secondsRaw, 10)
           : 0;
         const isOnline = secondsSinceContact <= 60;
 

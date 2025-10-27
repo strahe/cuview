@@ -43,10 +43,11 @@ const actors = computed<ActorInfo[]>(() => {
         return null;
       }
       const match = address.match(/^[ft](\d+)$/);
-      if (!match) {
+      const parsedIdRaw = match?.[1];
+      if (!parsedIdRaw) {
         return null;
       }
-      const parsedId = Number.parseInt(match[1], 10);
+      const parsedId = Number.parseInt(parsedIdRaw, 10);
       if (Number.isNaN(parsedId)) {
         return null;
       }

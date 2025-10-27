@@ -78,6 +78,9 @@ export const useIpniAdsList = () => {
 
       settled.forEach((result, index) => {
         const provider = snapshot[index];
+        if (!provider) {
+          return;
+        }
         if (result.status === "fulfilled" && result.value) {
           nextAds.push(result.value);
         } else if (result.status === "rejected") {

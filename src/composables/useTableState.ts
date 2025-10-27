@@ -37,7 +37,8 @@ export function useTableState(tableId: string, config: TableStateConfig) {
 
       const setGrouping = (newGrouping: GroupingState) => {
         grouping.value = newGrouping;
-        selectedGroupBy.value = newGrouping.length > 0 ? newGrouping[0] : "";
+        const [firstGroup] = newGrouping;
+        selectedGroupBy.value = firstGroup ?? "";
       };
 
       const setExpanded = (newExpanded: ExpandedState) => {
