@@ -101,6 +101,9 @@ export function unsetAtPath(
 
   for (let i = 0; i < path.length; i += 1) {
     const segment = path[i];
+    if (segment === undefined) {
+      return;
+    }
     const isLast = i === path.length - 1;
 
     if (Array.isArray(current)) {
@@ -133,7 +136,11 @@ export function unsetAtPath(
 
   // Clean up any empty containers created by deletion
   for (let i = stack.length - 1; i >= 0; i -= 1) {
-    const [container, key] = stack[i];
+    const entry = stack[i];
+    if (!entry) {
+      continue;
+    }
+    const [container, key] = entry;
     if (Array.isArray(container)) {
       const index = key as number;
       const value = container[index];

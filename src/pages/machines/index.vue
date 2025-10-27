@@ -29,7 +29,10 @@ const stats = computed(() => {
   const total = filteredMachines.value.length;
   const online = filteredMachines.value.filter((m) => {
     const contactMatch = m.SinceContact.match(/(\d+)s/);
-    const secondsSinceContact = contactMatch ? parseInt(contactMatch[1]) : 0;
+    const secondsRaw = contactMatch?.[1];
+    const secondsSinceContact = secondsRaw
+      ? Number.parseInt(secondsRaw, 10)
+      : 0;
     return secondsSinceContact <= 60 && !m.Unschedulable;
   }).length;
 

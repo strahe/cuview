@@ -54,7 +54,7 @@ export function useConfigLayers() {
     }
 
     const preferred = rawLayers.value.find((name) => name !== "default");
-    selectedLayer.value = preferred ?? rawLayers.value[0];
+    selectedLayer.value = preferred ?? rawLayers.value[0] ?? null;
   };
 
   const loadLayers = async (force = false) => {

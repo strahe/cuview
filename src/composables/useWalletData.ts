@@ -118,11 +118,9 @@ export function useWalletData(options: UseWalletDataOptions = {}) {
     const addresses = Object.keys(walletNames.value);
 
     // Stagger balance loading to avoid overwhelming the API
-    for (let i = 0; i < addresses.length; i++) {
-      const address = addresses[i];
-
+    for (const [index, address] of addresses.entries()) {
       // Add a small delay between requests to prevent API overload
-      if (i > 0) {
+      if (index > 0) {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 

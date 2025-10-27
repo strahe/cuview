@@ -25,7 +25,8 @@ const status = computed(() => {
   // Simple heuristic for determining if machine is offline
   // If last contact was more than 60 seconds ago, consider offline
   const contactMatch = props.sinceContact.match(/(\d+)s/);
-  const secondsSinceContact = contactMatch ? parseInt(contactMatch[1]) : 0;
+  const secondsRaw = contactMatch?.[1];
+  const secondsSinceContact = secondsRaw ? Number.parseInt(secondsRaw, 10) : 0;
 
   if (secondsSinceContact > 60) {
     return {

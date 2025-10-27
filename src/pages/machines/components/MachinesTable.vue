@@ -127,7 +127,10 @@ const statusDistribution = computed(() => {
       unschedulable++;
     } else {
       const contactMatch = machine.SinceContact.match(/(\d+)s/);
-      const secondsSinceContact = contactMatch ? parseInt(contactMatch[1]) : 0;
+      const secondsRaw = contactMatch?.[1];
+      const secondsSinceContact = secondsRaw
+        ? Number.parseInt(secondsRaw, 10)
+        : 0;
       if (secondsSinceContact <= 60) {
         online++;
       } else {
@@ -148,7 +151,8 @@ const statusFilterFn = (
 
   const machine = row.original;
   const contactMatch = machine.SinceContact.match(/(\d+)s/);
-  const secondsSinceContact = contactMatch ? parseInt(contactMatch[1]) : 0;
+  const secondsRaw = contactMatch?.[1];
+  const secondsSinceContact = secondsRaw ? Number.parseInt(secondsRaw, 10) : 0;
 
   switch (filterValue) {
     case "online":
@@ -562,8 +566,9 @@ const getColumnAggregateInfo = (columnId: string) => {
       const restarting = data.filter((machine) => machine.Restarting).length;
       const online = data.filter((machine) => {
         const contactMatch = machine.SinceContact.match(/(\d+)s/);
-        const secondsSinceContact = contactMatch
-          ? parseInt(contactMatch[1])
+        const secondsRaw = contactMatch?.[1];
+        const secondsSinceContact = secondsRaw
+          ? Number.parseInt(secondsRaw, 10)
           : 0;
         return (
           secondsSinceContact <= 60 &&

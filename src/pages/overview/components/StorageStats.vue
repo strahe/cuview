@@ -38,18 +38,17 @@ const refresh = () => {
 };
 const data = computed(() => {
   if (summary.value && summary.value.length > 0) {
+    const breakdownEntries = storeBreakdown.value ?? [];
     const hasDetailedBreakdown =
-      storeBreakdown.value &&
-      (storeBreakdown.value.length > 1 ||
-        (storeBreakdown.value.length === 1 &&
-          storeBreakdown.value[0].type !== "Other"));
+      breakdownEntries.length > 1 ||
+      (breakdownEntries.length === 1 && breakdownEntries[0]?.type !== "Other");
 
     const processedSummary = [...summary.value];
 
     if (hasDetailedBreakdown) {
       processedSummary.forEach((row: StorageUseStat) => {
         if (row.Type === "Store") {
-          row.subEntries = storeBreakdown.value || undefined;
+          row.subEntries = breakdownEntries;
         }
       });
     }
