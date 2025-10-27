@@ -87,6 +87,7 @@ export interface ConfigFieldRow {
   path: string[];
   groupKey: string;
   groupLabel: string;
+  breadcrumbs: string[];
   label: string;
   description?: string;
   helpText?: string;

@@ -8,9 +8,6 @@ import type {
   ConfigSchemaNode,
 } from "@/types/config";
 
-const UPPERCASE_PATTERN = /([a-z0-9])([A-Z])/g;
-const NON_ALPHANUMERIC_PATTERN = /[_\s]+/g;
-
 function decodePointerSegment(segment: string): string {
   return segment.replace(/~1/g, "/").replace(/~0/g, "~");
 }
@@ -158,11 +155,7 @@ function resolveSchemaNode(
 }
 
 function formatLabel(key: string): string {
-  const spaced = key
-    .replace(UPPERCASE_PATTERN, "$1 $2")
-    .replace(NON_ALPHANUMERIC_PATTERN, " ")
-    .trim();
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+  return key;
 }
 
 function normalizeType(node: ConfigSchemaNode): ConfigFieldType {
@@ -189,6 +182,7 @@ interface FlattenContext {
   groupKey: string;
   groupLabel: string;
   document: ConfigSchemaDocument | null;
+  breadcrumbs: string[];
 }
 
 function collectRows(
@@ -198,7 +192,7 @@ function collectRows(
   effectiveRoot: Record<string, unknown>,
   rows: ConfigFieldRow[],
 ) {
-  const { schema, path, groupKey, groupLabel, document } = context;
+  const { schema, path, groupKey, groupLabel, document, breadcrumbs } = context;
   const resolvedSchema = resolveSchemaNode(document, schema);
   if (!resolvedSchema) {
     return;
@@ -206,6 +200,10 @@ function collectRows(
 
   const { properties } = resolvedSchema;
   const nodeType = normalizeType(resolvedSchema);
+  const nodeLabel =
+    resolvedSchema.title ?? formatLabel(path[path.length - 1] ?? groupLabel);
+  const nextBreadcrumbs =
+    path.length > 1 ? [...breadcrumbs, nodeLabel] : breadcrumbs;
 
   const hasNestedProperties =
     properties && Object.keys(properties).length > 0 && nodeType !== "array";
@@ -220,6 +218,7 @@ function collectRows(
             groupKey,
             groupLabel,
             document,
+            breadcrumbs: nextBreadcrumbs,
           },
           defaultsRoot,
           overridesRoot,
@@ -232,8 +231,7 @@ function collectRows(
   }
 
   const id = toPathString(path);
-  const label =
-    resolvedSchema.title ?? formatLabel(path[path.length - 1] ?? groupLabel);
+  const label = nodeLabel;
   const defaultValue =
     getAtPath(defaultsRoot, path) ??
     resolvedSchema.default ??
@@ -261,6 +259,7 @@ function collectRows(
     path,
     groupKey,
     groupLabel,
+    breadcrumbs,
     label,
     description: schema.description,
     helpText: resolvedSchema.options?.infoText,
@@ -456,6 +455,7 @@ export function buildConfigFieldRows(
         groupKey,
         groupLabel,
         document: schema,
+        breadcrumbs: [],
       },
       defaultsRoot,
       overridesRoot,
