@@ -67,7 +67,7 @@ const handleClose = () => {
         <DialogOverlay
           v-if="open"
           force-mount
-          class="fixed inset-0 z-50 bg-black/50"
+          class="bg-base-300 bg-opacity-60 fixed inset-0 z-50 backdrop-blur-sm"
         />
       </Transition>
 
@@ -92,7 +92,7 @@ const handleClose = () => {
             <!-- Header -->
             <div
               v-if="title || showCloseButton"
-              class="border-base-300/30 flex items-center justify-between border-b p-6 pb-4"
+              class="border-base-300 flex items-center justify-between border-b p-6 pb-4"
             >
               <DialogTitle v-if="title" class="text-lg leading-6 font-semibold">
                 {{ title }}
@@ -124,7 +124,7 @@ const handleClose = () => {
             <!-- Footer slot -->
             <div
               v-if="$slots.footer"
-              class="border-base-300/30 bg-base-50/50 border-t p-6 pt-4"
+              class="bg-base-100 border-base-300 border-t p-6 pt-4"
             >
               <slot name="footer" />
             </div>

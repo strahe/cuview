@@ -134,14 +134,14 @@ watchEffect(() => {
 
     <div
       v-else-if="!hasResult"
-      class="text-base-content/60 border-base-300 bg-base-200/40 mt-6 rounded-lg border border-dashed p-6 text-sm"
+      class="text-base-content/60 border-base-300 bg-base-200 mt-6 rounded-lg border border-dashed p-6 text-sm"
     >
       Enter an entry CID to search
     </div>
 
     <template v-else>
       <div class="mt-6 space-y-4">
-        <div class="bg-base-200/40 rounded-lg p-4">
+        <div class="bg-base-200 border-base-300 rounded-lg border p-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
               <h3 class="text-lg font-semibold">{{ entry?.PieceCID }}</h3>

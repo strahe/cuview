@@ -237,20 +237,20 @@ const getColumnAggregateInfo = (columnId: string) => {
     </TableControls>
 
     <div
-      class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
+      class="border-base-300 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
-      <table class="table w-full">
-        <thead class="bg-base-200/50">
+      <table class="table-zebra table w-full">
+        <thead class="bg-base-200">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
             :key="headerGroup.id"
-            class="border-base-300/50 border-b"
+            class="border-base-300 border-b"
           >
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              class="border-base-300/30 text-base-content/60 bg-transparent px-3 py-3 text-left text-xs font-semibold tracking-wide uppercase last:border-r-0"
+              class="border-base-200 text-base-content/60 bg-transparent px-3 py-3 text-left text-xs font-semibold tracking-wide uppercase last:border-r-0"
               :class="{
                 'cursor-pointer select-none': header.column.getCanSort(),
               }"
@@ -319,7 +319,7 @@ const getColumnAggregateInfo = (columnId: string) => {
               <td
                 v-for="cell in row.getVisibleCells()"
                 :key="cell.id"
-                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
                 @contextmenu="handleCellRightClick(cell, $event)"
               >
                 <FlexRender

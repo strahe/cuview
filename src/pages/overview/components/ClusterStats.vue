@@ -303,7 +303,9 @@ const totalWins7d = computed(() => {
             {{ actorCount }} storage providers
           </div>
         </div>
-        <div class="bg-base-200 text-base-content/60 ml-3 rounded-lg p-2.5">
+        <div
+          class="bg-base-200 border-base-300 text-base-content/60 ml-3 rounded-lg border p-2.5"
+        >
           <WalletIcon class="size-5" />
         </div>
       </div>

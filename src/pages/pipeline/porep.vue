@@ -87,7 +87,7 @@
             <span class="loading loading-spinner loading-sm"></span>
           </div>
           <div v-else-if="porepSummary.data.value" class="overflow-x-auto">
-            <table class="table w-full">
+            <table class="table-zebra table w-full">
               <thead>
                 <tr>
                   <th>Actor</th>

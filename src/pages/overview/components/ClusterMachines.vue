@@ -82,7 +82,7 @@ const hasProblemMachines = computed(() => problemMachines.value.length > 0);
   <div class="space-y-4">
     <div
       v-if="summaryStats && hasData"
-      class="bg-base-200/50 flex items-center justify-between rounded-lg p-4"
+      class="bg-base-200 border-base-300 flex items-center justify-between rounded-lg border p-4 shadow-sm"
     >
       <div class="flex items-center gap-6">
         <div class="text-center">

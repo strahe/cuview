@@ -173,7 +173,7 @@ const handleFocusOut = (event: FocusEvent) => {
     >
       <div
         v-if="isDropdownOpen"
-        class="bg-base-300/80 fixed inset-0 z-[15] backdrop-blur-sm transition-all"
+        class="bg-base-300 bg-opacity-80 fixed inset-0 z-[15] backdrop-blur-sm transition-all"
         @click="closeDropdown"
       ></div>
     </Transition>
@@ -205,11 +205,11 @@ const handleFocusOut = (event: FocusEvent) => {
     <div
       v-if="isDropdownOpen"
       tabindex="0"
-      class="dropdown-content menu rounded-box border-base-300 bg-base-100/95 ring-base-content/10 z-[130] w-[600px] border-2 p-0 shadow-2xl ring-1 backdrop-blur-sm"
+      class="dropdown-content menu rounded-box border-base-300 bg-base-100 ring-base-300 z-[130] w-[600px] border-2 p-0 shadow-2xl ring-1 backdrop-blur-sm"
       @keydown.esc.stop.prevent="closeDropdown"
     >
       <div
-        class="border-base-300/50 flex items-center justify-between border-b p-4"
+        class="border-base-300 flex items-center justify-between border-b p-4"
       >
         <div class="flex items-center gap-3">
           <ClipboardDocumentListIcon class="text-base-content/70 size-5" />
@@ -267,9 +267,9 @@ const handleFocusOut = (event: FocusEvent) => {
         <template v-else>
           <div class="bg-base-100 flex h-full flex-col">
             <div class="bg-base-100 flex-1 overflow-x-auto">
-              <table class="table-sm bg-base-100 table w-full">
+              <table class="table-sm table-zebra bg-base-100 table w-full">
                 <thead class="bg-base-100 sticky top-0 z-10">
-                  <tr class="border-base-300/50 bg-base-100">
+                  <tr class="border-base-300 bg-base-100 border-b">
                     <th class="bg-base-100 text-left font-semibold">
                       Task Type
                     </th>
@@ -286,7 +286,7 @@ const handleFocusOut = (event: FocusEvent) => {
                     :key="group.name"
                     :class="[
                       getTableRowClasses(true),
-                      'bg-base-100 border-base-300/30 hover:[&>td]:bg-base-200',
+                      'bg-base-100 border-base-300 hover:[&>td]:bg-base-200 border-b',
                     ]"
                     @click="handleTaskGroupClick(group.name)"
                   >
@@ -338,7 +338,7 @@ const handleFocusOut = (event: FocusEvent) => {
               </table>
             </div>
 
-            <div class="border-base-300/50 bg-base-200 border-t p-4">
+            <div class="border-base-300 bg-base-200 border-t p-4">
               <button
                 class="btn btn-primary btn-sm w-full"
                 @click="handleViewAllTasks"

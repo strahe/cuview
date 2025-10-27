@@ -44,7 +44,7 @@ const hasActiveFilters = computed(() => {
 
 <template>
   <div
-    class="bg-base-200/30 border-base-300/30 mb-4 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4"
+    class="bg-base-200 border-base-300 mb-4 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4"
   >
     <!-- Left: Search + Refresh -->
     <div class="flex min-w-0 flex-1 items-center gap-3">

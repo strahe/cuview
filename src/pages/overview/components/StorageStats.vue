@@ -124,7 +124,7 @@ const getUsagePercentage = (capacity: number, available: number): number => {
           <tr
             v-for="sub in row.subEntries"
             :key="`${row.Type}-${sub.type}`"
-            :class="[getTableRowClasses(), 'bg-base-200/30']"
+            :class="[getTableRowClasses(), 'bg-base-200']"
           >
             <td class="pl-8 text-sm">└ {{ sub.type }}</td>
             <td class="text-sm">

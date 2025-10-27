@@ -67,9 +67,9 @@ const hideTooltip = () => {
           }"
         >
           <div
-            class="bg-base-300/90 text-base-content border-base-content/10 min-w-40 rounded-lg border p-3 text-xs shadow-lg backdrop-blur-md"
+            class="bg-base-100 text-base-content border-base-300 min-w-40 rounded-lg border p-3 text-xs shadow-lg"
           >
-            <div class="border-base-content/20 mb-2 border-b pb-1 font-medium">
+            <div class="border-base-300 mb-2 border-b pb-1 font-medium">
               Deadline {{ index + 1 }}
               <span v-if="deadline.Current" class="text-info ml-1"
                 >(Current)</span

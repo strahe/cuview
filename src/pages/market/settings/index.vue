@@ -397,9 +397,7 @@ const clearError = () => {
         </div>
         <div v-else-if="defaultFilter" class="space-y-6">
           <div class="grid gap-4 sm:grid-cols-2">
-            <div
-              class="bg-base-200/60 border-base-300/60 rounded-lg border p-4"
-            >
+            <div class="bg-base-200 border-base-300 rounded-lg border p-4">
               <div class="text-base-content/70 text-xs tracking-wide uppercase">
                 Allow deals from unknown clients
               </div>
@@ -425,9 +423,7 @@ const clearError = () => {
                 }}
               </div>
             </div>
-            <div
-              class="bg-base-200/60 border-base-300/60 rounded-lg border p-4"
-            >
+            <div class="bg-base-200 border-base-300 rounded-lg border p-4">
               <div class="text-base-content/70 text-xs tracking-wide uppercase">
                 Reject deals when CIDGravity unavailable
               </div>
@@ -463,7 +459,7 @@ const clearError = () => {
             </div>
             <div
               v-if="cidGravityEntries.length"
-              class="border-base-300/60 divide-base-300/40 rounded-lg border"
+              class="border-base-300 divide-base-300 divide-y rounded-lg border"
             >
               <div
                 v-for="entry in cidGravityEntries"

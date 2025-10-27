@@ -495,20 +495,20 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
     </TableControls>
 
     <div
-      class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
+      class="border-base-300 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
-      <table class="table w-full">
-        <thead class="bg-base-200/50 sticky top-0 z-10">
+      <table class="table-zebra table w-full">
+        <thead class="bg-base-200 sticky top-0 z-10">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
             :key="headerGroup.id"
-            class="border-base-300/50 border-b"
+            class="border-base-300 border-b"
           >
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              class="border-base-300/30 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              class="border-base-200 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
               :class="{
                 'cursor-pointer select-none': header.column.getCanSort(),
               }"
@@ -610,7 +610,7 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
               :class="[
                 getTableRowClasses(true),
                 'bg-base-100',
-                { 'bg-base-200/30 font-medium': row.getIsGrouped() },
+                { 'bg-base-200 font-medium': row.getIsGrouped() },
               ]"
               @click="handleRowClick(row)"
             >
@@ -618,7 +618,7 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
                 v-for="cell in row.getVisibleCells()"
                 :key="cell.id"
                 :title="getCellTooltip(cell)"
-                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
                 :class="{
                   'font-semibold': cell.getIsGrouped(),
                   'pl-6': cell.getIsPlaceholder() && !cell.getIsGrouped(),
@@ -702,7 +702,9 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
 
       <template #header-stats="{ item }">
         <div class="mb-4 grid grid-cols-2 gap-3">
-          <div class="bg-base-200/30 rounded-lg p-3 text-center">
+          <div
+            class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+          >
             <div
               class="mb-1 text-xl font-bold"
               :class="!item?.Failed ? 'text-info' : 'text-error'"
@@ -713,7 +715,9 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
               Status
             </div>
           </div>
-          <div class="bg-base-200/30 rounded-lg p-3 text-center">
+          <div
+            class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+          >
             <div class="text-primary mb-1 text-xl font-bold">
               {{ item ? getCurrentState(item) : "Unknown" }}
             </div>
@@ -725,7 +729,7 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
       </template>
 
       <template #main-content="{ item }">
-        <div class="bg-base-200/30 rounded-lg p-4">
+        <div class="bg-base-200 border-base-300 rounded-lg border p-4">
           <div class="mb-3 flex items-center justify-between">
             <h4 class="font-semibold">Upgrade Progress</h4>
             <span class="text-primary font-bold"
@@ -787,7 +791,7 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
 
         <div
           v-if="item?.UpdateUnsealedCid"
-          class="bg-base-200/30 mt-4 rounded-lg p-3"
+          class="bg-base-200 border-base-300 mt-4 rounded-lg border p-3"
         >
           <div class="text-base-content/80 mb-2 text-sm font-medium">
             CID Information

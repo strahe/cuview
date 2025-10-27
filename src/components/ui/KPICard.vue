@@ -45,8 +45,8 @@ const iconBgColors = {
   success: "bg-success/10 text-success",
   warning: "bg-warning/10 text-warning",
   error: "bg-error/10 text-error",
-  neutral: "bg-base-300/50 text-base-content/70",
-  muted: "bg-base-200/50 text-base-content/50",
+  neutral: "bg-base-200 text-base-content/70 border border-base-300",
+  muted: "bg-base-100 text-base-content/60 border border-base-200",
 };
 
 const sizeMap = {

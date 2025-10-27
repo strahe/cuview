@@ -104,25 +104,33 @@
             Pipeline Status
           </h3>
           <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div class="bg-base-200/50 rounded-lg p-3 text-center">
+            <div
+              class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+            >
               <div class="text-info mb-1 text-sm font-bold">
                 {{ pipelineStats.encode }}
               </div>
               <div class="text-base-content/60 text-xs">Encoding</div>
             </div>
-            <div class="bg-base-200/50 rounded-lg p-3 text-center">
+            <div
+              class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+            >
               <div class="text-warning mb-1 text-sm font-bold">
                 {{ pipelineStats.prove }}
               </div>
               <div class="text-base-content/60 text-xs">Proving</div>
             </div>
-            <div class="bg-base-200/50 rounded-lg p-3 text-center">
+            <div
+              class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+            >
               <div class="text-primary mb-1 text-sm font-bold">
                 {{ pipelineStats.submit }}
               </div>
               <div class="text-base-content/60 text-xs">Submitting</div>
             </div>
-            <div class="bg-base-200/50 rounded-lg p-3 text-center">
+            <div
+              class="bg-base-200 border-base-300 rounded-lg border p-3 text-center"
+            >
               <div class="text-secondary mb-1 text-sm font-bold">
                 {{ pipelineStats.moveStorage }}
               </div>

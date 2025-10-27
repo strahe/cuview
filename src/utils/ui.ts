@@ -85,15 +85,15 @@ export const getContactStatusColor = (lastContact: string | number): string => {
 export const getCardClasses = (
   variant: "default" | "outlined" | "filled" = "default",
 ): string => {
-  const baseClasses = "card bg-base-100";
+  const baseClasses = "card";
 
   switch (variant) {
     case "outlined":
-      return `${baseClasses} border border-base-300`;
+      return `${baseClasses} bg-base-100 border border-base-300`;
     case "filled":
-      return `${baseClasses} bg-base-200/50`;
+      return `${baseClasses} bg-base-200 border border-base-300 shadow-sm`;
     default:
-      return `${baseClasses} shadow-lg`;
+      return `${baseClasses} bg-base-100 shadow-lg`;
   }
 };
 

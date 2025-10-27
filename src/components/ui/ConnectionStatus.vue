@@ -39,7 +39,7 @@ const statusConfig = computed(() => {
       };
     default:
       return {
-        class: "bg-base-300/10 text-base-content/50",
+        class: "bg-base-200 text-base-content/70",
         dotClass: "bg-base-300",
         text: "Unknown",
         animate: false,

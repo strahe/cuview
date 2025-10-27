@@ -247,7 +247,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="bg-base-200/30 min-h-screen">
+  <div class="bg-base-200 min-h-screen">
     <!-- Loading State -->
     <div
       v-if="loading && !machineData"
@@ -427,7 +427,7 @@ const goBack = () => {
           <div
             class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
           >
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <CpuChipIcon class="text-primary h-6 w-6" />
@@ -448,7 +448,7 @@ const goBack = () => {
               </div>
             </div>
 
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <ServerIcon class="text-info h-6 w-6" />
@@ -469,7 +469,7 @@ const goBack = () => {
               </div>
             </div>
 
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <BoltIcon class="text-warning h-6 w-6" />
@@ -490,7 +490,7 @@ const goBack = () => {
               </div>
             </div>
 
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <CircleStackIcon class="text-secondary h-6 w-6" />
@@ -511,7 +511,7 @@ const goBack = () => {
               </div>
             </div>
 
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <ClockIcon class="text-success h-6 w-6" />
@@ -527,7 +527,7 @@ const goBack = () => {
               </div>
             </div>
 
-            <div class="card bg-base-200/50">
+            <div class="card bg-base-200 border-base-300 border shadow-sm">
               <div class="card-body p-4">
                 <div class="flex items-center gap-3">
                   <CheckCircleIcon class="text-accent h-6 w-6" />

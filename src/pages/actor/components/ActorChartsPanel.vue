@@ -356,7 +356,7 @@ watch(
       accent="info"
     >
       <div
-        class="border-base-300/70 bg-base-100/70 text-base-content/70 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-16 text-center"
+        class="border-base-300 bg-base-100 text-base-content/70 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-16 text-center"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

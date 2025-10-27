@@ -47,7 +47,7 @@ const setActiveTab = (tabId: string) => {
     <div class="mb-4">
       <!-- Elegant Tab Design -->
       <div
-        class="bg-base-200/60 inline-flex items-center space-x-0.5 rounded-xl p-0.5 shadow-inner"
+        class="bg-base-200 border-base-300 inline-flex items-center space-x-0.5 rounded-xl border p-0.5 shadow-inner"
       >
         <button
           v-for="tab in tabs"

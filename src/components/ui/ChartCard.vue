@@ -60,7 +60,7 @@ const bodyPadding = computed(() =>
 const skeletonStyle = computed(() => ({ height: `${props.skeletonHeight}px` }));
 
 const cardClasses =
-  "relative overflow-hidden border-base-300/60 bg-base-100/90 shadow-xl transition-all duration-200 supports-[backdrop-filter]:backdrop-blur-md";
+  "relative overflow-hidden border-base-300 bg-base-100 shadow-xl transition-all duration-200 supports-[backdrop-filter]:backdrop-blur-md";
 
 const useTooltipDescription = computed(
   () => props.description && props.descriptionVariant === "tooltip",
@@ -99,7 +99,7 @@ const useTooltipDescription = computed(
                   class="text-base-content/60 hover:text-base-content/80 size-4 cursor-help transition-colors"
                 />
                 <div
-                  class="bg-base-200/95 text-base-content pointer-events-none absolute top-full left-1/2 z-50 mt-2 w-64 -translate-x-1/2 rounded-lg px-3 py-2 text-xs leading-relaxed opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100"
+                  class="bg-base-200 text-base-content border-base-300 pointer-events-none absolute top-full left-1/2 z-50 mt-2 w-64 -translate-x-1/2 rounded-lg border px-3 py-2 text-xs leading-relaxed opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100"
                   role="tooltip"
                 >
                   {{ description }}
@@ -124,14 +124,14 @@ const useTooltipDescription = computed(
 
     <div :class="['relative', bodyPadding]">
       <div
-        class="pointer-events-none absolute inset-0 -z-10 opacity-90 transition-opacity"
+        class="pointer-events-none absolute inset-0 -z-10 opacity-60 transition-opacity"
         :style="surfaceOverlayStyle"
         aria-hidden="true"
       ></div>
 
       <div
         v-if="loading"
-        class="bg-base-200/60 border-base-300/50 h-full w-full animate-pulse rounded-2xl border"
+        class="bg-base-200 border-base-300 h-full w-full animate-pulse rounded-2xl border"
         :style="skeletonStyle"
       ></div>
 

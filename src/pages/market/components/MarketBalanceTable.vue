@@ -297,7 +297,7 @@ const columns = [
             "div",
             {
               class:
-                "bg-base-200/60 border-base-300/60 flex items-center gap-2 rounded-md border px-2 py-1",
+                "bg-base-200 border border-base-300 flex items-center gap-2 rounded-md px-2 py-1",
             },
             [
               h(
@@ -486,20 +486,20 @@ const getColumnAggregateInfo = (columnId: string) => {
     </TableControls>
 
     <div
-      class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
+      class="border-base-300 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
-      <table class="table w-full">
-        <thead class="bg-base-200/50 sticky top-0 z-10">
+      <table class="table-zebra table w-full">
+        <thead class="bg-base-200 sticky top-0 z-10">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
             :key="headerGroup.id"
-            class="border-base-300/50 border-b"
+            class="border-base-300 border-b"
           >
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              class="border-base-300/30 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              class="border-base-200 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
               :class="{
                 'cursor-pointer select-none': header.column.getCanSort(),
               }"
@@ -601,7 +601,7 @@ const getColumnAggregateInfo = (columnId: string) => {
                 v-for="cell in row.getVisibleCells()"
                 :key="cell.id"
                 :title="getCellTooltip(cell)"
-                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
                 @contextmenu="handleCellRightClick(cell, $event)"
               >
                 <FlexRender
@@ -647,7 +647,9 @@ const getColumnAggregateInfo = (columnId: string) => {
             </div>
             <h3 class="text-lg font-semibold">Transfer Successful</h3>
           </div>
-          <div class="bg-base-200/30 rounded-lg p-4 text-left">
+          <div
+            class="bg-base-200 border-base-300 rounded-lg border p-4 text-left"
+          >
             <div class="text-base-content/70 text-xs font-medium uppercase">
               Transfer Summary
             </div>
@@ -672,7 +674,9 @@ const getColumnAggregateInfo = (columnId: string) => {
             >
               Transaction Message
             </div>
-            <div class="bg-base-200/50 flex items-center gap-2 rounded p-3">
+            <div
+              class="bg-base-200 border-base-300 flex items-center gap-2 rounded border p-3"
+            >
               <div class="flex-1 font-mono text-xs break-all">
                 {{ messageCid }}
               </div>

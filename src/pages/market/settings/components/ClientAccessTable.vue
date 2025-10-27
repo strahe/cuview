@@ -403,20 +403,20 @@ const getColumnAggregateInfo = (columnId: string) => {
     </TableControls>
 
     <div
-      class="border-base-300/30 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
+      class="border-base-300 bg-base-100 overflow-x-auto rounded-lg border shadow-md"
     >
-      <table class="table w-full">
-        <thead class="bg-base-200/50 sticky top-0 z-10">
+      <table class="table-zebra table w-full">
+        <thead class="bg-base-200 sticky top-0 z-10">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
             :key="headerGroup.id"
-            class="border-base-300/50 border-b"
+            class="border-base-300 border-b"
           >
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              class="border-base-300/30 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
+              class="border-base-200 text-base-content border-r bg-transparent px-3 py-3 font-medium last:border-r-0"
               :class="{
                 'cursor-pointer select-none': header.column.getCanSort(),
               }"
@@ -521,7 +521,7 @@ const getColumnAggregateInfo = (columnId: string) => {
                 v-for="cell in row.getVisibleCells()"
                 :key="cell.id"
                 :title="getCellTooltip(cell)"
-                class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
                 @contextmenu="handleCellRightClick(cell, $event)"
               >
                 <FlexRender
@@ -568,7 +568,7 @@ const getColumnAggregateInfo = (columnId: string) => {
             </div>
             <h3 class="text-lg font-semibold">Client Access Rule Added</h3>
           </div>
-          <div class="bg-base-200/30 rounded-lg p-4">
+          <div class="bg-base-200 border-base-300 rounded-lg border p-4">
             <div class="mb-2 text-center">
               <div class="font-mono text-lg font-bold">
                 {{ lastAddedEntry.wallet }}
@@ -717,7 +717,9 @@ const getColumnAggregateInfo = (columnId: string) => {
       <p class="text-base-content/70 text-sm">
         Are you sure you want to remove the access rule for client:
       </p>
-      <div class="bg-base-200/50 mt-2 rounded p-3 font-mono text-sm break-all">
+      <div
+        class="bg-base-200 border-base-300 mt-2 rounded border p-3 font-mono text-sm break-all"
+      >
         {{ selectedEntry?.wallet }}
       </div>
       <p class="text-base-content/70 mt-3 text-sm">

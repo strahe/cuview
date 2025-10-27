@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
         class="grid items-start gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]"
       >
         <section
-          class="bg-base-100 border-base-300/60 rounded-2xl border p-6 shadow-xl lg:p-8"
+          class="bg-base-100 border-base-300 rounded-2xl border p-6 shadow-xl lg:p-8"
         >
           <header
             class="flex flex-col gap-6 text-center lg:flex-row lg:items-center lg:gap-8 lg:text-left"
@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
             class="mt-8 space-y-6"
             @submit.prevent="endpointForm.handleSubmit"
           >
-            <div class="border-base-300/50 border-b pb-4">
+            <div class="border-base-300 border-b pb-4">
               <h2 class="mb-2 text-xl font-semibold">API Configuration</h2>
               <p class="text-base-content/70 text-sm">
                 Enter your Curio WebSocket API endpoint below
@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
 
         <aside class="space-y-6">
           <div
-            class="bg-base-100 border-base-300/60 rounded-2xl border p-6 shadow-lg"
+            class="bg-base-100 border-base-300 rounded-2xl border p-6 shadow-lg"
           >
             <h3 class="mb-3 flex items-center gap-2 font-semibold">
               <div
@@ -202,13 +202,13 @@ onBeforeUnmount(() => {
               Endpoint Examples
             </h3>
             <div class="space-y-3">
-              <div class="bg-base-200 rounded-lg p-3">
+              <div class="bg-base-200 border-base-300 rounded-lg border p-3">
                 <code class="font-mono text-sm">/api/webrpc/v0</code>
                 <p class="text-base-content/60 mt-1 text-xs">
                   Relative path (same origin)
                 </p>
               </div>
-              <div class="bg-base-200 rounded-lg p-3">
+              <div class="bg-base-200 border-base-300 rounded-lg border p-3">
                 <code class="font-mono text-sm"
                   >ws://localhost:4701/api/webrpc/v0</code
                 >
@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
                   WebSocket URL (recommended)
                 </p>
               </div>
-              <div class="bg-base-200 rounded-lg p-3">
+              <div class="bg-base-200 border-base-300 rounded-lg border p-3">
                 <code class="font-mono text-sm"
                   >http://localhost:4701/api/webrpc/v0</code
                 >

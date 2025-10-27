@@ -101,7 +101,7 @@ const handleSettings = () => {
       :style="{ marginLeft: mainContentMargin }"
     >
       <div
-        class="bg-base-100/90 border-base-300/50 sticky top-0 z-20 border-b backdrop-blur-md"
+        class="bg-base-100 border-base-300 sticky top-0 z-20 border-b shadow-sm backdrop-blur-md"
       >
         <div class="flex items-center justify-between px-6 py-3">
           <div class="flex items-center gap-3">
@@ -132,7 +132,7 @@ const handleSettings = () => {
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search tasks, machines, sectors..."
-                class="input input-sm bg-base-200/50 border-base-300/50 focus:bg-base-200 focus:border-primary/50 w-full pr-4 pl-9 transition-all"
+                class="input input-sm bg-base-200 border-base-300 focus:bg-base-200 focus:border-primary w-full pr-4 pl-9 transition-all"
                 @focus="searchFocused = true"
                 @blur="searchFocused = false"
                 @keyup.enter="handleSearch(searchQuery)"

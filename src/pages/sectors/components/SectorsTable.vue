@@ -662,20 +662,20 @@ const clearAllFilters = () => {
       </template>
     </TableControls>
 
-    <div class="border-base-300/30 bg-base-100 rounded-lg border shadow-md">
+    <div class="border-base-300 bg-base-100 rounded-lg border shadow-md">
       <div ref="scrollContainer" class="max-h-[65vh] overflow-y-auto">
-        <table class="table-pin-rows table w-full">
-          <thead class="bg-base-200/50 sticky top-0 z-10">
+        <table class="table-pin-rows table-zebra table w-full">
+          <thead class="bg-base-200 sticky top-0 z-10">
             <tr
               v-for="headerGroup in table.getHeaderGroups()"
               :key="headerGroup.id"
-              class="border-base-300/40 border-b"
+              class="border-base-300 border-b"
             >
               <th
                 v-for="header in headerGroup.headers"
                 :key="header.id"
                 :colspan="header.colSpan"
-                class="border-base-300/40 bg-transparent px-3 py-3 text-left text-sm font-semibold"
+                class="border-base-200 bg-transparent px-3 py-3 text-left text-sm font-semibold"
                 :class="{
                   'cursor-pointer select-none': header.column.getCanSort(),
                 }"
@@ -779,7 +779,7 @@ const clearAllFilters = () => {
                   getTableRowClasses(true),
                   'bg-base-100',
                   selectedKeys.has(getRowKey(row.original))
-                    ? 'bg-primary/5'
+                    ? 'selected-row [&>td]:bg-primary/5'
                     : '',
                 ]"
                 :style="{ height: `${virtualItem.size}px` }"
@@ -788,7 +788,7 @@ const clearAllFilters = () => {
                   v-for="cell in row.getVisibleCells()"
                   :key="cell.id"
                   :title="handlers.getCellTooltip(cell)"
-                  class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+                  class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
                 >
                   <FlexRender
                     :render="cell.column.columnDef.cell"

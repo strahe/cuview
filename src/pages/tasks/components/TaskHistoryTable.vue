@@ -182,7 +182,7 @@ const handleScroll = (event: Event) => {
     <!-- Error/Loading/Empty States -->
     <template v-if="error">
       <div
-        class="border-base-300/30 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
+        class="border-base-300 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
       >
         <div class="py-12 text-center">
           <div
@@ -214,7 +214,7 @@ const handleScroll = (event: Event) => {
     </template>
     <template v-else-if="loading && !tableHasData">
       <div
-        class="border-base-300/30 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
+        class="border-base-300 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
       >
         <div class="text-base-content/60 py-12 text-center">
           <div class="loading loading-spinner loading-lg mx-auto mb-4"></div>
@@ -224,7 +224,7 @@ const handleScroll = (event: Event) => {
     </template>
     <template v-else-if="!tableHasData">
       <div
-        class="border-base-300/30 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
+        class="border-base-300 bg-base-100 flex h-96 items-center justify-center rounded-lg border shadow-md"
       >
         <div class="text-base-content/60 py-8 text-center">
           <ChartBarIcon class="text-base-content/40 mx-auto mb-2 h-12 w-12" />
@@ -237,24 +237,24 @@ const handleScroll = (event: Event) => {
     <div
       v-else
       ref="tableContainer"
-      class="border-base-300/30 bg-base-100 overflow-auto rounded-lg border shadow-md"
+      class="border-base-300 bg-base-100 overflow-auto rounded-lg border shadow-md"
       :style="{ height: tableHeight }"
       @scroll="handleScroll"
     >
       <!-- Single unified table for proper column alignment -->
-      <table class="table w-full">
+      <table class="table-zebra table w-full">
         <!-- Fixed header -->
         <thead class="bg-base-200 sticky top-0 z-20">
           <tr
             v-for="headerGroup in table.getHeaderGroups()"
             :key="headerGroup.id"
-            class="border-base-300/50 border-b"
+            class="border-base-300 border-b"
           >
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              class="text-base-content border-base-300/30 bg-base-200 border-r px-3 py-3 font-medium last:border-r-0"
+              class="text-base-content border-base-200 bg-base-200 border-r px-3 py-3 font-medium last:border-r-0"
             >
               <FlexRender
                 v-if="!header.isPlaceholder"
@@ -281,7 +281,7 @@ const handleScroll = (event: Event) => {
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               :title="getCellTooltip(cell)"
-              class="border-base-300/30 border-r px-3 py-3 text-sm last:border-r-0"
+              class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
               @contextmenu="handleCellRightClick(cell, $event)"
             >
               <FlexRender
@@ -296,7 +296,7 @@ const handleScroll = (event: Event) => {
       <!-- Load more indicator at the bottom -->
       <div
         v-if="hasMore || loadingMore || paginationError"
-        class="border-base-300/30 flex items-center justify-center border-t py-4"
+        class="border-base-300 flex items-center justify-center border-t py-4"
       >
         <div v-if="paginationError" class="space-y-2 text-center">
           <div class="text-error text-sm">

@@ -76,7 +76,7 @@ const setNetworkMode = (mode: "normal" | "offline" | "slow" | "timeout") => {
     </div>
     <ul
       tabindex="0"
-      class="dropdown-content menu bg-base-100 rounded-box border-base-300/50 z-[1] w-56 border p-2 shadow-lg"
+      class="dropdown-content menu bg-base-100 rounded-box border-base-300 z-[1] w-56 border p-2 shadow-lg"
     >
       <li class="menu-title">
         <span class="text-base-content/70 text-xs font-semibold"

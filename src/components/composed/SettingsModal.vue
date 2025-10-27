@@ -223,7 +223,10 @@ const handleClickOutside = () => {
           />
         </div>
 
-        <div v-if="debugStore.isDebugMode" class="bg-base-200 mt-3 rounded p-2">
+        <div
+          v-if="debugStore.isDebugMode"
+          class="bg-base-200 border-base-300 mt-3 rounded border p-2"
+        >
           <div class="text-base-content/70 text-xs">
             Network simulation controls available in status bar
           </div>
@@ -272,14 +275,14 @@ const handleClickOutside = () => {
         </div>
 
         <div class="space-y-2 text-xs">
-          <div class="bg-base-200/50 rounded p-2">
+          <div class="bg-base-200 border-base-300 rounded border p-2">
             <code class="text-primary font-mono">/api/webrpc/v0</code>
             <div class="text-base-content/60 mt-1">
               <strong>Relative path</strong> - Recommended for local development
             </div>
           </div>
 
-          <div class="bg-base-200/50 rounded p-2">
+          <div class="bg-base-200 border-base-300 rounded border p-2">
             <code class="text-primary font-mono break-all"
               >ws://host:4701/api/webrpc/v0</code
             >
@@ -288,7 +291,7 @@ const handleClickOutside = () => {
             </div>
           </div>
 
-          <div class="bg-base-200/50 rounded p-2">
+          <div class="bg-base-200 border-base-300 rounded border p-2">
             <code class="text-primary font-mono break-all"
               >http://host:4701/api/webrpc/v0</code
             >
@@ -298,10 +301,13 @@ const handleClickOutside = () => {
           </div>
         </div>
 
-        <div class="border-base-300/50 mt-3 border-t pt-2">
+        <div class="border-base-300 mt-3 border-t pt-2">
           <div class="text-base-content/70 text-xs">
             Replace
-            <code class="text-primary bg-base-200 rounded px-1">host:4701</code>
+            <code
+              class="text-primary bg-base-200 border-base-300 rounded border px-1"
+              >host:4701</code
+            >
             with your server address
           </div>
         </div>
