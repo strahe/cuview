@@ -578,6 +578,7 @@ const clearAllFilters = () => {
 <template>
   <div class="space-y-4">
     <TableControls
+      :show-refresh="false"
       :search-input="searchValue"
       :loading="loading"
       search-placeholder="Search miners, sectors, or deals..."

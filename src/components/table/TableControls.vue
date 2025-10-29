@@ -23,7 +23,7 @@
       <slot />
 
       <!-- Refresh button -->
-      <div class="border-base-300 border-l pl-3">
+      <div v-if="showRefresh" class="border-base-300 border-l pl-3">
         <button
           class="btn btn-outline btn-sm"
           :disabled="loading"
@@ -50,11 +50,19 @@
 <script setup lang="ts">
 import { ArrowPathIcon } from "@heroicons/vue/24/outline";
 
-defineProps<{
-  searchInput: string;
-  searchPlaceholder?: string;
-  loading?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    searchInput: string;
+    searchPlaceholder?: string;
+    loading?: boolean;
+    showRefresh?: boolean;
+  }>(),
+  {
+    searchPlaceholder: "",
+    loading: false,
+    showRefresh: true,
+  },
+);
 
 defineEmits<{
   "update:searchInput": [value: string];
