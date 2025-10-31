@@ -13,6 +13,7 @@ import {
   CogIcon,
   ServerStackIcon,
   ArrowsRightLeftIcon,
+  KeyIcon,
 } from "@heroicons/vue/24/outline";
 
 interface NavItem {
@@ -82,6 +83,11 @@ const navItems: NavItem[] = [
     label: "Config",
     icon: CogIcon,
     to: "/config",
+  },
+  {
+    label: "PDP",
+    icon: KeyIcon,
+    to: "/pdp",
   },
 ];
 

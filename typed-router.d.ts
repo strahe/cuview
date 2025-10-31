@@ -114,6 +114,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/pdp/': RouteRecordInfo<
+      '/pdp/',
+      '/pdp',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/pipeline/': RouteRecordInfo<
       '/pipeline/',
       '/pipeline',
@@ -279,6 +286,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/overview/index.vue': {
       routes:
         | '/overview/'
+      views:
+        | never
+    }
+    'src/pages/pdp/index.vue': {
+      routes:
+        | '/pdp/'
       views:
         | never
     }

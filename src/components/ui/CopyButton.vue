@@ -68,7 +68,7 @@ const handleCopy = async () => {
     :disabled="disabled || !value"
     :class="[
       'btn flex items-center no-underline',
-      iconOnly ? 'px-1' : 'gap-1',
+      props.iconOnly ? 'px-1' : 'gap-1',
       variantClass,
       sizeClass,
       props.extraClass,
@@ -79,7 +79,7 @@ const handleCopy = async () => {
       :is="copied ? CheckIcon : ClipboardDocumentIcon"
       :class="size === 'md' ? 'size-5' : 'size-4'"
     />
-    <span v-if="!iconOnly" class="text-xs font-semibold">
+    <span v-if="!props.iconOnly" class="text-xs font-semibold">
       {{ copied ? "Copied" : label }}
     </span>
   </button>
