@@ -142,19 +142,6 @@
 
       <!-- Active Upgrades Table -->
       <SectionCard title="Active Upgrades" :icon="ArrowUpIcon">
-        <template #actions>
-          <button
-            :disabled="upgradeSectors.loading.value"
-            class="btn btn-outline btn-sm"
-            @click="upgradeSectors.refresh"
-          >
-            <ArrowPathIcon
-              class="h-4 w-4"
-              :class="{ 'animate-spin': upgradeSectors.loading.value }"
-            />
-            Refresh
-          </button>
-        </template>
         <SnapUpgradesTable
           :sectors="upgradeSectors.data.value || []"
           :loading="upgradeSectors.loading.value"

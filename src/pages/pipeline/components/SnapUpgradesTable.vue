@@ -596,10 +596,8 @@ const getProgressSteps = (sector: SnapSectorEntry | null) => {
                 <ArrowUpIcon
                   class="text-base-content/40 mx-auto mb-2 h-12 w-12"
                 />
-                <div class="font-medium">No upgrades available</div>
-                <div class="text-sm">
-                  No sectors are currently being upgraded
-                </div>
+                <div class="font-medium">No active upgrades</div>
+                <div class="text-sm">Waiting for new tasks</div>
               </td>
             </tr>
           </template>

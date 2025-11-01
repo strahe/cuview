@@ -185,19 +185,6 @@
 
       <!-- Sectors Table -->
       <SectionCard title="Active Sectors" :icon="CogIcon">
-        <template #actions>
-          <button
-            :disabled="porepSectors.loading.value"
-            class="btn btn-outline btn-sm"
-            @click="porepSectors.refresh"
-          >
-            <ArrowPathIcon
-              class="h-4 w-4"
-              :class="{ 'animate-spin': porepSectors.loading.value }"
-            />
-            Refresh
-          </button>
-        </template>
         <PoRepSectorsTable
           :sectors="porepSectors.data.value || []"
           :loading="porepSectors.loading.value"
