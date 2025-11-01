@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import CollapsibleSidebar from "./CollapsibleSidebar.vue";
 import SettingsModal from "@/components/composed/SettingsModal.vue";
+import AppQuickSearch from "@/components/composed/AppQuickSearch.vue";
 import ConnectionStatus from "@/components/ui/ConnectionStatus.vue";
 import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import NetworkSimulationToggle from "@/components/ui/NetworkSimulationToggle.vue";
@@ -18,17 +19,12 @@ import { useLayoutStore } from "@/stores/layout";
 
 const mobileMenuOpen = ref(false);
 const layoutStore = useLayoutStore();
-const searchQuery = ref("");
-const searchFocused = ref(false);
 const settingsModalOpen = ref(false);
+const quickSearchOpen = ref(false);
 
 const mainContentMargin = computed(() =>
   layoutStore.sidebarCollapsed ? "4rem" : "16rem",
 );
-
-const handleSearch = (query: string) => {
-  console.log("Search query:", query);
-};
 
 const handleNotifications = () => {
   console.log("Open notifications");
@@ -37,6 +33,26 @@ const handleNotifications = () => {
 const handleSettings = () => {
   settingsModalOpen.value = true;
 };
+
+const openQuickSearch = () => {
+  quickSearchOpen.value = true;
+};
+
+const handleShortcut = (event: KeyboardEvent) => {
+  const key = event.key.toLowerCase();
+  if ((event.metaKey || event.ctrlKey) && key === "k") {
+    event.preventDefault();
+    quickSearchOpen.value = true;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("keydown", handleShortcut);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleShortcut);
+});
 </script>
 
 <template>
@@ -121,25 +137,19 @@ const handleSettings = () => {
           </div>
 
           <div class="mx-8 max-w-md flex-1">
-            <div class="relative">
-              <div
-                class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
-              >
+            <button
+              type="button"
+              class="bg-base-200 border-base-300 hover:border-primary focus-visible:ring-primary/40 focus-visible:ring-offset-base-100 text-base-content/70 flex h-9 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              @click="openQuickSearch"
+            >
+              <span class="flex items-center gap-2">
                 <MagnifyingGlassIcon class="text-base-content/50 size-4" />
-              </div>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search tasks, machines, sectors..."
-                class="input input-sm bg-base-200 border-base-300 focus:bg-base-200 focus:border-primary w-full pr-4 pl-9 transition-all"
-                @focus="searchFocused = true"
-                @blur="searchFocused = false"
-                @keyup.enter="handleSearch(searchQuery)"
-              />
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                <kbd class="kbd kbd-xs">⌘K</kbd>
-              </div>
-            </div>
+                <span class="truncate"
+                  >Search pages, actors, or task types</span
+                >
+              </span>
+              <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
+            </button>
           </div>
 
           <div class="flex items-center gap-1">
@@ -179,5 +189,6 @@ const handleSettings = () => {
     </main>
 
     <SettingsModal v-model:open="settingsModalOpen" />
+    <AppQuickSearch v-model:open="quickSearchOpen" />
   </div>
 </template>

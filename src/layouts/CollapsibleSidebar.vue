@@ -1,89 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import {
-  HomeIcon,
-  CpuChipIcon,
-  CircleStackIcon,
-  BuildingStorefrontIcon,
-  UserIcon,
-  WrenchScrewdriverIcon,
-  WalletIcon,
-  GlobeAltIcon,
-  CogIcon,
-  ArrowsRightLeftIcon,
-  KeyIcon,
-} from "@heroicons/vue/24/outline";
+import { navigationEntries, type NavigationEntry } from "./navigation";
 
-interface NavItem {
-  label: string;
-  icon: unknown;
-  active?: boolean;
-  to: string;
-  activePattern?: string; // Optional pattern for active state matching
-}
-
-const navItems: NavItem[] = [
-  {
-    label: "Overview",
-    icon: HomeIcon,
-    to: "/overview",
-  },
-  {
-    label: "Tasks",
-    icon: WrenchScrewdriverIcon,
-    to: "/tasks/active",
-    activePattern: "^/tasks/.*", // Match all /tasks/* routes
-  },
-  {
-    label: "Machines",
-    icon: CpuChipIcon,
-    to: "/machines",
-  },
-  {
-    label: "Sectors",
-    icon: CircleStackIcon,
-    to: "/sectors",
-  },
-  {
-    label: "Pipeline",
-    icon: ArrowsRightLeftIcon,
-    to: "/pipeline",
-    activePattern: "^/pipeline.*", // Match all /pipeline/* routes
-  },
-  {
-    label: "Market",
-    icon: BuildingStorefrontIcon,
-    to: "/market",
-    activePattern: "^/market.*", // Match all /market/* routes
-  },
-  {
-    label: "Actor",
-    icon: UserIcon,
-    to: "/actor",
-    activePattern: "^/actor.*", // Match all /actor/* routes
-  },
-  {
-    label: "Wallets",
-    icon: WalletIcon,
-    to: "/wallets",
-  },
-  {
-    label: "IPNI",
-    icon: GlobeAltIcon,
-    to: "/ipni",
-  },
-  {
-    label: "PDP",
-    icon: KeyIcon,
-    to: "/pdp",
-  },
-  {
-    label: "Configurations",
-    icon: CogIcon,
-    to: "/config",
-  },
-];
+const navItems = navigationEntries;
 
 const { isCollapsed = false } = defineProps<{
   isCollapsed?: boolean;
@@ -92,7 +12,7 @@ const { isCollapsed = false } = defineProps<{
 const route = useRoute();
 
 // Check if navigation item should be active
-const isNavItemActive = (item: NavItem): boolean => {
+const isNavItemActive = (item: NavigationEntry): boolean => {
   if (item.activePattern) {
     // If has custom active pattern, use regex matching
     const pattern = new RegExp(item.activePattern);
