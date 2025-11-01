@@ -163,9 +163,9 @@ const handleOverrideToggle = (payload: {
     </div>
 
     <div
-      class="grid min-h-0 flex-1 items-stretch gap-6 lg:grid-cols-[minmax(240px,0.85fr)_minmax(640px,1.9fr)_minmax(300px,1.05fr)] xl:grid-cols-[minmax(260px,0.9fr)_minmax(760px,1.95fr)_minmax(320px,1.1fr)] 2xl:grid-cols-[minmax(280px,0.95fr)_minmax(880px,2fr)_minmax(340px,1.1fr)]"
+      class="grid min-h-0 flex-1 items-stretch gap-6 lg:grid-cols-[minmax(220px,0.85fr)_minmax(0,1.9fr)_minmax(260px,1.1fr)] xl:grid-cols-[minmax(240px,0.9fr)_minmax(0,2fr)_minmax(280px,1.15fr)] 2xl:grid-cols-[minmax(260px,0.95fr)_minmax(0,2.15fr)_minmax(300px,1.2fr)]"
     >
-      <div class="min-h-0">
+      <div class="min-h-0 min-w-0">
         <ConfigLayerList
           class="h-full"
           :layers="layers.layers.value"
@@ -179,7 +179,7 @@ const handleOverrideToggle = (payload: {
         />
       </div>
 
-      <div class="min-h-0">
+      <div class="min-h-0 min-w-0">
         <ConfigLayerEditor
           class="h-full"
           :sections="sections"
@@ -197,7 +197,7 @@ const handleOverrideToggle = (payload: {
         />
       </div>
 
-      <div class="min-h-0">
+      <div class="min-h-0 min-w-0">
         <ConfigTomlPreview
           class="h-full"
           :toml="editor.tomlPreview.value"
