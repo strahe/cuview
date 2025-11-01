@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: "",
   size: "md",
   showCloseButton: true,
-  modal: false,
+  modal: true,
 });
 
 const emit = defineEmits<Emits>();
@@ -64,11 +64,7 @@ const handleClose = () => {
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <DialogOverlay
-          v-if="open"
-          force-mount
-          class="bg-base-300 bg-opacity-60 fixed inset-0 z-50 backdrop-blur-sm"
-        />
+        <DialogOverlay v-if="open" force-mount class="app-modal-overlay z-50" />
       </Transition>
 
       <div

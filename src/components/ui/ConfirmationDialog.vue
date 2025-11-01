@@ -88,7 +88,7 @@ const getButtonClass = computed(() => {
         <AlertDialogOverlay
           v-if="show"
           force-mount
-          class="bg-base-300 bg-opacity-60 fixed inset-0 z-50 backdrop-blur-sm"
+          class="app-modal-overlay z-50"
         />
       </Transition>
 

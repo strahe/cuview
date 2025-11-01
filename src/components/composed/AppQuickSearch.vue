@@ -293,11 +293,7 @@ const highlightedId = computed(() => {
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <DialogOverlay
-          v-if="open"
-          force-mount
-          class="bg-base-300/60 fixed inset-0 z-40 backdrop-blur-sm"
-        />
+        <DialogOverlay v-if="open" force-mount class="app-modal-overlay z-40" />
       </Transition>
 
       <div

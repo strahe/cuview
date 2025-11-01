@@ -173,7 +173,7 @@ const handleFocusOut = (event: FocusEvent) => {
     >
       <div
         v-if="isDropdownOpen"
-        class="bg-base-300 bg-opacity-80 fixed inset-0 z-[15] backdrop-blur-sm transition-all"
+        class="app-modal-overlay z-[15]"
         @click="closeDropdown"
       ></div>
     </Transition>
@@ -266,7 +266,7 @@ const handleFocusOut = (event: FocusEvent) => {
 
         <template v-else>
           <div class="bg-base-100 flex h-full flex-col">
-            <div class="bg-base-100 flex-1 overflow-x-auto">
+            <div class="flex-1 overflow-x-auto">
               <table class="table-sm table-zebra bg-base-100 table w-full">
                 <thead class="bg-base-100 sticky top-0 z-10">
                   <tr class="border-base-300 bg-base-100 border-b">
@@ -280,29 +280,29 @@ const handleFocusOut = (event: FocusEvent) => {
                   </tr>
                 </thead>
 
-                <tbody class="bg-base-100">
+                <tbody>
                   <tr
                     v-for="group in taskGroups"
                     :key="group.name"
                     :class="[
                       getTableRowClasses(true),
-                      'bg-base-100 border-base-300 hover:[&>td]:bg-base-200 border-b',
+                      'border-base-300 hover:[&>td]:bg-base-200 border-b',
                     ]"
                     @click="handleTaskGroupClick(group.name)"
                   >
-                    <td class="bg-base-100 py-3">
+                    <td class="py-3">
                       <span class="text-base-content font-medium">
                         {{ group.name }}
                       </span>
                     </td>
 
-                    <td class="bg-base-100 py-3 text-center">
+                    <td class="py-3 text-center">
                       <span class="text-base-content font-semibold">
                         {{ group.count }}
                       </span>
                     </td>
 
-                    <td class="bg-base-100 py-3">
+                    <td class="py-3">
                       <span class="text-base-content/70 text-sm">
                         <template
                           v-if="
@@ -322,7 +322,7 @@ const handleFocusOut = (event: FocusEvent) => {
                       </span>
                     </td>
 
-                    <td class="bg-base-100 py-3">
+                    <td class="py-3">
                       <span class="text-base-content/60 text-sm">
                         {{
                           formatTimeRange(group.oldestTask, group.newestTask)
@@ -330,7 +330,7 @@ const handleFocusOut = (event: FocusEvent) => {
                       </span>
                     </td>
 
-                    <td class="bg-base-100 py-3">
+                    <td class="py-3">
                       <ChevronRightIcon class="text-base-content/40 size-4" />
                     </td>
                   </tr>

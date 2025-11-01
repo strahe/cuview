@@ -6,3 +6,13 @@
   styled: true;
   utils: true;
 }
+
+@layer components {
+  .app-modal-overlay {
+    @apply bg-base-300/40 fixed inset-0 backdrop-blur-sm;
+  }
+
+  .modal-backdrop {
+    @apply bg-base-300/40 fixed inset-0 backdrop-blur-sm;
+  }
+}
