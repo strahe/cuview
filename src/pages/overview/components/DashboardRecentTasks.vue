@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ExclamationTriangleIcon, UserIcon } from "@heroicons/vue/24/outline";
+import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import { getTableRowClasses } from "@/utils/ui";
@@ -34,12 +34,12 @@ const getItemKey = (item: TaskHistorySummary, index: number) =>
     <DataTable v-if="hasItems" :compact="true" :zebra="true">
       <thead>
         <tr>
-          <th class="w-1/4">Task</th>
-          <th class="w-1/4">Worker</th>
-          <th class="w-[18%]">Started</th>
+          <th class="w-[18%]">Task</th>
+          <th class="w-[18%]">Worker</th>
+          <th class="w-[17%]">Started</th>
           <th class="w-[12%]">Duration</th>
           <th class="w-[10%]">Queue</th>
-          <th class="w-[22%]">Notes</th>
+          <th class="w-[25%]">Notes</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,6 @@ const getItemKey = (item: TaskHistorySummary, index: number) =>
           v-for="(item, index) in limitedItems"
           :key="getItemKey(item, index)"
           :class="getTableRowClasses()"
-          class="task-row"
         >
           <td class="font-medium">
             <div class="flex items-center gap-2">
@@ -59,14 +58,11 @@ const getItemKey = (item: TaskHistorySummary, index: number) =>
             </div>
           </td>
           <td class="text-sm">
-            <div class="flex items-center gap-1">
-              <UserIcon class="size-3" />
-              <span class="truncate">{{
-                item.CompletedBy || "Unknown node"
-              }}</span>
-            </div>
+            <span class="block truncate">{{
+              item.CompletedBy || "Unknown node"
+            }}</span>
           </td>
-          <td class="text-sm">{{ item.Start }}</td>
+          <td class="text-sm whitespace-nowrap">{{ item.Start }}</td>
           <td class="font-mono text-xs">{{ item.Took }}</td>
           <td class="font-mono text-xs">{{ item.Queued }}</td>
           <td class="text-xs">
@@ -85,14 +81,3 @@ const getItemKey = (item: TaskHistorySummary, index: number) =>
     </DataTable>
   </DataSection>
 </template>
-
-<style scoped>
-.task-row {
-  height: 3.5rem;
-}
-
-.task-row td {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
-</style>
