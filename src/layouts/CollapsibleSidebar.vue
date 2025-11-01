@@ -11,7 +11,6 @@ import {
   WalletIcon,
   GlobeAltIcon,
   CogIcon,
-  ServerStackIcon,
   ArrowsRightLeftIcon,
   KeyIcon,
 } from "@heroicons/vue/24/outline";
@@ -47,11 +46,6 @@ const navItems: NavItem[] = [
     to: "/sectors",
   },
   {
-    label: "Storage",
-    icon: ServerStackIcon,
-    to: "/storage",
-  },
-  {
     label: "Pipeline",
     icon: ArrowsRightLeftIcon,
     to: "/pipeline",
@@ -80,14 +74,14 @@ const navItems: NavItem[] = [
     to: "/ipni",
   },
   {
-    label: "Config",
-    icon: CogIcon,
-    to: "/config",
-  },
-  {
     label: "PDP",
     icon: KeyIcon,
     to: "/pdp",
+  },
+  {
+    label: "Configurations",
+    icon: CogIcon,
+    to: "/config",
   },
 ];
 
@@ -125,7 +119,6 @@ const sidebarClasses = computed(() => [
         </div>
         <div>
           <h1 class="text-lg font-bold">Cuview</h1>
-          <p class="text-base-content/60 text-xs">Control Panel</p>
         </div>
       </div>
 
