@@ -12,7 +12,6 @@ import {
   MagnifyingGlassIcon,
   BellIcon,
   Cog6ToothIcon,
-  SignalIcon,
 } from "@heroicons/vue/24/outline";
 
 import { useLayoutStore } from "@/stores/layout";
@@ -144,7 +143,7 @@ const handleSettings = () => {
           </div>
 
           <div class="flex items-center gap-1">
-            <div class="mr-2 flex items-center gap-1">
+            <div class="flex items-center gap-1">
               <button
                 class="btn btn-ghost btn-sm relative size-9 p-0"
                 title="Notifications"
@@ -169,52 +168,6 @@ const handleSettings = () => {
               >
                 <Cog6ToothIcon class="size-5" />
               </button>
-            </div>
-
-            <div class="dropdown dropdown-end">
-              <div
-                tabindex="0"
-                role="button"
-                class="btn btn-ghost btn-sm gap-2 px-2"
-              >
-                <div class="avatar">
-                  <div
-                    class="from-accent to-secondary size-6 rounded-full bg-gradient-to-br"
-                  >
-                    <div
-                      class="grid size-full place-items-center text-xs font-semibold text-white"
-                    >
-                      A
-                    </div>
-                  </div>
-                </div>
-                <span class="hidden text-sm font-medium sm:block">Admin</span>
-              </div>
-              <ul
-                tabindex="0"
-                class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow-lg"
-              >
-                <li>
-                  <a
-                    ><div class="flex items-center gap-2">
-                      <SignalIcon class="size-4" />System Status
-                    </div></a
-                  >
-                </li>
-                <li>
-                  <a @click="handleSettings"
-                    ><div class="flex items-center gap-2">
-                      <Cog6ToothIcon class="size-4" />Endpoint Settings
-                    </div></a
-                  >
-                </li>
-                <div class="divider my-1"></div>
-                <li>
-                  <a class="text-error"
-                    ><div class="flex items-center gap-2">Sign Out</div></a
-                  >
-                </li>
-              </ul>
             </div>
           </div>
         </div>
