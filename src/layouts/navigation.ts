@@ -46,6 +46,7 @@ export const navigationEntries: NavigationEntry[] = [
     label: "Machines",
     icon: CpuChipIcon,
     to: "/machines",
+    activePattern: "^/machines.*",
     keywords: ["worker", "machine", "node"],
   },
   {
