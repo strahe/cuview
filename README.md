@@ -1,46 +1,31 @@
 # Cuview
 
 [![CI](https://github.com/strahe/cuview/actions/workflows/ci.yml/badge.svg)](https://github.com/strahe/cuview/actions/workflows/ci.yml)
+[![CodeFactor](https://www.codefactor.io/repository/github/strahe/cuview/badge/main)](https://www.codefactor.io/repository/github/strahe/cuview/overview/main)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/strahe/cuview)](https://github.com/strahe/cuview/releases)
 
-A modern, responsive UI theme for [Curio](https://github.com/filecoin-project/curio).
+A modern, responsive UI theme for Curio.
 
-Unlike the original [Curio Dashboard](https://github.com/web3tea/curio-dashboard) with its GraphQL backend, Cuview is a streamlined frontend-only solution that communicates directly with Curio via RPC, delivering a faster and more focused user experience.
+## Overview
+Cuview provides a modern, lightweight alternative to the built-in Curio UI, giving a concise view of cluster health, machine availability, sealing throughput, storage allocation, and market signals.
+It’s a static frontend that connects directly to Curio RPC, so you can host it anywhere—such as GitHub Pages, S3, or any static host with RPC access.
 
-## 🚧 Development Status
+## Usage
+- Visit [cuview.strahe.com](http://cuview.strahe.com) for the latest build.
+- Make sure protocols match: use `http://` with an `http://` Curio RPC endpoint, and `https://` with `https://` to avoid mixed-content warnings.
+- To self-host, deploy the static bundle to any host that can reach your Curio RPC.
 
-**This project is currently under active development and not yet ready for production use.**
-
-## Tech Stack
-
-- **Frontend**: Vue 3 + TypeScript + Vite
-- **UI**: Tailwind CSS + daisyUI + reka-ui
-- **State Management**: Pinia
-
-## Development
-
-### Quick Start
+## Local Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Set environment variable (optional)
-export VITE_CURIO_ENDPOINT="ws://localhost:4701/api/webrpc/v0"
-
-# Start development server
-npm run dev
+npm install    # Install dependencies
+npm run dev    # Start local preview
+npm run check  # Run type, lint, and formatting checks
+npm run build  # Create production build
 ```
 
-### Commands
-
-```bash
-npm run dev              # Start development server
-npm run build            # Production build
-npm run check            # Type, linting, and formatting checks
-npm run lint             # Fix code issues
-npm run format           # Format code
-```
+## Feedback
+Have ideas or issues? [Open an issue](https://github.com/strahe/cuview/issues/new) to share your feedback.
 
 ## License
-
 MIT License
