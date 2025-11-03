@@ -1,3 +1,5 @@
+import type { StorageUseStat } from "@/types/storage";
+
 export const getTaskBadgeColor = (taskType: string): string => {
   if (!taskType) return "badge-outline";
 
@@ -74,6 +76,16 @@ export const getVolumeTypeBadgeColor = (
   if (canSeal) return "badge-info";
   if (canStore) return "badge-secondary";
   return "badge-neutral";
+};
+
+export const getStorageTypeLabel = (stat?: StorageUseStat | null): string => {
+  if (!stat) return "";
+
+  if (stat.can_seal === false && stat.can_store === false) {
+    return "Readonly";
+  }
+
+  return stat.Type === "None" ? "Readonly" : stat.Type;
 };
 
 export const getContactStatusColor = (lastContact: string | number): string => {

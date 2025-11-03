@@ -6,6 +6,7 @@ import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
 import type { StorageUseStat } from "@/types/storage";
 import type { ActorSummaryData } from "@/types/actor";
 import { formatBytes, formatNumber } from "@/utils/format";
+import { getStorageTypeLabel } from "@/utils/ui";
 import {
   CpuChipIcon,
   ServerIcon,
@@ -270,7 +271,9 @@ const totalWins7d = computed(() => {
               :key="stat.Type"
               class="flex items-center justify-between"
             >
-              <span class="text-base-content/70 text-xs">{{ stat.Type }}</span>
+              <span class="text-base-content/70 text-xs">{{
+                getStorageTypeLabel(stat)
+              }}</span>
               <div class="text-right">
                 <span class="text-xs font-medium"
                   >{{

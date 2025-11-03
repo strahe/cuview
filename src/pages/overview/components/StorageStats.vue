@@ -6,7 +6,11 @@ import DataTable from "@/components/ui/DataTable.vue";
 import DataSection from "@/components/ui/DataSection.vue";
 import type { StorageUseStat, StorageBreakdown } from "@/types/storage";
 import { formatPercentage } from "@/utils/format";
-import { getProgressColor, getTableRowClasses } from "@/utils/ui";
+import {
+  getProgressColor,
+  getStorageTypeLabel,
+  getTableRowClasses,
+} from "@/utils/ui";
 
 const {
   data: summary,
@@ -76,7 +80,7 @@ const getUsagePercentage = (capacity: number, available: number): number => {
   >
     <template #loading>Loading storage statistics...</template>
 
-    <DataTable :zebra="false">
+    <DataTable>
       <thead>
         <tr>
           <th>Type</th>
@@ -87,7 +91,7 @@ const getUsagePercentage = (capacity: number, available: number): number => {
       <tbody>
         <template v-for="row in data" :key="row.Type">
           <tr :class="getTableRowClasses()">
-            <td class="font-medium">{{ row.Type }}</td>
+            <td class="font-medium">{{ getStorageTypeLabel(row) }}</td>
             <td>
               <div class="text-sm font-medium">
                 {{ row.UseStr || row.Capacity - row.Available }} /

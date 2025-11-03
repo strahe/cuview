@@ -1,4 +1,6 @@
 export interface StorageUseStat {
+  can_seal: boolean;
+  can_store: boolean;
   Type: string;
   Capacity: number;
   Available: number;
