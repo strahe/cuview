@@ -257,9 +257,13 @@ const columns = [
     size: 90,
     cell: (info) => {
       const value = info.getValue();
-      return value
-        ? renderBooleanBadge("Fil+", "success")
-        : renderBooleanBadge("Standard", "neutral");
+      return h(
+        "span",
+        {
+          class: "font-mono text-xs",
+        },
+        value ? "true" : "false",
+      );
     },
     enableColumnFilter: true,
     filterFn: (row, columnId, filterValue) => {
@@ -268,59 +272,44 @@ const columns = [
       return filterValue === "yes" ? value : !value;
     },
   }),
-  columnHelper.display({
-    id: "storage",
-    header: "Storage",
-    cell: (info) => {
-      const sector = info.row.original;
-      const badges = [];
-      if (sector.HasSealed) {
-        badges.push(
-          h(
-            "span",
-            {
-              class: "badge badge-xs border-none bg-primary/10 text-primary",
-            },
-            "Sealed",
-          ),
-        );
-      }
-      if (sector.HasUnsealed) {
-        badges.push(
-          h(
-            "span",
-            {
-              class: "badge badge-xs border-none bg-info/10 text-info",
-            },
-            "Unsealed",
-          ),
-        );
-      }
-      if (sector.HasSnap) {
-        badges.push(
-          h(
-            "span",
-            {
-              class: "badge badge-xs border-none bg-accent/10 text-accent",
-            },
-            "Snap",
-          ),
-        );
-      }
-      if (!badges.length) {
-        badges.push(
-          h("span", { class: "text-base-content/50 text-xs font-medium" }, "—"),
-        );
-      }
-      return h(
-        "div",
-        { class: "flex flex-wrap gap-1" },
-        badges.map((badge, index) =>
-          h("span", { key: `${info.row.id}-storage-${index}` }, [badge]),
-        ),
-      );
-    },
-    size: 140,
+  columnHelper.accessor("HasSealed", {
+    id: "hasSealed",
+    header: "Has Sealed",
+    size: 110,
+    cell: (info) =>
+      h(
+        "span",
+        {
+          class: "font-mono text-xs",
+        },
+        info.getValue() ? "true" : "false",
+      ),
+  }),
+  columnHelper.accessor("HasUnsealed", {
+    id: "hasUnsealed",
+    header: "Has Unsealed",
+    size: 120,
+    cell: (info) =>
+      h(
+        "span",
+        {
+          class: "font-mono text-xs",
+        },
+        info.getValue() ? "true" : "false",
+      ),
+  }),
+  columnHelper.accessor("HasSnap", {
+    id: "hasSnap",
+    header: "Has Snap",
+    size: 110,
+    cell: (info) =>
+      h(
+        "span",
+        {
+          class: "font-mono text-xs",
+        },
+        info.getValue() ? "true" : "false",
+      ),
   }),
   columnHelper.accessor("SealInfo", {
     id: "sealInfo",
@@ -335,23 +324,13 @@ const columns = [
     size: 90,
     cell: (info) => {
       const value = info.getValue();
-      return value
-        ? h(
-            "span",
-            {
-              class:
-                "badge badge-sm border-none bg-error/10 text-error font-semibold",
-            },
-            "Flagged",
-          )
-        : h(
-            "span",
-            {
-              class:
-                "badge badge-sm border-none bg-base-200 text-base-content/60",
-            },
-            "Clear",
-          );
+      return h(
+        "span",
+        {
+          class: "font-mono text-xs",
+        },
+        value ? "true" : "false",
+      );
     },
     enableColumnFilter: true,
     filterFn: (row, columnId, filterValue) => {
