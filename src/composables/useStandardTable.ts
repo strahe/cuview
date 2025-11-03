@@ -205,7 +205,26 @@ export function useStandardTable<T>(
     if (cell.getIsGrouped()) {
       return `Click to ${cell.row.getIsExpanded() ? "collapse" : "expand"} group`;
     }
-    return String(cell.getValue() || "");
+
+    const value = cell.getValue();
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    const valueType = typeof value;
+    if (
+      valueType === "string" ||
+      valueType === "number" ||
+      valueType === "boolean"
+    ) {
+      return String(value);
+    }
+
+    if (value instanceof Date) {
+      return value.toLocaleString();
+    }
+
+    return "";
   };
 
   const clearAllFilters = () => {
