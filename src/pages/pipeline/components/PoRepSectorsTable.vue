@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h } from "vue";
+import { computed, h, ref } from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -22,6 +22,7 @@ import { useTableActions } from "@/composables/useTableActions";
 import TableControls from "@/components/table/TableControls.vue";
 import ColumnStats from "@/components/table/ColumnStats.vue";
 import ItemDetailsModal from "@/components/table/ItemDetailsModal.vue";
+import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
 import type { SectorListEntry } from "@/types/pipeline";
 import { getTableRowClasses } from "@/utils/ui";
 
@@ -60,8 +61,34 @@ const { isLoading: isActionLoading, executeAction } =
         loadingKey: (sector) => `${sector.SpID}-${sector.SectorNumber}`,
         onSuccess: () => props.onRefresh(),
       },
+      delete: {
+        name: "delete",
+        handler: async (sector) => {
+          await call("SectorRemove", [sector.SpID, sector.SectorNumber]);
+        },
+        loadingKey: (sector) => `delete-${sector.SpID}-${sector.SectorNumber}`,
+        onSuccess: () => props.onRefresh(),
+      },
     },
   });
+
+const deleteDialogVisible = ref(false);
+const sectorPendingDelete = ref<SectorListEntry | null>(null);
+const deleteError = ref<string | null>(null);
+
+const isDeletingSector = computed(() => {
+  const target = sectorPendingDelete.value;
+  if (!target) return false;
+  return isActionLoading("delete", target);
+});
+
+const deleteDialogMessage = computed(() => {
+  const sector = sectorPendingDelete.value;
+  if (!sector) {
+    return "Are you sure you want to delete this sector?";
+  }
+  return `Are you sure you want to delete sector ${sector.SectorNumber} from miner ${sector.Address}? This action cannot be undone.`;
+});
 
 const getCurrentState = (sector: SectorListEntry): string => {
   if (sector.Failed) return "Failed";
@@ -264,23 +291,44 @@ const columns = [
     cell: (info) => {
       const sector = info.row.original;
       const isRestarting = isActionLoading("restart", sector);
+      const isDeleting = isActionLoading("delete", sector);
       const buttons = [];
+
+      if (sector.Failed) {
+        buttons.push(
+          h(
+            "button",
+            {
+              class: isRestarting
+                ? "btn btn-xs btn-primary loading cursor-not-allowed"
+                : "btn btn-xs btn-primary hover:btn-outline transition-colors",
+              disabled: isRestarting,
+              title: "Restart sector processing",
+              onClick: (e: Event) => {
+                e.stopPropagation();
+                executeAction("restart", sector);
+              },
+            },
+            isRestarting ? "Restarting..." : "Restart",
+          ),
+        );
+      }
 
       buttons.push(
         h(
           "button",
           {
-            class: isRestarting
-              ? "btn btn-xs btn-primary loading cursor-not-allowed"
-              : "btn btn-xs btn-primary hover:btn-outline transition-colors",
-            disabled: isRestarting,
-            title: "Restart sector processing",
+            class: isDeleting
+              ? "btn btn-xs btn-error loading cursor-not-allowed"
+              : "btn btn-xs btn-error hover:btn-outline transition-colors",
+            disabled: isDeleting,
+            title: "Delete sector from pipeline",
             onClick: (e: Event) => {
               e.stopPropagation();
-              executeAction("restart", sector);
+              openDeleteDialog(sector);
             },
           },
-          isRestarting ? "Restarting..." : "Restart",
+          isDeleting ? "Deleting..." : "Delete",
         ),
       );
 
@@ -324,6 +372,37 @@ const handleRowClick = (row: Row<SectorListEntry>) => {
     row.getToggleExpandedHandler()();
   } else if (!row.getIsGrouped()) {
     openModal(row.original);
+  }
+};
+
+const openDeleteDialog = (sector: SectorListEntry) => {
+  deleteError.value = null;
+  sectorPendingDelete.value = sector;
+  deleteDialogVisible.value = true;
+};
+
+const handleDeleteCancel = () => {
+  if (isDeletingSector.value) return;
+  deleteDialogVisible.value = false;
+  sectorPendingDelete.value = null;
+  deleteError.value = null;
+};
+
+const handleDeleteConfirm = async () => {
+  const sector = sectorPendingDelete.value;
+  if (!sector) return;
+  deleteError.value = null;
+  try {
+    await executeAction("delete", sector);
+    if (typeof document !== "undefined") {
+      document.cookie = "sector_refresh=true; path=/";
+    }
+    deleteDialogVisible.value = false;
+    sectorPendingDelete.value = null;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to delete sector.";
+    deleteError.value = message;
   }
 };
 
@@ -812,5 +891,27 @@ const getProgressSteps = (sector: SectorListEntry | null) => {
         </div>
       </template>
     </ItemDetailsModal>
+
+    <ConfirmationDialog
+      v-model:show="deleteDialogVisible"
+      title="Delete sector"
+      :message="deleteDialogMessage"
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      type="danger"
+      :loading="isDeletingSector"
+      @confirm="handleDeleteConfirm"
+      @cancel="handleDeleteCancel"
+    >
+      <template #description>
+        <p class="text-base-content/80 text-sm">
+          The sector will be removed from the PoRep pipeline. This does not
+          terminate it on chain.
+        </p>
+        <p v-if="deleteError" class="text-error-content/80 mt-2 text-sm">
+          {{ deleteError }}
+        </p>
+      </template>
+    </ConfirmationDialog>
   </div>
 </template>
