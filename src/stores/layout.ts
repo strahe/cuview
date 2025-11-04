@@ -1,7 +1,49 @@
 import { defineStore } from "pinia";
-import { ref, computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import {
+  isDarkTheme,
+  isThemeName,
+  themeConfig,
+  type ThemeName,
+} from "@/lib/theme";
 
-export type Theme = "light" | "dark";
+const readStoredTheme = (): ThemeName | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = window.localStorage.getItem(themeConfig.storageKey);
+  return isThemeName(stored) ? stored : null;
+};
+
+const resolveInitialTheme = (): ThemeName => {
+  const storedTheme = readStoredTheme();
+  if (storedTheme) {
+    return storedTheme;
+  }
+
+  if (typeof window !== "undefined") {
+    const prefersDark = window.matchMedia?.(
+      "(prefers-color-scheme: dark)",
+    )?.matches;
+
+    if (prefersDark) {
+      return themeConfig.darkTheme;
+    }
+  }
+
+  return themeConfig.defaultTheme;
+};
+
+const applyTheme = (value: ThemeName) => {
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-theme", value);
+  }
+
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(themeConfig.storageKey, value);
+  }
+};
 
 export const useLayoutStore = defineStore(
   "layout",
@@ -9,17 +51,23 @@ export const useLayoutStore = defineStore(
     const sidebarCollapsed = ref(false);
     const searchVisible = ref(false);
     const notificationsVisible = ref(false);
-    const theme = ref<Theme>("dark");
+    const theme = ref<ThemeName>(
+      typeof window === "undefined"
+        ? themeConfig.defaultTheme
+        : resolveInitialTheme(),
+    );
 
-    const isDark = computed(() => theme.value === "dark");
+    const isDark = computed(() => isDarkTheme(theme.value));
 
-    // Apply theme to document
-    const applyTheme = (newTheme: Theme) => {
-      document.documentElement.setAttribute("data-theme", newTheme);
-    };
-
-    // Watch for theme changes and apply them
-    watch(theme, applyTheme, { immediate: true });
+    if (typeof window !== "undefined") {
+      watch(
+        theme,
+        (value) => {
+          applyTheme(value);
+        },
+        { immediate: true },
+      );
+    }
 
     function toggleSidebar() {
       sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -38,10 +86,15 @@ export const useLayoutStore = defineStore(
     }
 
     function toggleTheme() {
-      theme.value = theme.value === "dark" ? "light" : "dark";
+      const nextTheme =
+        theme.value === themeConfig.darkTheme
+          ? themeConfig.lightTheme
+          : themeConfig.darkTheme;
+
+      setTheme(nextTheme);
     }
 
-    function setTheme(newTheme: Theme) {
+    function setTheme(newTheme: ThemeName) {
       theme.value = newTheme;
     }
 
