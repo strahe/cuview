@@ -1,7 +1,7 @@
 <template>
   <!-- Use simple modal approach without portal -->
   <div v-if="show" class="modal modal-open">
-    <div class="modal-box max-w-2xl">
+    <div :class="['modal-box', props.dialogClass]">
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <slot name="title" :item="item">
@@ -25,6 +25,7 @@
 interface Props {
   show: boolean;
   item: T | null;
+  dialogClass?: string;
 }
 
 interface Emits {
@@ -32,7 +33,9 @@ interface Emits {
   (e: "close"): void;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  dialogClass: "max-w-2xl w-full",
+});
 const emit = defineEmits<Emits>();
 
 const handleClose = () => {
