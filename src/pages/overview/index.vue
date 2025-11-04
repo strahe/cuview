@@ -57,6 +57,15 @@
       </SectionCard>
 
       <SectionCard
+        title="Recent Wins"
+        tooltip="Latest storage provider block wins"
+        :icon="TrophyIcon"
+        class="xl:col-span-2"
+      >
+        <RecentWins />
+      </SectionCard>
+
+      <SectionCard
         title="Task Statistics"
         tooltip="View Harmony task success rates and status"
         :icon="ChartBarIcon"
@@ -86,6 +95,7 @@ import {
   LinkIcon,
   ServerIcon,
   ServerStackIcon,
+  TrophyIcon,
   UsersIcon,
 } from "@heroicons/vue/24/outline";
 
@@ -96,6 +106,7 @@ import ChainConnectivity from "./components/ChainConnectivity.vue";
 import ClusterMachines from "./components/ClusterMachines.vue";
 import DashboardHero from "./components/DashboardHero.vue";
 import DashboardRecentTasks from "./components/DashboardRecentTasks.vue";
+import RecentWins from "./components/RecentWins.vue";
 import { useDashboardSummary } from "./composables/useDashboardSummary";
 import SectionCard from "@/components/ui/SectionCard.vue";
 
