@@ -116,7 +116,6 @@ const showAddProofshareDialog = ref(false);
 const editingId = ref<number | null>(null);
 const editFormData = ref({ low: "", high: "" });
 const operationError = ref<string | null>(null);
-const operationSuccess = ref<string | null>(null);
 const manualRefreshLoading = ref(false);
 const isOperating = ref(false);
 
@@ -196,7 +195,6 @@ const walletRuleForm = useForm({
 
       walletRuleForm.reset(createWalletRuleDefaults());
       showAddWalletDialog.value = false;
-      operationSuccess.value = "Wallet rule added successfully";
       props.onRefresh();
     } catch (error) {
       operationError.value =
@@ -234,7 +232,6 @@ const proofshareRuleForm = useForm({
 
       proofshareRuleForm.reset(createProofshareRuleDefaults());
       showAddProofshareDialog.value = false;
-      operationSuccess.value = "SnarkMarket Client rule added successfully";
       props.onRefresh();
     } catch (error) {
       operationError.value =
@@ -557,7 +554,6 @@ const handleSaveEdit = async (item: BalanceManagerTableEntry) => {
     ]);
 
     cancelEdit();
-    operationSuccess.value = "Rule updated successfully";
     props.onRefresh();
   } catch (error) {
     operationError.value =
@@ -570,14 +566,12 @@ const handleSaveEdit = async (item: BalanceManagerTableEntry) => {
 const handleAddWalletClick = () => {
   walletRuleForm.reset(createWalletRuleDefaults());
   operationError.value = null;
-  operationSuccess.value = null;
   showAddWalletDialog.value = true;
 };
 
 const handleAddProofshareClick = () => {
   proofshareRuleForm.reset(createProofshareRuleDefaults());
   operationError.value = null;
-  operationSuccess.value = null;
   showAddProofshareDialog.value = true;
 };
 
@@ -595,7 +589,6 @@ const handleRemoveClick = async (item: BalanceManagerTableEntry) => {
     isOperating.value = true;
 
     await call("BalanceMgrRuleRemove", [item.ID]);
-    operationSuccess.value = "Rule removed successfully";
     props.onRefresh();
   } catch (error) {
     operationError.value =
@@ -849,20 +842,11 @@ const getColumnAggregateInfo = (columnId: string) => {
       </table>
     </div>
 
-    <!-- Operation Messages -->
+    <!-- Operation Error -->
     <div v-if="operationError" class="alert alert-error">
       <div class="flex items-start justify-between">
         <span>{{ operationError }}</span>
         <button class="btn btn-ghost btn-xs" @click="operationError = null">
-          ×
-        </button>
-      </div>
-    </div>
-
-    <div v-if="operationSuccess" class="alert alert-success">
-      <div class="flex items-start justify-between">
-        <span>{{ operationSuccess }}</span>
-        <button class="btn btn-ghost btn-xs" @click="operationSuccess = null">
           ×
         </button>
       </div>
