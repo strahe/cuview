@@ -73,7 +73,7 @@ const handleCopy = async () => {
       sizeClass,
       props.extraClass,
     ]"
-    @click="handleCopy"
+    @click.stop="handleCopy"
   >
     <component
       :is="copied ? CheckIcon : ClipboardDocumentIcon"

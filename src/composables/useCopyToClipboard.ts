@@ -1,3 +1,4 @@
+import { useClipboard } from "@vueuse/core";
 import { ref } from "vue";
 
 export interface CopyOptions {
@@ -7,26 +8,18 @@ export interface CopyOptions {
 export function useCopyToClipboard(options: CopyOptions = {}) {
   const { resetDelay = 2000 } = options;
 
-  const copied = ref(false);
+  const { copy: baseCopy, copied } = useClipboard({
+    legacy: true,
+    copiedDuring: resetDelay,
+  });
   const error = ref<string | null>(null);
 
   const copy = async (text: string): Promise<boolean> => {
     if (!text) return false;
 
-    if (!navigator?.clipboard) {
-      error.value = "Clipboard API not available";
-      return false;
-    }
-
     try {
       error.value = null;
-      await navigator.clipboard.writeText(text);
-      copied.value = true;
-
-      setTimeout(() => {
-        copied.value = false;
-      }, resetDelay);
-
+      await baseCopy(text);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to copy";
@@ -35,7 +28,6 @@ export function useCopyToClipboard(options: CopyOptions = {}) {
   };
 
   const reset = () => {
-    copied.value = false;
     error.value = null;
   };
 
