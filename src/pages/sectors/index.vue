@@ -1,15 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { formatDistanceToNow } from "date-fns";
-import {
-  CircleStackIcon,
-  SparklesIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/vue/24/outline";
+import { CircleStackIcon } from "@heroicons/vue/24/outline";
 
 import SectionCard from "@/components/ui/SectionCard.vue";
-import KPICard from "@/components/ui/KPICard.vue";
 import SectorsTable from "./components/SectorsTable.vue";
 import { useSectorsData } from "@/composables/useSectorsData";
 import { usePageTitle } from "@/composables/usePageTitle";
@@ -40,10 +34,13 @@ const isRefreshing = computed(
   () => sectorsData.loading.value && sectorsData.hasData.value,
 );
 
-const getPercentage = (count: number) => {
-  if (!totalSectors.value) return "—";
-  return `${((count / totalSectors.value) * 100).toFixed(1)}%`;
-};
+const summaryStats = computed(() => ({
+  total: totalSectors.value,
+  filPlus: filPlusCount.value,
+  proving: provingCount.value,
+  flagged: flaggedCount.value,
+  snap: snapCount.value,
+}));
 
 const lastUpdatedLabel = computed(() => {
   if (isInitialLoading.value) return "Loading sectors...";
@@ -64,50 +61,12 @@ const lastUpdatedLabel = computed(() => {
 </route>
 
 <template>
-  <div class="space-y-6 p-6">
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <KPICard
-        :value="totalSectors.toLocaleString()"
-        label="Total Sectors"
-        :subtitle="lastUpdatedLabel"
-        :icon="CircleStackIcon"
-        icon-color="primary"
-      />
-
-      <KPICard
-        :value="filPlusCount.toLocaleString()"
-        label="Fil+ Coverage"
-        :subtitle="getPercentage(filPlusCount)"
-        :icon="SparklesIcon"
-        icon-color="accent"
-        trend="up"
-      />
-
-      <KPICard
-        :value="provingCount.toLocaleString()"
-        label="Proving"
-        :subtitle="getPercentage(provingCount)"
-        :icon="ShieldCheckIcon"
-        icon-color="success"
-        trend="neutral"
-      />
-
-      <KPICard
-        :value="flaggedCount.toLocaleString()"
-        label="Flagged"
-        :subtitle="
-          snapCount ? `${snapCount.toLocaleString()} Snap` : 'No Snap sectors'
-        "
-        :icon="ExclamationTriangleIcon"
-        icon-color="warning"
-        trend="down"
-      />
-    </div>
-
+  <div class="flex min-h-screen flex-col p-6">
     <SectionCard
       title="Sectors"
       tooltip="Review sector inventory, storage availability, and deal coverage"
       :icon="CircleStackIcon"
+      class="flex flex-1 flex-col"
     >
       <template #actions>
         <div class="text-base-content/70 flex items-center gap-3 text-sm">
@@ -126,12 +85,15 @@ const lastUpdatedLabel = computed(() => {
         </div>
       </template>
 
-      <SectorsTable
-        :sectors="sectorsData.sectors.value"
-        :loading="sectorsData.loading.value"
-        :error="sectorsData.error.value"
-        :on-refresh="sectorsData.refresh"
-      />
+      <div class="flex min-h-0 flex-1 flex-col">
+        <SectorsTable
+          :sectors="sectorsData.sectors.value"
+          :loading="sectorsData.loading.value"
+          :error="sectorsData.error.value"
+          :on-refresh="sectorsData.refresh"
+          :summary="summaryStats"
+        />
+      </div>
     </SectionCard>
   </div>
 </template>

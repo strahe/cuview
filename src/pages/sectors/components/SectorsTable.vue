@@ -34,11 +34,20 @@ import type {
   SectorTerminationPayload,
 } from "@/types/sectors";
 
+interface SectorSummary {
+  total: number;
+  filPlus: number;
+  proving: number;
+  flagged: number;
+  snap: number;
+}
+
 interface Props {
   sectors?: SectorListItem[];
   loading?: boolean;
   error?: Error | null;
   onRefresh?: () => void;
+  summary?: SectorSummary;
 }
 
 const ROW_HEIGHT = 56;
@@ -49,7 +58,16 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: null,
   onRefresh: () => {},
+  summary: () => ({
+    total: 0,
+    filPlus: 0,
+    proving: 0,
+    flagged: 0,
+    snap: 0,
+  }),
 });
+
+const summary = computed(() => props.summary);
 
 const rawData = computed(() => props.sectors ?? []);
 
@@ -474,6 +492,23 @@ const someVisibleSelected = computed(() => {
 
 const selectedCount = computed(() => selectedKeys.value.size);
 
+const hasSummaryData = computed(() => {
+  const value = summary.value;
+  return (
+    value.total > 0 ||
+    value.filPlus > 0 ||
+    value.proving > 0 ||
+    value.flagged > 0 ||
+    value.snap > 0
+  );
+});
+
+const formatSummaryPercentage = (count: number) => {
+  const total = summary.value.total;
+  if (!total) return "—";
+  return `${((count / total) * 100).toFixed(1)}%`;
+};
+
 const visibleColumnCount = computed(() => table.getVisibleLeafColumns().length);
 
 const searchValue = computed({
@@ -840,95 +875,141 @@ const clearAllFilters = () => {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <TableControls
-      :show-refresh="false"
-      :search-input="searchValue"
-      :loading="loading"
-      search-placeholder="Search miners, sectors, or deals..."
-      @update:search-input="(value: string) => (searchValue = value)"
-      @refresh="onRefresh"
+  <div class="flex h-full flex-col gap-4">
+    <div
+      v-if="hasSummaryData || loading"
+      class="border-base-300 bg-base-100 flex shrink-0 flex-wrap items-center gap-4 rounded-lg border p-4 text-sm shadow-sm"
     >
-      <template #default>
-        <div class="flex flex-wrap items-center gap-2">
-          <label class="flex items-center gap-2 text-sm">
-            <span class="text-base-content/60">Fil+</span>
-            <select
-              v-model="filters.filPlus"
-              class="select select-bordered select-sm w-28"
+      <div class="flex items-baseline gap-2">
+        <span class="text-base-content/60 text-xs uppercase">Total</span>
+        <span class="text-base-content text-lg font-semibold">
+          {{ summary.total.toLocaleString() }}
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge badge-accent badge-sm">Fil+</span>
+        <span class="text-base-content font-medium">
+          {{ summary.filPlus.toLocaleString() }}
+        </span>
+        <span class="text-base-content/60 text-xs">
+          ({{ formatSummaryPercentage(summary.filPlus) }})
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge badge-success badge-sm">Proving</span>
+        <span class="text-base-content font-medium">
+          {{ summary.proving.toLocaleString() }}
+        </span>
+        <span class="text-base-content/60 text-xs">
+          ({{ formatSummaryPercentage(summary.proving) }})
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge badge-warning badge-sm">Flagged</span>
+        <span class="text-base-content font-medium">
+          {{ summary.flagged.toLocaleString() }}
+        </span>
+        <span v-if="summary.snap > 0" class="text-base-content/60 text-xs">
+          ({{ summary.snap.toLocaleString() }} Snap)
+        </span>
+      </div>
+    </div>
+
+    <div class="shrink-0">
+      <TableControls
+        :show-refresh="false"
+        :search-input="searchValue"
+        :loading="loading"
+        search-placeholder="Search miners, sectors, or deals..."
+        @update:search-input="(value: string) => (searchValue = value)"
+        @refresh="onRefresh"
+      >
+        <template #default>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="flex items-center gap-2 text-sm">
+              <span class="text-base-content/60">Fil+</span>
+              <select
+                v-model="filters.filPlus"
+                class="select select-bordered select-sm w-28"
+              >
+                <option value="all">All</option>
+                <option value="yes">Fil+</option>
+                <option value="no">Standard</option>
+              </select>
+            </label>
+
+            <label class="flex items-center gap-2 text-sm">
+              <span class="text-base-content/60">Proving</span>
+              <select
+                v-model="filters.proving"
+                class="select select-bordered select-sm w-28"
+              >
+                <option value="all">All</option>
+                <option value="yes">Active</option>
+                <option value="no">Idle</option>
+              </select>
+            </label>
+
+            <label class="flex items-center gap-2 text-sm">
+              <span class="text-base-content/60">On Chain</span>
+              <select
+                v-model="filters.onChain"
+                class="select select-bordered select-sm w-28"
+              >
+                <option value="all">All</option>
+                <option value="yes">On Chain</option>
+                <option value="no">Off Chain</option>
+              </select>
+            </label>
+
+            <label class="flex items-center gap-2 text-sm">
+              <span class="text-base-content/60">Flag</span>
+              <select
+                v-model="filters.flagged"
+                class="select select-bordered select-sm w-32"
+              >
+                <option value="all">All</option>
+                <option value="yes">Flagged</option>
+                <option value="no">Clear</option>
+              </select>
+            </label>
+          </div>
+        </template>
+
+        <template #actions>
+          <div class="flex items-center gap-3">
+            <button
+              v-if="helpers.hasActiveFilters.value"
+              class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content"
+              @click="clearAllFilters"
             >
-              <option value="all">All</option>
-              <option value="yes">Fil+</option>
-              <option value="no">Standard</option>
-            </select>
-          </label>
-
-          <label class="flex items-center gap-2 text-sm">
-            <span class="text-base-content/60">Proving</span>
-            <select
-              v-model="filters.proving"
-              class="select select-bordered select-sm w-28"
+              <XMarkIcon class="h-4 w-4" />
+              Clear Filters
+            </button>
+            <button
+              class="btn btn-error btn-sm"
+              :disabled="selectedCount === 0"
+              @click="handleOpenTerminateDialog"
             >
-              <option value="all">All</option>
-              <option value="yes">Active</option>
-              <option value="no">Idle</option>
-            </select>
-          </label>
+              Terminate Selected ({{ selectedCount }})
+            </button>
+          </div>
+        </template>
 
-          <label class="flex items-center gap-2 text-sm">
-            <span class="text-base-content/60">On Chain</span>
-            <select
-              v-model="filters.onChain"
-              class="select select-bordered select-sm w-28"
-            >
-              <option value="all">All</option>
-              <option value="yes">On Chain</option>
-              <option value="no">Off Chain</option>
-            </select>
-          </label>
+        <template #stats>
+          <span class="font-medium">{{ filteredRowCount }}</span>
+          <span class="text-base-content/60">visible sectors</span>
+        </template>
+      </TableControls>
+    </div>
 
-          <label class="flex items-center gap-2 text-sm">
-            <span class="text-base-content/60">Flag</span>
-            <select
-              v-model="filters.flagged"
-              class="select select-bordered select-sm w-32"
-            >
-              <option value="all">All</option>
-              <option value="yes">Flagged</option>
-              <option value="no">Clear</option>
-            </select>
-          </label>
-        </div>
-      </template>
-
-      <template #actions>
-        <div class="flex items-center gap-3">
-          <button
-            v-if="helpers.hasActiveFilters.value"
-            class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content"
-            @click="clearAllFilters"
-          >
-            <XMarkIcon class="h-4 w-4" />
-            Clear Filters
-          </button>
-          <button
-            class="btn btn-error btn-sm"
-            :disabled="selectedCount === 0"
-            @click="handleOpenTerminateDialog"
-          >
-            Terminate Selected ({{ selectedCount }})
-          </button>
-        </div>
-      </template>
-
-      <template #stats>
-        <span class="font-medium">{{ filteredRowCount }}</span>
-        <span class="text-base-content/60">visible sectors</span>
-      </template>
-    </TableControls>
-
-    <div class="border-base-300 bg-base-100 rounded-lg border shadow-md">
-      <div ref="scrollContainer" class="max-h-[65vh] overflow-y-auto">
+    <div
+      class="border-base-300 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border shadow-md"
+    >
+      <div ref="scrollContainer" class="h-full min-h-0 overflow-y-auto">
         <table class="table-pin-rows table-zebra table w-full">
           <thead class="bg-base-200 sticky top-0 z-10">
             <tr
