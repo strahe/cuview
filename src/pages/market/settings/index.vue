@@ -1,7 +1,13 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { PlusIcon } from "@heroicons/vue/24/outline";
+import {
+  AdjustmentsHorizontalIcon,
+  FunnelIcon,
+  PlusIcon,
+  UserGroupIcon,
+  WalletIcon,
+} from "@heroicons/vue/24/outline";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useLazyQuery } from "@/composables/useLazyQuery";
 import SectionCard from "@/components/ui/SectionCard.vue";
@@ -362,7 +368,10 @@ const clearError = () => {
       </div>
 
       <!-- Default Filter Behaviour -->
-      <SectionCard title="Default Filter Behaviour">
+      <SectionCard
+        title="Default Filter Behaviour"
+        :icon="AdjustmentsHorizontalIcon"
+      >
         <template #actions>
           <button
             class="btn btn-ghost btn-sm"
@@ -486,7 +495,7 @@ const clearError = () => {
       </SectionCard>
 
       <!-- Section 1: Pricing Filters -->
-      <SectionCard title="Pricing Filters">
+      <SectionCard title="Pricing Filters" :icon="FunnelIcon">
         <template #actions>
           <button class="btn btn-primary btn-sm" @click="handlePricingAdd">
             <PlusIcon class="size-4" />
@@ -506,7 +515,7 @@ const clearError = () => {
       </SectionCard>
 
       <!-- Section 2: Client Filters -->
-      <SectionCard title="Client Filters">
+      <SectionCard title="Client Filters" :icon="UserGroupIcon">
         <template #actions>
           <button class="btn btn-primary btn-sm" @click="handleClientAdd">
             <PlusIcon class="size-4" />
@@ -528,7 +537,7 @@ const clearError = () => {
       </SectionCard>
 
       <!-- Section 3: Allow/Deny List -->
-      <SectionCard title="Allow/Deny List">
+      <SectionCard title="Allow/Deny List" :icon="WalletIcon">
         <template #actions>
           <button class="btn btn-primary btn-sm" @click="handleAllowListAdd">
             <PlusIcon class="size-4" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { DocumentTextIcon } from "@heroicons/vue/24/outline";
 import { diffArrays } from "diff";
 import type { ChangeObject } from "diff";
 import CopyButton from "@/components/ui/CopyButton.vue";
@@ -79,7 +80,7 @@ const diffEntries = computed<DiffEntry[]>(() => {
 </script>
 
 <template>
-  <SectionCard title="Preview" class="h-full">
+  <SectionCard title="Preview" :icon="DocumentTextIcon" class="h-full">
     <template #actions>
       <CopyButton
         :value="toml"

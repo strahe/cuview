@@ -211,13 +211,15 @@ const isInitialLoading = computed(() => isLoading.value && !hasServices.value);
 
     <div
       v-else-if="!hasServices"
-      class="border-base-300 bg-base-100 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-center"
+      class="border-base-300 bg-base-100 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-12 text-center"
     >
-      <p class="text-base-content text-sm">No PDP services found.</p>
-      <button class="btn btn-primary btn-sm" @click="handleOpenModal">
-        <PlusIcon class="size-4" />
-        Add Service
-      </button>
+      <ShieldCheckIcon
+        class="text-base-content/40 mx-auto mb-1 h-12 w-12"
+        aria-hidden="true"
+      />
+      <p class="text-base-content text-base font-medium">
+        No PDP services found
+      </p>
     </div>
 
     <div v-else class="border-base-300 overflow-hidden rounded-lg border">

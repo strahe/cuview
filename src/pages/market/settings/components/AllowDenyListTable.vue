@@ -5,7 +5,11 @@ import {
   FlexRender,
   type ColumnDef,
 } from "@tanstack/vue-table";
-import { TrashIcon, ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
+import {
+  TrashIcon,
+  ExclamationTriangleIcon,
+  WalletIcon,
+} from "@heroicons/vue/24/outline";
 import { useStandardTable } from "@/composables/useStandardTable";
 import { getTableRowClasses } from "@/utils/ui";
 import TableControls from "@/components/table/TableControls.vue";
@@ -273,12 +277,11 @@ const getColumnAggregateInfo = (columnId: string) => {
                 :colspan="columns.length"
                 class="text-base-content/60 py-12 text-center"
               >
-                <div class="mb-2 text-base font-medium">
+                <WalletIcon
+                  class="text-base-content/40 mx-auto mb-3 h-12 w-12"
+                />
+                <div class="text-base font-medium">
                   No wallet addresses configured
-                </div>
-                <div class="text-base-content/40 text-sm">
-                  Click the "Add Wallet" button above to add your first wallet
-                  address
                 </div>
               </td>
             </tr>

@@ -441,12 +441,8 @@ const getColumnAggregateInfo = (columnId: string) => {
                 <UserGroupIcon
                   class="text-base-content/40 mx-auto mb-3 h-12 w-12"
                 />
-                <div class="mb-2 text-base font-medium">
+                <div class="text-base font-medium">
                   No client filters configured
-                </div>
-                <div class="text-base-content/40 text-sm">
-                  Click the "Add Filter" button above to create your first
-                  client filter
                 </div>
               </td>
             </tr>

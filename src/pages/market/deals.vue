@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { ClockIcon, QueueListIcon } from "@heroicons/vue/24/outline";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useLazyQuery } from "@/composables/useLazyQuery";
 import SectionCard from "@/components/ui/SectionCard.vue";
@@ -220,7 +221,11 @@ const clearError = () => {
   <MarketLayout current-tab="deals">
     <div class="space-y-6">
       <!-- Pending Deals -->
-      <SectionCard title="Pending Deals" tooltip="Deals waiting to be sealed">
+      <SectionCard
+        title="Pending Deals"
+        :icon="ClockIcon"
+        tooltip="Deals waiting to be sealed"
+      >
         <PendingDealsTable
           :items="pendingDeals || []"
           :loading="pendingDealsLoading"
@@ -231,7 +236,11 @@ const clearError = () => {
       </SectionCard>
 
       <!-- Deal Pipelines -->
-      <SectionCard title="Deal Pipelines" tooltip="Pipeline processing status">
+      <SectionCard
+        title="Deal Pipelines"
+        :icon="QueueListIcon"
+        tooltip="Pipeline processing status"
+      >
         <!-- Operation Error Alert -->
         <div v-if="operationError" class="alert alert-error mb-4 shadow-lg">
           <div class="flex w-full items-start justify-between">

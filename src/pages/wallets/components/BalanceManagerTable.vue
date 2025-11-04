@@ -817,11 +817,10 @@ const getColumnAggregateInfo = (columnId: string) => {
                 class="text-base-content/60 py-8 text-center"
               >
                 <ScaleIcon
-                  class="text-base-content/40 mx-auto mb-2 h-12 w-12"
+                  class="text-base-content/40 mx-auto mb-3 h-12 w-12"
                 />
-                <div>No balance-manager rules found</div>
-                <div class="mt-2 text-sm">
-                  Add rules to automatically manage wallet balances
+                <div class="text-base font-medium">
+                  No balance-manager rules found
                 </div>
               </td>
             </tr>

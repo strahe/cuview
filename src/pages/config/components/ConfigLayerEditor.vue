@@ -4,6 +4,7 @@ import {
   ArrowUturnLeftIcon,
   ExclamationCircleIcon,
   InformationCircleIcon,
+  PencilSquareIcon,
   PlusIcon,
   TrashIcon,
 } from "@heroicons/vue/24/outline";
@@ -842,7 +843,7 @@ watch(
 
 <template>
   <!-- eslint-disable vue/v-on-event-hyphenation -->
-  <SectionCard title="Editor" class="h-full">
+  <SectionCard title="Editor" :icon="PencilSquareIcon" class="h-full">
     <template #actions>
       <div class="flex items-center gap-2">
         <button

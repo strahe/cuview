@@ -204,9 +204,15 @@ const isInitialLoading = computed(() => isLoading.value && !hasKeys.value);
 
     <div
       v-else-if="!hasKeys"
-      class="border-base-300 bg-base-100 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-center"
+      class="border-base-300 bg-base-100 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-12 text-center"
     >
-      <p class="text-base-content text-sm">No PDP keys imported.</p>
+      <KeyIcon
+        class="text-base-content/40 mx-auto mb-1 h-12 w-12"
+        aria-hidden="true"
+      />
+      <p class="text-base-content text-base font-medium">
+        No PDP keys imported
+      </p>
     </div>
 
     <div v-else class="border-base-300 overflow-hidden rounded-lg border">

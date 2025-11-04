@@ -5,6 +5,7 @@ import {
   ArrowPathIcon,
   ExclamationCircleIcon,
   PlusIcon,
+  RectangleStackIcon,
 } from "@heroicons/vue/24/outline";
 import SectionCard from "@/components/ui/SectionCard.vue";
 import type { ConfigLayerSummary } from "@/types/config";
@@ -53,7 +54,7 @@ const handleRefresh = () => {
 </script>
 
 <template>
-  <SectionCard title="Layers" class="h-full">
+  <SectionCard title="Layers" :icon="RectangleStackIcon" class="h-full">
     <template #actions>
       <div class="flex items-center justify-end gap-2">
         <button
