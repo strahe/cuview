@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { DEFAULT_ENDPOINT } from "@/utils/endpoint";
 
 export interface CurioConfig {
   endpoint: string;
@@ -22,19 +23,11 @@ export const useConfigStore = defineStore(
         return endpoint.value;
       }
 
-      // Fallback to environment variable or default
-      return import.meta.env.VITE_CURIO_ENDPOINT || "/api/webrpc/v0";
-    }
-
-    function initializeFromEnv() {
-      const envEndpoint = import.meta.env.VITE_CURIO_ENDPOINT;
-      if (envEndpoint) {
-        endpoint.value = envEndpoint;
-      }
+      return DEFAULT_ENDPOINT;
     }
 
     function resetToDefault() {
-      endpoint.value = "";
+      endpoint.value = DEFAULT_ENDPOINT;
     }
 
     return {
@@ -42,7 +35,6 @@ export const useConfigStore = defineStore(
       isConfigured,
       setEndpoint,
       getEndpoint,
-      initializeFromEnv,
       resetToDefault,
     };
   },

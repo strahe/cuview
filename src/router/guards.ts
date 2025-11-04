@@ -8,8 +8,6 @@ export const configGuard = (
 ) => {
   const configStore = useConfigStore();
 
-  configStore.initializeFromEnv();
-
   if (to.path === "/") {
     if (configStore.isConfigured) {
       next("/overview");

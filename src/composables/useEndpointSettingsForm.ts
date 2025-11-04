@@ -2,17 +2,19 @@ import { ref } from "vue";
 import { useForm } from "@tanstack/vue-form";
 import { useConfigStore } from "@/stores/config";
 import { testEndpointConnection } from "@/utils/testConnection";
+import {
+  DEFAULT_ENDPOINT,
+  formatEndpointForDisplay,
+  normalizeEndpoint,
+} from "@/utils/endpoint";
 
-const FALLBACK_ENDPOINT = "ws://localhost:4701/api/webrpc/v0";
+export const defaultEndpoint = DEFAULT_ENDPOINT;
 
 export interface EndpointSettingsFormOptions {
   initialValue?: string;
   timeout?: number;
   onSuccess?: (normalizedEndpoint: string) => void | Promise<void>;
 }
-
-export const defaultEndpoint =
-  import.meta.env.VITE_CURIO_ENDPOINT || FALLBACK_ENDPOINT;
 
 export const validateEndpoint = (endpoint: string): boolean => {
   if (!endpoint.trim()) return false;
@@ -35,20 +37,6 @@ export const validateEndpoint = (endpoint: string): boolean => {
   } catch {
     return false;
   }
-};
-
-export const normalizeEndpoint = (endpoint: string): string => {
-  if (endpoint.startsWith("/")) return endpoint;
-
-  if (endpoint.startsWith("http://")) {
-    return endpoint.replace("http://", "ws://");
-  }
-
-  if (endpoint.startsWith("https://")) {
-    return endpoint.replace("https://", "wss://");
-  }
-
-  return endpoint;
 };
 
 type EndpointFormValues = {
@@ -105,7 +93,9 @@ export const useEndpointSettingsForm = (
 
   const form = useForm({
     defaultValues: {
-      endpoint: options.initialValue ?? configStore.getEndpoint(),
+      endpoint: formatEndpointForDisplay(
+        options.initialValue ?? configStore.getEndpoint(),
+      ),
     },
     onSubmit: async ({ value }: { value: EndpointFormValues }) => {
       submissionError.value = null;
@@ -151,14 +141,14 @@ export const useEndpointSettingsForm = (
 
   const resetFormFromConfig = () => {
     form.reset({
-      endpoint: configStore.getEndpoint(),
+      endpoint: formatEndpointForDisplay(configStore.getEndpoint()),
     });
     submissionError.value = null;
     isSuccessful.value = false;
   };
 
   const resetToDefault = () => {
-    form.setFieldValue("endpoint", normalizeEndpoint(defaultEndpoint));
+    form.setFieldValue("endpoint", formatEndpointForDisplay(defaultEndpoint));
     submissionError.value = null;
     isSuccessful.value = false;
   };

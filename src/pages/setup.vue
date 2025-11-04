@@ -10,11 +10,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import { useConfigStore } from "@/stores/config";
-import {
-  useEndpointSettingsForm,
-  defaultEndpoint,
-} from "@/composables/useEndpointSettingsForm";
+import { useEndpointSettingsForm } from "@/composables/useEndpointSettingsForm";
 import {
   Cog6ToothIcon,
   CheckCircleIcon,
@@ -22,7 +18,6 @@ import {
 } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
-const configStore = useConfigStore();
 
 let redirectTimer: number | null = null;
 
@@ -46,13 +41,6 @@ const {
   timeout: 4000,
   onSuccess: scheduleRedirect,
 });
-
-const hasEnvEndpoint = import.meta.env.VITE_CURIO_ENDPOINT;
-
-const skipToOverview = () => {
-  configStore.setEndpoint(hasEnvEndpoint || defaultEndpoint);
-  router.replace("/overview");
-};
 
 onBeforeUnmount(() => {
   if (redirectTimer) {
@@ -96,14 +84,14 @@ onBeforeUnmount(() => {
             <div class="border-base-300 border-b pb-4">
               <h2 class="mb-2 text-xl font-semibold">API Configuration</h2>
               <p class="text-base-content/70 text-sm">
-                Enter your Curio WebSocket API endpoint below
+                Enter your Curio API server address below
               </p>
             </div>
 
             <div class="form-control space-y-2">
               <label class="label justify-start gap-2">
                 <span class="label-text text-base font-medium"
-                  >Curio API Endpoint</span
+                  >Curio API Server</span
                 >
                 <span class="badge badge-primary badge-xs">Required</span>
               </label>
@@ -116,7 +104,7 @@ onBeforeUnmount(() => {
                 <template #default="{ field }">
                   <input
                     type="text"
-                    placeholder="e.g., /api/webrpc/v0 or ws://localhost:4701/api/webrpc/v0"
+                    placeholder="e.g., http://localhost:4701"
                     class="input input-bordered input-lg w-full text-base"
                     :value="field.state.value"
                     :class="{
@@ -145,7 +133,11 @@ onBeforeUnmount(() => {
               </component>
 
               <p class="text-base-content/60 mt-1 text-sm">
-                WebSocket endpoint for your Curio API server
+                Supports URLs starting with
+                <code class="font-mono text-xs">http://</code>,
+                <code class="font-mono text-xs">https://</code>,
+                <code class="font-mono text-xs">ws://</code>, or
+                <code class="font-mono text-xs">wss://</code>.
               </p>
 
               <div v-if="submissionError" class="alert alert-error mt-3">
@@ -175,16 +167,6 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-else> Test Connection & Save </template>
               </button>
-
-              <button
-                v-if="hasEnvEndpoint"
-                type="button"
-                class="btn btn-outline"
-                :disabled="isSuccessful"
-                @click="skipToOverview"
-              >
-                Use Default Endpoint
-              </button>
             </div>
           </form>
         </section>
@@ -203,25 +185,20 @@ onBeforeUnmount(() => {
             </h3>
             <div class="space-y-3">
               <div class="bg-base-200 border-base-300 rounded-lg border p-3">
-                <code class="font-mono text-sm">/api/webrpc/v0</code>
+                <code class="font-mono text-sm"
+                  >http://your-curio-gui-server:4701</code
+                >
                 <p class="text-base-content/60 mt-1 text-xs">
-                  Relative path (same origin)
+                  HTTP address example. Replace with your actual host or IP.
                 </p>
               </div>
               <div class="bg-base-200 border-base-300 rounded-lg border p-3">
                 <code class="font-mono text-sm"
-                  >ws://localhost:4701/api/webrpc/v0</code
+                  >ws://your-curio-gui-server:4701</code
                 >
                 <p class="text-base-content/60 mt-1 text-xs">
-                  WebSocket URL (recommended)
-                </p>
-              </div>
-              <div class="bg-base-200 border-base-300 rounded-lg border p-3">
-                <code class="font-mono text-sm"
-                  >http://localhost:4701/api/webrpc/v0</code
-                >
-                <p class="text-base-content/60 mt-1 text-xs">
-                  HTTP URL (auto-converted to WebSocket)
+                  WebSocket address example. Replace with your actual host or
+                  IP.
                 </p>
               </div>
             </div>

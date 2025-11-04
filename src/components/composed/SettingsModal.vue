@@ -114,7 +114,7 @@ const handleClickOutside = () => {
         <div class="mb-3">
           <label class="flex items-center gap-2 text-sm font-medium">
             <Cog6ToothIcon class="text-base-content size-4" />
-            <span>API Endpoint</span>
+            <span>API Server</span>
             <span class="badge badge-outline badge-sm">Required</span>
             <div class="relative">
               <div
@@ -140,7 +140,7 @@ const handleClickOutside = () => {
             <div class="relative">
               <input
                 type="text"
-                placeholder="e.g., /api/webrpc/v0 or ws://localhost:4701/api/webrpc/v0"
+                placeholder="e.g., http://localhost:4701"
                 class="input input-bordered w-full"
                 :value="field.state.value"
                 :class="{
@@ -171,6 +171,13 @@ const handleClickOutside = () => {
               class="text-error mt-1 text-sm"
             >
               {{ field.state.meta.errors[0] }}
+            </p>
+            <p class="text-base-content/60 mt-2 text-xs">
+              Supports URLs starting with
+              <code class="font-mono text-[10px]">http://</code>,
+              <code class="font-mono text-[10px]">https://</code>,
+              <code class="font-mono text-[10px]">ws://</code>, or
+              <code class="font-mono text-[10px]">wss://</code>.
             </p>
           </template>
         </component>
@@ -276,27 +283,22 @@ const handleClickOutside = () => {
 
         <div class="space-y-2 text-xs">
           <div class="bg-base-200 border-base-300 rounded border p-2">
-            <code class="text-primary font-mono">/api/webrpc/v0</code>
+            <code class="text-primary font-mono break-all"
+              >http://your-curio-gui-server:4701</code
+            >
             <div class="text-base-content/60 mt-1">
-              <strong>Relative path</strong> - Recommended for local development
+              <strong>HTTP address example</strong>. Replace with your host or
+              IP.
             </div>
           </div>
 
           <div class="bg-base-200 border-base-300 rounded border p-2">
             <code class="text-primary font-mono break-all"
-              >ws://host:4701/api/webrpc/v0</code
+              >ws://your-curio-gui-server:4701</code
             >
             <div class="text-base-content/60 mt-1">
-              <strong>WebSocket URL</strong> - Direct connection to Curio server
-            </div>
-          </div>
-
-          <div class="bg-base-200 border-base-300 rounded border p-2">
-            <code class="text-primary font-mono break-all"
-              >http://host:4701/api/webrpc/v0</code
-            >
-            <div class="text-base-content/60 mt-1">
-              <strong>HTTP URL</strong> - Auto-converted to WebSocket
+              <strong>WebSocket address example</strong>. Replace with your host
+              or IP.
             </div>
           </div>
         </div>
