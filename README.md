@@ -27,6 +27,11 @@ npm run check  # Run type, lint, and formatting checks
 npm run build  # Create production build
 ```
 
+### Tech Stack
+- Vue 3 · TypeScript
+- Tailwind CSS · DaisyUI · reka-ui
+- TanStack Table · Pinia · VueUse
+
 ## Feedback
 Have ideas or issues? [Open an issue](https://github.com/strahe/cuview/issues/new) to share your feedback.
 
