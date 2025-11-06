@@ -1,7 +1,10 @@
 <template>
-  <div class="mb-4 space-y-3">
+  <div :class="['mb-4 space-y-3', wrapperClass]">
     <div
-      class="border-base-300 bg-base-100 flex flex-wrap items-center gap-3 rounded-lg border p-3 shadow-sm"
+      :class="[
+        'border-base-300 bg-base-100 flex flex-wrap items-center gap-3 rounded-lg border p-3 shadow-sm',
+        panelClass,
+      ]"
     >
       <!-- Search -->
       <div class="form-control">
@@ -56,11 +59,15 @@ withDefaults(
     searchPlaceholder?: string;
     loading?: boolean;
     showRefresh?: boolean;
+    wrapperClass?: string;
+    panelClass?: string;
   }>(),
   {
     searchPlaceholder: "",
     loading: false,
     showRefresh: true,
+    wrapperClass: "",
+    panelClass: "",
   },
 );
 

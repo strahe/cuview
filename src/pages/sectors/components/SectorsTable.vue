@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { computed, h, reactive, ref, watch } from "vue";
+import {
+  computed,
+  h,
+  reactive,
+  ref,
+  watch,
+  onMounted,
+  onUnmounted,
+  nextTick,
+} from "vue";
 import {
   createColumnHelper,
   FlexRender,
@@ -34,20 +43,11 @@ import type {
   SectorTerminationPayload,
 } from "@/types/sectors";
 
-interface SectorSummary {
-  total: number;
-  filPlus: number;
-  proving: number;
-  flagged: number;
-  snap: number;
-}
-
 interface Props {
   sectors?: SectorListItem[];
   loading?: boolean;
   error?: Error | null;
   onRefresh?: () => void;
-  summary?: SectorSummary;
 }
 
 const ROW_HEIGHT = 56;
@@ -58,16 +58,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: null,
   onRefresh: () => {},
-  summary: () => ({
-    total: 0,
-    filPlus: 0,
-    proving: 0,
-    flagged: 0,
-    snap: 0,
-  }),
 });
-
-const summary = computed(() => props.summary);
 
 const rawData = computed(() => props.sectors ?? []);
 
@@ -441,6 +432,9 @@ watch(filteredRowCount, (count) => {
     ...rowVirtualizer.value.options,
     count,
   });
+  nextTick(() => {
+    rowVirtualizer.value.measure();
+  });
 });
 
 const virtualItems = computed<VirtualItem[]>(() =>
@@ -461,6 +455,34 @@ const virtualRows = computed<VirtualizedRow[]>(() => {
   });
 });
 
+const tableHost = ref<HTMLElement | null>(null);
+const tableHeight = ref("640px");
+
+const calculateTableHeight = () => {
+  if (!tableHost.value) {
+    tableHeight.value = "640px";
+    return;
+  }
+
+  const rect = tableHost.value.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const padding = 24;
+  const available = Math.max(360, viewportHeight - rect.top - padding);
+  tableHeight.value = `${available}px`;
+};
+
+onMounted(() => {
+  calculateTableHeight();
+  window.addEventListener("resize", calculateTableHeight);
+  nextTick(() => {
+    rowVirtualizer.value.measure();
+  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", calculateTableHeight);
+});
+
 const paddingTop = computed(() => {
   const first = virtualItems.value[0];
   return first ? Math.max(0, first.start) : 0;
@@ -471,6 +493,23 @@ const paddingBottom = computed(() => {
   const last = items[items.length - 1];
   if (!last) return 0;
   return Math.max(0, rowVirtualizer.value.getTotalSize() - last.end);
+});
+
+watch(
+  () => [filteredRowCount.value, props.loading, props.error],
+  () => {
+    calculateTableHeight();
+    nextTick(() => {
+      rowVirtualizer.value.measure();
+    });
+  },
+);
+
+watch(scrollContainer, (element) => {
+  if (!element) return;
+  nextTick(() => {
+    rowVirtualizer.value.measure();
+  });
 });
 
 const visibleRowKeys = computed(() =>
@@ -492,29 +531,14 @@ const someVisibleSelected = computed(() => {
 
 const selectedCount = computed(() => selectedKeys.value.size);
 
-const hasSummaryData = computed(() => {
-  const value = summary.value;
-  return (
-    value.total > 0 ||
-    value.filPlus > 0 ||
-    value.proving > 0 ||
-    value.flagged > 0 ||
-    value.snap > 0
-  );
-});
-
-const formatSummaryPercentage = (count: number) => {
-  const total = summary.value.total;
-  if (!total) return "—";
-  return `${((count / total) * 100).toFixed(1)}%`;
-};
-
 const visibleColumnCount = computed(() => table.getVisibleLeafColumns().length);
 
 const searchValue = computed({
   get: () => store.searchQuery,
   set: (value: string) => store.setSearchQuery(value),
 });
+
+const totalCount = computed(() => rawData.value.length);
 
 const showTerminateDialog = ref(false);
 const isTerminating = ref(false);
@@ -875,55 +899,18 @@ const clearAllFilters = () => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4">
+  <div class="flex min-h-0 flex-1 flex-col gap-4">
     <div
-      v-if="hasSummaryData || loading"
-      class="border-base-300 bg-base-100 flex shrink-0 flex-wrap items-center gap-4 rounded-lg border p-4 text-sm shadow-sm"
+      ref="tableHost"
+      class="border-base-300 bg-base-100 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border shadow-md"
     >
-      <div class="flex items-baseline gap-2">
-        <span class="text-base-content/60 text-xs uppercase">Total</span>
-        <span class="text-base-content text-lg font-semibold">
-          {{ summary.total.toLocaleString() }}
-        </span>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <span class="badge badge-accent badge-sm">Fil+</span>
-        <span class="text-base-content font-medium">
-          {{ summary.filPlus.toLocaleString() }}
-        </span>
-        <span class="text-base-content/60 text-xs">
-          ({{ formatSummaryPercentage(summary.filPlus) }})
-        </span>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <span class="badge badge-success badge-sm">Proving</span>
-        <span class="text-base-content font-medium">
-          {{ summary.proving.toLocaleString() }}
-        </span>
-        <span class="text-base-content/60 text-xs">
-          ({{ formatSummaryPercentage(summary.proving) }})
-        </span>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <span class="badge badge-warning badge-sm">Flagged</span>
-        <span class="text-base-content font-medium">
-          {{ summary.flagged.toLocaleString() }}
-        </span>
-        <span v-if="summary.snap > 0" class="text-base-content/60 text-xs">
-          ({{ summary.snap.toLocaleString() }} Snap)
-        </span>
-      </div>
-    </div>
-
-    <div class="shrink-0">
       <TableControls
         :show-refresh="false"
         :search-input="searchValue"
         :loading="loading"
         search-placeholder="Search miners, sectors, or deals..."
+        wrapper-class="!mb-0 !space-y-0"
+        panel-class="rounded-none border-b border-base-300 px-4 py-4 shadow-none"
         @update:search-input="(value: string) => (searchValue = value)"
         @refresh="onRefresh"
       >
@@ -980,7 +967,14 @@ const clearAllFilters = () => {
         </template>
 
         <template #actions>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              class="btn btn-error btn-sm"
+              :disabled="selectedCount === 0"
+              @click="handleOpenTerminateDialog"
+            >
+              Terminate Selected ({{ selectedCount }})
+            </button>
             <button
               v-if="helpers.hasActiveFilters.value"
               class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content"
@@ -989,168 +983,170 @@ const clearAllFilters = () => {
               <XMarkIcon class="h-4 w-4" />
               Clear Filters
             </button>
-            <button
-              class="btn btn-error btn-sm"
-              :disabled="selectedCount === 0"
-              @click="handleOpenTerminateDialog"
-            >
-              Terminate Selected ({{ selectedCount }})
-            </button>
           </div>
         </template>
 
         <template #stats>
-          <span class="font-medium">{{ filteredRowCount }}</span>
-          <span class="text-base-content/60">visible sectors</span>
+          <span class="font-medium">
+            {{ filteredRowCount.toLocaleString() }}
+          </span>
+          <span class="text-base-content/60">
+            visible sectors
+            <span v-if="filteredRowCount !== totalCount">
+              of {{ totalCount.toLocaleString() }}
+            </span>
+          </span>
         </template>
       </TableControls>
-    </div>
 
-    <div
-      class="border-base-300 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border shadow-md"
-    >
-      <div ref="scrollContainer" class="h-full min-h-0 overflow-y-auto">
-        <table class="table-pin-rows table-zebra table w-full">
-          <thead class="bg-base-200 sticky top-0 z-10">
-            <tr
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
-              class="border-base-300 border-b"
-            >
-              <th
-                v-for="header in headerGroup.headers"
-                :key="header.id"
-                :colspan="header.colSpan"
-                class="border-base-200 bg-transparent px-3 py-3 text-left text-sm font-semibold"
-                :class="{
-                  'cursor-pointer select-none': header.column.getCanSort(),
-                }"
-                @click="
-                  header.column.getCanSort() &&
-                  header.column.getToggleSortingHandler()?.($event)
-                "
-              >
-                <div class="flex items-center justify-between gap-2">
-                  <FlexRender
-                    v-if="!header.isPlaceholder"
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                  <span
-                    v-if="header.column.getIsSorted()"
-                    class="text-sm transition-transform duration-200"
-                    :class="{
-                      'rotate-180 transform':
-                        header.column.getIsSorted() === 'desc',
-                    }"
-                  >
-                    ▲
-                  </span>
-                </div>
-                <ColumnStats
-                  :show-stats="store.showAggregateInfo"
-                  :stats-text="getColumnAggregateInfo(header.column.id)"
-                />
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <template v-if="error">
-              <tr>
-                <td :colspan="visibleColumnCount" class="py-10 text-center">
-                  <div
-                    class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
-                  >
-                    <InformationCircleIcon class="text-error h-8 w-8" />
-                  </div>
-                  <h3 class="text-base-content mb-2 text-lg font-semibold">
-                    Unable to load sectors
-                  </h3>
-                  <p class="text-base-content/70 mb-4 text-sm">
-                    {{ error.message }}
-                  </p>
-                  <button
-                    class="btn btn-outline btn-sm"
-                    :disabled="loading"
-                    @click="onRefresh"
-                  >
-                    Retry
-                  </button>
-                </td>
-              </tr>
-            </template>
-
-            <template v-else-if="loading && rawData.length === 0">
-              <tr>
-                <td
-                  :colspan="visibleColumnCount"
-                  class="text-base-content/60 py-12 text-center"
-                >
-                  <div
-                    class="loading loading-spinner loading-lg mx-auto mb-4"
-                  />
-                  Loading sectors...
-                </td>
-              </tr>
-            </template>
-
-            <template v-else-if="!hasVisibleRows">
-              <tr>
-                <td
-                  :colspan="visibleColumnCount"
-                  class="text-base-content/60 py-16 text-center"
-                >
-                  <div
-                    class="border-base-300 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-dashed"
-                  >
-                    <CheckIcon class="text-base-content/50 h-6 w-6" />
-                  </div>
-                  No sectors match the current filters.
-                </td>
-              </tr>
-            </template>
-
-            <template v-else>
-              <tr v-if="paddingTop > 0" class="border-0">
-                <td :colspan="visibleColumnCount" class="p-0">
-                  <div :style="{ height: `${paddingTop}px` }"></div>
-                </td>
-              </tr>
-
+      <div class="min-h-0 flex-1">
+        <div
+          ref="scrollContainer"
+          class="min-h-0 overflow-auto"
+          :style="{ height: tableHeight }"
+        >
+          <table class="table-pin-rows table-zebra table w-full">
+            <thead class="bg-base-200 sticky top-0 z-10">
               <tr
-                v-for="{ virtualItem, row } in virtualRows"
-                :key="row.id"
-                :class="[
-                  getTableRowClasses(true),
-                  'bg-base-100',
-                  selectedKeys.has(getRowKey(row.original))
-                    ? 'selected-row [&>td]:bg-primary/5'
-                    : '',
-                ]"
-                :style="{ height: `${virtualItem.size}px` }"
+                v-for="headerGroup in table.getHeaderGroups()"
+                :key="headerGroup.id"
+                class="border-base-300 border-b"
               >
-                <td
-                  v-for="cell in row.getVisibleCells()"
-                  :key="cell.id"
-                  :title="handlers.getCellTooltip(cell)"
-                  class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
+                <th
+                  v-for="header in headerGroup.headers"
+                  :key="header.id"
+                  :colspan="header.colSpan"
+                  class="border-base-200 bg-transparent px-3 py-3 text-left text-sm font-semibold"
+                  :class="{
+                    'cursor-pointer select-none': header.column.getCanSort(),
+                  }"
+                  @click="
+                    header.column.getCanSort() &&
+                    header.column.getToggleSortingHandler()?.($event)
+                  "
                 >
-                  <FlexRender
-                    :render="cell.column.columnDef.cell"
-                    :props="cell.getContext()"
+                  <div class="flex items-center justify-between gap-2">
+                    <FlexRender
+                      v-if="!header.isPlaceholder"
+                      :render="header.column.columnDef.header"
+                      :props="header.getContext()"
+                    />
+                    <span
+                      v-if="header.column.getIsSorted()"
+                      class="text-sm transition-transform duration-200"
+                      :class="{
+                        'rotate-180 transform':
+                          header.column.getIsSorted() === 'desc',
+                      }"
+                    >
+                      ▲
+                    </span>
+                  </div>
+                  <ColumnStats
+                    :show-stats="store.showAggregateInfo"
+                    :stats-text="getColumnAggregateInfo(header.column.id)"
                   />
-                </td>
+                </th>
               </tr>
+            </thead>
 
-              <tr v-if="paddingBottom > 0" class="border-0">
-                <td :colspan="visibleColumnCount" class="p-0">
-                  <div :style="{ height: `${paddingBottom}px` }"></div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+            <tbody>
+              <template v-if="error">
+                <tr>
+                  <td :colspan="visibleColumnCount" class="py-10 text-center">
+                    <div
+                      class="bg-error/10 mx-auto mb-4 flex size-16 items-center justify-center rounded-full"
+                    >
+                      <InformationCircleIcon class="text-error h-8 w-8" />
+                    </div>
+                    <h3 class="text-base-content mb-2 text-lg font-semibold">
+                      Unable to load sectors
+                    </h3>
+                    <p class="text-base-content/70 mb-4 text-sm">
+                      {{ error.message }}
+                    </p>
+                    <button
+                      class="btn btn-outline btn-sm"
+                      :disabled="loading"
+                      @click="onRefresh"
+                    >
+                      Retry
+                    </button>
+                  </td>
+                </tr>
+              </template>
+
+              <template v-else-if="loading && rawData.length === 0">
+                <tr>
+                  <td
+                    :colspan="visibleColumnCount"
+                    class="text-base-content/60 py-12 text-center"
+                  >
+                    <div
+                      class="loading loading-spinner loading-lg mx-auto mb-4"
+                    />
+                    Loading sectors...
+                  </td>
+                </tr>
+              </template>
+
+              <template v-else-if="!hasVisibleRows">
+                <tr>
+                  <td
+                    :colspan="visibleColumnCount"
+                    class="text-base-content/60 py-16 text-center"
+                  >
+                    <div
+                      class="border-base-300 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-dashed"
+                    >
+                      <CheckIcon class="text-base-content/50 h-6 w-6" />
+                    </div>
+                    No sectors match the current filters.
+                  </td>
+                </tr>
+              </template>
+
+              <template v-else>
+                <tr v-if="paddingTop > 0" class="border-0">
+                  <td :colspan="visibleColumnCount" class="p-0">
+                    <div :style="{ height: `${paddingTop}px` }"></div>
+                  </td>
+                </tr>
+
+                <tr
+                  v-for="{ virtualItem, row } in virtualRows"
+                  :key="row.id"
+                  :class="[
+                    getTableRowClasses(true),
+                    'bg-base-100',
+                    selectedKeys.has(getRowKey(row.original))
+                      ? 'selected-row [&>td]:bg-primary/5'
+                      : '',
+                  ]"
+                  :style="{ height: `${virtualItem.size}px` }"
+                >
+                  <td
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    :title="handlers.getCellTooltip(cell)"
+                    class="border-base-200 border-r px-3 py-3 text-sm last:border-r-0"
+                  >
+                    <FlexRender
+                      :render="cell.column.columnDef.cell"
+                      :props="cell.getContext()"
+                    />
+                  </td>
+                </tr>
+
+                <tr v-if="paddingBottom > 0" class="border-0">
+                  <td :colspan="visibleColumnCount" class="p-0">
+                    <div :style="{ height: `${paddingBottom}px` }"></div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
