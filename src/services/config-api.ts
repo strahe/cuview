@@ -5,6 +5,10 @@ import type {
   ConfigTopologyEntry,
 } from "@/types/config";
 
+const getLayerEndpoint = (layer: string): string => {
+  return `/api/config/layers/${encodeURIComponent(layer)}`;
+};
+
 export async function fetchConfigLayers(
   signal?: AbortSignal,
 ): Promise<string[]> {
@@ -60,7 +64,7 @@ export async function fetchConfigLayer(
 ): Promise<ConfigLayerResponse> {
   const api = useCurioApi();
   const response = await api.restGet<ConfigLayerResponse>(
-    `/api/config/layers/${layer}`,
+    getLayerEndpoint(layer),
     {
       signal,
     },
@@ -73,7 +77,7 @@ export async function saveConfigLayer(
   payload: ConfigLayerResponse,
 ): Promise<void> {
   const api = useCurioApi();
-  await api.restPost(`/api/config/layers/${layer}`, payload);
+  await api.restPost(getLayerEndpoint(layer), payload);
 }
 
 export async function createConfigLayer(name: string): Promise<void> {

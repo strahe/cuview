@@ -48,6 +48,11 @@ const newLayerName = ref("");
 const createError = ref("");
 const creatingLayer = ref(false);
 
+const LAYER_NAME_PATTERN = /^[a-zA-Z0-9-]+$/;
+const validateLayerName = (value: string) => {
+  return LAYER_NAME_PATTERN.test(value);
+};
+
 const loadError = computed(() => {
   return (
     definitions.error.value ?? layers.error.value ?? editor.error.value ?? null
@@ -89,6 +94,11 @@ const handleCreateLayer = async () => {
   const trimmed = newLayerName.value.trim();
   if (!trimmed.length) {
     createError.value = "Layer name cannot be empty.";
+    return;
+  }
+  if (!validateLayerName(trimmed)) {
+    createError.value =
+      "Layer name may only contain letters, numbers, or hyphen (-).";
     return;
   }
 
@@ -223,9 +233,7 @@ const handleOverrideToggle = (payload: {
         <label class="form-control w-full">
           <span class="label">
             <span class="label-text font-medium">Layer Name</span>
-            <span class="label-text-alt">
-              Unique identifier without spaces.
-            </span>
+            <span class="label-text-alt"> Letters, numbers, and - only. </span>
           </span>
           <input
             v-model="newLayerName"
