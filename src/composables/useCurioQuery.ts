@@ -96,6 +96,7 @@ function createQuery<T>(
 
   let pollingTimer: NodeJS.Timeout | null = null;
   let retryTimer: NodeJS.Timeout | null = null;
+  let connectTimer: ReturnType<typeof setTimeout> | null = null;
   let currentRetryCount = 0;
 
   async function execute(isRefresh = false): Promise<void> {
@@ -150,19 +151,42 @@ function createQuery<T>(
 
   const refresh = () => execute(true);
 
+  const clearConnectTimer = () => {
+    if (connectTimer) {
+      clearTimeout(connectTimer);
+      connectTimer = null;
+    }
+  };
+
+  const scheduleInitialFetch = () => {
+    if (!immediate) return;
+
+    clearConnectTimer();
+
+    if (api.isConnected) {
+      void execute();
+      startPolling();
+      return;
+    }
+
+    connectTimer = setTimeout(() => {
+      scheduleInitialFetch();
+    }, 1000);
+  };
+
   function reset() {
     data.value = null;
     loading.value = false;
     refreshing.value = false;
     error.value = null;
     currentRetryCount = 0;
-    stopPolling();
-    clearRetryTimer();
+    cleanupTimers();
+    scheduleInitialFetch();
   }
 
   function startPolling() {
-    // Auto-enable polling if pollingInterval is set
-    const shouldPoll = polling || pollingInterval > 0;
+    // Only enable polling when explicitly requested
+    const shouldPoll = polling && pollingInterval > 0;
     if (!shouldPoll) return;
 
     stopPolling();
@@ -187,6 +211,12 @@ function createQuery<T>(
     }
   }
 
+  function cleanupTimers() {
+    stopPolling();
+    clearRetryTimer();
+    clearConnectTimer();
+  }
+
   const isReady = computed(() => api.isConnected && !loading.value);
   const hasData = computed(() => data.value !== null);
   const isEmpty = computed(
@@ -194,22 +224,11 @@ function createQuery<T>(
   );
 
   onMounted(() => {
-    if (immediate) {
-      const checkAndExecute = () => {
-        if (api.isConnected) {
-          execute();
-          startPolling();
-        } else {
-          setTimeout(checkAndExecute, 1000);
-        }
-      };
-      checkAndExecute();
-    }
+    scheduleInitialFetch();
   });
 
   onUnmounted(() => {
-    stopPolling();
-    clearRetryTimer();
+    cleanupTimers();
   });
 
   return {
