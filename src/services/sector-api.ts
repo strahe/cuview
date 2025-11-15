@@ -20,7 +20,4 @@ export async function terminateSectors(
 ): Promise<void> {
   const api = useCurioApi();
   await api.restPost("/api/sector/terminate", payload);
-  if (typeof document !== "undefined") {
-    document.cookie = "sector_refresh=true; path=/";
-  }
 }

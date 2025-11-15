@@ -393,9 +393,6 @@ const handleDeleteConfirm = async () => {
   deleteError.value = null;
   try {
     await executeAction("delete", sector);
-    if (typeof document !== "undefined") {
-      document.cookie = "sector_refresh=true; path=/";
-    }
     deleteDialogVisible.value = false;
     sectorPendingDelete.value = null;
   } catch (error) {
