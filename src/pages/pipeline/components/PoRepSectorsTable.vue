@@ -360,7 +360,6 @@ const {
 } = handlers;
 
 const handleSectorClick = (sectorNumber: number) => {
-  console.log("Sector clicked:", sectorNumber);
   const sector = rawData.value?.find((s) => s.SectorNumber === sectorNumber);
   if (sector) {
     openModal(sector);

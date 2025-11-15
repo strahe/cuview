@@ -324,7 +324,6 @@ const {
 } = handlers;
 
 const handleUpgradeClick = (sector: SnapSectorEntry) => {
-  console.log("Upgrade clicked:", sector.SectorNumber);
   openModal(sector);
 };
 

@@ -26,9 +26,7 @@ const mainContentMargin = computed(() =>
   layoutStore.sidebarCollapsed ? "4rem" : "16rem",
 );
 
-const handleNotifications = () => {
-  console.log("Open notifications");
-};
+const handleNotifications = () => {};
 
 const handleSettings = () => {
   settingsModalOpen.value = true;

@@ -91,7 +91,6 @@ export class JsonRpcClient {
         this.ws = new WebSocket(wsUrl);
 
         const onOpen = () => {
-          console.log(`JSON-RPC WebSocket connected to ${wsUrl}`);
           this.reconnectAttempts = 0;
           this.events.connected?.();
           resolve();
@@ -105,9 +104,6 @@ export class JsonRpcClient {
         };
 
         const onClose = (event: CloseEvent) => {
-          console.log(
-            `JSON-RPC WebSocket disconnected: ${event.code} ${event.reason}`,
-          );
           this.events.disconnected?.();
           this.rejectAllPending(new Error("WebSocket disconnected"));
 
@@ -249,7 +245,6 @@ export class JsonRpcClient {
 
       if (typeof response.id === "undefined") {
         // This is a notification or server push message, you can handle it here
-        console.log("Received notification:", response);
         return;
       }
 
@@ -279,7 +274,6 @@ export class JsonRpcClient {
       this.isDestroyed ||
       this.reconnectAttempts >= this.config.maxReconnectAttempts
     ) {
-      console.log("Max reconnect attempts reached or client destroyed");
       return;
     }
 
@@ -292,9 +286,6 @@ export class JsonRpcClient {
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectAttempts++;
-      console.log(
-        `Reconnecting... (${this.reconnectAttempts}/${this.config.maxReconnectAttempts})`,
-      );
 
       this.events.reconnecting?.(this.reconnectAttempts);
 

@@ -25,7 +25,6 @@ export const useDebugStore = defineStore(
     const setNetworkSimulation = (mode: typeof networkSimulation.value) => {
       if (!isDebugMode.value) return;
       networkSimulation.value = mode;
-      console.log(`[Debug] Network simulation: ${mode}`);
     };
 
     const toggleDebugMode = () => {
