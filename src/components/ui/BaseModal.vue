@@ -7,6 +7,7 @@ import {
   DialogOverlay,
   DialogContent,
   DialogTitle,
+  DialogDescription,
   DialogClose,
 } from "reka-ui";
 
@@ -16,6 +17,9 @@ interface Props {
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
   modal?: boolean;
+  contentClass?: string;
+  ariaLabel?: string;
+  description?: string;
 }
 
 interface Emits {
@@ -27,6 +31,9 @@ const props = withDefaults(defineProps<Props>(), {
   size: "md",
   showCloseButton: true,
   modal: true,
+  contentClass: "",
+  ariaLabel: "",
+  description: "",
 });
 
 const emit = defineEmits<Emits>();
@@ -46,6 +53,19 @@ const sizeClasses = computed(() => {
 const handleClose = () => {
   emit("close");
 };
+
+const accessibleTitle = computed(() => {
+  return props.title?.trim() || props.ariaLabel?.trim() || "Dialog";
+});
+
+const descriptionText = computed(() => {
+  return (
+    props.description?.trim() ||
+    props.title?.trim() ||
+    props.ariaLabel?.trim() ||
+    "Dialog content"
+  );
+});
 </script>
 
 <template>
@@ -83,17 +103,24 @@ const handleClose = () => {
             v-if="open"
             force-mount
             class="bg-base-100 pointer-events-auto relative max-h-[90vh] w-full overflow-hidden rounded-lg text-left shadow-xl"
-            :class="sizeClasses"
+            :class="[sizeClasses, props.contentClass]"
           >
             <!-- Header -->
             <div
               v-if="title || showCloseButton"
-              class="border-base-300 flex items-center justify-between border-b p-6 pb-4"
+              class="border-base-300 flex items-center gap-3 border-b p-6 pb-4"
             >
-              <DialogTitle v-if="title" class="text-lg leading-6 font-semibold">
-                {{ title }}
-              </DialogTitle>
-              <div v-else></div>
+              <div class="flex-1">
+                <DialogTitle
+                  v-if="title"
+                  class="text-lg leading-6 font-semibold"
+                >
+                  {{ title }}
+                </DialogTitle>
+                <DialogTitle v-else class="sr-only">
+                  {{ accessibleTitle }}
+                </DialogTitle>
+              </div>
               <DialogClose
                 v-if="showCloseButton"
                 class="btn btn-ghost btn-sm btn-circle"
@@ -102,6 +129,12 @@ const handleClose = () => {
                 <XMarkIcon class="size-4" />
               </DialogClose>
             </div>
+            <DialogTitle v-else class="sr-only">
+              {{ accessibleTitle }}
+            </DialogTitle>
+            <DialogDescription class="sr-only">
+              {{ descriptionText }}
+            </DialogDescription>
 
             <!-- Content -->
             <div

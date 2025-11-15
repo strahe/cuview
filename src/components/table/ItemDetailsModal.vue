@@ -1,7 +1,44 @@
+<script setup lang="ts" generic="T">
+import BaseModal from "@/components/ui/BaseModal.vue";
+
+interface Props {
+  show: boolean;
+  item: T | null;
+  dialogClass?: string;
+  ariaLabel?: string;
+  ariaDescription?: string;
+}
+
+interface Emits {
+  (e: "update:show", value: boolean): void;
+  (e: "close"): void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  dialogClass: "max-w-2xl w-full",
+  ariaLabel: "Item details dialog",
+  ariaDescription: "Detailed information about the selected record.",
+});
+const emit = defineEmits<Emits>();
+
+const handleClose = () => {
+  emit("update:show", false);
+  emit("close");
+};
+</script>
+
 <template>
-  <!-- Use simple modal approach without portal -->
-  <div v-if="show" class="modal modal-open">
-    <div :class="['modal-box', props.dialogClass]">
+  <BaseModal
+    :open="props.show"
+    size="xl"
+    :modal="true"
+    :show-close-button="false"
+    :content-class="props.dialogClass"
+    :aria-label="props.ariaLabel"
+    :description="props.ariaDescription"
+    @close="handleClose"
+  >
+    <div class="flex flex-col gap-4">
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <slot name="title" :item="item">
@@ -17,36 +54,5 @@
 
       <slot name="actions" :item="item" />
     </div>
-    <div class="modal-backdrop" @click="handleClose"></div>
-  </div>
+  </BaseModal>
 </template>
-
-<script setup lang="ts" generic="T">
-interface Props {
-  show: boolean;
-  item: T | null;
-  dialogClass?: string;
-}
-
-interface Emits {
-  (e: "update:show", value: boolean): void;
-  (e: "close"): void;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  dialogClass: "max-w-2xl w-full",
-});
-const emit = defineEmits<Emits>();
-
-const handleClose = () => {
-  emit("update:show", false);
-  emit("close");
-};
-
-// Handle escape key
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && props.show) {
-    handleClose();
-  }
-});
-</script>
