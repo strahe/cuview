@@ -16,7 +16,7 @@ It’s a static frontend that connects directly to Curio RPC, so you can host it
 - Make sure protocols match: use `http://` with an `http://` Curio RPC endpoint, and `https://` with `https://` to avoid mixed-content warnings.
 - To self-host, deploy the static bundle to any host that can reach your Curio RPC.
 
-https://github.com/user-attachments/assets/ec47bbf1-96d1-4dab-ab4b-04b2ebc9115f
+https://github.com/user-attachments/assets/c2c2efdf-07a5-456c-96cb-bdf55d38d3b9
 
 ## Local Development
 
