@@ -1,4 +1,18 @@
 import { formatBytes as formatSize } from "@/utils/format";
+import type {
+  Mk20DealSummary,
+  Mk20DealSummaryRaw,
+  Mk20FailedTaskType,
+  Mk20Pipeline,
+  Mk20PipelineRaw,
+  Mk20PdpDeal,
+  Mk20PdpDealRaw,
+} from "@/types/market";
+import {
+  unwrapSqlNullableNumber,
+  unwrapSqlNullableString,
+  unwrapSqlNullableTime,
+} from "@/utils/sql";
 
 // Filecoin epochs are ~30 seconds, so 30 days ~= 86,400 epochs.
 const EPOCHS_IN_MONTH = 86400;
@@ -91,3 +105,111 @@ export function getTaskTypeName(type: string): string {
   };
   return names[type] || type;
 }
+
+export function normalizeMk20Pipeline(raw: Mk20PipelineRaw): Mk20Pipeline {
+  return {
+    id: raw.id,
+    sp_id: raw.sp_id,
+    contract: raw.contract || null,
+    client: raw.client,
+    piece_cid_v2: raw.piece_cid_v2,
+    piece_cid: raw.piece_cid,
+    piece_size: raw.piece_size,
+    raw_size: raw.raw_size,
+    offline: raw.offline,
+    url: unwrapSqlNullableString(raw.url),
+    indexing: raw.indexing,
+    announce: raw.announce,
+    allocation_id: unwrapSqlNullableNumber(raw.allocation_id),
+    piece_aggregation: raw.piece_aggregation ?? null,
+    started: raw.started,
+    downloaded: raw.downloaded,
+    commp_task_id: unwrapSqlNullableNumber(raw.commp_task_id),
+    after_commp: raw.after_commp,
+    deal_aggregation: raw.deal_aggregation,
+    aggr_index: raw.aggr_index,
+    agg_task_id: unwrapSqlNullableNumber(raw.agg_task_id),
+    aggregated: raw.aggregated,
+    sector: unwrapSqlNullableNumber(raw.sector),
+    reg_seal_proof: unwrapSqlNullableNumber(raw.reg_seal_proof),
+    sector_offset: unwrapSqlNullableNumber(raw.sector_offset),
+    sealed: raw.sealed,
+    indexing_created_at: unwrapSqlNullableTime(raw.indexing_created_at),
+    indexing_task_id: unwrapSqlNullableNumber(raw.indexing_task_id),
+    indexed: raw.indexed,
+    complete: raw.complete,
+    created_at: raw.created_at,
+    miner: raw.miner,
+  };
+}
+
+export function normalizeMk20DealSummary(
+  raw: Mk20DealSummaryRaw,
+): Mk20DealSummary {
+  return {
+    id: raw.id,
+    created_at: raw.created_at,
+    piece_cid_v2: unwrapSqlNullableString(raw.piece_cid_v2),
+    processed: raw.processed,
+    error: unwrapSqlNullableString(raw.error),
+    miner: unwrapSqlNullableString(raw.miner),
+  };
+}
+
+export function normalizeMk20PdpDeal(raw: Mk20PdpDealRaw): Mk20PdpDeal {
+  return {
+    id: raw.id,
+    created_at: raw.created_at,
+    piece_cid_v2: unwrapSqlNullableString(raw.piece_cid_v2),
+    processed: raw.processed,
+    error: unwrapSqlNullableString(raw.error),
+  };
+}
+
+export const getMk20DealStatus = (pipeline: Mk20Pipeline): string => {
+  const hasSector = pipeline.sector !== null && pipeline.sector !== undefined;
+
+  if (pipeline.complete) {
+    return "(#########) Complete";
+  }
+
+  if (!pipeline.complete && pipeline.announce && pipeline.indexed) {
+    return "(########.) Announcing";
+  }
+
+  if (pipeline.sealed && !pipeline.indexed) {
+    return "(#######..) Indexing";
+  }
+
+  if (hasSector && !pipeline.sealed) {
+    return "(######...) Sealing";
+  }
+
+  if (pipeline.aggregated && !hasSector) {
+    return "(#####....) Assigning Sector";
+  }
+
+  if (pipeline.after_commp && !pipeline.aggregated) {
+    return "(####.....) Aggregating Deal";
+  }
+
+  if (pipeline.downloaded && !pipeline.after_commp) {
+    return "(###......) CommP";
+  }
+
+  if (pipeline.started && !pipeline.downloaded) {
+    return "(##.......) Downloading";
+  }
+
+  return "(#........) Accepted";
+};
+
+export const getMk20TaskTypeName = (type: Mk20FailedTaskType): string => {
+  const names: Record<Mk20FailedTaskType, string> = {
+    downloading: "Downloading",
+    commp: "CommP Verification",
+    aggregate: "Aggregate",
+    index: "Indexing",
+  };
+  return names[type];
+};
