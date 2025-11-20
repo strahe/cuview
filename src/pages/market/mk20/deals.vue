@@ -22,12 +22,10 @@ import type { Mk20DealDetail } from "@/types/market";
 
 const detailModalOpen = ref(false);
 const detailError = ref<string | null>(null);
-const selectedDealId = ref<string | null>(null);
 const dealDetailQuery = useLazyQuery<Mk20DealDetail>("MK20DDOStorageDeal");
 
 const openDealDetails = async (id: string) => {
   detailError.value = null;
-  selectedDealId.value = id;
   try {
     await dealDetailQuery.execute(id);
     detailModalOpen.value = true;
@@ -53,7 +51,7 @@ const handleCloseDetail = () => {
       <SectionCard
         title="Deal Search"
         :icon="InformationCircleIcon"
-        tooltip="Jump directly to any MK20 deal via ULID."
+        tooltip="Find an MK20 deal by ID."
       >
         <Mk20DealSearch @search="handleSearch" />
         <p v-if="detailError" class="text-error mt-3 text-sm font-medium">

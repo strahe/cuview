@@ -116,6 +116,17 @@ const columns = [
         `Copy pipeline ID ${info.getValue()}`,
       ),
   }),
+  columnHelper.accessor("client", {
+    header: "Client",
+    size: 160,
+    enableGrouping: false,
+    cell: (info) =>
+      h(
+        "span",
+        { class: "font-mono text-sm text-base-content" },
+        info.getValue(),
+      ),
+  }),
   columnHelper.accessor("miner", {
     header: "SP",
     size: 140,
@@ -136,6 +147,64 @@ const columns = [
         6,
         `Copy piece CID ${info.getValue()}`,
       ),
+  }),
+  columnHelper.accessor("contract", {
+    header: "Contract",
+    size: 160,
+    enableGrouping: false,
+    cell: (info) => {
+      const value = info.getValue();
+      return value
+        ? h("span", { class: "font-mono text-xs" }, value)
+        : h("span", { class: "text-base-content/60 text-xs" }, "N/A");
+    },
+  }),
+  columnHelper.accessor("allocation_id", {
+    header: "Alloc",
+    size: 100,
+    enableGrouping: false,
+    cell: (info) => {
+      const value = info.getValue();
+      return value != null
+        ? h("span", { class: "font-mono text-sm" }, value)
+        : h("span", { class: "text-base-content/60 text-xs" }, "—");
+    },
+  }),
+  columnHelper.accessor("piece_aggregation", {
+    header: "Agg",
+    size: 90,
+    enableGrouping: false,
+    cell: (info) =>
+      h(
+        "span",
+        { class: "badge badge-ghost badge-sm" },
+        info.getValue() ?? "—",
+      ),
+  }),
+  columnHelper.accessor("sector", {
+    header: "Sector",
+    size: 110,
+    enableGrouping: false,
+    cell: (info) => {
+      const value = info.getValue();
+      return value != null
+        ? h("span", { class: "font-mono text-sm" }, value)
+        : h("span", { class: "text-base-content/60 text-xs" }, "Pending");
+    },
+  }),
+  columnHelper.accessor("sealed", {
+    header: "Sealed",
+    size: 100,
+    enableGrouping: false,
+    cell: (info) => {
+      const value = info.getValue();
+      const badgeClass = value ? "badge-success" : "badge-warning";
+      return h(
+        "span",
+        { class: `badge ${badgeClass} badge-sm font-semibold uppercase` },
+        value ? "Yes" : "No",
+      );
+    },
   }),
   columnHelper.accessor("piece_size", {
     header: "Piece Size",
@@ -333,6 +402,14 @@ const getColumnAggregateInfo = (columnId: string) => {
       if (!firstItem) return "";
       return `Latest: ${formatPieceCidShort(firstItem.piece_cid_v2)}`;
     }
+    case "client": {
+      const unique = new Set(items.map((pipeline) => pipeline.client));
+      return `${unique.size} unique clients`;
+    }
+    case "sealed": {
+      const sealed = items.filter((pipeline) => pipeline.sealed).length;
+      return `${sealed} sealed`;
+    }
     case "piece_size": {
       const totalSize = items.reduce(
         (sum, pipeline) => sum + pipeline.piece_size,
@@ -354,7 +431,7 @@ const getColumnAggregateInfo = (columnId: string) => {
   <SectionCard
     title="MK20 Deal Pipelines"
     :icon="QueueListIcon"
-    tooltip="Live MK20 pipeline activity with incremental loading."
+    tooltip="MK20 pipeline activity."
   >
     <div class="space-y-4">
       <div v-if="failedStatsError" class="alert alert-warning shadow-lg">

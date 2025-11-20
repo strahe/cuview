@@ -6,7 +6,14 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/vue/24/outline";
 import SectionCard from "@/components/ui/SectionCard.vue";
+import TableControls from "@/components/table/TableControls.vue";
+import ColumnStats from "@/components/table/ColumnStats.vue";
+import CopyButton from "@/components/ui/CopyButton.vue";
 import { useCurioQuery } from "@/composables/useCurioQuery";
+import { useStandardTable } from "@/composables/useStandardTable";
+import { formatDateTime } from "@/utils/format";
+import { formatPieceCidShort } from "@/utils/pdp";
+import { getTableRowClasses } from "@/utils/ui";
 import { normalizeMk20DealSummary } from "@/utils/market";
 import type { Mk20DealSummary, Mk20DealSummaryRaw } from "@/types/market";
 import {
@@ -14,12 +21,6 @@ import {
   FlexRender,
   type ColumnDef,
 } from "@tanstack/vue-table";
-import TableControls from "@/components/table/TableControls.vue";
-import ColumnStats from "@/components/table/ColumnStats.vue";
-import { getTableRowClasses } from "@/utils/ui";
-import { formatDateTime } from "@/utils/format";
-import { formatPieceCidShort } from "@/utils/pdp";
-import { useStandardTable } from "@/composables/useStandardTable";
 
 const emit = defineEmits<{
   (e: "view-deal", id: string): void;
@@ -31,6 +32,7 @@ const offset = ref(0);
 const items = ref<Mk20DealSummary[]>([]);
 const loading = ref(false);
 const error = ref<Error | null>(null);
+const hasMore = ref(true);
 
 const loadPage = async () => {
   loading.value = true;
@@ -42,20 +44,24 @@ const loadPage = async () => {
     ]);
     const payload = response ?? [];
     items.value = payload.map((entry) => normalizeMk20DealSummary(entry));
+    hasMore.value = payload.length === pageSize;
   } catch (err) {
     error.value = err as Error;
     items.value = [];
+    hasMore.value = false;
   } finally {
     loading.value = false;
   }
 };
 
 const nextPage = async () => {
+  if (loading.value || !hasMore.value) return;
   offset.value += pageSize;
   await loadPage();
 };
 
 const prevPage = async () => {
+  if (loading.value || offset.value === 0) return;
   offset.value = Math.max(0, offset.value - pageSize);
   await loadPage();
 };
@@ -64,14 +70,13 @@ const currentPage = computed(() =>
   pageSize > 0 ? Math.floor(offset.value / pageSize) + 1 : 1,
 );
 const canGoPrev = computed(() => offset.value > 0);
-const canGoNext = computed(() => items.value.length === pageSize);
+const canGoNext = computed(() => hasMore.value);
 
 onMounted(() => {
   void loadPage();
 });
 
 const columnHelper = createColumnHelper<Mk20DealSummary>();
-
 const columns = [
   columnHelper.accessor("created_at", {
     header: "Created At",
@@ -143,21 +148,29 @@ const columns = [
   columnHelper.display({
     id: "actions",
     header: "Actions",
-    size: 140,
+    size: 200,
     enableGrouping: false,
     enableSorting: false,
     cell: (info) =>
-      h(
-        "button",
-        {
-          class: "btn btn-sm btn-outline",
-          onClick: () => handleViewDetails(info.row.original.id),
-        },
-        [
-          h(ArrowTopRightOnSquareIcon, { class: "size-4" }),
-          h("span", null, "Details"),
-        ],
-      ),
+      h("div", { class: "flex items-center gap-2" }, [
+        h(
+          "button",
+          {
+            class: "btn btn-sm btn-outline",
+            onClick: () => emit("view-deal", info.row.original.id),
+          },
+          [
+            h(ArrowTopRightOnSquareIcon, { class: "size-4" }),
+            h("span", null, "Details"),
+          ],
+        ),
+        h(CopyButton, {
+          value: `/market/mk20/deal/${info.row.original.id}`,
+          borderless: true,
+          iconOnly: true,
+          ariaLabel: "Copy deal link",
+        }),
+      ]),
   }),
 ];
 
@@ -171,17 +184,13 @@ const { table, store, helpers } = useStandardTable<Mk20DealSummary>({
 });
 
 const { hasData: tableHasData, totalItems } = helpers;
-
-const handleViewDetails = (id: string) => {
-  emit("view-deal", id);
-};
 </script>
 
 <template>
   <SectionCard
     title="DDO Deals"
     :icon="ClipboardDocumentListIcon"
-    tooltip="Paginated MK20 deal summaries with detail drill-down."
+    tooltip="Paginated MK20 deal summaries."
   >
     <div class="space-y-4">
       <TableControls
@@ -338,6 +347,29 @@ const handleViewDetails = (id: string) => {
             </template>
           </tbody>
         </table>
+
+        <div
+          v-if="tableHasData"
+          class="border-base-300 bg-base-100 text-base-content/70 flex items-center justify-between border-t px-4 py-3 text-sm"
+        >
+          <div>Page {{ currentPage }}</div>
+          <div class="join">
+            <button
+              class="btn btn-ghost btn-sm join-item"
+              :disabled="loading || !canGoPrev"
+              @click="prevPage"
+            >
+              Previous
+            </button>
+            <button
+              class="btn btn-ghost btn-sm join-item"
+              :disabled="loading || !canGoNext"
+              @click="nextPage"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </SectionCard>

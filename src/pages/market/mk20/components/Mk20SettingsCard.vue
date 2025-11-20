@@ -156,7 +156,7 @@ onMounted(() => {
   <SectionCard
     title="Settings"
     :icon="AdjustmentsHorizontalIcon"
-    tooltip="Manage MK20 products and data sources."
+    tooltip="MK20 products and data sources."
   >
     <div class="space-y-4">
       <div v-if="error" class="alert alert-error">
