@@ -25,6 +25,8 @@ const detailModalOpen = ref(false);
 const detailError = ref<string | null>(null);
 const dealDetailQuery = useLazyQuery<Mk20DealDetail>("MK20DDOStorageDeal");
 const selectedDealId = ref<string | null>(null);
+const activeRequestId = ref(0);
+const lastResolvedDeal = ref<Mk20DealDetail | null>(null);
 
 const route = useRoute();
 const router = useRouter();
@@ -54,12 +56,21 @@ const updateDealQuery = async (dealId: string | null) => {
 };
 
 const loadDealDetails = async (id: string) => {
+  const requestId = ++activeRequestId.value;
   detailError.value = null;
   selectedDealId.value = id;
   try {
     await dealDetailQuery.execute(id);
+    if (requestId !== activeRequestId.value) {
+      if (lastResolvedDeal.value) {
+        dealDetailQuery.data.value = lastResolvedDeal.value;
+      }
+      return;
+    }
+    lastResolvedDeal.value = dealDetailQuery.data.value;
     detailModalOpen.value = true;
   } catch (err) {
+    if (requestId !== activeRequestId.value) return;
     detailError.value =
       err instanceof Error ? err.message : "Failed to load deal details";
     detailModalOpen.value = false;
@@ -83,6 +94,7 @@ const handleSearch = (id: string) => {
 const handleCloseDetail = async () => {
   detailModalOpen.value = false;
   selectedDealId.value = null;
+  lastResolvedDeal.value = null;
   suppressQueryWatcher = true;
   await updateDealQuery(null);
 };
