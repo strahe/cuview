@@ -2,7 +2,7 @@
 <route>
 {
   "meta": {
-    "title": "Market Deals"
+    "title": "MK12 Deals"
   }
 }
 </route>
@@ -13,10 +13,10 @@ import { ClockIcon, QueueListIcon } from "@heroicons/vue/24/outline";
 import { useCachedQuery } from "@/composables/useCachedQuery";
 import { useLazyQuery } from "@/composables/useLazyQuery";
 import SectionCard from "@/components/ui/SectionCard.vue";
-import MarketLayout from "./components/MarketLayout.vue";
-import FailedTasksPanel from "./deals/components/FailedTasksPanel.vue";
-import DealPipelinesTable from "./deals/components/DealPipelinesTable.vue";
-import PendingDealsTable from "./deals/components/PendingDealsTable.vue";
+import MarketLayout from "../components/MarketLayout.vue";
+import FailedTasksPanel from "../deals/components/FailedTasksPanel.vue";
+import DealPipelinesTable from "../deals/components/DealPipelinesTable.vue";
+import PendingDealsTable from "../deals/components/PendingDealsTable.vue";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog.vue";
 import { getTaskTypeName } from "@/utils/market";
 import type {
@@ -218,7 +218,7 @@ const clearError = () => {
 </script>
 
 <template>
-  <MarketLayout current-tab="deals">
+  <MarketLayout current-tab="mk12-deals">
     <div class="space-y-6">
       <!-- Pending Deals -->
       <SectionCard

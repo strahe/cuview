@@ -93,9 +93,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/market/deals': RouteRecordInfo<
-      '/market/deals',
-      '/market/deals',
+    '/market/mk12/deals': RouteRecordInfo<
+      '/market/mk12/deals',
+      '/market/mk12/deals',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/market/mk20/deals': RouteRecordInfo<
+      '/market/mk20/deals',
+      '/market/mk20/deals',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -271,9 +278,15 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/market/deals.vue': {
+    'src/pages/market/mk12/deals.vue': {
       routes:
-        | '/market/deals'
+        | '/market/mk12/deals'
+      views:
+        | never
+    }
+    'src/pages/market/mk20/deals.vue': {
+      routes:
+        | '/market/mk20/deals'
       views:
         | never
     }

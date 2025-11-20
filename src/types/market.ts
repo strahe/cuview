@@ -1,3 +1,9 @@
+import type {
+  SqlNullableNumber,
+  SqlNullableString,
+  SqlNullableTime,
+} from "./sql";
+
 // Storage Ask types based on Curio RPC methods
 
 export interface StorageAsk {
@@ -84,6 +90,132 @@ export type FailedTaskType =
   | "psd"
   | "find_deal"
   | "index";
+
+// MK20 pipeline + deal types
+
+export type Mk20FailedTaskType =
+  | "downloading"
+  | "commp"
+  | "aggregate"
+  | "index";
+
+export interface Mk20PipelineRaw {
+  id: string;
+  sp_id: number;
+  contract: string;
+  client: string;
+  piece_cid_v2: string;
+  piece_cid: string;
+  piece_size: number;
+  raw_size: number;
+  offline: boolean;
+  url: SqlNullableString | string | null;
+  indexing: boolean;
+  announce: boolean;
+  allocation_id: SqlNullableNumber | number | null;
+  piece_aggregation: number;
+  started: boolean;
+  downloaded: boolean;
+  commp_task_id: SqlNullableNumber | number | null;
+  after_commp: boolean;
+  deal_aggregation: number;
+  aggr_index: number;
+  agg_task_id: SqlNullableNumber | number | null;
+  aggregated: boolean;
+  sector: SqlNullableNumber | number | null;
+  reg_seal_proof: SqlNullableNumber | number | null;
+  sector_offset: SqlNullableNumber | number | null;
+  sealed: boolean;
+  indexing_created_at: SqlNullableTime | string | null;
+  indexing_task_id: SqlNullableNumber | number | null;
+  indexed: boolean;
+  complete: boolean;
+  created_at: string;
+  miner: string;
+}
+
+export interface Mk20Pipeline {
+  id: string;
+  sp_id: number;
+  contract: string | null;
+  client: string;
+  piece_cid_v2: string;
+  piece_cid: string;
+  piece_size: number;
+  raw_size: number;
+  offline: boolean;
+  url: string | null;
+  indexing: boolean;
+  announce: boolean;
+  allocation_id: number | null;
+  piece_aggregation: number | null;
+  started: boolean;
+  downloaded: boolean;
+  commp_task_id: number | null;
+  after_commp: boolean;
+  deal_aggregation: number;
+  aggr_index: number;
+  agg_task_id: number | null;
+  aggregated: boolean;
+  sector: number | null;
+  reg_seal_proof: number | null;
+  sector_offset: number | null;
+  sealed: boolean;
+  indexing_created_at: string | null;
+  indexing_task_id: number | null;
+  indexed: boolean;
+  complete: boolean;
+  created_at: string;
+  miner: string;
+}
+
+export interface Mk20PipelineFailedStats {
+  DownloadingFailed: number;
+  CommPFailed: number;
+  AggFailed: number;
+  IndexFailed: number;
+}
+
+export interface Mk20DealSummaryRaw {
+  id: string;
+  created_at: string;
+  piece_cid_v2: SqlNullableString | string | null;
+  processed: boolean;
+  error: SqlNullableString | string | null;
+  miner: SqlNullableString | string | null;
+}
+
+export interface Mk20DealSummary {
+  id: string;
+  created_at: string;
+  piece_cid_v2: string | null;
+  processed: boolean;
+  error: string | null;
+  miner: string | null;
+}
+
+export interface Mk20DealDetail {
+  deal?: Record<string, unknown>;
+  ddoerr?: SqlNullableString | string | null;
+  pdperr?: SqlNullableString | string | null;
+  ddoid?: SqlNullableNumber | number | null;
+}
+
+export interface Mk20PdpDealRaw {
+  id: string;
+  created_at: string;
+  piece_cid_v2: SqlNullableString | string | null;
+  processed: boolean;
+  error: SqlNullableString | string | null;
+}
+
+export interface Mk20PdpDeal {
+  id: string;
+  created_at: string;
+  piece_cid_v2: string | null;
+  processed: boolean;
+  error: string | null;
+}
 
 // Pipeline Stats (from PipelineStatsMarket RPC)
 export interface PipelineStage {
