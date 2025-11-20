@@ -8,7 +8,8 @@
 </route>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 import { InformationCircleIcon } from "@heroicons/vue/24/outline";
 import SectionCard from "@/components/ui/SectionCard.vue";
 import MarketLayout from "../components/MarketLayout.vue";
@@ -23,9 +24,38 @@ import type { Mk20DealDetail } from "@/types/market";
 const detailModalOpen = ref(false);
 const detailError = ref<string | null>(null);
 const dealDetailQuery = useLazyQuery<Mk20DealDetail>("MK20DDOStorageDeal");
+const selectedDealId = ref<string | null>(null);
 
-const openDealDetails = async (id: string) => {
+const route = useRoute();
+const router = useRouter();
+
+const dealParam = computed(() => {
+  const raw = route.query.deal;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length ? trimmed : null;
+});
+
+let suppressQueryWatcher = false;
+
+const updateDealQuery = async (dealId: string | null) => {
+  const current = dealParam.value;
+  if (dealId === current || (!dealId && !current)) return;
+
+  const nextQuery = { ...route.query } as LocationQueryRaw;
+
+  if (dealId) {
+    nextQuery.deal = dealId;
+  } else {
+    delete nextQuery.deal;
+  }
+
+  await router.replace({ query: nextQuery });
+};
+
+const loadDealDetails = async (id: string) => {
   detailError.value = null;
+  selectedDealId.value = id;
   try {
     await dealDetailQuery.execute(id);
     detailModalOpen.value = true;
@@ -36,13 +66,48 @@ const openDealDetails = async (id: string) => {
   }
 };
 
+const handleDeepLink = async (id: string) => {
+  await loadDealDetails(id);
+};
+
+const openDealDetails = async (id: string) => {
+  suppressQueryWatcher = true;
+  await updateDealQuery(id);
+  await loadDealDetails(id);
+};
+
 const handleSearch = (id: string) => {
   void openDealDetails(id);
 };
 
-const handleCloseDetail = () => {
+const handleCloseDetail = async () => {
   detailModalOpen.value = false;
+  selectedDealId.value = null;
+  suppressQueryWatcher = true;
+  await updateDealQuery(null);
 };
+
+watch(
+  dealParam,
+  (id) => {
+    if (suppressQueryWatcher) {
+      suppressQueryWatcher = false;
+      return;
+    }
+
+    if (!id) {
+      selectedDealId.value = null;
+      detailModalOpen.value = false;
+      detailError.value = null;
+      return;
+    }
+
+    if (id === selectedDealId.value && detailModalOpen.value) return;
+
+    void handleDeepLink(id);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

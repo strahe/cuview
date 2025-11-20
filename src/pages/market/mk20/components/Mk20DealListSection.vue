@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, h, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   ClipboardDocumentListIcon,
   ArrowTopRightOnSquareIcon,
@@ -25,6 +26,21 @@ import {
 const emit = defineEmits<{
   (e: "view-deal", id: string): void;
 }>();
+
+const router = useRouter();
+
+const resolveDealLink = (dealId: string) => {
+  const href = router.resolve({
+    path: "/market/mk20/deals",
+    query: { deal: dealId },
+  }).href;
+
+  if (typeof window !== "undefined") {
+    return new URL(href, window.location.origin).toString();
+  }
+
+  return href;
+};
 
 const { call } = useCurioQuery();
 const pageSize = 25;
@@ -165,7 +181,7 @@ const columns = [
           ],
         ),
         h(CopyButton, {
-          value: `/market/mk20/deal/${info.row.original.id}`,
+          value: resolveDealLink(info.row.original.id),
           borderless: true,
           iconOnly: true,
           ariaLabel: "Copy deal link",
