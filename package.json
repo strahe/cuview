@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
-    "@tailwindcss/vite": "^4.1.16",
+    "@tailwindcss/vite": "^4.1.17",
     "@tanstack/vue-form": "^1.23.7",
     "@tanstack/vue-table": "^8.21.3",
     "@tanstack/vue-virtual": "^3.13.12",
