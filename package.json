@@ -20,7 +20,7 @@
     "@tanstack/vue-form": "^1.23.7",
     "@tanstack/vue-table": "^8.21.3",
     "@tanstack/vue-virtual": "^3.13.12",
-    "@vueuse/core": "^14.0.0",
+    "@vueuse/core": "^14.1.0",
     "apexcharts": "^5.3.6",
     "daisyui": "^5.4.7",
     "date-fns": "^4.1.0",
