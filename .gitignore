@@ -1,0 +1,3 @@
+node_modules
+dist
+src/route-tree.gen.ts
