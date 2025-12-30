@@ -1,0 +1,98 @@
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
+import { useCurioApi } from "@/contexts/curio-api-context";
+import { CurioApiService } from "@/services/curio-api";
+
+const DEFAULT_POLL_INTERVAL = 30_000;
+
+/**
+ * Hook for JSON-RPC calls via TanStack Query with automatic polling.
+ */
+export function useCurioRpc<T>(
+  method: string,
+  params: unknown[] = [],
+  options?: {
+    refetchInterval?: number | false;
+    enabled?: boolean;
+    staleTime?: number;
+  },
+) {
+  const api = useCurioApi();
+
+  return useQuery({
+    queryKey: ["curio", method, ...params],
+    queryFn: () => api.call<T>(method, params),
+    refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
+    enabled: options?.enabled,
+    staleTime: options?.staleTime,
+  });
+}
+
+/**
+ * Hook for REST GET calls via TanStack Query.
+ */
+export function useCurioRest<T>(
+  path: string,
+  options?: {
+    refetchInterval?: number | false;
+    enabled?: boolean;
+    staleTime?: number;
+    queryKey?: unknown[];
+  },
+) {
+  const api = useCurioApi();
+
+  return useQuery({
+    queryKey: options?.queryKey ?? ["curio-rest", path],
+    queryFn: ({ signal }) => api.restGet<T>(path, { signal }),
+    refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
+    enabled: options?.enabled,
+    staleTime: options?.staleTime,
+  });
+}
+
+/**
+ * Hook for REST POST mutations.
+ */
+export function useCurioMutation<TData = unknown, TVariables = unknown>(
+  path: string,
+  options?: {
+    invalidateKeys?: string[][];
+    onSuccess?: (data: TData) => void;
+    onError?: (error: Error) => void;
+  },
+) {
+  const api = useCurioApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (variables: TVariables) =>
+      api.restPost<TData>(path, variables),
+    onSuccess: (data) => {
+      options?.invalidateKeys?.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      options?.onSuccess?.(data);
+    },
+    onError: options?.onError,
+  });
+}
+
+/**
+ * Helper to create typed query options for use with prefetching.
+ */
+export function curioQueryOptions<T>(
+  api: CurioApiService,
+  method: string,
+  params: unknown[] = [],
+): UseQueryOptions<T> {
+  return {
+    queryKey: ["curio", method, ...params],
+    queryFn: () => api.call<T>(method, params),
+    staleTime: 10_000,
+  };
+}
