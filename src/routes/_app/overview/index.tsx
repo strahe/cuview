@@ -1,20 +1,56 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Home } from "lucide-react";
+import { usePageTitle } from "@/hooks/use-page-title";
+import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
+import { DashboardHero } from "./-components/dashboard-hero";
+import { ChainConnectivity } from "./-components/chain-connectivity";
+import { StorageStats } from "./-components/storage-stats";
+import { ClusterMachines } from "./-components/cluster-machines";
+import { TaskCounts } from "./-components/task-counts";
+import { DashboardRecentTasks } from "./-components/dashboard-recent-tasks";
 
 export const Route = createFileRoute("/_app/overview/")({
   component: OverviewPage,
 });
 
 function OverviewPage() {
+  usePageTitle("Dashboard");
+
+  const {
+    loading,
+    heroCards,
+    syncerState,
+    syncLoading,
+    storageStats,
+    storageLoading,
+    machines,
+    machinesLoading,
+    taskStats,
+    taskStatsLoading,
+    recentTasks,
+    recentTasksLoading,
+    recentTasksError,
+    refresh,
+  } = useDashboardSummary();
+
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3">
-        <Home className="size-6" />
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+      <DashboardHero cards={heroCards} loading={loading} onRefresh={refresh} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ChainConnectivity data={syncerState} loading={syncLoading} />
+        <StorageStats data={storageStats} loading={storageLoading} />
+
+        <div className="xl:col-span-2">
+          <ClusterMachines data={machines} loading={machinesLoading} />
+        </div>
+
+        <TaskCounts data={taskStats} loading={taskStatsLoading} />
+        <DashboardRecentTasks
+          data={recentTasks}
+          loading={recentTasksLoading}
+          error={recentTasksError}
+        />
       </div>
-      <p className="text-[hsl(var(--muted-foreground))]">
-        Overview dashboard — components coming soon.
-      </p>
     </div>
   );
 }

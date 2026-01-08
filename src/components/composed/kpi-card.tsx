@@ -3,10 +3,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
-interface KPICardProps {
-  title: string;
+export interface KPICardProps {
+  title?: string;
+  label?: string;
   value: string | number;
   description?: string;
+  subtitle?: string;
   icon?: LucideIcon;
   trend?: "up" | "down" | "neutral";
   trendValue?: string;
@@ -16,14 +18,18 @@ interface KPICardProps {
 
 export function KPICard({
   title,
+  label,
   value,
   description,
+  subtitle,
   icon: Icon,
   trend,
   trendValue,
   loading,
   className,
 }: KPICardProps) {
+  const displayTitle = title ?? label ?? "";
+  const displayDescription = description ?? subtitle;
   if (loading) {
     return (
       <Card className={className}>
@@ -41,7 +47,7 @@ export function KPICard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-            {title}
+            {displayTitle}
           </p>
           {Icon && (
             <Icon className="size-4 text-[hsl(var(--muted-foreground))]" />
@@ -62,9 +68,9 @@ export function KPICard({
             </span>
           )}
         </div>
-        {description && (
+        {displayDescription && (
           <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
-            {description}
+            {displayDescription}
           </p>
         )}
       </CardContent>
