@@ -51,14 +51,14 @@ export const navigationEntries: NavigationEntry[] = [
   {
     label: "Pipeline",
     icon: ArrowRightLeft,
-    to: "/pipeline",
+    to: "/pipeline/porep",
     activePattern: "^/pipeline",
     keywords: ["pipeline", "porep", "workflow"],
   },
   {
     label: "Market",
     icon: Store,
-    to: "/market",
+    to: "/market/balance",
     activePattern: "^/market",
     keywords: ["deal", "market", "storage market"],
   },
