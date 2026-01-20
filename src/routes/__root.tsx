@@ -5,6 +5,8 @@ import {
 import type { QueryClient } from "@tanstack/react-query";
 import { CurioApiProvider } from "@/contexts/curio-api-context";
 import { LayoutProvider } from "@/contexts/layout-context";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { AppQuickSearch } from "@/components/composed/app-quick-search";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -18,7 +20,10 @@ function RootComponent() {
   return (
     <LayoutProvider>
       <CurioApiProvider>
-        <Outlet />
+        <ErrorBoundary>
+          <AppQuickSearch />
+          <Outlet />
+        </ErrorBoundary>
       </CurioApiProvider>
     </LayoutProvider>
   );

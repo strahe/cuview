@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useCallback, type ReactNode } from "react";
 import { CollapsibleSidebar } from "./collapsible-sidebar";
 import { useLayout } from "@/contexts/layout-context";
 import {
@@ -44,19 +44,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const layout = useLayout();
   const connectionStatus = useConnectionStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [quickSearchOpen, setQuickSearchOpen] = useState(false);
 
-  const handleShortcut = useCallback((event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      setQuickSearchOpen((prev) => !prev);
-    }
+  const openSearch = useCallback(() => {
+    // Trigger ⌘K which AppQuickSearch listens for
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true }),
+    );
   }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [handleShortcut]);
 
   return (
     <div className="flex min-h-screen bg-[hsl(var(--background))]">
@@ -135,7 +129,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             {/* Search */}
             <div className="mx-8 max-w-md flex-1">
               <button
-                onClick={() => setQuickSearchOpen(!quickSearchOpen)}
+                onClick={openSearch}
                 className="border-[hsl(var(--input))] bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] flex h-9 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition hover:border-[hsl(var(--ring))]"
               >
                 <span className="flex items-center gap-2">
