@@ -61,7 +61,7 @@ export function useCurioRest<T>(
 export function useCurioMutation<TData = unknown, TVariables = unknown>(
   path: string,
   options?: {
-    invalidateKeys?: string[][];
+    invalidateKeys?: unknown[][];
     onSuccess?: (data: TData) => void;
     onError?: (error: Error) => void;
   },
@@ -72,6 +72,32 @@ export function useCurioMutation<TData = unknown, TVariables = unknown>(
   return useMutation({
     mutationFn: (variables: TVariables) =>
       api.restPost<TData>(path, variables),
+    onSuccess: (data) => {
+      options?.invalidateKeys?.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+      options?.onSuccess?.(data);
+    },
+    onError: options?.onError,
+  });
+}
+
+/**
+ * Hook for JSON-RPC mutations via TanStack Query.
+ */
+export function useCurioRpcMutation<TData = unknown>(
+  method: string,
+  options?: {
+    invalidateKeys?: unknown[][];
+    onSuccess?: (data: TData) => void;
+    onError?: (error: Error) => void;
+  },
+) {
+  const api = useCurioApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: unknown[]) => api.call<TData>(method, params),
     onSuccess: (data) => {
       options?.invalidateKeys?.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });

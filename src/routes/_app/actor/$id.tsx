@@ -6,13 +6,41 @@ import { KPICard } from "@/components/composed/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { ActorDetail, Deadline } from "@/types/actor";
-import { ArrowLeft, User } from "lucide-react";
+import { DataTable } from "@/components/table/data-table";
+import type { ActorDetail, Deadline, SectorBuckets, SectorBucket } from "@/types/actor";
+import type { WinStat } from "@/types/win";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowLeft, User, Trophy } from "lucide-react";
 import { formatFilecoin } from "@/utils/filecoin";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 export const Route = createFileRoute("/_app/actor/$id")({
   component: ActorDetailPage,
 });
+
+const winColumns: ColumnDef<WinStat>[] = [
+  { accessorKey: "Epoch", header: "Epoch" },
+  {
+    accessorKey: "Block",
+    header: "Block",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.Block?.slice(0, 16)}…</span>
+    ),
+  },
+  { accessorKey: "SubmittedAtStr", header: "Submitted" },
+  { accessorKey: "IncludedStr", header: "Included" },
+  { accessorKey: "ComputeTime", header: "Compute Time" },
+  { accessorKey: "TaskSuccess", header: "Status" },
+];
 
 function ActorDetailPage() {
   const { id } = Route.useParams();
@@ -21,7 +49,18 @@ function ActorDetailPage() {
     refetchInterval: 30_000,
   });
 
+  const { data: charts } = useCurioRpc<SectorBuckets>("ActorCharts", [id], {
+    refetchInterval: 60_000,
+  });
+
+  const { data: winStats } = useCurioRpc<WinStat[]>("WinStats", [], {
+    refetchInterval: 60_000,
+  });
+
   usePageTitle(id);
+
+  // Filter wins for this actor
+  const actorWins = winStats?.filter((w) => w.Miner === id) ?? [];
 
   if (isLoading && !data) {
     return (
@@ -70,6 +109,34 @@ function ActorDetailPage() {
         <KPICard label="Wins (7d)" value={summary.Win7} />
         <KPICard label="Wins (30d)" value={summary.Win30} />
       </div>
+
+      {/* Sector Expiration Chart */}
+      {charts && charts.All && charts.All.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sector Expiration Buckets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={formatBucketData(charts)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "6px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="all" name="All Sectors" fill="hsl(var(--primary))" />
+                <Bar dataKey="cc" name="CC Sectors" fill="hsl(var(--muted-foreground))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
@@ -124,8 +191,44 @@ function ActorDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Win Stats Table */}
+      {actorWins.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="size-4" />
+              Recent Wins ({actorWins.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={winColumns}
+              data={actorWins.slice(0, 50)}
+              emptyMessage="No wins recorded"
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
+}
+
+function formatBucketData(buckets: SectorBuckets) {
+  const allMap = new Map<number, SectorBucket>();
+  const ccMap = new Map<number, SectorBucket>();
+
+  buckets.All?.forEach((b) => allMap.set(b.BucketEpoch, b));
+  buckets.CC?.forEach((b) => ccMap.set(b.BucketEpoch, b));
+
+  const allEpochs = new Set([...allMap.keys(), ...ccMap.keys()]);
+  return Array.from(allEpochs)
+    .sort((a, b) => a - b)
+    .map((epoch) => ({
+      label: `${allMap.get(epoch)?.Days ?? ccMap.get(epoch)?.Days ?? 0}d`,
+      all: allMap.get(epoch)?.Count ?? 0,
+      cc: ccMap.get(epoch)?.Count ?? 0,
+    }));
 }
 
 function InfoRow({

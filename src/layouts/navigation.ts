@@ -10,6 +10,8 @@ import {
   Globe,
   KeyRound,
   Settings,
+  HardDrive,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,6 +76,18 @@ export const navigationEntries: NavigationEntry[] = [
     icon: Wallet,
     to: "/wallets",
     keywords: ["wallet", "keys", "balance"],
+  },
+  {
+    label: "Storage",
+    icon: HardDrive,
+    to: "/storage",
+    keywords: ["storage", "gc", "garbage collection", "disk"],
+  },
+  {
+    label: "Alerts",
+    icon: Bell,
+    to: "/alerts",
+    keywords: ["alert", "notification", "warning", "error"],
   },
   {
     label: "IPNI",

@@ -17,6 +17,7 @@ import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/rou
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
+import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
 import { Route as AppSectorsIndexRouteImport } from "./routes/_app/sectors/index"
 import { Route as AppPipelineIndexRouteImport } from "./routes/_app/pipeline/index"
 import { Route as AppPdpIndexRouteImport } from "./routes/_app/pdp/index"
@@ -25,6 +26,7 @@ import { Route as AppMarketIndexRouteImport } from "./routes/_app/market/index"
 import { Route as AppMachinesIndexRouteImport } from "./routes/_app/machines/index"
 import { Route as AppIpniIndexRouteImport } from "./routes/_app/ipni/index"
 import { Route as AppConfigIndexRouteImport } from "./routes/_app/config/index"
+import { Route as AppAlertsIndexRouteImport } from "./routes/_app/alerts/index"
 import { Route as AppActorIndexRouteImport } from "./routes/_app/actor/index"
 import { Route as AppTasksOverviewRouteImport } from "./routes/_app/tasks/overview"
 import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history"
@@ -78,6 +80,11 @@ const AppTasksIndexRoute = AppTasksIndexRouteImport.update({
   path: "/",
   getParentRoute: () => AppTasksRouteRoute,
 } as any)
+const AppStorageIndexRoute = AppStorageIndexRouteImport.update({
+  id: "/storage/",
+  path: "/storage/",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSectorsIndexRoute = AppSectorsIndexRouteImport.update({
   id: "/sectors/",
   path: "/sectors/",
@@ -116,6 +123,11 @@ const AppIpniIndexRoute = AppIpniIndexRouteImport.update({
 const AppConfigIndexRoute = AppConfigIndexRouteImport.update({
   id: "/config/",
   path: "/config/",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAlertsIndexRoute = AppAlertsIndexRouteImport.update({
+  id: "/alerts/",
+  path: "/alerts/",
   getParentRoute: () => AppRoute,
 } as any)
 const AppActorIndexRoute = AppActorIndexRouteImport.update({
@@ -200,6 +212,7 @@ export interface FileRoutesByFullPath {
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
   "/actor/": typeof AppActorIndexRoute
+  "/alerts/": typeof AppAlertsIndexRoute
   "/config/": typeof AppConfigIndexRoute
   "/ipni/": typeof AppIpniIndexRoute
   "/machines/": typeof AppMachinesIndexRoute
@@ -208,6 +221,7 @@ export interface FileRoutesByFullPath {
   "/pdp/": typeof AppPdpIndexRoute
   "/pipeline/": typeof AppPipelineIndexRoute
   "/sectors/": typeof AppSectorsIndexRoute
+  "/storage/": typeof AppStorageIndexRoute
   "/tasks/": typeof AppTasksIndexRoute
   "/wallets/": typeof AppWalletsIndexRoute
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
@@ -227,6 +241,7 @@ export interface FileRoutesByTo {
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
   "/actor": typeof AppActorIndexRoute
+  "/alerts": typeof AppAlertsIndexRoute
   "/config": typeof AppConfigIndexRoute
   "/ipni": typeof AppIpniIndexRoute
   "/machines": typeof AppMachinesIndexRoute
@@ -235,6 +250,7 @@ export interface FileRoutesByTo {
   "/pdp": typeof AppPdpIndexRoute
   "/pipeline": typeof AppPipelineIndexRoute
   "/sectors": typeof AppSectorsIndexRoute
+  "/storage": typeof AppStorageIndexRoute
   "/tasks": typeof AppTasksIndexRoute
   "/wallets": typeof AppWalletsIndexRoute
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
@@ -259,6 +275,7 @@ export interface FileRoutesById {
   "/_app/tasks/history": typeof AppTasksHistoryRoute
   "/_app/tasks/overview": typeof AppTasksOverviewRoute
   "/_app/actor/": typeof AppActorIndexRoute
+  "/_app/alerts/": typeof AppAlertsIndexRoute
   "/_app/config/": typeof AppConfigIndexRoute
   "/_app/ipni/": typeof AppIpniIndexRoute
   "/_app/machines/": typeof AppMachinesIndexRoute
@@ -267,6 +284,7 @@ export interface FileRoutesById {
   "/_app/pdp/": typeof AppPdpIndexRoute
   "/_app/pipeline/": typeof AppPipelineIndexRoute
   "/_app/sectors/": typeof AppSectorsIndexRoute
+  "/_app/storage/": typeof AppStorageIndexRoute
   "/_app/tasks/": typeof AppTasksIndexRoute
   "/_app/wallets/": typeof AppWalletsIndexRoute
   "/_app/market/mk12/deals": typeof AppMarketMk12DealsRoute
@@ -291,6 +309,7 @@ export interface FileRouteTypes {
     | "/tasks/history"
     | "/tasks/overview"
     | "/actor/"
+    | "/alerts/"
     | "/config/"
     | "/ipni/"
     | "/machines/"
@@ -299,6 +318,7 @@ export interface FileRouteTypes {
     | "/pdp/"
     | "/pipeline/"
     | "/sectors/"
+    | "/storage/"
     | "/tasks/"
     | "/wallets/"
     | "/market/mk12/deals"
@@ -318,6 +338,7 @@ export interface FileRouteTypes {
     | "/tasks/history"
     | "/tasks/overview"
     | "/actor"
+    | "/alerts"
     | "/config"
     | "/ipni"
     | "/machines"
@@ -326,6 +347,7 @@ export interface FileRouteTypes {
     | "/pdp"
     | "/pipeline"
     | "/sectors"
+    | "/storage"
     | "/tasks"
     | "/wallets"
     | "/market/mk12/deals"
@@ -349,6 +371,7 @@ export interface FileRouteTypes {
     | "/_app/tasks/history"
     | "/_app/tasks/overview"
     | "/_app/actor/"
+    | "/_app/alerts/"
     | "/_app/config/"
     | "/_app/ipni/"
     | "/_app/machines/"
@@ -357,6 +380,7 @@ export interface FileRouteTypes {
     | "/_app/pdp/"
     | "/_app/pipeline/"
     | "/_app/sectors/"
+    | "/_app/storage/"
     | "/_app/tasks/"
     | "/_app/wallets/"
     | "/_app/market/mk12/deals"
@@ -428,6 +452,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppTasksIndexRouteImport
       parentRoute: typeof AppTasksRouteRoute
     }
+    "/_app/storage/": {
+      id: "/_app/storage/"
+      path: "/storage"
+      fullPath: "/storage/"
+      preLoaderRoute: typeof AppStorageIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/sectors/": {
       id: "/_app/sectors/"
       path: "/sectors"
@@ -482,6 +513,13 @@ declare module "@tanstack/react-router" {
       path: "/config"
       fullPath: "/config/"
       preLoaderRoute: typeof AppConfigIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/alerts/": {
+      id: "/_app/alerts/"
+      path: "/alerts"
+      fullPath: "/alerts/"
+      preLoaderRoute: typeof AppAlertsIndexRouteImport
       parentRoute: typeof AppRoute
     }
     "/_app/actor/": {
@@ -640,12 +678,14 @@ interface AppRouteChildren {
   AppActorIdRoute: typeof AppActorIdRoute
   AppMachinesIdRoute: typeof AppMachinesIdRoute
   AppActorIndexRoute: typeof AppActorIndexRoute
+  AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppConfigIndexRoute: typeof AppConfigIndexRoute
   AppIpniIndexRoute: typeof AppIpniIndexRoute
   AppMachinesIndexRoute: typeof AppMachinesIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppSectorsIndexRoute: typeof AppSectorsIndexRoute
+  AppStorageIndexRoute: typeof AppStorageIndexRoute
   AppWalletsIndexRoute: typeof AppWalletsIndexRoute
 }
 
@@ -656,12 +696,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppActorIdRoute: AppActorIdRoute,
   AppMachinesIdRoute: AppMachinesIdRoute,
   AppActorIndexRoute: AppActorIndexRoute,
+  AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppConfigIndexRoute: AppConfigIndexRoute,
   AppIpniIndexRoute: AppIpniIndexRoute,
   AppMachinesIndexRoute: AppMachinesIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
   AppSectorsIndexRoute: AppSectorsIndexRoute,
+  AppStorageIndexRoute: AppStorageIndexRoute,
   AppWalletsIndexRoute: AppWalletsIndexRoute,
 }
 

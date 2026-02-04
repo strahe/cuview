@@ -8,12 +8,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Settings, Plus, Save, FileText } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Settings, Plus, Save, FileText, History } from "lucide-react";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import {
   fetchConfigLayer,
   saveConfigLayer,
   createConfigLayer,
+  fetchConfigHistory,
+  type ConfigHistoryEntry,
 } from "@/services/config-api";
 import type { ConfigTopologyEntry } from "@/types/config";
 
@@ -40,6 +48,9 @@ function ConfigPage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [newLayerName, setNewLayerName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState<ConfigHistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const loadLayer = useCallback(
     async (name: string) => {
@@ -85,6 +96,20 @@ function ConfigPage() {
       setStatusMsg(`Error creating layer: ${err}`);
     }
   }, [api, newLayerName, refetchLayers]);
+
+  const loadHistory = useCallback(async () => {
+    if (!selectedLayer) return;
+    setLoadingHistory(true);
+    try {
+      const entries = await fetchConfigHistory(api, selectedLayer);
+      setHistoryEntries(entries);
+      setShowHistory(true);
+    } catch (err) {
+      setStatusMsg(`Error loading history: ${err}`);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [api, selectedLayer]);
 
   return (
     <div className="space-y-6 p-6">
@@ -177,14 +202,25 @@ function ConfigPage() {
               {selectedLayer ? `Layer: ${selectedLayer}` : "Select a layer"}
             </CardTitle>
             {selectedLayer && (
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={saving || selectedLayer === "default"}
-              >
-                <Save className="mr-1 size-4" />
-                {saving ? "Saving…" : "Save"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={loadHistory}
+                  disabled={loadingHistory}
+                >
+                  <History className="mr-1 size-4" />
+                  {loadingHistory ? "Loading…" : "History"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={saving || selectedLayer === "default"}
+                >
+                  <Save className="mr-1 size-4" />
+                  {saving ? "Saving…" : "Save"}
+                </Button>
+              </div>
             )}
           </CardHeader>
           <CardContent>
@@ -239,6 +275,43 @@ function ConfigPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Config History Dialog */}
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent onClose={() => setShowHistory(false)} className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>History: {selectedLayer}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-96 space-y-2 overflow-y-auto">
+            {historyEntries.length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">No history entries.</p>
+            ) : (
+              historyEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="cursor-pointer rounded border border-[hsl(var(--border))] p-3 text-sm hover:bg-[hsl(var(--muted))]"
+                  onClick={() => {
+                    setLayerContent(entry.content);
+                    setShowHistory(false);
+                    setStatusMsg(`Loaded version #${entry.id}`);
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Version #{entry.id}</span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {entry.created_at}
+                    </span>
+                  </div>
+                  <pre className="mt-1 max-h-24 overflow-hidden text-xs text-[hsl(var(--muted-foreground))]">
+                    {entry.content?.slice(0, 200)}
+                    {entry.content?.length > 200 ? "…" : ""}
+                  </pre>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

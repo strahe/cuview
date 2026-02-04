@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc } from "@/hooks/use-curio-query";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { DataTable } from "@/components/table/data-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { ColumnDef } from "@tanstack/react-table";
 import { formatFilecoin } from "@/utils/filecoin";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_app/market/balance")({
   component: MarketBalancePage,
@@ -40,6 +44,74 @@ const columns: ColumnDef<MarketBalanceEntry>[] = [
   },
 ];
 
+function MoveToEscrowForm() {
+  const [miner, setMiner] = useState("");
+  const [amount, setAmount] = useState("");
+  const [wallet, setWallet] = useState("");
+
+  const mutation = useCurioRpcMutation("MoveBalanceToEscrow", {
+    invalidateKeys: [["curio", "MarketBalance"]],
+  });
+
+  const handleSubmit = () => {
+    if (!miner || !amount) return;
+    mutation.mutate([miner, amount, wallet || undefined]);
+    setMiner("");
+    setAmount("");
+    setWallet("");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Move Balance to Escrow</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">Miner</label>
+            <Input
+              placeholder="f0..."
+              value={miner}
+              onChange={(e) => setMiner(e.target.value)}
+              className="w-40 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">Amount (FIL)</label>
+            <Input
+              placeholder="0.1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-32"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">Wallet (optional)</label>
+            <Input
+              placeholder="f1... or f3..."
+              value={wallet}
+              onChange={(e) => setWallet(e.target.value)}
+              className="w-48 font-mono text-xs"
+            />
+          </div>
+          <Button size="sm" onClick={handleSubmit} disabled={mutation.isPending}>
+            {mutation.isPending ? "Sending..." : "Transfer"}
+          </Button>
+        </div>
+        {mutation.isError && (
+          <p className="mt-2 text-xs text-[hsl(var(--destructive))]">
+            {(mutation.error as Error)?.message ?? "Transfer failed"}
+          </p>
+        )}
+        {mutation.isSuccess && (
+          <p className="mt-2 text-xs text-green-600">Transfer submitted</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function MarketBalancePage() {
   const { data, isLoading } = useCurioRpc<MarketBalanceEntry[]>(
     "MarketBalance",
@@ -48,11 +120,14 @@ function MarketBalancePage() {
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data ?? []}
-      loading={isLoading}
-      emptyMessage="No market balance data"
-    />
+    <div className="space-y-4">
+      <DataTable
+        columns={columns}
+        data={data ?? []}
+        loading={isLoading}
+        emptyMessage="No market balance data"
+      />
+      <MoveToEscrowForm />
+    </div>
   );
 }

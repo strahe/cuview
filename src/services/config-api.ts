@@ -78,3 +78,35 @@ export async function createConfigLayer(
 ): Promise<void> {
   await api.restPost("/api/config/addlayer", { name });
 }
+
+export interface ConfigHistoryEntry {
+  id: number;
+  layer: string;
+  created_at: string;
+  content: string;
+}
+
+export async function fetchConfigHistory(
+  api: CurioApiService,
+  layer: string,
+  signal?: AbortSignal,
+): Promise<ConfigHistoryEntry[]> {
+  const response = await api.restGet<ConfigHistoryEntry[]>(
+    `/api/config/history/${encodeURIComponent(layer)}`,
+    { signal },
+  );
+  return Array.isArray(response) ? response : [];
+}
+
+export async function fetchConfigHistoryEntry(
+  api: CurioApiService,
+  layer: string,
+  id: number,
+  signal?: AbortSignal,
+): Promise<ConfigHistoryEntry | null> {
+  const response = await api.restGet<ConfigHistoryEntry>(
+    `/api/config/history/${encodeURIComponent(layer)}/${id}`,
+    { signal },
+  );
+  return response ?? null;
+}

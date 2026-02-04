@@ -1,16 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc } from "@/hooks/use-curio-query";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/table/data-table";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { KPICard } from "@/components/composed/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { MachineInfo } from "@/types/machine";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, Server, Cpu, HardDrive } from "lucide-react";
+import { ArrowLeft, Server, Cpu, HardDrive, ShieldOff, Shield, RotateCcw, XCircle } from "lucide-react";
 import { formatBytes } from "@/utils/format";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_app/machines/$id")({
   component: MachineDetailPage,
@@ -25,6 +27,21 @@ function MachineDetailPage() {
     [machineId],
     { refetchInterval: 30_000 },
   );
+
+  const cordonMutation = useCurioRpcMutation("Cordon", {
+    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+  });
+  const uncordonMutation = useCurioRpcMutation("Uncordon", {
+    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+  });
+  const restartMutation = useCurioRpcMutation("Restart", {
+    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+  });
+  const abortRestartMutation = useCurioRpcMutation("AbortRestart", {
+    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+  });
+
+  const [confirmRestart, setConfirmRestart] = useState(false);
 
   usePageTitle(data?.Info?.Name ?? `Machine #${machineId}`);
 
@@ -63,6 +80,69 @@ function MachineDetailPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {info.Name || `Machine #${info.ID}`}
         </h1>
+        {info.Unschedulable && (
+          <Badge variant="destructive">Cordoned</Badge>
+        )}
+      </div>
+
+      {/* Machine Operations */}
+      <div className="flex gap-2">
+        {info.Unschedulable ? (
+          <Button
+            size="sm"
+            onClick={() => uncordonMutation.mutate([machineId])}
+            disabled={uncordonMutation.isPending}
+          >
+            <Shield className="mr-1 size-4" />
+            {uncordonMutation.isPending ? "Uncordoning..." : "Uncordon"}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => cordonMutation.mutate([machineId])}
+            disabled={cordonMutation.isPending}
+          >
+            <ShieldOff className="mr-1 size-4" />
+            {cordonMutation.isPending ? "Cordoning..." : "Cordon"}
+          </Button>
+        )}
+        {confirmRestart ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[hsl(var(--destructive))]">Confirm restart?</span>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                restartMutation.mutate([machineId]);
+                setConfirmRestart(false);
+              }}
+              disabled={restartMutation.isPending}
+            >
+              Yes
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmRestart(false)}>
+              No
+            </Button>
+          </div>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setConfirmRestart(true)}
+          >
+            <RotateCcw className="mr-1 size-4" /> Restart
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => abortRestartMutation.mutate([machineId])}
+          disabled={abortRestartMutation.isPending}
+        >
+          <XCircle className="mr-1 size-4" />
+          {abortRestartMutation.isPending ? "Aborting..." : "Abort Restart"}
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

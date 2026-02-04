@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc } from "@/hooks/use-curio-query";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { KPICard } from "@/components/composed/kpi-card";
 import { DataTable } from "@/components/table/data-table";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import type { PorepPipelineSummary, SectorListEntry } from "@/types/pipeline";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { RotateCcw } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_app/pipeline/porep")({
   component: PoRepPage,
@@ -59,6 +61,12 @@ function PoRepPage() {
     SectorListEntry[]
   >("PipelineStatsSDR", [], { refetchInterval: 30_000 });
 
+  const restartAllMutation = useCurioRpcMutation("PipelinePorepRestartAll", {
+    invalidateKeys: [["curio", "PipelinePorepSectors"], ["curio", "PipelineStatsSDR"]],
+  });
+
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
   const totals = useMemo(() => {
     if (!summaryData) return null;
     return summaryData.reduce(
@@ -88,6 +96,32 @@ function PoRepPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">PoRep Pipeline</h2>
+        {confirmRestart ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[hsl(var(--destructive))]">Restart all failed PoRep tasks?</span>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                restartAllMutation.mutate([]);
+                setConfirmRestart(false);
+              }}
+              disabled={restartAllMutation.isPending}
+            >
+              Yes
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmRestart(false)}>
+              No
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" onClick={() => setConfirmRestart(true)}>
+            <RotateCcw className="mr-1 size-3" /> Restart All Failed
+          </Button>
+        )}
+      </div>
       {totals && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
           <KPICard label="SDR" value={totals.sdr} />
