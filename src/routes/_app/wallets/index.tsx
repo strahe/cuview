@@ -161,11 +161,20 @@ function WalletsPage() {
   const removeRuleMutation = useCurioRpcMutation("BalanceMgrRuleRemove", {
     invalidateKeys: [["curio", "BalanceMgrRules"]],
   });
+  const addRuleMutation = useCurioRpcMutation("BalanceMgrRuleAdd", {
+    invalidateKeys: [["curio", "BalanceMgrRules"]],
+  });
+  const updateRuleMutation = useCurioRpcMutation("BalanceMgrRuleUpdate", {
+    invalidateKeys: [["curio", "BalanceMgrRules"]],
+  });
 
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [newWalletAddr, setNewWalletAddr] = useState("");
   const [renaming, setRenaming] = useState<{ addr: string; name: string } | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [showAddRule, setShowAddRule] = useState(false);
+  const [ruleForm, setRuleForm] = useState({ subject: "", second: "", actionType: "requester", lowWatermark: "", highWatermark: "", subjectType: "wallet" });
+  const [editingRule, setEditingRule] = useState<{ id: number; lowWatermark: string; highWatermark: string } | null>(null);
 
   const handleAddWallet = useCallback(() => {
     if (!newWalletAddr.trim()) return;
@@ -179,6 +188,26 @@ function WalletsPage() {
     renameWalletMutation.mutate([renaming.addr, renaming.name]);
     setRenaming(null);
   }, [renaming, renameWalletMutation]);
+
+  const handleAddRule = useCallback(() => {
+    if (!ruleForm.subject.trim() || !ruleForm.second.trim()) return;
+    addRuleMutation.mutate([
+      ruleForm.subject.trim(),
+      ruleForm.second.trim(),
+      ruleForm.actionType,
+      ruleForm.lowWatermark.trim(),
+      ruleForm.highWatermark.trim(),
+      ruleForm.subjectType,
+    ]);
+    setRuleForm({ subject: "", second: "", actionType: "requester", lowWatermark: "", highWatermark: "", subjectType: "wallet" });
+    setShowAddRule(false);
+  }, [ruleForm, addRuleMutation]);
+
+  const handleUpdateRule = useCallback(() => {
+    if (!editingRule) return;
+    updateRuleMutation.mutate([editingRule.id, editingRule.lowWatermark, editingRule.highWatermark]);
+    setEditingRule(null);
+  }, [editingRule, updateRuleMutation]);
 
   // Enhanced wallet columns with actions
   const walletColumnsWithActions: ColumnDef<WalletInfo>[] = [
@@ -239,21 +268,34 @@ function WalletsPage() {
     },
   ];
 
-  // Balance rule columns with delete action
+  // Balance rule columns with edit/delete actions
   const ruleColumnsWithActions: ColumnDef<BalanceManagerRule>[] = [
     ...balanceRuleColumns,
     {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => removeRuleMutation.mutate([row.original.id])}
-          disabled={removeRuleMutation.isPending}
-        >
-          <Trash2 className="size-3" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditingRule({
+              id: row.original.id,
+              lowWatermark: row.original.low_watermark,
+              highWatermark: row.original.high_watermark,
+            })}
+          >
+            <Edit2 className="size-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => removeRuleMutation.mutate([row.original.id])}
+            disabled={removeRuleMutation.isPending}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -310,6 +352,9 @@ function WalletsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Balance Manager Rules</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setShowAddRule(true)}>
+            <Plus className="mr-1 size-4" /> Add Rule
+          </Button>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -358,6 +403,121 @@ function WalletsPage() {
               </Button>
               <Button size="sm" onClick={handleRename} disabled={renameWalletMutation.isPending}>
                 {renameWalletMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add Rule Dialog */}
+      {showAddRule && (
+        <Dialog open onOpenChange={() => setShowAddRule(false)}>
+          <DialogContent className="max-w-md" onClose={() => setShowAddRule(false)}>
+            <DialogHeader>
+              <DialogTitle>Add Balance Manager Rule</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Subject Address *</label>
+                <Input
+                  value={ruleForm.subject}
+                  onChange={(e) => setRuleForm((f) => ({ ...f, subject: e.target.value }))}
+                  placeholder="f0... or f1... or f3..."
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Second Address *</label>
+                <Input
+                  value={ruleForm.second}
+                  onChange={(e) => setRuleForm((f) => ({ ...f, second: e.target.value }))}
+                  placeholder="f0... or f1... or f3..."
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Action Type</label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
+                    value={ruleForm.actionType}
+                    onChange={(e) => setRuleForm((f) => ({ ...f, actionType: e.target.value }))}
+                  >
+                    <option value="requester">Requester</option>
+                    <option value="active-provider">Active Provider</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Subject Type</label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
+                    value={ruleForm.subjectType}
+                    onChange={(e) => setRuleForm((f) => ({ ...f, subjectType: e.target.value }))}
+                  >
+                    <option value="wallet">Wallet</option>
+                    <option value="proofshare">Proof Share</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Low Watermark (FIL)</label>
+                  <Input
+                    value={ruleForm.lowWatermark}
+                    onChange={(e) => setRuleForm((f) => ({ ...f, lowWatermark: e.target.value }))}
+                    placeholder="e.g. 5"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">High Watermark (FIL)</label>
+                  <Input
+                    value={ruleForm.highWatermark}
+                    onChange={(e) => setRuleForm((f) => ({ ...f, highWatermark: e.target.value }))}
+                    placeholder="e.g. 10"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddRule(false)}>Cancel</Button>
+              <Button
+                onClick={handleAddRule}
+                disabled={addRuleMutation.isPending || !ruleForm.subject.trim() || !ruleForm.second.trim()}
+              >
+                {addRuleMutation.isPending ? "Adding..." : "Add Rule"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Rule Dialog */}
+      {editingRule && (
+        <Dialog open onOpenChange={() => setEditingRule(null)}>
+          <DialogContent className="max-w-sm" onClose={() => setEditingRule(null)}>
+            <DialogHeader>
+              <DialogTitle>Edit Rule #{editingRule.id}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Low Watermark (FIL)</label>
+                <Input
+                  value={editingRule.lowWatermark}
+                  onChange={(e) => setEditingRule((r) => r ? { ...r, lowWatermark: e.target.value } : r)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">High Watermark (FIL)</label>
+                <Input
+                  value={editingRule.highWatermark}
+                  onChange={(e) => setEditingRule((r) => r ? { ...r, highWatermark: e.target.value } : r)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingRule(null)}>Cancel</Button>
+              <Button onClick={handleUpdateRule} disabled={updateRuleMutation.isPending}>
+                {updateRuleMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>

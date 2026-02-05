@@ -7,6 +7,7 @@ import { DataTable } from "@/components/table/data-table";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -22,7 +23,7 @@ import type {
   AlertMute,
 } from "@/types/alert";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Bell, BellOff, MessageSquare, Check, CheckCheck } from "lucide-react";
+import { Bell, BellOff, MessageSquare, Check, CheckCheck, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useState, useCallback } from "react";
 
 export const Route = createFileRoute("/_app/alerts/")({
@@ -65,6 +66,11 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
   },
 ];
 
+interface MuteTableMeta {
+  onReactivate: (id: number) => void;
+  onRemove: (id: number) => void;
+}
+
 const muteColumns: ColumnDef<AlertMute>[] = [
   { accessorKey: "category", header: "Category" },
   { accessorKey: "machine_pattern", header: "Machine Pattern" },
@@ -81,6 +87,36 @@ const muteColumns: ColumnDef<AlertMute>[] = [
   },
   { accessorKey: "expires_at", header: "Expires" },
   { accessorKey: "created_at", header: "Created" },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row, table }) => {
+      const mute = row.original;
+      const meta = table.options.meta as MuteTableMeta | undefined;
+      return (
+        <div className="flex gap-1">
+          {!mute.active && (
+            <Button
+              size="sm"
+              variant="ghost"
+              title="Reactivate"
+              onClick={(e) => { e.stopPropagation(); meta?.onReactivate(mute.id); }}
+            >
+              <RotateCcw className="size-3.5" />
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            title="Remove"
+            onClick={(e) => { e.stopPropagation(); meta?.onRemove(mute.id); }}
+          >
+            <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+          </Button>
+        </div>
+      );
+    },
+  },
 ];
 
 function AlertsPage() {
@@ -124,8 +160,19 @@ function AlertsPage() {
   const sendTestMutation = useCurioRpcMutation("AlertSendTest", {
     invalidateKeys: [["curio", "AlertHistoryListPaginated"]],
   });
+  const muteAddMutation = useCurioRpcMutation("AlertMuteAdd", {
+    invalidateKeys: [["curio", "AlertMuteList"]],
+  });
+  const muteRemoveMutation = useCurioRpcMutation("AlertMuteRemove", {
+    invalidateKeys: [["curio", "AlertMuteList"]],
+  });
+  const muteReactivateMutation = useCurioRpcMutation("AlertMuteReactivate", {
+    invalidateKeys: [["curio", "AlertMuteList"]],
+  });
 
   const [selectedAlert, setSelectedAlert] = useState<AlertHistoryItem | null>(null);
+  const [showMuteForm, setShowMuteForm] = useState(false);
+  const [muteForm, setMuteForm] = useState({ category: "", machinePattern: "", messagePattern: "", durationHours: 24 });
 
   const alerts = alertHistory?.Alerts ?? [];
   const unackedAlerts = alerts.filter((a) => !a.acknowledged);
@@ -136,6 +183,23 @@ function AlertsPage() {
       ackMultipleMutation.mutate([ids]);
     }
   }, [unackedAlerts, ackMultipleMutation]);
+
+  const handleAddMute = useCallback(() => {
+    if (!muteForm.category.trim()) return;
+    muteAddMutation.mutate([
+      muteForm.category.trim(),
+      muteForm.machinePattern.trim() || "*",
+      muteForm.messagePattern.trim() || "*",
+      muteForm.durationHours,
+    ]);
+    setMuteForm({ category: "", machinePattern: "", messagePattern: "", durationHours: 24 });
+    setShowMuteForm(false);
+  }, [muteForm, muteAddMutation]);
+
+  const muteTableMeta: MuteTableMeta = {
+    onReactivate: (id) => muteReactivateMutation.mutate([id]),
+    onRemove: (id) => muteRemoveMutation.mutate([id]),
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -197,14 +261,79 @@ function AlertsPage() {
       </SectionCard>
 
       {/* Mute Rules */}
-      <SectionCard title="Mute Rules" icon={BellOff}>
+      <SectionCard
+        title="Mute Rules"
+        icon={BellOff}
+        action={
+          <Button size="sm" variant="outline" onClick={() => setShowMuteForm(true)}>
+            <Plus className="mr-1 size-4" />
+            Add Mute Rule
+          </Button>
+        }
+      >
         <DataTable
           columns={muteColumns}
           data={mutes ?? []}
           loading={mutesLoading}
           emptyMessage="No mute rules"
+          meta={muteTableMeta}
         />
       </SectionCard>
+
+      {/* Add Mute Rule Dialog */}
+      {showMuteForm && (
+        <Dialog open onOpenChange={() => setShowMuteForm(false)}>
+          <DialogContent className="max-w-md" onClose={() => setShowMuteForm(false)}>
+            <DialogHeader>
+              <DialogTitle>Add Mute Rule</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Category *</label>
+                <Input
+                  value={muteForm.category}
+                  onChange={(e) => setMuteForm((f) => ({ ...f, category: e.target.value }))}
+                  placeholder="e.g. storage"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Machine Pattern</label>
+                <Input
+                  value={muteForm.machinePattern}
+                  onChange={(e) => setMuteForm((f) => ({ ...f, machinePattern: e.target.value }))}
+                  placeholder="* for all"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Message Pattern</label>
+                <Input
+                  value={muteForm.messagePattern}
+                  onChange={(e) => setMuteForm((f) => ({ ...f, messagePattern: e.target.value }))}
+                  placeholder="* for all"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Duration (hours)</label>
+                <Input
+                  type="number"
+                  value={muteForm.durationHours}
+                  onChange={(e) => setMuteForm((f) => ({ ...f, durationHours: parseInt(e.target.value) || 24 }))}
+                  min={1}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowMuteForm(false)}>Cancel</Button>
+              <Button
+                onClick={handleAddMute}
+                disabled={muteAddMutation.isPending || !muteForm.category.trim()}
+              >
+                {muteAddMutation.isPending ? "Adding..." : "Add Rule"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Alert Detail Dialog */}
       {selectedAlert && (

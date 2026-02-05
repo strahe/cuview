@@ -5,6 +5,7 @@ import {
   useConnectionStatus,
   type ConnectionStatus,
 } from "@/contexts/curio-api-context";
+import { useCurioRpc } from "@/hooks/use-curio-query";
 import {
   Menu,
   ChevronLeft,
@@ -12,6 +13,7 @@ import {
   Sun,
   Moon,
   Settings,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +46,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const layout = useLayout();
   const connectionStatus = useConnectionStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { data: version } = useCurioRpc<string>("Version", [], { refetchInterval: 300_000 });
+  const { data: alertCount } = useCurioRpc<number>("AlertPendingCount", [], { refetchInterval: 30_000 });
 
   const openSearch = useCallback(() => {
     // Trigger ⌘K which AppQuickSearch listens for
@@ -124,6 +129,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 )}
               </button>
               <ConnectionStatusBadge status={connectionStatus} />
+              {version && (
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">v{version}</span>
+              )}
+              {alertCount != null && alertCount > 0 && (
+                <a href="/alerts" className="flex items-center gap-1 rounded-md bg-[hsl(var(--destructive)/0.1)] px-2 py-0.5 text-xs text-[hsl(var(--destructive))]">
+                  <Bell className="size-3" />
+                  {alertCount}
+                </a>
+              )}
             </div>
 
             {/* Search */}

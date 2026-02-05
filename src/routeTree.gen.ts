@@ -33,6 +33,7 @@ import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
+import { Route as AppMarketPendingRouteImport } from "./routes/_app/market/pending"
 import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balance"
 import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
@@ -160,6 +161,11 @@ const AppPipelinePorepRoute = AppPipelinePorepRouteImport.update({
   path: "/porep",
   getParentRoute: () => AppPipelineRouteRoute,
 } as any)
+const AppMarketPendingRoute = AppMarketPendingRouteImport.update({
+  id: "/pending",
+  path: "/pending",
+  getParentRoute: () => AppMarketRouteRoute,
+} as any)
 const AppMarketBalanceRoute = AppMarketBalanceRouteImport.update({
   id: "/balance",
   path: "/balance",
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   "/machines/$id": typeof AppMachinesIdRoute
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
+  "/market/pending": typeof AppMarketPendingRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   "/machines/$id": typeof AppMachinesIdRoute
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
+  "/market/pending": typeof AppMarketPendingRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   "/_app/machines/$id": typeof AppMachinesIdRoute
   "/_app/market/asks": typeof AppMarketAsksRoute
   "/_app/market/balance": typeof AppMarketBalanceRoute
+  "/_app/market/pending": typeof AppMarketPendingRoute
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | "/machines/$id"
     | "/market/asks"
     | "/market/balance"
+    | "/market/pending"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/tasks/active"
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | "/machines/$id"
     | "/market/asks"
     | "/market/balance"
+    | "/market/pending"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/tasks/active"
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | "/_app/machines/$id"
     | "/_app/market/asks"
     | "/_app/market/balance"
+    | "/_app/market/pending"
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
     | "/_app/tasks/active"
@@ -564,6 +576,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppPipelinePorepRouteImport
       parentRoute: typeof AppPipelineRouteRoute
     }
+    "/_app/market/pending": {
+      id: "/_app/market/pending"
+      path: "/pending"
+      fullPath: "/market/pending"
+      preLoaderRoute: typeof AppMarketPendingRouteImport
+      parentRoute: typeof AppMarketRouteRoute
+    }
     "/_app/market/balance": {
       id: "/_app/market/balance"
       path: "/balance"
@@ -619,6 +638,7 @@ declare module "@tanstack/react-router" {
 interface AppMarketRouteRouteChildren {
   AppMarketAsksRoute: typeof AppMarketAsksRoute
   AppMarketBalanceRoute: typeof AppMarketBalanceRoute
+  AppMarketPendingRoute: typeof AppMarketPendingRoute
   AppMarketIndexRoute: typeof AppMarketIndexRoute
   AppMarketMk12DealsRoute: typeof AppMarketMk12DealsRoute
   AppMarketMk20DealsRoute: typeof AppMarketMk20DealsRoute
@@ -628,6 +648,7 @@ interface AppMarketRouteRouteChildren {
 const AppMarketRouteRouteChildren: AppMarketRouteRouteChildren = {
   AppMarketAsksRoute: AppMarketAsksRoute,
   AppMarketBalanceRoute: AppMarketBalanceRoute,
+  AppMarketPendingRoute: AppMarketPendingRoute,
   AppMarketIndexRoute: AppMarketIndexRoute,
   AppMarketMk12DealsRoute: AppMarketMk12DealsRoute,
   AppMarketMk20DealsRoute: AppMarketMk20DealsRoute,

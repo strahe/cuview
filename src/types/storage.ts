@@ -47,3 +47,50 @@ export interface StorageStoreStats {
   Size: number;
   SizeStr: string;
 }
+
+export interface StoragePathInfo {
+  StorageID: string;
+  PathType: string;
+  CapacityStr: string;
+  AvailableStr: string;
+  UsedStr: string;
+  UsedPercent: number;
+  HealthStatus: string;
+  HealthOK: boolean;
+  CanSeal?: boolean;
+  CanStore?: boolean;
+  Capacity?: number;
+  Available?: number;
+  Used?: number;
+  URLList?: string[];
+  HostList?: string[];
+  GroupList?: string[];
+  AllowTypesList?: string[];
+  DenyTypesList?: string[];
+  AllowMinersList?: string[];
+  DenyMinersList?: string[];
+  Weight?: number;
+  MaxStorage?: number;
+  MaxStorageStr?: string;
+  ReservedStr?: string;
+  ReservedPercent?: number;
+  FSAvailableStr?: string;
+  LastHeartbeat?: string;
+  HeartbeatErr?: string;
+}
+
+export interface StoragePathSector {
+  MinerID: number;
+  SectorNum: number;
+  FileType: number;
+  IsPrimary: boolean;
+  ReadRefs: number;
+  HasWriteLock: boolean;
+  FileTypeStr: string;
+  MinerStr: string;
+}
+
+export interface StoragePathSectorsResult {
+  Sectors: StoragePathSector[];
+  Total: number;
+}

@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
   emptyMessage?: string;
   className?: string;
+  meta?: object;
 }
 
 export function DataTable<TData, TValue>({
@@ -55,6 +56,7 @@ export function DataTable<TData, TValue>({
   onRowClick,
   emptyMessage = "No results.",
   className,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -63,6 +65,7 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    meta,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

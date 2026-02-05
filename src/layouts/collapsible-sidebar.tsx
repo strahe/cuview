@@ -1,6 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { navigationEntries } from "./navigation";
+import {
+  navigationGroups,
+  type NavigationEntry,
+} from "./navigation";
 import { cn } from "@/lib/utils";
 
 interface CollapsibleSidebarProps {
@@ -15,7 +18,7 @@ export function CollapsibleSidebar({
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
-  const isActive = (entry: (typeof navigationEntries)[0]) => {
+  const isActive = (entry: NavigationEntry) => {
     if (entry.activePattern) {
       return new RegExp(entry.activePattern).test(currentPath);
     }
@@ -45,30 +48,42 @@ export function CollapsibleSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-2">
-        <ul className="space-y-1">
-          {navigationEntries.map((entry) => {
-            const Icon = entry.icon;
-            const active = isActive(entry);
-            return (
-              <li key={entry.to}>
-                <Link
-                  to={entry.to}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))]"
-                      : "text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]",
-                    isCollapsed && "justify-center px-2",
-                  )}
-                  title={isCollapsed ? entry.label : undefined}
-                >
-                  <Icon className="size-5 shrink-0" />
-                  {!isCollapsed && <span>{entry.label}</span>}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {navigationGroups.map((group, groupIdx) => (
+          <div key={group.title}>
+            {groupIdx > 0 && (
+              <div className="border-t border-[hsl(var(--sidebar-border))] my-2" />
+            )}
+            {!isCollapsed && (
+              <div className="text-[hsl(var(--sidebar-foreground)/0.5)] px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider">
+                {group.title}
+              </div>
+            )}
+            <ul className="space-y-1">
+              {group.entries.map((entry) => {
+                const Icon = entry.icon;
+                const active = isActive(entry);
+                return (
+                  <li key={entry.to}>
+                    <Link
+                      to={entry.to}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))]"
+                          : "text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]",
+                        isCollapsed && "justify-center px-2",
+                      )}
+                      title={isCollapsed ? entry.label : undefined}
+                    >
+                      <Icon className="size-5 shrink-0" />
+                      {!isCollapsed && <span>{entry.label}</span>}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       {/* Collapse toggle */}
