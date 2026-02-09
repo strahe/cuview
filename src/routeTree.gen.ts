@@ -13,6 +13,7 @@ import { Route as SetupRouteImport } from "./routes/setup"
 import { Route as AppRouteImport } from "./routes/_app"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
+import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
@@ -38,6 +39,8 @@ import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balan
 import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
 import { Route as AppActorIdRouteImport } from "./routes/_app/actor/$id"
+import { Route as AppSectorsExpirationIndexRouteImport } from "./routes/_app/sectors/expiration/index"
+import { Route as AppSectorsCcSchedulerIndexRouteImport } from "./routes/_app/sectors/cc-scheduler/index"
 import { Route as AppMarketSettingsIndexRouteImport } from "./routes/_app/market/settings/index"
 import { Route as AppMarketMk20DealsRouteImport } from "./routes/_app/market/mk20/deals"
 import { Route as AppMarketMk12DealsRouteImport } from "./routes/_app/market/mk12/deals"
@@ -59,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppTasksRouteRoute = AppTasksRouteRouteImport.update({
   id: "/tasks",
   path: "/tasks",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSectorsRouteRoute = AppSectorsRouteRouteImport.update({
+  id: "/sectors",
+  path: "/sectors",
   getParentRoute: () => AppRoute,
 } as any)
 const AppPipelineRouteRoute = AppPipelineRouteRouteImport.update({
@@ -87,9 +95,9 @@ const AppStorageIndexRoute = AppStorageIndexRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppSectorsIndexRoute = AppSectorsIndexRouteImport.update({
-  id: "/sectors/",
-  path: "/sectors/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppSectorsRouteRoute,
 } as any)
 const AppPipelineIndexRoute = AppPipelineIndexRouteImport.update({
   id: "/",
@@ -186,6 +194,18 @@ const AppActorIdRoute = AppActorIdRouteImport.update({
   path: "/actor/$id",
   getParentRoute: () => AppRoute,
 } as any)
+const AppSectorsExpirationIndexRoute =
+  AppSectorsExpirationIndexRouteImport.update({
+    id: "/expiration/",
+    path: "/expiration/",
+    getParentRoute: () => AppSectorsRouteRoute,
+  } as any)
+const AppSectorsCcSchedulerIndexRoute =
+  AppSectorsCcSchedulerIndexRouteImport.update({
+    id: "/cc-scheduler/",
+    path: "/cc-scheduler/",
+    getParentRoute: () => AppSectorsRouteRoute,
+  } as any)
 const AppMarketSettingsIndexRoute = AppMarketSettingsIndexRouteImport.update({
   id: "/settings/",
   path: "/settings/",
@@ -207,6 +227,7 @@ export interface FileRoutesByFullPath {
   "/setup": typeof SetupRoute
   "/market": typeof AppMarketRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
+  "/sectors": typeof AppSectorsRouteRouteWithChildren
   "/tasks": typeof AppTasksRouteRouteWithChildren
   "/actor/$id": typeof AppActorIdRoute
   "/machines/$id": typeof AppMachinesIdRoute
@@ -234,6 +255,8 @@ export interface FileRoutesByFullPath {
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/market/settings/": typeof AppMarketSettingsIndexRoute
+  "/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
+  "/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -264,6 +287,8 @@ export interface FileRoutesByTo {
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/market/settings": typeof AppMarketSettingsIndexRoute
+  "/sectors/cc-scheduler": typeof AppSectorsCcSchedulerIndexRoute
+  "/sectors/expiration": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -272,6 +297,7 @@ export interface FileRoutesById {
   "/setup": typeof SetupRoute
   "/_app/market": typeof AppMarketRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
+  "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
   "/_app/tasks": typeof AppTasksRouteRouteWithChildren
   "/_app/actor/$id": typeof AppActorIdRoute
   "/_app/machines/$id": typeof AppMachinesIdRoute
@@ -299,6 +325,8 @@ export interface FileRoutesById {
   "/_app/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/_app/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/_app/market/settings/": typeof AppMarketSettingsIndexRoute
+  "/_app/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
+  "/_app/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -307,6 +335,7 @@ export interface FileRouteTypes {
     | "/setup"
     | "/market"
     | "/pipeline"
+    | "/sectors"
     | "/tasks"
     | "/actor/$id"
     | "/machines/$id"
@@ -334,6 +363,8 @@ export interface FileRouteTypes {
     | "/market/mk12/deals"
     | "/market/mk20/deals"
     | "/market/settings/"
+    | "/sectors/cc-scheduler/"
+    | "/sectors/expiration/"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -364,6 +395,8 @@ export interface FileRouteTypes {
     | "/market/mk12/deals"
     | "/market/mk20/deals"
     | "/market/settings"
+    | "/sectors/cc-scheduler"
+    | "/sectors/expiration"
   id:
     | "__root__"
     | "/"
@@ -371,6 +404,7 @@ export interface FileRouteTypes {
     | "/setup"
     | "/_app/market"
     | "/_app/pipeline"
+    | "/_app/sectors"
     | "/_app/tasks"
     | "/_app/actor/$id"
     | "/_app/machines/$id"
@@ -398,6 +432,8 @@ export interface FileRouteTypes {
     | "/_app/market/mk12/deals"
     | "/_app/market/mk20/deals"
     | "/_app/market/settings/"
+    | "/_app/sectors/cc-scheduler/"
+    | "/_app/sectors/expiration/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -434,6 +470,13 @@ declare module "@tanstack/react-router" {
       path: "/tasks"
       fullPath: "/tasks"
       preLoaderRoute: typeof AppTasksRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/sectors": {
+      id: "/_app/sectors"
+      path: "/sectors"
+      fullPath: "/sectors"
+      preLoaderRoute: typeof AppSectorsRouteRouteImport
       parentRoute: typeof AppRoute
     }
     "/_app/pipeline": {
@@ -473,10 +516,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/sectors/": {
       id: "/_app/sectors/"
-      path: "/sectors"
+      path: "/"
       fullPath: "/sectors/"
       preLoaderRoute: typeof AppSectorsIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppSectorsRouteRoute
     }
     "/_app/pipeline/": {
       id: "/_app/pipeline/"
@@ -611,6 +654,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppActorIdRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/sectors/expiration/": {
+      id: "/_app/sectors/expiration/"
+      path: "/expiration"
+      fullPath: "/sectors/expiration/"
+      preLoaderRoute: typeof AppSectorsExpirationIndexRouteImport
+      parentRoute: typeof AppSectorsRouteRoute
+    }
+    "/_app/sectors/cc-scheduler/": {
+      id: "/_app/sectors/cc-scheduler/"
+      path: "/cc-scheduler"
+      fullPath: "/sectors/cc-scheduler/"
+      preLoaderRoute: typeof AppSectorsCcSchedulerIndexRouteImport
+      parentRoute: typeof AppSectorsRouteRoute
+    }
     "/_app/market/settings/": {
       id: "/_app/market/settings/"
       path: "/settings"
@@ -674,6 +731,22 @@ const AppPipelineRouteRouteChildren: AppPipelineRouteRouteChildren = {
 const AppPipelineRouteRouteWithChildren =
   AppPipelineRouteRoute._addFileChildren(AppPipelineRouteRouteChildren)
 
+interface AppSectorsRouteRouteChildren {
+  AppSectorsIndexRoute: typeof AppSectorsIndexRoute
+  AppSectorsCcSchedulerIndexRoute: typeof AppSectorsCcSchedulerIndexRoute
+  AppSectorsExpirationIndexRoute: typeof AppSectorsExpirationIndexRoute
+}
+
+const AppSectorsRouteRouteChildren: AppSectorsRouteRouteChildren = {
+  AppSectorsIndexRoute: AppSectorsIndexRoute,
+  AppSectorsCcSchedulerIndexRoute: AppSectorsCcSchedulerIndexRoute,
+  AppSectorsExpirationIndexRoute: AppSectorsExpirationIndexRoute,
+}
+
+const AppSectorsRouteRouteWithChildren = AppSectorsRouteRoute._addFileChildren(
+  AppSectorsRouteRouteChildren,
+)
+
 interface AppTasksRouteRouteChildren {
   AppTasksActiveRoute: typeof AppTasksActiveRoute
   AppTasksHistoryRoute: typeof AppTasksHistoryRoute
@@ -695,6 +768,7 @@ const AppTasksRouteRouteWithChildren = AppTasksRouteRoute._addFileChildren(
 interface AppRouteChildren {
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
+  AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppActorIdRoute: typeof AppActorIdRoute
   AppMachinesIdRoute: typeof AppMachinesIdRoute
@@ -705,7 +779,6 @@ interface AppRouteChildren {
   AppMachinesIndexRoute: typeof AppMachinesIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
-  AppSectorsIndexRoute: typeof AppSectorsIndexRoute
   AppStorageIndexRoute: typeof AppStorageIndexRoute
   AppWalletsIndexRoute: typeof AppWalletsIndexRoute
 }
@@ -713,6 +786,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
+  AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppActorIdRoute: AppActorIdRoute,
   AppMachinesIdRoute: AppMachinesIdRoute,
@@ -723,7 +797,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppMachinesIndexRoute: AppMachinesIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
-  AppSectorsIndexRoute: AppSectorsIndexRoute,
   AppStorageIndexRoute: AppStorageIndexRoute,
   AppWalletsIndexRoute: AppWalletsIndexRoute,
 }

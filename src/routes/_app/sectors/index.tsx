@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
 import { useCurioRest, useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
@@ -25,7 +24,7 @@ import type {
   SectorFileTypeStatsEntry,
 } from "@/types/sectors";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Database, BarChart3, Clock, HardDrive } from "lucide-react";
+import { Database, BarChart3, Clock, HardDrive, ArrowRightLeft } from "lucide-react";
 import { useMemo, useState, useCallback } from "react";
 
 export const Route = createFileRoute("/_app/sectors/")({
@@ -33,16 +32,11 @@ export const Route = createFileRoute("/_app/sectors/")({
 });
 
 const columns: ColumnDef<SectorListItem>[] = [
-  {
-    accessorKey: "SectorNum",
-    header: "Sector #",
-  },
+  { accessorKey: "SectorNum", header: "Sector #" },
   {
     accessorKey: "MinerAddress",
     header: "Miner",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.MinerAddress}</span>
-    ),
+    cell: ({ row }) => <span className="font-mono text-xs">{row.original.MinerAddress}</span>,
   },
   {
     id: "storage",
@@ -71,12 +65,7 @@ const columns: ColumnDef<SectorListItem>[] = [
   {
     id: "filPlus",
     header: "Fil+",
-    cell: ({ row }) =>
-      row.original.IsFilPlus ? (
-        <StatusBadge status="done" label="Yes" />
-      ) : (
-        "—"
-      ),
+    cell: ({ row }) => row.original.IsFilPlus ? <StatusBadge status="done" label="Yes" /> : "—",
   },
   {
     id: "proving",
@@ -91,52 +80,20 @@ const columns: ColumnDef<SectorListItem>[] = [
   {
     id: "flag",
     header: "Flag",
-    cell: ({ row }) =>
-      row.original.Flag ? (
-        <StatusBadge status="failed" label="Flagged" />
-      ) : (
-        "—"
-      ),
+    cell: ({ row }) => row.original.Flag ? <StatusBadge status="failed" label="Flagged" /> : "—",
   },
-  {
-    accessorKey: "ExpiresAt",
-    header: "Expires",
-  },
-  {
-    accessorKey: "Deals",
-    header: "Deals",
-  },
+  { accessorKey: "ExpiresAt", header: "Expires" },
+  { accessorKey: "Deals", header: "Deals" },
 ];
 
 function SectorsPage() {
-  usePageTitle("Sectors");
+  const { data, isLoading } = useCurioRest<SectorListItem[]>("/sectors", { refetchInterval: 60_000 });
+  const { data: spStats } = useCurioRpc<SPSectorStats[]>("SectorSPStats", [], { refetchInterval: 60_000 });
+  const { data: pipelineStats } = useCurioRpc<SectorPipelineStatsEntry[]>("SectorPipelineStats", [], { refetchInterval: 60_000 });
+  const { data: deadlineStats } = useCurioRpc<DeadlineStats[]>("SectorDeadlineStats", [], { refetchInterval: 60_000 });
+  const { data: fileTypeStats } = useCurioRpc<SectorFileTypeStatsEntry[]>("SectorFileTypeStats", [], { refetchInterval: 60_000 });
 
-  const { data, isLoading } = useCurioRest<SectorListItem[]>("/sectors", {
-    refetchInterval: 60_000,
-  });
-  const { data: spStats } = useCurioRpc<SPSectorStats[]>("SectorSPStats", [], {
-    refetchInterval: 60_000,
-  });
-  const { data: pipelineStats } = useCurioRpc<SectorPipelineStatsEntry[]>(
-    "SectorPipelineStats",
-    [],
-    { refetchInterval: 60_000 },
-  );
-  const { data: deadlineStats } = useCurioRpc<DeadlineStats[]>(
-    "SectorDeadlineStats",
-    [],
-    { refetchInterval: 60_000 },
-  );
-  const { data: fileTypeStats } = useCurioRpc<SectorFileTypeStatsEntry[]>(
-    "SectorFileTypeStats",
-    [],
-    { refetchInterval: 60_000 },
-  );
-
-  const [selectedSector, setSelectedSector] = useState<{
-    sp: string;
-    num: number;
-  } | null>(null);
+  const [selectedSector, setSelectedSector] = useState<{ sp: string; num: number } | null>(null);
 
   const sectors = data ?? [];
 
@@ -149,20 +106,14 @@ function SectorsPage() {
     return { total, filPlus, proving, flagged, snap };
   }, [sectors]);
 
-  const pct = (count: number) =>
-    stats.total ? `${((count / stats.total) * 100).toFixed(1)}%` : "—";
+  const pct = (count: number) => stats.total ? `${((count / stats.total) * 100).toFixed(1)}%` : "—";
 
   const handleRowClick = useCallback((row: SectorListItem) => {
-    setSelectedSector({
-      sp: row.MinerAddress,
-      num: row.SectorNum,
-    });
+    setSelectedSector({ sp: row.MinerAddress, num: row.SectorNum });
   }, []);
 
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold tracking-tight">Sectors</h1>
-
+    <div className="space-y-6">
       {sectors.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <KPICard label="Total Sectors" value={stats.total} />
@@ -173,29 +124,17 @@ function SectorsPage() {
         </div>
       )}
 
-      {/* SP Sector Stats */}
       {spStats && spStats.length > 0 && (
         <SectionCard title="SP Sector Statistics" icon={BarChart3}>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {spStats.map((sp) => (
               <Card key={sp.sp_id}>
                 <CardContent className="pt-4">
-                  <div className="mb-2 font-mono text-sm font-medium">
-                    {sp.sp_address}
-                  </div>
+                  <div className="mb-2 font-mono text-sm font-medium">{sp.sp_address}</div>
                   <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">Total</div>
-                      <div className="font-semibold">{sp.total_count}</div>
-                    </div>
-                    <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">CC</div>
-                      <div className="font-semibold">{sp.cc_count}</div>
-                    </div>
-                    <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">Non-CC</div>
-                      <div className="font-semibold">{sp.non_cc_count}</div>
-                    </div>
+                    <div><div className="text-[hsl(var(--muted-foreground))]">Total</div><div className="font-semibold">{sp.total_count}</div></div>
+                    <div><div className="text-[hsl(var(--muted-foreground))]">CC</div><div className="font-semibold">{sp.cc_count}</div></div>
+                    <div><div className="text-[hsl(var(--muted-foreground))]">Non-CC</div><div className="font-semibold">{sp.non_cc_count}</div></div>
                   </div>
                 </CardContent>
               </Card>
@@ -204,7 +143,6 @@ function SectorsPage() {
         </SectionCard>
       )}
 
-      {/* Pipeline Stats */}
       {pipelineStats && pipelineStats.length > 0 && (
         <SectionCard title="Pipeline Statistics" icon={ArrowRightLeft}>
           <div className="overflow-x-auto">
@@ -220,9 +158,7 @@ function SectorsPage() {
                 {pipelineStats.map((ps, i) => (
                   <tr key={i} className="border-b border-[hsl(var(--border))] last:border-0">
                     <td className="py-2">{ps.pipeline_type}</td>
-                    <td className="py-2">
-                      <Badge variant="outline">{ps.stage}</Badge>
-                    </td>
+                    <td className="py-2"><Badge variant="outline">{ps.stage}</Badge></td>
                     <td className="py-2 text-right font-mono">{ps.count}</td>
                   </tr>
                 ))}
@@ -232,7 +168,6 @@ function SectorsPage() {
         </SectionCard>
       )}
 
-      {/* Deadline Stats */}
       {deadlineStats && deadlineStats.length > 0 && (
         <SectionCard title="Deadline Statistics" icon={Clock}>
           <div className="overflow-x-auto">
@@ -255,11 +190,7 @@ function SectorsPage() {
                     <td className="py-2 text-right font-mono">{ds.live_sectors}</td>
                     <td className="py-2 text-right font-mono">{ds.active_sectors}</td>
                     <td className="py-2 text-right font-mono">
-                      {ds.faulty_sectors > 0 ? (
-                        <span className="text-[hsl(var(--destructive))]">{ds.faulty_sectors}</span>
-                      ) : (
-                        ds.faulty_sectors
-                      )}
+                      {ds.faulty_sectors > 0 ? <span className="text-[hsl(var(--destructive))]">{ds.faulty_sectors}</span> : ds.faulty_sectors}
                     </td>
                     <td className="py-2 text-right font-mono">{ds.recovering_sectors}</td>
                   </tr>
@@ -270,16 +201,13 @@ function SectorsPage() {
         </SectionCard>
       )}
 
-      {/* File Type Stats */}
       {fileTypeStats && fileTypeStats.length > 0 && (
         <SectionCard title="File Type Distribution" icon={HardDrive}>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {fileTypeStats.map((ft) => (
               <Card key={ft.file_type}>
                 <CardContent className="pt-4 text-center">
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                    {ft.file_type}
-                  </div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">{ft.file_type}</div>
                   <div className="text-2xl font-bold">{ft.count}</div>
                 </CardContent>
               </Card>
@@ -302,39 +230,17 @@ function SectorsPage() {
       </SectionCard>
 
       {selectedSector && (
-        <SectorDetailDialog
-          sp={selectedSector.sp}
-          sectorNum={selectedSector.num}
-          onClose={() => setSelectedSector(null)}
-        />
+        <SectorDetailDialog sp={selectedSector.sp} sectorNum={selectedSector.num} onClose={() => setSelectedSector(null)} />
       )}
     </div>
   );
 }
 
-function SectorDetailDialog({
-  sp,
-  sectorNum,
-  onClose,
-}: {
-  sp: string;
-  sectorNum: number;
-  onClose: () => void;
-}) {
-  const { data, isLoading } = useCurioRpc<SectorDetail>("SectorInfo", [sp, sectorNum], {
-    refetchInterval: 10_000,
-  });
-
-  const resumeMutation = useCurioRpcMutation("SectorResume", {
-    invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]],
-  });
-  const removeMutation = useCurioRpcMutation("SectorRemove", {
-    invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]],
-  });
-  const restartMutation = useCurioRpcMutation("SectorRestart", {
-    invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]],
-  });
-
+function SectorDetailDialog({ sp, sectorNum, onClose }: { sp: string; sectorNum: number; onClose: () => void }) {
+  const { data, isLoading } = useCurioRpc<SectorDetail>("SectorInfo", [sp, sectorNum], { refetchInterval: 10_000 });
+  const resumeMutation = useCurioRpcMutation("SectorResume", { invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]] });
+  const removeMutation = useCurioRpcMutation("SectorRemove", { invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]] });
+  const restartMutation = useCurioRpcMutation("SectorRestart", { invalidateKeys: [["curio", "SectorInfo", sp, sectorNum]] });
   const [confirmAction, setConfirmAction] = useState<"remove" | null>(null);
 
   return (
@@ -342,21 +248,15 @@ function SectorDetailDialog({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" onClose={onClose}>
         <DialogHeader>
           <DialogTitle>
-            Sector {sectorNum}{" "}
-            <span className="font-mono text-sm font-normal text-[hsl(var(--muted-foreground))]">
-              ({sp})
-            </span>
+            Sector {sectorNum} <span className="font-mono text-sm font-normal text-[hsl(var(--muted-foreground))]">({sp})</span>
           </DialogTitle>
           <DialogDescription>Sector details and operations</DialogDescription>
         </DialogHeader>
 
         {isLoading && !data ? (
-          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
-            Loading sector info...
-          </div>
+          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">Loading sector info...</div>
         ) : data ? (
           <div className="space-y-4">
-            {/* Overview */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <InfoItem label="Activation Epoch" value={String(data.ActivationEpoch)} />
               <InfoItem label="Expiration Epoch" value={data.ExpirationEpoch != null ? String(data.ExpirationEpoch) : "—"} />
@@ -366,7 +266,6 @@ function SectorDetailDialog({
               <InfoItem label="Snap" value={data.IsSnap ? "Yes" : "No"} />
             </div>
 
-            {/* Storage */}
             <div>
               <h4 className="mb-2 text-sm font-medium">Storage</h4>
               <div className="flex gap-2">
@@ -376,7 +275,6 @@ function SectorDetailDialog({
               </div>
             </div>
 
-            {/* CIDs */}
             <div>
               <h4 className="mb-2 text-sm font-medium">CIDs</h4>
               <div className="space-y-1 text-xs">
@@ -387,7 +285,6 @@ function SectorDetailDialog({
               </div>
             </div>
 
-            {/* Messages */}
             {(data.PreCommitMsg || data.CommitMsg || data.UpdateMsg) && (
               <div>
                 <h4 className="mb-2 text-sm font-medium">Messages</h4>
@@ -399,7 +296,6 @@ function SectorDetailDialog({
               </div>
             )}
 
-            {/* Partition State */}
             {data.PartitionState && (
               <div>
                 <h4 className="mb-2 text-sm font-medium">On-Chain State</h4>
@@ -414,7 +310,6 @@ function SectorDetailDialog({
               </div>
             )}
 
-            {/* Pieces */}
             {data.Pieces && data.Pieces.length > 0 && (
               <div>
                 <h4 className="mb-2 text-sm font-medium">Pieces ({data.Pieces.length})</h4>
@@ -429,7 +324,6 @@ function SectorDetailDialog({
               </div>
             )}
 
-            {/* Locations */}
             {data.Locations && data.Locations.length > 0 && (
               <div>
                 <h4 className="mb-2 text-sm font-medium">Locations ({data.Locations.length})</h4>
@@ -444,7 +338,6 @@ function SectorDetailDialog({
               </div>
             )}
 
-            {/* Task History */}
             {data.TaskHistory && data.TaskHistory.length > 0 && (
               <div>
                 <h4 className="mb-2 text-sm font-medium">Recent Tasks ({data.TaskHistory.length})</h4>
@@ -462,62 +355,32 @@ function SectorDetailDialog({
               </div>
             )}
 
-            {/* Actions */}
             <DialogFooter>
               <div className="flex w-full gap-2">
                 {data.Resumable && (
-                  <Button
-                    size="sm"
-                    onClick={() => resumeMutation.mutate([sp, sectorNum])}
-                    disabled={resumeMutation.isPending}
-                  >
+                  <Button size="sm" onClick={() => resumeMutation.mutate([sp, sectorNum])} disabled={resumeMutation.isPending}>
                     {resumeMutation.isPending ? "Resuming..." : "Resume"}
                   </Button>
                 )}
                 {data.Restart && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => restartMutation.mutate([sp, sectorNum])}
-                    disabled={restartMutation.isPending}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => restartMutation.mutate([sp, sectorNum])} disabled={restartMutation.isPending}>
                     {restartMutation.isPending ? "Restarting..." : "Restart"}
                   </Button>
                 )}
                 {confirmAction === "remove" ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[hsl(var(--destructive))]">Confirm remove?</span>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => {
-                        removeMutation.mutate([sp, sectorNum]);
-                        setConfirmAction(null);
-                      }}
-                      disabled={removeMutation.isPending}
-                    >
-                      Yes
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setConfirmAction(null)}>
-                      No
-                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => { removeMutation.mutate([sp, sectorNum]); setConfirmAction(null); }} disabled={removeMutation.isPending}>Yes</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmAction(null)}>No</Button>
                   </div>
                 ) : (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setConfirmAction("remove")}
-                  >
-                    Remove
-                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => setConfirmAction("remove")}>Remove</Button>
                 )}
               </div>
             </DialogFooter>
           </div>
         ) : (
-          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
-            Sector not found
-          </div>
+          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">Sector not found</div>
         )}
       </DialogContent>
     </Dialog>
@@ -541,6 +404,3 @@ function CidRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-// Needed for pipeline stats section
-import { ArrowRightLeft } from "lucide-react";

@@ -152,7 +152,6 @@ function MK12DealsPage() {
         <KPICard label="Failed" value={totalFailed} />
       </div>
 
-      {/* Failed Tasks Summary */}
       {failedStats && totalFailed > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -160,26 +159,26 @@ function MK12DealsPage() {
               <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" /> Failed Tasks
             </CardTitle>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => bulkRestartMutation.mutate([])} disabled={bulkRestartMutation.isPending}>
+              <Button size="sm" variant="outline" onClick={() => bulkRestartMutation.mutate(["all"])} disabled={bulkRestartMutation.isPending}>
                 <RotateCcw className="mr-1 size-3" /> Restart All
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => bulkRemoveMutation.mutate([])} disabled={bulkRemoveMutation.isPending}>
+              <Button size="sm" variant="destructive" onClick={() => bulkRemoveMutation.mutate(["all"])} disabled={bulkRemoveMutation.isPending}>
                 <Trash2 className="mr-1 size-3" /> Remove All
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {[
+              {([
                 ["Download", failedStats.DownloadingFailed],
                 ["CommP", failedStats.CommPFailed],
                 ["PSD", failedStats.PSDFailed],
                 ["FindDeal", failedStats.FindDealFailed],
                 ["Index", failedStats.IndexFailed],
-              ].map(([name, count]) => (
-                <div key={name as string} className="rounded border border-[hsl(var(--border))] p-2 text-center">
+              ] as const).map(([name, count]) => (
+                <div key={name} className="rounded border border-[hsl(var(--border))] p-2 text-center">
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">{name}</p>
-                  <p className={`text-lg font-bold ${(count as number) > 0 ? "text-[hsl(var(--destructive))]" : ""}`}>{count as number}</p>
+                  <p className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}>{count}</p>
                 </div>
               ))}
             </div>
