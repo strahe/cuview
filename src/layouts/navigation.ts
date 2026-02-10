@@ -12,6 +12,7 @@ import {
   Settings,
   HardDrive,
   Bell,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
 
@@ -118,6 +119,12 @@ export const navigationGroups: NavigationGroup[] = [
         icon: KeyRound,
         to: "/pdp",
         keywords: ["pdp", "proof of data possession"],
+      },
+      {
+        label: "Proof Share",
+        icon: Shield,
+        to: "/proof-share",
+        keywords: ["proof", "share", "proving", "windowed post"],
       },
       {
         label: "Configurations",

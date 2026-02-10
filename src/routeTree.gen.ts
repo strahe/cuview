@@ -20,6 +20,7 @@ import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
 import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
 import { Route as AppSectorsIndexRouteImport } from "./routes/_app/sectors/index"
+import { Route as AppProofShareIndexRouteImport } from "./routes/_app/proof-share/index"
 import { Route as AppPipelineIndexRouteImport } from "./routes/_app/pipeline/index"
 import { Route as AppPdpIndexRouteImport } from "./routes/_app/pdp/index"
 import { Route as AppOverviewIndexRouteImport } from "./routes/_app/overview/index"
@@ -34,6 +35,7 @@ import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
+import { Route as AppMarketPiecesRouteImport } from "./routes/_app/market/pieces"
 import { Route as AppMarketPendingRouteImport } from "./routes/_app/market/pending"
 import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balance"
 import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
@@ -98,6 +100,11 @@ const AppSectorsIndexRoute = AppSectorsIndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => AppSectorsRouteRoute,
+} as any)
+const AppProofShareIndexRoute = AppProofShareIndexRouteImport.update({
+  id: "/proof-share/",
+  path: "/proof-share/",
+  getParentRoute: () => AppRoute,
 } as any)
 const AppPipelineIndexRoute = AppPipelineIndexRouteImport.update({
   id: "/",
@@ -169,6 +176,11 @@ const AppPipelinePorepRoute = AppPipelinePorepRouteImport.update({
   path: "/porep",
   getParentRoute: () => AppPipelineRouteRoute,
 } as any)
+const AppMarketPiecesRoute = AppMarketPiecesRouteImport.update({
+  id: "/pieces",
+  path: "/pieces",
+  getParentRoute: () => AppMarketRouteRoute,
+} as any)
 const AppMarketPendingRoute = AppMarketPendingRouteImport.update({
   id: "/pending",
   path: "/pending",
@@ -234,6 +246,7 @@ export interface FileRoutesByFullPath {
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
   "/market/pending": typeof AppMarketPendingRoute
+  "/market/pieces": typeof AppMarketPiecesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -248,6 +261,7 @@ export interface FileRoutesByFullPath {
   "/overview/": typeof AppOverviewIndexRoute
   "/pdp/": typeof AppPdpIndexRoute
   "/pipeline/": typeof AppPipelineIndexRoute
+  "/proof-share/": typeof AppProofShareIndexRoute
   "/sectors/": typeof AppSectorsIndexRoute
   "/storage/": typeof AppStorageIndexRoute
   "/tasks/": typeof AppTasksIndexRoute
@@ -266,6 +280,7 @@ export interface FileRoutesByTo {
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
   "/market/pending": typeof AppMarketPendingRoute
+  "/market/pieces": typeof AppMarketPiecesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -280,6 +295,7 @@ export interface FileRoutesByTo {
   "/overview": typeof AppOverviewIndexRoute
   "/pdp": typeof AppPdpIndexRoute
   "/pipeline": typeof AppPipelineIndexRoute
+  "/proof-share": typeof AppProofShareIndexRoute
   "/sectors": typeof AppSectorsIndexRoute
   "/storage": typeof AppStorageIndexRoute
   "/tasks": typeof AppTasksIndexRoute
@@ -304,6 +320,7 @@ export interface FileRoutesById {
   "/_app/market/asks": typeof AppMarketAsksRoute
   "/_app/market/balance": typeof AppMarketBalanceRoute
   "/_app/market/pending": typeof AppMarketPendingRoute
+  "/_app/market/pieces": typeof AppMarketPiecesRoute
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
@@ -318,6 +335,7 @@ export interface FileRoutesById {
   "/_app/overview/": typeof AppOverviewIndexRoute
   "/_app/pdp/": typeof AppPdpIndexRoute
   "/_app/pipeline/": typeof AppPipelineIndexRoute
+  "/_app/proof-share/": typeof AppProofShareIndexRoute
   "/_app/sectors/": typeof AppSectorsIndexRoute
   "/_app/storage/": typeof AppStorageIndexRoute
   "/_app/tasks/": typeof AppTasksIndexRoute
@@ -342,6 +360,7 @@ export interface FileRouteTypes {
     | "/market/asks"
     | "/market/balance"
     | "/market/pending"
+    | "/market/pieces"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/tasks/active"
@@ -356,6 +375,7 @@ export interface FileRouteTypes {
     | "/overview/"
     | "/pdp/"
     | "/pipeline/"
+    | "/proof-share/"
     | "/sectors/"
     | "/storage/"
     | "/tasks/"
@@ -374,6 +394,7 @@ export interface FileRouteTypes {
     | "/market/asks"
     | "/market/balance"
     | "/market/pending"
+    | "/market/pieces"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/tasks/active"
@@ -388,6 +409,7 @@ export interface FileRouteTypes {
     | "/overview"
     | "/pdp"
     | "/pipeline"
+    | "/proof-share"
     | "/sectors"
     | "/storage"
     | "/tasks"
@@ -411,6 +433,7 @@ export interface FileRouteTypes {
     | "/_app/market/asks"
     | "/_app/market/balance"
     | "/_app/market/pending"
+    | "/_app/market/pieces"
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
     | "/_app/tasks/active"
@@ -425,6 +448,7 @@ export interface FileRouteTypes {
     | "/_app/overview/"
     | "/_app/pdp/"
     | "/_app/pipeline/"
+    | "/_app/proof-share/"
     | "/_app/sectors/"
     | "/_app/storage/"
     | "/_app/tasks/"
@@ -520,6 +544,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/sectors/"
       preLoaderRoute: typeof AppSectorsIndexRouteImport
       parentRoute: typeof AppSectorsRouteRoute
+    }
+    "/_app/proof-share/": {
+      id: "/_app/proof-share/"
+      path: "/proof-share"
+      fullPath: "/proof-share/"
+      preLoaderRoute: typeof AppProofShareIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     "/_app/pipeline/": {
       id: "/_app/pipeline/"
@@ -619,6 +650,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppPipelinePorepRouteImport
       parentRoute: typeof AppPipelineRouteRoute
     }
+    "/_app/market/pieces": {
+      id: "/_app/market/pieces"
+      path: "/pieces"
+      fullPath: "/market/pieces"
+      preLoaderRoute: typeof AppMarketPiecesRouteImport
+      parentRoute: typeof AppMarketRouteRoute
+    }
     "/_app/market/pending": {
       id: "/_app/market/pending"
       path: "/pending"
@@ -696,6 +734,7 @@ interface AppMarketRouteRouteChildren {
   AppMarketAsksRoute: typeof AppMarketAsksRoute
   AppMarketBalanceRoute: typeof AppMarketBalanceRoute
   AppMarketPendingRoute: typeof AppMarketPendingRoute
+  AppMarketPiecesRoute: typeof AppMarketPiecesRoute
   AppMarketIndexRoute: typeof AppMarketIndexRoute
   AppMarketMk12DealsRoute: typeof AppMarketMk12DealsRoute
   AppMarketMk20DealsRoute: typeof AppMarketMk20DealsRoute
@@ -706,6 +745,7 @@ const AppMarketRouteRouteChildren: AppMarketRouteRouteChildren = {
   AppMarketAsksRoute: AppMarketAsksRoute,
   AppMarketBalanceRoute: AppMarketBalanceRoute,
   AppMarketPendingRoute: AppMarketPendingRoute,
+  AppMarketPiecesRoute: AppMarketPiecesRoute,
   AppMarketIndexRoute: AppMarketIndexRoute,
   AppMarketMk12DealsRoute: AppMarketMk12DealsRoute,
   AppMarketMk20DealsRoute: AppMarketMk20DealsRoute,
@@ -779,6 +819,7 @@ interface AppRouteChildren {
   AppMachinesIndexRoute: typeof AppMachinesIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
+  AppProofShareIndexRoute: typeof AppProofShareIndexRoute
   AppStorageIndexRoute: typeof AppStorageIndexRoute
   AppWalletsIndexRoute: typeof AppWalletsIndexRoute
 }
@@ -797,6 +838,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMachinesIndexRoute: AppMachinesIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
+  AppProofShareIndexRoute: AppProofShareIndexRoute,
   AppStorageIndexRoute: AppStorageIndexRoute,
   AppWalletsIndexRoute: AppWalletsIndexRoute,
 }
