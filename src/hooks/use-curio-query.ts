@@ -1,11 +1,11 @@
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   type UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useCurioApi } from "@/contexts/curio-api-context";
-import { CurioApiService } from "@/services/curio-api";
+import type { CurioApiService } from "@/services/curio-api";
 
 const DEFAULT_POLL_INTERVAL = 30_000;
 
@@ -70,8 +70,7 @@ export function useCurioMutation<TData = unknown, TVariables = unknown>(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (variables: TVariables) =>
-      api.restPost<TData>(path, variables),
+    mutationFn: (variables: TVariables) => api.restPost<TData>(path, variables),
     onSuccess: (data) => {
       options?.invalidateKeys?.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key });

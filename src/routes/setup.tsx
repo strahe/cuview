@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { useCallback, useState } from "react";
 import { setStoredEndpoint } from "@/contexts/curio-api-context";
 import { cn } from "@/lib/utils";
-import { Loader2, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/setup")({
   component: SetupPage,
@@ -12,9 +12,7 @@ type TestStatus = "idle" | "testing" | "success" | "error";
 
 function SetupPage() {
   const navigate = useNavigate();
-  const [endpoint, setEndpoint] = useState(
-    "ws://localhost:4701/api/webrpc/v0",
-  );
+  const [endpoint, setEndpoint] = useState("ws://localhost:4701/api/webrpc/v0");
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -44,9 +42,7 @@ function SetupPage() {
       setTestStatus("success");
     } catch (err) {
       setTestStatus("error");
-      setErrorMessage(
-        err instanceof Error ? err.message : "Connection failed",
-      );
+      setErrorMessage(err instanceof Error ? err.message : "Connection failed");
     }
   }, [endpoint]);
 

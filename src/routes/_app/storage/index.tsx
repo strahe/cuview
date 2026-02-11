@@ -1,32 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { CheckCircle, FolderOpen, HardDrive, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
-import { Card, CardContent } from "@/components/ui/card";
-import { DataTable } from "@/components/table/data-table";
 import { StatusBadge } from "@/components/composed/status-badge";
-import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
 import type {
-  StorageUseStat,
-  StorageGCStatsEntry,
   StorageGCMark,
   StorageGCMarksResponse,
+  StorageGCStatsEntry,
   StoragePathInfo,
   StoragePathSector,
   StoragePathSectorsResult,
+  StorageUseStat,
 } from "@/types/storage";
-import type { ColumnDef } from "@tanstack/react-table";
-import { HardDrive, Trash2, CheckCircle, FolderOpen } from "lucide-react";
-import { useMemo, useState } from "react";
 import { formatBytes } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/storage/")({
@@ -47,13 +47,17 @@ const gcMarkColumns: ColumnDef<StorageGCMark>[] = [
   {
     accessorKey: "file_type",
     header: "File Type",
-    cell: ({ row }) => <Badge variant="outline">{row.original.file_type}</Badge>,
+    cell: ({ row }) => (
+      <Badge variant="outline">{row.original.file_type}</Badge>
+    ),
   },
   {
     accessorKey: "storage_id",
     header: "Storage",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.storage_id.slice(0, 12)}…</span>
+      <span className="font-mono text-xs">
+        {row.original.storage_id.slice(0, 12)}…
+      </span>
     ),
   },
   {
@@ -74,7 +78,9 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     accessorKey: "StorageID",
     header: "Storage ID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.StorageID.slice(0, 16)}…</span>
+      <span className="font-mono text-xs">
+        {row.original.StorageID.slice(0, 16)}…
+      </span>
     ),
   },
   { accessorKey: "PathType", header: "Type" },
@@ -83,8 +89,16 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     header: "Capabilities",
     cell: ({ row }) => (
       <div className="flex gap-1">
-        {row.original.CanSeal && <Badge variant="outline" className="text-xs">Seal</Badge>}
-        {row.original.CanStore && <Badge variant="outline" className="text-xs">Store</Badge>}
+        {row.original.CanSeal && (
+          <Badge variant="outline" className="text-xs">
+            Seal
+          </Badge>
+        )}
+        {row.original.CanStore && (
+          <Badge variant="outline" className="text-xs">
+            Store
+          </Badge>
+        )}
       </div>
     ),
   },
@@ -115,7 +129,9 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     cell: ({ row }) => (
       <StatusBadge
         status={row.original.HealthOK ? "done" : "failed"}
-        label={row.original.HealthStatus || (row.original.HealthOK ? "OK" : "Error")}
+        label={
+          row.original.HealthStatus || (row.original.HealthOK ? "OK" : "Error")
+        }
       />
     ),
   },
@@ -123,7 +139,9 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     id: "hosts",
     header: "Hosts",
     cell: ({ row }) => (
-      <span className="text-xs">{row.original.HostList?.join(", ") || "—"}</span>
+      <span className="text-xs">
+        {row.original.HostList?.join(", ") || "—"}
+      </span>
     ),
   },
 ];
@@ -135,13 +153,18 @@ const pathSectorColumns: ColumnDef<StoragePathSector>[] = [
   {
     accessorKey: "IsPrimary",
     header: "Primary",
-    cell: ({ row }) => row.original.IsPrimary ? "Yes" : "No",
+    cell: ({ row }) => (row.original.IsPrimary ? "Yes" : "No"),
   },
   { accessorKey: "ReadRefs", header: "Read Refs" },
   {
     accessorKey: "HasWriteLock",
     header: "Write Lock",
-    cell: ({ row }) => row.original.HasWriteLock ? <Badge variant="destructive">Locked</Badge> : "No",
+    cell: ({ row }) =>
+      row.original.HasWriteLock ? (
+        <Badge variant="destructive">Locked</Badge>
+      ) : (
+        "No"
+      ),
   },
 ];
 
@@ -150,31 +173,49 @@ function StoragePage() {
 
   const [activeTab, setActiveTab] = useState<StorageTab>("usage");
 
-  const { data: useStats } = useCurioRpc<StorageUseStat[]>("StorageUseStats", [], {
-    refetchInterval: 60_000,
-  });
-  const { data: gcStats } = useCurioRpc<StorageGCStatsEntry[]>("StorageGCStats", [], {
-    refetchInterval: 60_000,
-  });
+  const { data: useStats } = useCurioRpc<StorageUseStat[]>(
+    "StorageUseStats",
+    [],
+    {
+      refetchInterval: 60_000,
+    },
+  );
+  const { data: gcStats } = useCurioRpc<StorageGCStatsEntry[]>(
+    "StorageGCStats",
+    [],
+    {
+      refetchInterval: 60_000,
+    },
+  );
   const [gcPage] = useState(0);
   const { data: gcMarks, isLoading: gcMarksLoading } =
-    useCurioRpc<StorageGCMarksResponse>("StorageGCMarks", [null, null, 100, gcPage * 100], {
-      refetchInterval: 30_000,
-    });
-  const { data: storagePaths, isLoading: pathsLoading } = useCurioRpc<StoragePathInfo[]>(
-    "StoragePathList",
-    [],
-    { refetchInterval: 60_000 },
-  );
+    useCurioRpc<StorageGCMarksResponse>(
+      "StorageGCMarks",
+      [null, null, 100, gcPage * 100],
+      {
+        refetchInterval: 30_000,
+      },
+    );
+  const { data: storagePaths, isLoading: pathsLoading } = useCurioRpc<
+    StoragePathInfo[]
+  >("StoragePathList", [], { refetchInterval: 60_000 });
 
   const approveAllMutation = useCurioRpcMutation("StorageGCApproveAll", {
-    invalidateKeys: [["curio", "StorageGCMarks"], ["curio", "StorageGCStats"]],
+    invalidateKeys: [
+      ["curio", "StorageGCMarks"],
+      ["curio", "StorageGCStats"],
+    ],
   });
   const unapproveAllMutation = useCurioRpcMutation("StorageGCUnapproveAll", {
-    invalidateKeys: [["curio", "StorageGCMarks"], ["curio", "StorageGCStats"]],
+    invalidateKeys: [
+      ["curio", "StorageGCMarks"],
+      ["curio", "StorageGCStats"],
+    ],
   });
 
-  const [selectedPath, setSelectedPath] = useState<StoragePathInfo | null>(null);
+  const [selectedPath, setSelectedPath] = useState<StoragePathInfo | null>(
+    null,
+  );
 
   const storageSummary = useMemo(() => {
     if (!useStats) return { totalCapacity: 0, totalAvailable: 0, count: 0 };
@@ -196,7 +237,11 @@ function StoragePage() {
 
   const usedPct =
     storageSummary.totalCapacity > 0
-      ? (((storageSummary.totalCapacity - storageSummary.totalAvailable) / storageSummary.totalCapacity) * 100).toFixed(1)
+      ? (
+          ((storageSummary.totalCapacity - storageSummary.totalAvailable) /
+            storageSummary.totalCapacity) *
+          100
+        ).toFixed(1)
       : "0";
 
   return (
@@ -208,19 +253,34 @@ function StoragePage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <KPICard label="Storage Paths" value={storageSummary.count} />
-        <KPICard label="Total Capacity" value={formatBytes(storageSummary.totalCapacity)} />
-        <KPICard label="Available" value={formatBytes(storageSummary.totalAvailable)} />
+        <KPICard
+          label="Total Capacity"
+          value={formatBytes(storageSummary.totalCapacity)}
+        />
+        <KPICard
+          label="Available"
+          value={formatBytes(storageSummary.totalAvailable)}
+        />
         <KPICard label="Used" value={`${usedPct}%`} />
       </div>
 
       <TabsList>
-        <TabsTrigger active={activeTab === "usage"} onClick={() => setActiveTab("usage")}>
+        <TabsTrigger
+          active={activeTab === "usage"}
+          onClick={() => setActiveTab("usage")}
+        >
           Usage
         </TabsTrigger>
-        <TabsTrigger active={activeTab === "paths"} onClick={() => setActiveTab("paths")}>
+        <TabsTrigger
+          active={activeTab === "paths"}
+          onClick={() => setActiveTab("paths")}
+        >
           Paths ({storagePaths?.length ?? 0})
         </TabsTrigger>
-        <TabsTrigger active={activeTab === "gc"} onClick={() => setActiveTab("gc")}>
+        <TabsTrigger
+          active={activeTab === "gc"}
+          onClick={() => setActiveTab("gc")}
+        >
           GC ({gcSummary.total})
         </TabsTrigger>
       </TabsList>
@@ -235,10 +295,20 @@ function StoragePage() {
               <Card key={i}>
                 <CardContent className="pt-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-medium">{s.Type || "Unknown"}</span>
+                    <span className="text-sm font-medium">
+                      {s.Type || "Unknown"}
+                    </span>
                     <div className="flex gap-1">
-                      {s.can_seal && <Badge variant="outline" className="text-xs">Seal</Badge>}
-                      {s.can_store && <Badge variant="outline" className="text-xs">Store</Badge>}
+                      {s.can_seal && (
+                        <Badge variant="outline" className="text-xs">
+                          Seal
+                        </Badge>
+                      )}
+                      {s.can_store && (
+                        <Badge variant="outline" className="text-xs">
+                          Store
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[hsl(var(--muted))]">
@@ -286,7 +356,9 @@ function StoragePage() {
             <Button
               size="sm"
               onClick={() => approveAllMutation.mutate([])}
-              disabled={approveAllMutation.isPending || gcSummary.unapproved === 0}
+              disabled={
+                approveAllMutation.isPending || gcSummary.unapproved === 0
+              }
             >
               <CheckCircle className="mr-1 size-4" />
               {approveAllMutation.isPending ? "Approving..." : "Approve All"}
@@ -295,9 +367,13 @@ function StoragePage() {
               size="sm"
               variant="outline"
               onClick={() => unapproveAllMutation.mutate([])}
-              disabled={unapproveAllMutation.isPending || gcSummary.approved === 0}
+              disabled={
+                unapproveAllMutation.isPending || gcSummary.approved === 0
+              }
             >
-              {unapproveAllMutation.isPending ? "Unapproving..." : "Unapprove All"}
+              {unapproveAllMutation.isPending
+                ? "Unapproving..."
+                : "Unapprove All"}
             </Button>
           </div>
           <DataTable
@@ -311,13 +387,22 @@ function StoragePage() {
 
       {/* Path Detail Dialog */}
       {selectedPath && (
-        <PathDetailDialog path={selectedPath} onClose={() => setSelectedPath(null)} />
+        <PathDetailDialog
+          path={selectedPath}
+          onClose={() => setSelectedPath(null)}
+        />
       )}
     </div>
   );
 }
 
-function PathDetailDialog({ path, onClose }: { path: StoragePathInfo; onClose: () => void }) {
+function PathDetailDialog({
+  path,
+  onClose,
+}: {
+  path: StoragePathInfo;
+  onClose: () => void;
+}) {
   const { data: sectors, isLoading } = useCurioRpc<StoragePathSectorsResult>(
     "StoragePathSectors",
     [path.StorageID, 100, 0],
@@ -326,7 +411,10 @@ function PathDetailDialog({ path, onClose }: { path: StoragePathInfo; onClose: (
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto" onClose={onClose}>
+      <DialogContent
+        className="max-w-3xl max-h-[80vh] overflow-y-auto"
+        onClose={onClose}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen className="size-5" />
@@ -336,7 +424,9 @@ function PathDetailDialog({ path, onClose }: { path: StoragePathInfo; onClose: (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Storage ID</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Storage ID
+              </div>
               <div className="font-mono text-xs">{path.StorageID}</div>
             </div>
             <div>
@@ -344,16 +434,22 @@ function PathDetailDialog({ path, onClose }: { path: StoragePathInfo; onClose: (
               <div>{path.PathType}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Capacity</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Capacity
+              </div>
               <div>{path.CapacityStr}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Available</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Available
+              </div>
               <div>{path.AvailableStr}</div>
             </div>
             <div>
               <div className="text-[hsl(var(--muted-foreground))]">Used</div>
-              <div>{path.UsedStr} ({path.UsedPercent.toFixed(1)}%)</div>
+              <div>
+                {path.UsedStr} ({path.UsedPercent.toFixed(1)}%)
+              </div>
             </div>
             <div>
               <div className="text-[hsl(var(--muted-foreground))]">Health</div>
@@ -366,15 +462,23 @@ function PathDetailDialog({ path, onClose }: { path: StoragePathInfo; onClose: (
 
           {path.HostList && path.HostList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">Hosts</div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                Hosts
+              </div>
               <div className="flex flex-wrap gap-1 mt-1">
-                {path.HostList.map((h) => <Badge key={h} variant="outline">{h}</Badge>)}
+                {path.HostList.map((h) => (
+                  <Badge key={h} variant="outline">
+                    {h}
+                  </Badge>
+                ))}
               </div>
             </div>
           )}
 
           <div>
-            <h4 className="mb-2 text-sm font-medium">Sectors ({sectors?.Total ?? 0})</h4>
+            <h4 className="mb-2 text-sm font-medium">
+              Sectors ({sectors?.Total ?? 0})
+            </h4>
             <DataTable
               columns={pathSectorColumns}
               data={sectors?.Sectors ?? []}

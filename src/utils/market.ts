@@ -1,13 +1,13 @@
-import { formatBytes as formatSize } from "@/utils/format";
 import type {
   Mk20DealSummary,
   Mk20DealSummaryRaw,
   Mk20FailedTaskType,
-  Mk20Pipeline,
-  Mk20PipelineRaw,
   Mk20PdpDeal,
   Mk20PdpDealRaw,
+  Mk20Pipeline,
+  Mk20PipelineRaw,
 } from "@/types/market";
+import { formatBytes as formatSize } from "@/utils/format";
 import {
   unwrapSqlNullableNumber,
   unwrapSqlNullableString,

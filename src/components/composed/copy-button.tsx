@@ -1,5 +1,5 @@
-import { Copy, Check } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Check, Copy } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface CopyButtonProps {

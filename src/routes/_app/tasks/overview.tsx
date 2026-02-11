@@ -1,21 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import type { HarmonyTaskStat } from "@/types/cluster";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/table/data-table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Search } from "lucide-react";
+import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ColumnDef } from "@tanstack/react-table";
-import { useState, useCallback } from "react";
-import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import type { HarmonyTaskStat } from "@/types/cluster";
 
 export const Route = createFileRoute("/_app/tasks/overview")({
   component: TaskOverviewPage,
@@ -42,14 +42,26 @@ const machineColumns: ColumnDef<HarmonyMachineDesc>[] = [
   {
     accessorKey: "host_and_port",
     header: "Address",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.host_and_port}</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.host_and_port}</span>
+    ),
   },
   { accessorKey: "miners", header: "Actors" },
 ];
 
-function TaskMachinesDialog({ taskName, open, onClose }: { taskName: string; open: boolean; onClose: () => void }) {
+function TaskMachinesDialog({
+  taskName,
+  open,
+  onClose,
+}: {
+  taskName: string;
+  open: boolean;
+  onClose: () => void;
+}) {
   const { data, isLoading } = useCurioRpc<HarmonyMachineDesc[]>(
-    "HarmonyTaskMachines", [taskName], { enabled: open },
+    "HarmonyTaskMachines",
+    [taskName],
+    { enabled: open },
   );
 
   return (
@@ -71,7 +83,9 @@ function TaskMachinesDialog({ taskName, open, onClose }: { taskName: string; ope
 
 function TaskOverviewPage() {
   const { data, isLoading } = useCurioRpc<HarmonyTaskStat[]>(
-    "HarmonyTaskStats", [], { refetchInterval: 30_000 },
+    "HarmonyTaskStats",
+    [],
+    { refetchInterval: 30_000 },
   );
 
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -79,18 +93,22 @@ function TaskOverviewPage() {
   const [taskStatusId, setTaskStatusId] = useState<number | null>(null);
 
   const { data: taskStatus } = useCurioRpc<TaskStatus>(
-    "GetTaskStatus", [taskStatusId!], { enabled: taskStatusId !== null },
+    "GetTaskStatus",
+    [taskStatusId!],
+    { enabled: taskStatusId !== null },
   );
 
   const handleLookup = useCallback(() => {
     const id = parseInt(taskIdQuery, 10);
-    if (!isNaN(id) && id > 0) setTaskStatusId(id);
+    if (!Number.isNaN(id) && id > 0) setTaskStatusId(id);
   }, [taskIdQuery]);
 
   if (isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-28" />
+        ))}
       </div>
     );
   }
@@ -98,7 +116,11 @@ function TaskOverviewPage() {
   const stats = data ?? [];
   const sorted = [...stats].sort((a, b) => b.TotalCount - a.TotalCount);
   const totals = stats.reduce(
-    (acc, s) => ({ total: acc.total + s.TotalCount, success: acc.success + s.TrueCount, failed: acc.failed + s.FalseCount }),
+    (acc, s) => ({
+      total: acc.total + s.TotalCount,
+      success: acc.success + s.TrueCount,
+      failed: acc.failed + s.FalseCount,
+    }),
     { total: 0, success: 0, failed: 0 },
   );
 
@@ -107,20 +129,30 @@ function TaskOverviewPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Total Tasks</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Total Tasks
+            </p>
             <p className="mt-1 text-3xl font-bold">{totals.total}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Succeeded</p>
-            <p className="mt-1 text-3xl font-bold text-[hsl(var(--success))]">{totals.success}</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Succeeded
+            </p>
+            <p className="mt-1 text-3xl font-bold text-[hsl(var(--success))]">
+              {totals.success}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Failed</p>
-            <p className="mt-1 text-3xl font-bold text-[hsl(var(--destructive))]">{totals.failed}</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Failed
+            </p>
+            <p className="mt-1 text-3xl font-bold text-[hsl(var(--destructive))]">
+              {totals.failed}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -128,7 +160,9 @@ function TaskOverviewPage() {
       {/* Task ID Lookup */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Search className="size-4" /> Task Lookup</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="size-4" /> Task Lookup
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
@@ -139,7 +173,11 @@ function TaskOverviewPage() {
               onKeyDown={(e) => e.key === "Enter" && handleLookup()}
               className="max-w-xs"
             />
-            <Button size="sm" onClick={handleLookup} disabled={!taskIdQuery.trim()}>
+            <Button
+              size="sm"
+              onClick={handleLookup}
+              disabled={!taskIdQuery.trim()}
+            >
               Lookup
             </Button>
           </div>
@@ -149,15 +187,27 @@ function TaskOverviewPage() {
                 <span className="font-mono text-sm">#{taskStatus.task_id}</span>
                 <span className="font-medium">{taskStatus.name}</span>
                 <StatusBadge
-                  status={taskStatus.status === "done" ? "done" : taskStatus.status === "running" ? "running" : taskStatus.status === "failed" ? "failed" : "pending"}
+                  status={
+                    taskStatus.status === "done"
+                      ? "done"
+                      : taskStatus.status === "running"
+                        ? "running"
+                        : taskStatus.status === "failed"
+                          ? "failed"
+                          : "pending"
+                  }
                   label={taskStatus.status}
                 />
               </div>
               {taskStatus.posted_at && (
-                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">Posted: {taskStatus.posted_at}</p>
+                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                  Posted: {taskStatus.posted_at}
+                </p>
               )}
               {taskStatus.owner_id && (
-                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">Owner Machine ID: {taskStatus.owner_id}</p>
+                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                  Owner Machine ID: {taskStatus.owner_id}
+                </p>
               )}
             </div>
           )}
@@ -172,7 +222,10 @@ function TaskOverviewPage() {
         <CardContent>
           <div className="space-y-3">
             {sorted.map((stat) => {
-              const rate = stat.TotalCount === 0 ? 0 : (stat.TrueCount / stat.TotalCount) * 100;
+              const rate =
+                stat.TotalCount === 0
+                  ? 0
+                  : (stat.TrueCount / stat.TotalCount) * 100;
               return (
                 <div
                   key={stat.Name}
@@ -181,8 +234,18 @@ function TaskOverviewPage() {
                 >
                   <span className="font-medium">{stat.Name}</span>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-[hsl(var(--muted-foreground))]">{stat.TotalCount} runs</span>
-                    <span className={rate >= 95 ? "text-[hsl(var(--success))]" : rate >= 80 ? "text-[hsl(var(--warning))]" : "text-[hsl(var(--destructive))]"}>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      {stat.TotalCount} runs
+                    </span>
+                    <span
+                      className={
+                        rate >= 95
+                          ? "text-[hsl(var(--success))]"
+                          : rate >= 80
+                            ? "text-[hsl(var(--warning))]"
+                            : "text-[hsl(var(--destructive))]"
+                      }
+                    >
                       {rate.toFixed(1)}% success
                     </span>
                   </div>
@@ -194,7 +257,11 @@ function TaskOverviewPage() {
       </Card>
 
       {selectedTask && (
-        <TaskMachinesDialog taskName={selectedTask} open onClose={() => setSelectedTask(null)} />
+        <TaskMachinesDialog
+          taskName={selectedTask}
+          open
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
-import { SectionCard } from "@/components/composed/section-card";
-import { ProgressStat } from "@/components/composed/progress-stat";
-import { Skeleton } from "@/components/ui/skeleton";
 import { HardDrive } from "lucide-react";
+import { ProgressStat } from "@/components/composed/progress-stat";
+import { SectionCard } from "@/components/composed/section-card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { StorageUseStat } from "@/types/storage";
 import { formatBytes } from "@/utils/format";
 
@@ -44,7 +44,9 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
           return (
             <div key={i}>
               <div className="mb-1 flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
-                <span className="font-mono">{stat.Type || `Storage ${i + 1}`}</span>
+                <span className="font-mono">
+                  {stat.Type || `Storage ${i + 1}`}
+                </span>
                 <span>
                   {formatBytes(used)} / {formatBytes(stat.Capacity)}
                 </span>

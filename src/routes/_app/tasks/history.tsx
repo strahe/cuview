@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { RotateCcw } from "lucide-react";
+import { useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,10 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { TaskHistorySummary, TaskHistoryEntry } from "@/types/task";
-import type { ColumnDef } from "@tanstack/react-table";
-import { RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { TaskHistoryEntry, TaskHistorySummary } from "@/types/task";
 
 export const Route = createFileRoute("/_app/tasks/history")({
   component: TaskHistoryPage,
@@ -105,12 +105,16 @@ function TaskDetailDialog({
             disabled={restartMutation.isPending}
           >
             <RotateCcw className="mr-1 size-3" />
-            {restartMutation.isPending ? "Restarting..." : "Restart Failed Task"}
+            {restartMutation.isPending
+              ? "Restarting..."
+              : "Restart Failed Task"}
           </Button>
         )}
         <div className="max-h-96 space-y-3 overflow-y-auto">
           {entries.length === 0 ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">No history found.</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              No history found.
+            </p>
           ) : (
             entries.map((e, i) => (
               <div
@@ -125,7 +129,10 @@ function TaskDetailDialog({
                   />
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[hsl(var(--muted-foreground))]">
-                  <div>Completed by: <span className="font-mono">{e.CompletedBy}</span></div>
+                  <div>
+                    Completed by:{" "}
+                    <span className="font-mono">{e.CompletedBy}</span>
+                  </div>
                   <div>Duration: {e.Took}</div>
                   <div>Queued: {e.Queued}</div>
                   <div>Posted: {e.Posted}</div>

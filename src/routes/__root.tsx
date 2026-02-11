@@ -1,12 +1,9 @@
-import {
-  createRootRouteWithContext,
-  Outlet,
-} from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { AppQuickSearch } from "@/components/composed/app-quick-search";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { CurioApiProvider } from "@/contexts/curio-api-context";
 import { LayoutProvider } from "@/contexts/layout-context";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { AppQuickSearch } from "@/components/composed/app-quick-search";
 
 interface RouterContext {
   queryClient: QueryClient;

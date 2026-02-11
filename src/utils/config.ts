@@ -1,4 +1,3 @@
-import { getAtPath, hasAtPath, mergeDeep, toPathString } from "@/utils/object";
 import type {
   ConfigArrayItemProperty,
   ConfigFieldOption,
@@ -7,6 +6,7 @@ import type {
   ConfigSchemaDocument,
   ConfigSchemaNode,
 } from "@/types/config";
+import { getAtPath, hasAtPath, mergeDeep, toPathString } from "@/utils/object";
 
 function decodePointerSegment(segment: string): string {
   return segment.replace(/~1/g, "/").replace(/~0/g, "~");

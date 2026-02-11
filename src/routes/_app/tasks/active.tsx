@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import type { TaskSummary } from "@/types/task";
 import type { ColumnDef } from "@tanstack/react-table";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import type { TaskSummary } from "@/types/task";
 
 export const Route = createFileRoute("/_app/tasks/active")({
   component: ActiveTasksPage,

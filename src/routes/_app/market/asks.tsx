@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { StorageAsk } from "@/types/market";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatFilecoin } from "@/utils/filecoin";
-import { formatBytes } from "@/utils/format";
 import { Edit2 } from "lucide-react";
 import { useState } from "react";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { StorageAsk } from "@/types/market";
+import { formatFilecoin } from "@/utils/filecoin";
+import { formatBytes } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/market/asks")({
   component: MarketAsksPage,
@@ -75,7 +75,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
       <CardContent>
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Miner</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Miner
+            </label>
             <Input
               placeholder="f0..."
               value={miner}
@@ -84,7 +86,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Price</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Price
+            </label>
             <Input
               placeholder="0"
               value={price}
@@ -93,7 +97,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Verified Price</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Verified Price
+            </label>
             <Input
               placeholder="0"
               value={verifiedPrice}
@@ -102,7 +108,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Min Size</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Min Size
+            </label>
             <Input
               placeholder="256B"
               value={minSize}
@@ -111,7 +119,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Max Size</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Max Size
+            </label>
             <Input
               placeholder="32GiB"
               value={maxSize}
@@ -119,7 +129,11 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
               className="w-24"
             />
           </div>
-          <Button size="sm" onClick={handleSubmit} disabled={mutation.isPending}>
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? "Saving..." : "Set Ask"}
           </Button>
         </div>
@@ -137,11 +151,9 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
 }
 
 function MarketAsksPage() {
-  const { data, isLoading } = useCurioRpc<StorageAsk[]>(
-    "GetStorageAsk",
-    [],
-    { refetchInterval: 60_000 },
-  );
+  const { data, isLoading } = useCurioRpc<StorageAsk[]>("GetStorageAsk", [], {
+    refetchInterval: 60_000,
+  });
 
   return (
     <div className="space-y-4">

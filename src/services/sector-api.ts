@@ -1,4 +1,4 @@
-import { CurioApiService } from "@/services/curio-api";
+import type { CurioApiService } from "@/services/curio-api";
 import type { SectorListItem, SectorTerminationPayload } from "@/types/sectors";
 
 interface SectorListResponse {

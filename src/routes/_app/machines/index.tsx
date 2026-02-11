@@ -1,14 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import { KPICard } from "@/components/composed/kpi-card";
-import { SectionCard } from "@/components/composed/section-card";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import type { MachineSummary } from "@/types/machine";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Monitor } from "lucide-react";
 import { useMemo } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { SectionCard } from "@/components/composed/section-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type { MachineSummary } from "@/types/machine";
 
 export const Route = createFileRoute("/_app/machines/")({
   component: MachinesPage,
@@ -108,7 +108,15 @@ function MachinesPage() {
     );
     const totalCpu = machines.reduce((sum, m) => sum + m.Cpu, 0);
     const totalGpu = machines.reduce((sum, m) => sum + m.Gpu, 0);
-    return { total, online, offline, unschedulable, totalTasks, totalCpu, totalGpu };
+    return {
+      total,
+      online,
+      offline,
+      unschedulable,
+      totalTasks,
+      totalCpu,
+      totalGpu,
+    };
   }, [machines]);
 
   return (
@@ -117,7 +125,11 @@ function MachinesPage() {
 
       {machines.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
-          <KPICard label="Total" value={stats.total} subtitle={`${stats.online} online`} />
+          <KPICard
+            label="Total"
+            value={stats.total}
+            subtitle={`${stats.online} online`}
+          />
           <KPICard label="Online" value={stats.online} />
           <KPICard label="Offline" value={stats.offline} />
           <KPICard label="Unschedulable" value={stats.unschedulable} />
@@ -136,7 +148,9 @@ function MachinesPage() {
           searchPlaceholder="Search machines..."
           searchColumn="Name"
           emptyMessage="No machines found"
-          onRowClick={(row) => navigate({ to: "/machines/$id", params: { id: String(row.ID) } })}
+          onRowClick={(row) =>
+            navigate({ to: "/machines/$id", params: { id: String(row.ID) } })
+          }
         />
       </SectionCard>
     </div>

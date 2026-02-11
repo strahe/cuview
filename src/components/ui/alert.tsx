@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import { AlertCircle, CheckCircle2, Info, AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-[hsl(var(--foreground))] [&>svg~*]:pl-7",
@@ -37,7 +37,13 @@ const iconMap = {
   warning: AlertTriangle,
 };
 
-function Alert({ className, variant = "default", icon, children, ...props }: AlertProps) {
+function Alert({
+  className,
+  variant = "default",
+  icon,
+  children,
+  ...props
+}: AlertProps) {
   const IconComponent = iconMap[variant ?? "default"];
   return (
     <div

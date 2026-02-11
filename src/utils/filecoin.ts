@@ -51,7 +51,7 @@ export const formatFilecoin = (value: string | number | undefined): string => {
 
   // Try to parse as a number
   const num = Number(str);
-  if (isNaN(num)) return str;
+  if (Number.isNaN(num)) return str;
 
   // If the number is very large, assume attoFIL (1 FIL = 1e18 attoFIL)
   if (num > 1e15) {

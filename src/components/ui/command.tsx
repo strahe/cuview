@@ -1,6 +1,6 @@
+import { Search } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
 
 const Command = React.forwardRef<
   HTMLDivElement,
@@ -65,7 +65,10 @@ const CommandGroup = React.forwardRef<
 >(({ className, heading, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("overflow-hidden p-1 text-[hsl(var(--foreground))]", className)}
+    className={cn(
+      "overflow-hidden p-1 text-[hsl(var(--foreground))]",
+      className,
+    )}
   >
     {heading && (
       <div className="px-2 py-1.5 text-xs font-medium text-[hsl(var(--muted-foreground))]">

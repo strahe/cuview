@@ -1,21 +1,21 @@
-import { useState, useCallback, type ReactNode } from "react";
-import { CollapsibleSidebar } from "./collapsible-sidebar";
-import { useLayout } from "@/contexts/layout-context";
 import {
-  useConnectionStatus,
-  type ConnectionStatus,
-} from "@/contexts/curio-api-context";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import {
-  Menu,
-  ChevronLeft,
-  Search,
-  Sun,
-  Moon,
-  Settings,
   Bell,
+  ChevronLeft,
+  Menu,
+  Moon,
+  Search,
+  Settings,
+  Sun,
 } from "lucide-react";
+import { type ReactNode, useCallback, useState } from "react";
+import {
+  type ConnectionStatus,
+  useConnectionStatus,
+} from "@/contexts/curio-api-context";
+import { useLayout } from "@/contexts/layout-context";
+import { useCurioRpc } from "@/hooks/use-curio-query";
 import { cn } from "@/lib/utils";
+import { CollapsibleSidebar } from "./collapsible-sidebar";
 
 function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
   const colorMap: Record<ConnectionStatus, string> = {
@@ -47,8 +47,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const connectionStatus = useConnectionStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { data: version } = useCurioRpc<string>("Version", [], { refetchInterval: 300_000 });
-  const { data: alertCount } = useCurioRpc<number>("AlertPendingCount", [], { refetchInterval: 30_000 });
+  const { data: version } = useCurioRpc<string>("Version", [], {
+    refetchInterval: 300_000,
+  });
+  const { data: alertCount } = useCurioRpc<number>("AlertPendingCount", [], {
+    refetchInterval: 30_000,
+  });
 
   const openSearch = useCallback(() => {
     // Trigger ⌘K which AppQuickSearch listens for
@@ -130,10 +134,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </button>
               <ConnectionStatusBadge status={connectionStatus} />
               {version && (
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">v{version}</span>
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                  v{version}
+                </span>
               )}
               {alertCount != null && alertCount > 0 && (
-                <a href="/alerts" className="flex items-center gap-1 rounded-md bg-[hsl(var(--destructive)/0.1)] px-2 py-0.5 text-xs text-[hsl(var(--destructive))]">
+                <a
+                  href="/alerts"
+                  className="flex items-center gap-1 rounded-md bg-[hsl(var(--destructive)/0.1)] px-2 py-0.5 text-xs text-[hsl(var(--destructive))]"
+                >
                   <Bell className="size-3" />
                   {alertCount}
                 </a>
@@ -164,9 +173,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 onClick={layout.toggleTheme}
                 className="rounded-md p-2 hover:bg-[hsl(var(--accent))]"
                 title={
-                  layout.isDark
-                    ? "Switch to light mode"
-                    : "Switch to dark mode"
+                  layout.isDark ? "Switch to light mode" : "Switch to dark mode"
                 }
               >
                 {layout.isDark ? (

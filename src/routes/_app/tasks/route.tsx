@@ -1,7 +1,11 @@
-import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from "@tanstack/react-router";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouterState } from "@tanstack/react-router";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export const Route = createFileRoute("/_app/tasks")({
   component: TasksLayout,

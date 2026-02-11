@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { KPICard } from "@/components/composed/kpi-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { Mk20Pipeline, Mk20PipelineFailedStats } from "@/types/market";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { formatBytes } from "@/utils/format";
 import { AlertTriangle, RotateCcw, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { Mk20Pipeline, Mk20PipelineFailedStats } from "@/types/market";
+import { formatBytes } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/market/mk20/deals")({
   component: MK20DealsPage,
@@ -29,17 +29,25 @@ const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
   {
     accessorKey: "id",
     header: "ID",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.id.slice(0, 8)}…</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.id.slice(0, 8)}…</span>
+    ),
   },
   {
     accessorKey: "miner",
     header: "Miner",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.miner}</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.miner}</span>
+    ),
   },
   {
     accessorKey: "client",
     header: "Client",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.client.slice(0, 12)}…</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">
+        {row.original.client.slice(0, 12)}…
+      </span>
+    ),
   },
   {
     accessorKey: "piece_size",
@@ -54,9 +62,11 @@ const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
       if (p.complete) return <StatusBadge status="done" label="Complete" />;
       if (p.indexed) return <StatusBadge status="running" label="Indexed" />;
       if (p.sealed) return <StatusBadge status="running" label="Sealed" />;
-      if (p.aggregated) return <StatusBadge status="running" label="Aggregated" />;
+      if (p.aggregated)
+        return <StatusBadge status="running" label="Aggregated" />;
       if (p.after_commp) return <StatusBadge status="running" label="CommP" />;
-      if (p.downloaded) return <StatusBadge status="running" label="Downloaded" />;
+      if (p.downloaded)
+        return <StatusBadge status="running" label="Downloaded" />;
       if (p.started) return <StatusBadge status="running" label="Started" />;
       return <StatusBadge status="pending" label="Pending" />;
     },
@@ -64,7 +74,9 @@ const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
   { accessorKey: "created_at", header: "Created" },
 ];
 
-function extractStr(v: { Valid: boolean; String: string } | string | null | undefined): string | null {
+function extractStr(
+  v: { Valid: boolean; String: string } | string | null | undefined,
+): string | null {
   if (!v) return null;
   if (typeof v === "string") return v;
   return v.Valid ? v.String : null;
@@ -74,7 +86,9 @@ const dealColumns: ColumnDef<MK20DealItem>[] = [
   {
     accessorKey: "id",
     header: "ID",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.id.slice(0, 8)}…</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.id.slice(0, 8)}…</span>
+    ),
   },
   {
     id: "miner",
@@ -89,7 +103,11 @@ const dealColumns: ColumnDef<MK20DealItem>[] = [
     header: "Piece CID",
     cell: ({ row }) => {
       const c = extractStr(row.original.piece_cid_v2);
-      return c ? <span className="font-mono text-xs">{c.slice(0, 12)}…</span> : "—";
+      return c ? (
+        <span className="font-mono text-xs">{c.slice(0, 12)}…</span>
+      ) : (
+        "—"
+      );
     },
   },
   {
@@ -98,9 +116,11 @@ const dealColumns: ColumnDef<MK20DealItem>[] = [
     cell: ({ row }) => {
       const errStr = extractStr(row.original.error);
       if (errStr) return <StatusBadge status="failed" label="Error" />;
-      return row.original.processed
-        ? <StatusBadge status="done" label="Processed" />
-        : <StatusBadge status="pending" label="Pending" />;
+      return row.original.processed ? (
+        <StatusBadge status="done" label="Processed" />
+      ) : (
+        <StatusBadge status="pending" label="Pending" />
+      );
     },
   },
   { accessorKey: "created_at", header: "Created" },
@@ -109,22 +129,36 @@ const dealColumns: ColumnDef<MK20DealItem>[] = [
 function MK20DealsPage() {
   const [tab, setTab] = useState("pipelines");
 
-  const { data: pipelineData, isLoading: pipelinesLoading } = useCurioRpc<Mk20Pipeline[]>(
-    "MK20DDOPipelines", [100, 0], { refetchInterval: 30_000 },
-  );
-  const { data: dealList, isLoading: dealsLoading } = useCurioRpc<MK20DealItem[]>(
-    "MK20DDOStorageDeals", [100, 0], { refetchInterval: 30_000 },
-  );
+  const { data: pipelineData, isLoading: pipelinesLoading } = useCurioRpc<
+    Mk20Pipeline[]
+  >("MK20DDOPipelines", [100, 0], { refetchInterval: 30_000 });
+  const { data: dealList, isLoading: dealsLoading } = useCurioRpc<
+    MK20DealItem[]
+  >("MK20DDOStorageDeals", [100, 0], { refetchInterval: 30_000 });
   const { data: failedStats } = useCurioRpc<Mk20PipelineFailedStats>(
-    "MK20PipelineFailedTasks", [], { refetchInterval: 60_000 },
+    "MK20PipelineFailedTasks",
+    [],
+    { refetchInterval: 60_000 },
   );
 
-  const bulkRemoveMutation = useCurioRpcMutation("MK20BulkRemoveFailedMarketPipelines", {
-    invalidateKeys: [["curio", "MK20DDOPipelines"], ["curio", "MK20PipelineFailedTasks"]],
-  });
-  const bulkRestartMutation = useCurioRpcMutation("MK20BulkRestartFailedMarketTasks", {
-    invalidateKeys: [["curio", "MK20DDOPipelines"], ["curio", "MK20PipelineFailedTasks"]],
-  });
+  const bulkRemoveMutation = useCurioRpcMutation(
+    "MK20BulkRemoveFailedMarketPipelines",
+    {
+      invalidateKeys: [
+        ["curio", "MK20DDOPipelines"],
+        ["curio", "MK20PipelineFailedTasks"],
+      ],
+    },
+  );
+  const bulkRestartMutation = useCurioRpcMutation(
+    "MK20BulkRestartFailedMarketTasks",
+    {
+      invalidateKeys: [
+        ["curio", "MK20DDOPipelines"],
+        ["curio", "MK20PipelineFailedTasks"],
+      ],
+    },
+  );
 
   const pipelines = pipelineData ?? [];
   const deals = dealList ?? [];
@@ -138,7 +172,10 @@ function MK20DealsPage() {
   }, [pipelines]);
 
   const totalFailed = failedStats
-    ? failedStats.DownloadingFailed + failedStats.CommPFailed + failedStats.AggFailed + failedStats.IndexFailed
+    ? failedStats.DownloadingFailed +
+      failedStats.CommPFailed +
+      failedStats.AggFailed +
+      failedStats.IndexFailed
     : 0;
 
   return (
@@ -155,28 +192,50 @@ function MK20DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" /> Failed Tasks
+              <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" />{" "}
+              Failed Tasks
             </CardTitle>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => bulkRestartMutation.mutate(["all"])} disabled={bulkRestartMutation.isPending}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => bulkRestartMutation.mutate(["all"])}
+                disabled={bulkRestartMutation.isPending}
+              >
                 <RotateCcw className="mr-1 size-3" /> Restart All
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => bulkRemoveMutation.mutate(["all"])} disabled={bulkRemoveMutation.isPending}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => bulkRemoveMutation.mutate(["all"])}
+                disabled={bulkRemoveMutation.isPending}
+              >
                 <Trash2 className="mr-1 size-3" /> Remove All
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {([
-                ["Download", failedStats.DownloadingFailed],
-                ["CommP", failedStats.CommPFailed],
-                ["Aggregation", failedStats.AggFailed],
-                ["Index", failedStats.IndexFailed],
-              ] as const).map(([name, count]) => (
-                <div key={name} className="rounded border border-[hsl(var(--border))] p-2 text-center">
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">{name}</p>
-                  <p className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}>{count}</p>
+              {(
+                [
+                  ["Download", failedStats.DownloadingFailed],
+                  ["CommP", failedStats.CommPFailed],
+                  ["Aggregation", failedStats.AggFailed],
+                  ["Index", failedStats.IndexFailed],
+                ] as const
+              ).map(([name, count]) => (
+                <div
+                  key={name}
+                  className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                >
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {name}
+                  </p>
+                  <p
+                    className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}
+                  >
+                    {count}
+                  </p>
                 </div>
               ))}
             </div>
@@ -186,8 +245,15 @@ function MK20DealsPage() {
 
       <Tabs>
         <TabsList>
-          <TabsTrigger active={tab === "pipelines"} onClick={() => setTab("pipelines")}>Pipelines</TabsTrigger>
-          <TabsTrigger active={tab === "deals"} onClick={() => setTab("deals")}>DDO Deals</TabsTrigger>
+          <TabsTrigger
+            active={tab === "pipelines"}
+            onClick={() => setTab("pipelines")}
+          >
+            Pipelines
+          </TabsTrigger>
+          <TabsTrigger active={tab === "deals"} onClick={() => setTab("deals")}>
+            DDO Deals
+          </TabsTrigger>
         </TabsList>
         <TabsContent>
           {tab === "pipelines" && (

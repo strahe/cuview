@@ -1,19 +1,19 @@
 import {
-  Home,
-  Wrench,
+  ArrowRightLeft,
+  Bell,
   Cpu,
   Database,
-  ArrowRightLeft,
+  Globe,
+  HardDrive,
+  Home,
+  KeyRound,
+  type LucideIcon,
+  Settings,
+  Shield,
   Store,
   User,
   Wallet,
-  Globe,
-  KeyRound,
-  Settings,
-  HardDrive,
-  Bell,
-  Shield,
-  type LucideIcon,
+  Wrench,
 } from "lucide-react";
 
 export interface NavigationEntry {
@@ -137,5 +137,6 @@ export const navigationGroups: NavigationGroup[] = [
 ];
 
 // Flat list for backward compatibility (search, etc.)
-export const navigationEntries: NavigationEntry[] =
-  navigationGroups.flatMap((g) => g.entries);
+export const navigationEntries: NavigationEntry[] = navigationGroups.flatMap(
+  (g) => g.entries,
+);

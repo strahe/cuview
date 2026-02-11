@@ -1,7 +1,7 @@
+import { Link2 } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link2 } from "lucide-react";
 import type { SyncerStateItem } from "@/types/sync";
 
 interface ChainConnectivityProps {

@@ -1,9 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import type { HeroCard } from "@/hooks/use-dashboard-summary";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { HeroCard } from "@/hooks/use-dashboard-summary";
+import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
   success: "border-l-[hsl(var(--success))]",
@@ -18,7 +18,11 @@ interface DashboardHeroProps {
   onRefresh: () => void;
 }
 
-export function DashboardHero({ cards, loading, onRefresh }: DashboardHeroProps) {
+export function DashboardHero({
+  cards,
+  loading,
+  onRefresh,
+}: DashboardHeroProps) {
   if (loading && cards.every((c) => c.value === "0" || c.value === "0/0")) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

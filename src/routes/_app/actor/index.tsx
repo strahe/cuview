@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import { KPICard } from "@/components/composed/kpi-card";
-import { DataTable } from "@/components/table/data-table";
-import type { ActorSummaryData } from "@/types/actor";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { DataTable } from "@/components/table/data-table";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type { ActorSummaryData } from "@/types/actor";
 import { formatFilecoin } from "@/utils/filecoin";
 
 export const Route = createFileRoute("/_app/actor/")({

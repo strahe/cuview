@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { KPICard } from "@/components/composed/kpi-card";
-import type { OpenDealInfo } from "@/types/market";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatBytes } from "@/utils/format";
 import { useMemo } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import type { OpenDealInfo } from "@/types/market";
+import { formatBytes } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/market/pending")({
   component: PendingDealsPage,
@@ -16,18 +16,25 @@ const columns: ColumnDef<OpenDealInfo>[] = [
   {
     accessorKey: "Miner",
     header: "Miner",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.Miner}</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.Miner}</span>
+    ),
   },
   { accessorKey: "SectorNumber", header: "Sector" },
   {
     accessorKey: "PieceCID",
     header: "Piece CID",
-    cell: ({ row }) => <span className="font-mono text-xs">{row.original.PieceCID.slice(0, 16)}…</span>,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">
+        {row.original.PieceCID.slice(0, 16)}…
+      </span>
+    ),
   },
   {
     accessorKey: "PieceSize",
     header: "Size",
-    cell: ({ row }) => row.original.PieceSizeStr || formatBytes(row.original.PieceSize),
+    cell: ({ row }) =>
+      row.original.PieceSizeStr || formatBytes(row.original.PieceSize),
   },
   {
     id: "snap",
@@ -47,9 +54,9 @@ const columns: ColumnDef<OpenDealInfo>[] = [
 ];
 
 function PendingDealsPage() {
-  const { data, isLoading } = useCurioRpc<OpenDealInfo[]>(
-    "DealsPending", [], { refetchInterval: 30_000 },
-  );
+  const { data, isLoading } = useCurioRpc<OpenDealInfo[]>("DealsPending", [], {
+    refetchInterval: 30_000,
+  });
 
   const deals = data ?? [];
   const stats = useMemo(() => {

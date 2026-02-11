@@ -24,7 +24,8 @@ const TabsList = React.forwardRef<
 ));
 TabsList.displayName = "TabsList";
 
-interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface TabsTriggerProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
 }
 

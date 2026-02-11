@@ -1,18 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { KPICard } from "@/components/composed/kpi-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { MachineInfo } from "@/types/machine";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, Server, Cpu, HardDrive, ShieldOff, Shield, RotateCcw, XCircle } from "lucide-react";
-import { formatBytes } from "@/utils/format";
+import {
+  ArrowLeft,
+  Cpu,
+  HardDrive,
+  RotateCcw,
+  Server,
+  Shield,
+  ShieldOff,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type { MachineInfo } from "@/types/machine";
+import { formatBytes } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/machines/$id")({
   component: MachineDetailPage,
@@ -29,16 +38,28 @@ function MachineDetailPage() {
   );
 
   const cordonMutation = useCurioRpcMutation("Cordon", {
-    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+    invalidateKeys: [
+      ["curio", "ClusterNodeInfo", machineId],
+      ["curio", "ClusterMachines"],
+    ],
   });
   const uncordonMutation = useCurioRpcMutation("Uncordon", {
-    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+    invalidateKeys: [
+      ["curio", "ClusterNodeInfo", machineId],
+      ["curio", "ClusterMachines"],
+    ],
   });
   const restartMutation = useCurioRpcMutation("Restart", {
-    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+    invalidateKeys: [
+      ["curio", "ClusterNodeInfo", machineId],
+      ["curio", "ClusterMachines"],
+    ],
   });
   const abortRestartMutation = useCurioRpcMutation("AbortRestart", {
-    invalidateKeys: [["curio", "ClusterNodeInfo", machineId], ["curio", "ClusterMachines"]],
+    invalidateKeys: [
+      ["curio", "ClusterNodeInfo", machineId],
+      ["curio", "ClusterMachines"],
+    ],
   });
 
   const [confirmRestart, setConfirmRestart] = useState(false);
@@ -61,7 +82,9 @@ function MachineDetailPage() {
   if (!data) {
     return (
       <div className="p-6">
-        <p className="text-[hsl(var(--muted-foreground))]">Machine not found.</p>
+        <p className="text-[hsl(var(--muted-foreground))]">
+          Machine not found.
+        </p>
       </div>
     );
   }
@@ -80,9 +103,7 @@ function MachineDetailPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {info.Name || `Machine #${info.ID}`}
         </h1>
-        {info.Unschedulable && (
-          <Badge variant="destructive">Cordoned</Badge>
-        )}
+        {info.Unschedulable && <Badge variant="destructive">Cordoned</Badge>}
       </div>
 
       {/* Machine Operations */}
@@ -109,7 +130,9 @@ function MachineDetailPage() {
         )}
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">Confirm restart?</span>
+            <span className="text-xs text-[hsl(var(--destructive))]">
+              Confirm restart?
+            </span>
             <Button
               size="sm"
               variant="destructive"
@@ -121,7 +144,11 @@ function MachineDetailPage() {
             >
               Yes
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmRestart(false)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirmRestart(false)}
+            >
               No
             </Button>
           </div>
@@ -147,10 +174,7 @@ function MachineDetailPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard label="CPU" value={info.CPU} subtitle="cores" />
-        <KPICard
-          label="Memory"
-          value={formatBytes(info.Memory)}
-        />
+        <KPICard label="Memory" value={formatBytes(info.Memory)} />
         <KPICard label="GPU" value={info.GPU} subtitle="units" />
         <KPICard label="Running Tasks" value={info.RunningTasks} />
       </div>
@@ -177,7 +201,9 @@ function MachineDetailPage() {
                 <dd>{info.Tasks || "—"}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">Unschedulable</dt>
+                <dt className="text-[hsl(var(--muted-foreground))]">
+                  Unschedulable
+                </dt>
                 <dd>
                   <StatusBadge
                     status={info.Unschedulable ? "warning" : "done"}
@@ -255,11 +281,7 @@ const runningTaskCols: ColumnDef<MachineInfo["RunningTasks"][number]>[] = [
   },
 ];
 
-function RunningTasksPanel({
-  tasks,
-}: {
-  tasks: MachineInfo["RunningTasks"];
-}) {
+function RunningTasksPanel({ tasks }: { tasks: MachineInfo["RunningTasks"] }) {
   if (!tasks?.length) return null;
 
   return (
@@ -268,7 +290,11 @@ function RunningTasksPanel({
         <CardTitle>Running Tasks ({tasks.length})</CardTitle>
       </CardHeader>
       <CardContent>
-        <DataTable columns={runningTaskCols} data={tasks} emptyMessage="No running tasks" />
+        <DataTable
+          columns={runningTaskCols}
+          data={tasks}
+          emptyMessage="No running tasks"
+        />
       </CardContent>
     </Card>
   );
@@ -294,7 +320,10 @@ const finishedTaskCols: ColumnDef<MachineInfo["FinishedTasks"][number]>[] = [
     header: "Message",
     cell: ({ row }) =>
       row.original.Message ? (
-        <span className="max-w-xs truncate text-xs" title={row.original.Message}>
+        <span
+          className="max-w-xs truncate text-xs"
+          title={row.original.Message}
+        >
           {row.original.Message}
         </span>
       ) : (

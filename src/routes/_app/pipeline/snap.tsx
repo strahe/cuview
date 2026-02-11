@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { KPICard } from "@/components/composed/kpi-card";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import type { SnapPipelineSummary, SnapSectorEntry } from "@/types/pipeline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { SnapPipelineSummary, SnapSectorEntry } from "@/types/pipeline";
 
 export const Route = createFileRoute("/_app/pipeline/snap")({
   component: SnapPage,
@@ -25,8 +25,10 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
     cell: ({ row }) => {
       const s = row.original;
       if (s.Failed) return <StatusBadge status="failed" label="Failed" />;
-      if (s.AfterProveMsgSuccess) return <StatusBadge status="done" label="Done" />;
-      if (s.AfterMoveStorage) return <StatusBadge status="running" label="MoveStorage" />;
+      if (s.AfterProveMsgSuccess)
+        return <StatusBadge status="done" label="Done" />;
+      if (s.AfterMoveStorage)
+        return <StatusBadge status="running" label="MoveStorage" />;
       if (s.AfterSubmit) return <StatusBadge status="running" label="Submit" />;
       if (s.AfterProve) return <StatusBadge status="running" label="Prove" />;
       if (s.AfterEncode) return <StatusBadge status="running" label="Encode" />;
@@ -60,7 +62,10 @@ function SnapPage() {
   >("UpgradeSectors", [], { refetchInterval: 30_000 });
 
   const restartAllMutation = useCurioRpcMutation("PipelineSnapRestartAll", {
-    invalidateKeys: [["curio", "PipelineStatsSnap"], ["curio", "UpgradeSectors"]],
+    invalidateKeys: [
+      ["curio", "PipelineStatsSnap"],
+      ["curio", "UpgradeSectors"],
+    ],
   });
 
   const [confirmRestart, setConfirmRestart] = useState(false);
@@ -96,7 +101,9 @@ function SnapPage() {
         <h2 className="text-lg font-semibold">Snap Pipeline</h2>
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">Restart all failed Snap tasks?</span>
+            <span className="text-xs text-[hsl(var(--destructive))]">
+              Restart all failed Snap tasks?
+            </span>
             <Button
               size="sm"
               variant="destructive"
@@ -108,12 +115,20 @@ function SnapPage() {
             >
               Yes
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmRestart(false)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirmRestart(false)}
+            >
               No
             </Button>
           </div>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => setConfirmRestart(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setConfirmRestart(true)}
+          >
             <RotateCcw className="mr-1 size-3" /> Restart All Failed
           </Button>
         )}

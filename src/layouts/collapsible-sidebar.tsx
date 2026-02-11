@@ -1,10 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  navigationGroups,
-  type NavigationEntry,
-} from "./navigation";
 import { cn } from "@/lib/utils";
+import { type NavigationEntry, navigationGroups } from "./navigation";
 
 interface CollapsibleSidebarProps {
   isCollapsed?: boolean;
@@ -22,7 +19,7 @@ export function CollapsibleSidebar({
     if (entry.activePattern) {
       return new RegExp(entry.activePattern).test(currentPath);
     }
-    return currentPath === entry.to || currentPath.startsWith(entry.to + "/");
+    return currentPath === entry.to || currentPath.startsWith(`${entry.to}/`);
   };
 
   return (

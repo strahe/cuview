@@ -1,4 +1,4 @@
-import { CurioApiService } from "@/services/curio-api";
+import type { CurioApiService } from "@/services/curio-api";
 import type {
   ConfigLayerResponse,
   ConfigSchemaDocument,

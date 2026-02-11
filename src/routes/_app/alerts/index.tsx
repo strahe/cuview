@@ -1,30 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Bell,
+  BellOff,
+  Check,
+  CheckCheck,
+  MessageSquare,
+  Plus,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
+import { useCallback, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
-import { DataTable } from "@/components/table/data-table";
 import { StatusBadge } from "@/components/composed/status-badge";
-import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
 import type {
+  AlertComment,
   AlertHistoryItem,
   AlertHistoryListResult,
-  AlertComment,
   AlertMute,
 } from "@/types/alert";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Bell, BellOff, MessageSquare, Check, CheckCheck, Plus, Trash2, RotateCcw } from "lucide-react";
-import { useState, useCallback } from "react";
 
 export const Route = createFileRoute("/_app/alerts/")({
   component: AlertsPage,
@@ -38,7 +47,9 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
       const s = row.original.severity;
       return (
         <StatusBadge
-          status={s === "critical" ? "failed" : s === "warning" ? "warning" : "info"}
+          status={
+            s === "critical" ? "failed" : s === "warning" ? "warning" : "info"
+          }
           label={s}
         />
       );
@@ -100,7 +111,10 @@ const muteColumns: ColumnDef<AlertMute>[] = [
               size="sm"
               variant="ghost"
               title="Reactivate"
-              onClick={(e) => { e.stopPropagation(); meta?.onReactivate(mute.id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                meta?.onReactivate(mute.id);
+              }}
             >
               <RotateCcw className="size-3.5" />
             </Button>
@@ -109,7 +123,10 @@ const muteColumns: ColumnDef<AlertMute>[] = [
             size="sm"
             variant="ghost"
             title="Remove"
-            onClick={(e) => { e.stopPropagation(); meta?.onRemove(mute.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              meta?.onRemove(mute.id);
+            }}
           >
             <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
           </Button>
@@ -130,13 +147,21 @@ function AlertsPage() {
     [],
     { refetchInterval: 15_000 },
   );
-  const { data: categories } = useCurioRpc<string[]>("AlertCategoriesList", [], {
-    refetchInterval: 120_000,
-  });
+  const { data: categories } = useCurioRpc<string[]>(
+    "AlertCategoriesList",
+    [],
+    {
+      refetchInterval: 120_000,
+    },
+  );
   const { data: alertHistory, isLoading: historyLoading } =
-    useCurioRpc<AlertHistoryListResult>("AlertHistoryListPaginated", [100, 0, true], {
-      refetchInterval: 15_000,
-    });
+    useCurioRpc<AlertHistoryListResult>(
+      "AlertHistoryListPaginated",
+      [100, 0, true],
+      {
+        refetchInterval: 15_000,
+      },
+    );
   const { data: mutes, isLoading: mutesLoading } = useCurioRpc<AlertMute[]>(
     "AlertMuteList",
     [],
@@ -170,9 +195,16 @@ function AlertsPage() {
     invalidateKeys: [["curio", "AlertMuteList"]],
   });
 
-  const [selectedAlert, setSelectedAlert] = useState<AlertHistoryItem | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<AlertHistoryItem | null>(
+    null,
+  );
   const [showMuteForm, setShowMuteForm] = useState(false);
-  const [muteForm, setMuteForm] = useState({ category: "", machinePattern: "", messagePattern: "", durationHours: 24 });
+  const [muteForm, setMuteForm] = useState({
+    category: "",
+    machinePattern: "",
+    messagePattern: "",
+    durationHours: 24,
+  });
 
   const alerts = alertHistory?.Alerts ?? [];
   const unackedAlerts = alerts.filter((a) => !a.acknowledged);
@@ -192,7 +224,12 @@ function AlertsPage() {
       muteForm.messagePattern.trim() || "*",
       muteForm.durationHours,
     ]);
-    setMuteForm({ category: "", machinePattern: "", messagePattern: "", durationHours: 24 });
+    setMuteForm({
+      category: "",
+      machinePattern: "",
+      messagePattern: "",
+      durationHours: 24,
+    });
     setShowMuteForm(false);
   }, [muteForm, muteAddMutation]);
 
@@ -220,10 +257,14 @@ function AlertsPage() {
           <Button
             size="sm"
             onClick={handleAckAll}
-            disabled={ackMultipleMutation.isPending || unackedAlerts.length === 0}
+            disabled={
+              ackMultipleMutation.isPending || unackedAlerts.length === 0
+            }
           >
             <CheckCheck className="mr-1 size-4" />
-            {ackMultipleMutation.isPending ? "Acknowledging..." : `Ack All (${unackedAlerts.length})`}
+            {ackMultipleMutation.isPending
+              ? "Acknowledging..."
+              : `Ack All (${unackedAlerts.length})`}
           </Button>
         </div>
       </div>
@@ -265,7 +306,11 @@ function AlertsPage() {
         title="Mute Rules"
         icon={BellOff}
         action={
-          <Button size="sm" variant="outline" onClick={() => setShowMuteForm(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowMuteForm(true)}
+          >
             <Plus className="mr-1 size-4" />
             Add Mute Rule
           </Button>
@@ -283,7 +328,10 @@ function AlertsPage() {
       {/* Add Mute Rule Dialog */}
       {showMuteForm && (
         <Dialog open onOpenChange={() => setShowMuteForm(false)}>
-          <DialogContent className="max-w-md" onClose={() => setShowMuteForm(false)}>
+          <DialogContent
+            className="max-w-md"
+            onClose={() => setShowMuteForm(false)}
+          >
             <DialogHeader>
               <DialogTitle>Add Mute Rule</DialogTitle>
             </DialogHeader>
@@ -292,7 +340,9 @@ function AlertsPage() {
                 <label className="text-sm font-medium">Category *</label>
                 <Input
                   value={muteForm.category}
-                  onChange={(e) => setMuteForm((f) => ({ ...f, category: e.target.value }))}
+                  onChange={(e) =>
+                    setMuteForm((f) => ({ ...f, category: e.target.value }))
+                  }
                   placeholder="e.g. storage"
                 />
               </div>
@@ -300,7 +350,12 @@ function AlertsPage() {
                 <label className="text-sm font-medium">Machine Pattern</label>
                 <Input
                   value={muteForm.machinePattern}
-                  onChange={(e) => setMuteForm((f) => ({ ...f, machinePattern: e.target.value }))}
+                  onChange={(e) =>
+                    setMuteForm((f) => ({
+                      ...f,
+                      machinePattern: e.target.value,
+                    }))
+                  }
                   placeholder="* for all"
                 />
               </div>
@@ -308,7 +363,12 @@ function AlertsPage() {
                 <label className="text-sm font-medium">Message Pattern</label>
                 <Input
                   value={muteForm.messagePattern}
-                  onChange={(e) => setMuteForm((f) => ({ ...f, messagePattern: e.target.value }))}
+                  onChange={(e) =>
+                    setMuteForm((f) => ({
+                      ...f,
+                      messagePattern: e.target.value,
+                    }))
+                  }
                   placeholder="* for all"
                 />
               </div>
@@ -317,16 +377,25 @@ function AlertsPage() {
                 <Input
                   type="number"
                   value={muteForm.durationHours}
-                  onChange={(e) => setMuteForm((f) => ({ ...f, durationHours: parseInt(e.target.value) || 24 }))}
+                  onChange={(e) =>
+                    setMuteForm((f) => ({
+                      ...f,
+                      durationHours: parseInt(e.target.value, 10) || 24,
+                    }))
+                  }
                   min={1}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowMuteForm(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowMuteForm(false)}>
+                Cancel
+              </Button>
               <Button
                 onClick={handleAddMute}
-                disabled={muteAddMutation.isPending || !muteForm.category.trim()}
+                disabled={
+                  muteAddMutation.isPending || !muteForm.category.trim()
+                }
               >
                 {muteAddMutation.isPending ? "Adding..." : "Add Rule"}
               </Button>
@@ -380,7 +449,10 @@ function AlertDetailDialog({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto" onClose={onClose}>
+      <DialogContent
+        className="max-w-lg max-h-[80vh] overflow-y-auto"
+        onClose={onClose}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <StatusBadge
@@ -426,7 +498,10 @@ function AlertDetailDialog({
             {comments && comments.length > 0 && (
               <div className="mb-3 max-h-40 space-y-2 overflow-y-auto">
                 {comments.map((c) => (
-                  <div key={c.id} className="rounded-md border border-[hsl(var(--border))] p-2 text-xs">
+                  <div
+                    key={c.id}
+                    className="rounded-md border border-[hsl(var(--border))] p-2 text-xs"
+                  >
                     <div className="mb-1 flex justify-between text-[hsl(var(--muted-foreground))]">
                       <span>{c.author}</span>
                       <span>{c.created_at}</span>

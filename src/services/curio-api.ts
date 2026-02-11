@@ -1,5 +1,5 @@
-import { JsonRpcClient, createJsonRpcClient } from "@/lib/jsonrpc-client";
 import type { JsonRpcClientEvents } from "@/lib/jsonrpc-client";
+import { createJsonRpcClient, type JsonRpcClient } from "@/lib/jsonrpc-client";
 import { createRestClient, type RestClient } from "@/lib/rest-client";
 
 export class CurioApiService {
@@ -11,8 +11,7 @@ export class CurioApiService {
     timeout?: number;
     enableAutoReconnect?: boolean;
   }) {
-    const endpoint =
-      options?.endpoint || "ws://localhost:4701/api/webrpc/v0";
+    const endpoint = options?.endpoint || "ws://localhost:4701/api/webrpc/v0";
 
     const enableAutoReconnect = options?.enableAutoReconnect ?? true;
 

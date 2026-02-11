@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatFilecoin } from "@/utils/filecoin";
 import { useState } from "react";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { formatFilecoin } from "@/utils/filecoin";
 
 export const Route = createFileRoute("/_app/market/balance")({
   component: MarketBalancePage,
@@ -69,7 +69,9 @@ function MoveToEscrowForm() {
       <CardContent>
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Miner</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Miner
+            </label>
             <Input
               placeholder="f0..."
               value={miner}
@@ -78,7 +80,9 @@ function MoveToEscrowForm() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Amount (FIL)</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Amount (FIL)
+            </label>
             <Input
               placeholder="0.1"
               value={amount}
@@ -87,7 +91,9 @@ function MoveToEscrowForm() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">Wallet (optional)</label>
+            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+              Wallet (optional)
+            </label>
             <Input
               placeholder="f1... or f3..."
               value={wallet}
@@ -95,7 +101,11 @@ function MoveToEscrowForm() {
               className="w-48 font-mono text-xs"
             />
           </div>
-          <Button size="sm" onClick={handleSubmit} disabled={mutation.isPending}>
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={mutation.isPending}
+          >
             {mutation.isPending ? "Sending..." : "Transfer"}
           </Button>
         </div>

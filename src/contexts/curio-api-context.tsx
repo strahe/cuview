@@ -1,11 +1,11 @@
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  useCallback,
-  type ReactNode,
 } from "react";
 import { CurioApiService } from "@/services/curio-api";
 
@@ -97,9 +97,7 @@ export function useCurioApi(): CurioApiService {
 export function useConnectionStatus(): ConnectionStatus {
   const ctx = useContext(CurioApiContext);
   if (!ctx) {
-    throw new Error(
-      "useConnectionStatus must be used within CurioApiProvider",
-    );
+    throw new Error("useConnectionStatus must be used within CurioApiProvider");
   }
   return ctx.status;
 }
@@ -107,9 +105,7 @@ export function useConnectionStatus(): ConnectionStatus {
 export function useReconnectAttempt(): number {
   const ctx = useContext(CurioApiContext);
   if (!ctx) {
-    throw new Error(
-      "useReconnectAttempt must be used within CurioApiProvider",
-    );
+    throw new Error("useReconnectAttempt must be used within CurioApiProvider");
   }
   return ctx.reconnectAttempt;
 }

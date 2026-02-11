@@ -1,9 +1,9 @@
+import { formatDistanceToNow } from "date-fns";
+import { Zap } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Zap } from "lucide-react";
 import type { TaskHistorySummary } from "@/types/task";
-import { formatDistanceToNow } from "date-fns";
 
 interface DashboardRecentTasksProps {
   data: TaskHistorySummary[];

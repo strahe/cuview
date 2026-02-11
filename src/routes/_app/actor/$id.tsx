@@ -1,27 +1,32 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { KPICard } from "@/components/composed/kpi-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/table/data-table";
-import type { ActorDetail, Deadline, SectorBuckets, SectorBucket } from "@/types/actor";
-import type { WinStat } from "@/types/win";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, User, Trophy } from "lucide-react";
-import { formatFilecoin } from "@/utils/filecoin";
+import { ArrowLeft, Trophy, User } from "lucide-react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
 } from "recharts";
+import { KPICard } from "@/components/composed/kpi-card";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCurioRpc } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type {
+  ActorDetail,
+  Deadline,
+  SectorBucket,
+  SectorBuckets,
+} from "@/types/actor";
+import type { WinStat } from "@/types/win";
+import { formatFilecoin } from "@/utils/filecoin";
 
 export const Route = createFileRoute("/_app/actor/$id")({
   component: ActorDetailPage,
@@ -33,7 +38,9 @@ const winColumns: ColumnDef<WinStat>[] = [
     accessorKey: "Block",
     header: "Block",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.Block?.slice(0, 16)}…</span>
+      <span className="font-mono text-xs">
+        {row.original.Block?.slice(0, 16)}…
+      </span>
     ),
   },
   { accessorKey: "SubmittedAtStr", header: "Submitted" },
@@ -99,7 +106,10 @@ function ActorDetailPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard label="Balance" value={formatFilecoin(summary.ActorBalance)} />
-        <KPICard label="Available" value={formatFilecoin(summary.ActorAvailable)} />
+        <KPICard
+          label="Available"
+          value={formatFilecoin(summary.ActorAvailable)}
+        />
         <KPICard label="QaP" value={summary.QualityAdjustedPower} />
         <KPICard label="Sector Size" value={data.SectorSize} />
       </div>
@@ -111,7 +121,7 @@ function ActorDetailPage() {
       </div>
 
       {/* Sector Expiration Chart */}
-      {charts && charts.All && charts.All.length > 0 && (
+      {charts?.All && charts.All.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Sector Expiration Buckets</CardTitle>
@@ -119,7 +129,10 @@ function ActorDetailPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={formatBucketData(charts)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
@@ -130,8 +143,16 @@ function ActorDetailPage() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="all" name="All Sectors" fill="hsl(var(--primary))" />
-                <Bar dataKey="cc" name="CC Sectors" fill="hsl(var(--muted-foreground))" />
+                <Bar
+                  dataKey="all"
+                  name="All Sectors"
+                  fill="hsl(var(--primary))"
+                />
+                <Bar
+                  dataKey="cc"
+                  name="CC Sectors"
+                  fill="hsl(var(--muted-foreground))"
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -148,7 +169,10 @@ function ActorDetailPage() {
               <InfoRow label="Owner" value={data.OwnerAddress} mono />
               <InfoRow label="Beneficiary" value={data.Beneficiary} mono />
               <InfoRow label="Worker" value={data.WorkerAddress} mono />
-              <InfoRow label="Worker Balance" value={formatFilecoin(data.WorkerBalance)} />
+              <InfoRow
+                label="Worker Balance"
+                value={formatFilecoin(data.WorkerBalance)}
+              />
               <InfoRow label="Peer ID" value={data.PeerID} mono />
               <InfoRow
                 label="Config Layers"
@@ -218,8 +242,8 @@ function formatBucketData(buckets: SectorBuckets) {
   const allMap = new Map<number, SectorBucket>();
   const ccMap = new Map<number, SectorBucket>();
 
-  buckets.All?.forEach((b) => allMap.set(b.BucketEpoch, b));
-  buckets.CC?.forEach((b) => ccMap.set(b.BucketEpoch, b));
+  for (const b of buckets.All ?? []) allMap.set(b.BucketEpoch, b);
+  for (const b of buckets.CC ?? []) ccMap.set(b.BucketEpoch, b);
 
   const allEpochs = new Set([...allMap.keys(), ...ccMap.keys()]);
   return Array.from(allEpochs)
@@ -265,8 +289,7 @@ function DeadlineGrid({ deadlines }: { deadlines: Deadline[] }) {
         let color = "bg-[hsl(var(--muted))]";
         if (d.Current) color = "bg-[hsl(var(--primary))]";
         else if (d.Faulty) color = "bg-[hsl(var(--destructive))]";
-        else if (d.PartFaulty)
-          color = "bg-[hsl(var(--warning,40_96%_40%))]";
+        else if (d.PartFaulty) color = "bg-[hsl(var(--warning,40_96%_40%))]";
         else if (d.Proven) color = "bg-[hsl(var(--success,142_76%_36%))]";
 
         return (

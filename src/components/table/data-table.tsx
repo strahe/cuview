@@ -1,15 +1,19 @@
 import {
-  useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  flexRender,
-  type ColumnDef,
+  getSortedRowModel,
   type SortingState,
-  type ColumnFiltersState,
+  useReactTable,
 } from "@tanstack/react-table";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -18,15 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
@@ -111,9 +106,7 @@ export function DataTable<TData, TValue>({
             }
             onChange={(e) => {
               if (searchColumn) {
-                table
-                  .getColumn(searchColumn)
-                  ?.setFilterValue(e.target.value);
+                table.getColumn(searchColumn)?.setFilterValue(e.target.value);
               } else {
                 setGlobalFilter(e.target.value);
               }

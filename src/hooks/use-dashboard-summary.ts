@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useCurioRpc } from "@/hooks/use-curio-query";
-import { formatBytes, formatNumber, formatPercentage } from "@/utils/format";
+import type { ActorSummaryData } from "@/types/actor";
 import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
 import type { StorageUseStat } from "@/types/storage";
-import type { ActorSummaryData } from "@/types/actor";
-import type { TaskHistorySummary, TaskSummary } from "@/types/task";
 import type { SyncerStateItem } from "@/types/sync";
+import type { TaskHistorySummary, TaskSummary } from "@/types/task";
+import { formatBytes, formatNumber, formatPercentage } from "@/utils/format";
 
 export interface DashboardMetrics {
   machinesOnline: number;
@@ -101,7 +101,13 @@ export function useDashboardSummary() {
       storageAvailableLabel: formatBytes(available),
       actorCount: actors.data?.length ?? 0,
     };
-  }, [machines.data, taskStats.data, storageStats.data, actors.data, taskSummary.data]);
+  }, [
+    machines.data,
+    taskStats.data,
+    storageStats.data,
+    actors.data,
+    taskSummary.data,
+  ]);
 
   const heroCards = useMemo<HeroCard[]>(
     () => [

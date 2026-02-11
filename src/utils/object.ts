@@ -1,5 +1,3 @@
-
-
 export function isPlainObject(
   value: unknown,
 ): value is Record<string, unknown> {
@@ -293,13 +291,15 @@ function cloneInternal(value: unknown, cache: WeakMap<object, unknown>) {
       return view.slice(0) as typeof rawValue;
     }
 
-    return new (view.constructor as {
-      new (
-        buffer: ArrayBufferLike,
-        byteOffset?: number,
-        length?: number,
-      ): typeof view;
-    })(
+    return new (
+      view.constructor as {
+        new (
+          buffer: ArrayBufferLike,
+          byteOffset?: number,
+          length?: number,
+        ): typeof view;
+      }
+    )(
       view.buffer.slice(0),
       view.byteOffset,
       view instanceof DataView ? view.byteLength : undefined,

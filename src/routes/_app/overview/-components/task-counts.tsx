@@ -1,6 +1,6 @@
+import { BarChart3 } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3 } from "lucide-react";
 import type { HarmonyTaskStat } from "@/types/cluster";
 
 interface TaskCountsProps {

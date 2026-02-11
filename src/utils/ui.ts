@@ -90,7 +90,7 @@ export const getStorageTypeLabel = (stat?: StorageUseStat | null): string => {
 
 export const getContactStatusColor = (lastContact: string | number): string => {
   const contactTime =
-    typeof lastContact === "string" ? parseInt(lastContact) : lastContact;
+    typeof lastContact === "string" ? parseInt(lastContact, 10) : lastContact;
   return contactTime > 60 ? "text-error" : "text-success";
 };
 

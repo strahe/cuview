@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
-import { DashboardHero } from "./-components/dashboard-hero";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { ChainConnectivity } from "./-components/chain-connectivity";
-import { StorageStats } from "./-components/storage-stats";
 import { ClusterMachines } from "./-components/cluster-machines";
-import { TaskCounts } from "./-components/task-counts";
+import { DashboardHero } from "./-components/dashboard-hero";
 import { DashboardRecentTasks } from "./-components/dashboard-recent-tasks";
+import { StorageStats } from "./-components/storage-stats";
+import { TaskCounts } from "./-components/task-counts";
 
 export const Route = createFileRoute("/_app/overview/")({
   component: OverviewPage,

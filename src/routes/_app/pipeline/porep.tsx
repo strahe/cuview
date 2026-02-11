@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { KPICard } from "@/components/composed/kpi-card";
-import { DataTable } from "@/components/table/data-table";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import type { PorepPipelineSummary, SectorListEntry } from "@/types/pipeline";
 import type { ColumnDef } from "@tanstack/react-table";
 import { RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { PorepPipelineSummary, SectorListEntry } from "@/types/pipeline";
 
 export const Route = createFileRoute("/_app/pipeline/porep")({
   component: PoRepPage,
@@ -25,11 +25,15 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
     cell: ({ row }) => {
       const s = row.original;
       if (s.Failed) return <StatusBadge status="failed" label="Failed" />;
-      if (s.AfterCommitMsgSuccess) return <StatusBadge status="done" label="Done" />;
-      if (s.AfterCommitMsg) return <StatusBadge status="running" label="CommitMsg" />;
+      if (s.AfterCommitMsgSuccess)
+        return <StatusBadge status="done" label="Done" />;
+      if (s.AfterCommitMsg)
+        return <StatusBadge status="running" label="CommitMsg" />;
       if (s.AfterPoRep) return <StatusBadge status="running" label="PoRep" />;
-      if (s.AfterPrecommitMsgSuccess) return <StatusBadge status="running" label="WaitSeed" />;
-      if (s.AfterPrecommitMsg) return <StatusBadge status="running" label="PreCommit" />;
+      if (s.AfterPrecommitMsgSuccess)
+        return <StatusBadge status="running" label="WaitSeed" />;
+      if (s.AfterPrecommitMsg)
+        return <StatusBadge status="running" label="PreCommit" />;
       if (s.AfterTreeR) return <StatusBadge status="running" label="Trees" />;
       if (s.AfterSDR) return <StatusBadge status="running" label="SDR" />;
       return <StatusBadge status="pending" label="Pending" />;
@@ -62,7 +66,10 @@ function PoRepPage() {
   >("PipelineStatsSDR", [], { refetchInterval: 30_000 });
 
   const restartAllMutation = useCurioRpcMutation("PipelinePorepRestartAll", {
-    invalidateKeys: [["curio", "PipelinePorepSectors"], ["curio", "PipelineStatsSDR"]],
+    invalidateKeys: [
+      ["curio", "PipelinePorepSectors"],
+      ["curio", "PipelineStatsSDR"],
+    ],
   });
 
   const [confirmRestart, setConfirmRestart] = useState(false);
@@ -80,7 +87,16 @@ function PoRepPage() {
         done: acc.done + s.CountDone,
         failed: acc.failed + s.CountFailed,
       }),
-      { sdr: 0, trees: 0, precommit: 0, waitSeed: 0, porep: 0, commit: 0, done: 0, failed: 0 },
+      {
+        sdr: 0,
+        trees: 0,
+        precommit: 0,
+        waitSeed: 0,
+        porep: 0,
+        commit: 0,
+        done: 0,
+        failed: 0,
+      },
     );
   }, [summaryData]);
 
@@ -100,7 +116,9 @@ function PoRepPage() {
         <h2 className="text-lg font-semibold">PoRep Pipeline</h2>
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">Restart all failed PoRep tasks?</span>
+            <span className="text-xs text-[hsl(var(--destructive))]">
+              Restart all failed PoRep tasks?
+            </span>
             <Button
               size="sm"
               variant="destructive"
@@ -112,12 +130,20 @@ function PoRepPage() {
             >
               Yes
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmRestart(false)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirmRestart(false)}
+            >
               No
             </Button>
           </div>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => setConfirmRestart(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setConfirmRestart(true)}
+          >
             <RotateCcw className="mr-1 size-3" /> Restart All Failed
           </Button>
         )}

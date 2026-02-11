@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { navigationEntries } from "@/layouts/navigation";
 
 export function AppQuickSearch() {

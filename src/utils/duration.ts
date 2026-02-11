@@ -15,9 +15,8 @@ export const parseGoDurationSeconds = (
   } as const;
 
   let totalSeconds = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = pattern.exec(value)) !== null) {
+  let match = pattern.exec(value);
+  while (match !== null) {
     const amountText = match[1];
     const unitText = match[2] as keyof typeof unitToSeconds | undefined;
     if (!amountText || !unitText) {
@@ -30,6 +29,7 @@ export const parseGoDurationSeconds = (
     if (!Number.isNaN(amount) && unitSeconds !== undefined) {
       totalSeconds += amount * unitSeconds;
     }
+    match = pattern.exec(value);
   }
 
   return totalSeconds;

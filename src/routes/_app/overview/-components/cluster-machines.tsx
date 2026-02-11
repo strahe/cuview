@@ -1,7 +1,7 @@
+import { Server } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Server } from "lucide-react";
 import type { ClusterMachine } from "@/types/cluster";
 
 interface ClusterMachinesProps {

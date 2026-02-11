@@ -1,27 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRest } from "@/hooks/use-curio-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { FileText, History, Plus, Save, Settings } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Settings, Plus, Save, FileText, History } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { useCurioApi } from "@/contexts/curio-api-context";
+import { useCurioRest } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
 import {
-  fetchConfigLayer,
-  saveConfigLayer,
+  type ConfigHistoryEntry,
   createConfigLayer,
   fetchConfigHistory,
-  type ConfigHistoryEntry,
+  fetchConfigLayer,
+  saveConfigLayer,
 } from "@/services/config-api";
 import type { ConfigTopologyEntry } from "@/types/config";
 
@@ -33,8 +33,11 @@ function ConfigPage() {
   usePageTitle("Configuration");
   const api = useCurioApi();
 
-  const { data: layers, isLoading: layersLoading, refetch: refetchLayers } =
-    useCurioRest<string[]>("/api/config/layers", { refetchInterval: 60_000 });
+  const {
+    data: layers,
+    isLoading: layersLoading,
+    refetch: refetchLayers,
+  } = useCurioRest<string[]>("/api/config/layers", { refetchInterval: 60_000 });
 
   const { data: topology } = useCurioRest<ConfigTopologyEntry[]>(
     "/api/config/topo",
@@ -48,7 +51,9 @@ function ConfigPage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [newLayerName, setNewLayerName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [historyEntries, setHistoryEntries] = useState<ConfigHistoryEntry[]>([]);
+  const [historyEntries, setHistoryEntries] = useState<ConfigHistoryEntry[]>(
+    [],
+  );
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -278,13 +283,18 @@ function ConfigPage() {
 
       {/* Config History Dialog */}
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
-        <DialogContent onClose={() => setShowHistory(false)} className="max-w-2xl">
+        <DialogContent
+          onClose={() => setShowHistory(false)}
+          className="max-w-2xl"
+        >
           <DialogHeader>
             <DialogTitle>History: {selectedLayer}</DialogTitle>
           </DialogHeader>
           <div className="max-h-96 space-y-2 overflow-y-auto">
             {historyEntries.length === 0 ? (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">No history entries.</p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                No history entries.
+              </p>
             ) : (
               historyEntries.map((entry) => (
                 <div

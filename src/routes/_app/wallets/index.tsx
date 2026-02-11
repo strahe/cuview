@@ -1,23 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Check, Edit2, Plus, Trash2, Wallet } from "lucide-react";
+import { useCallback, useState } from "react";
 import { DataTable } from "@/components/table/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import type { WalletInfo, PendingMessage, BalanceManagerRule } from "@/types/wallet";
-import type { ColumnDef } from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type {
+  BalanceManagerRule,
+  PendingMessage,
+  WalletInfo,
+} from "@/types/wallet";
 import { formatFilecoin } from "@/utils/filecoin";
-import { Wallet, Plus, Trash2, Edit2, Check } from "lucide-react";
-import { useState, useCallback } from "react";
 
 export const Route = createFileRoute("/_app/wallets/")({
   component: WalletsPage,
@@ -52,7 +56,9 @@ const pendingMsgColumns: ColumnDef<PendingMessage>[] = [
     accessorKey: "Cid",
     header: "CID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.Cid.slice(0, 12)}…</span>
+      <span className="font-mono text-xs">
+        {row.original.Cid.slice(0, 12)}…
+      </span>
     ),
   },
   {
@@ -103,18 +109,14 @@ const balanceRuleColumns: ColumnDef<BalanceManagerRule>[] = [
     accessorKey: "subject_address",
     header: "Subject",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">
-        {row.original.subject_address}
-      </span>
+      <span className="font-mono text-xs">{row.original.subject_address}</span>
     ),
   },
   {
     accessorKey: "second_address",
     header: "Second Address",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">
-        {row.original.second_address}
-      </span>
+      <span className="font-mono text-xs">{row.original.second_address}</span>
     ),
   },
   { accessorKey: "action_type", header: "Action" },
@@ -170,11 +172,25 @@ function WalletsPage() {
 
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [newWalletAddr, setNewWalletAddr] = useState("");
-  const [renaming, setRenaming] = useState<{ addr: string; name: string } | null>(null);
+  const [renaming, setRenaming] = useState<{
+    addr: string;
+    name: string;
+  } | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [showAddRule, setShowAddRule] = useState(false);
-  const [ruleForm, setRuleForm] = useState({ subject: "", second: "", actionType: "requester", lowWatermark: "", highWatermark: "", subjectType: "wallet" });
-  const [editingRule, setEditingRule] = useState<{ id: number; lowWatermark: string; highWatermark: string } | null>(null);
+  const [ruleForm, setRuleForm] = useState({
+    subject: "",
+    second: "",
+    actionType: "requester",
+    lowWatermark: "",
+    highWatermark: "",
+    subjectType: "wallet",
+  });
+  const [editingRule, setEditingRule] = useState<{
+    id: number;
+    lowWatermark: string;
+    highWatermark: string;
+  } | null>(null);
 
   const handleAddWallet = useCallback(() => {
     if (!newWalletAddr.trim()) return;
@@ -199,13 +215,24 @@ function WalletsPage() {
       ruleForm.highWatermark.trim(),
       ruleForm.subjectType,
     ]);
-    setRuleForm({ subject: "", second: "", actionType: "requester", lowWatermark: "", highWatermark: "", subjectType: "wallet" });
+    setRuleForm({
+      subject: "",
+      second: "",
+      actionType: "requester",
+      lowWatermark: "",
+      highWatermark: "",
+      subjectType: "wallet",
+    });
     setShowAddRule(false);
   }, [ruleForm, addRuleMutation]);
 
   const handleUpdateRule = useCallback(() => {
     if (!editingRule) return;
-    updateRuleMutation.mutate([editingRule.id, editingRule.lowWatermark, editingRule.highWatermark]);
+    updateRuleMutation.mutate([
+      editingRule.id,
+      editingRule.lowWatermark,
+      editingRule.highWatermark,
+    ]);
     setEditingRule(null);
   }, [editingRule, updateRuleMutation]);
 
@@ -222,7 +249,10 @@ function WalletsPage() {
             variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
-              setRenaming({ addr: row.original.Address, name: row.original.Name || "" });
+              setRenaming({
+                addr: row.original.Address,
+                name: row.original.Name || "",
+              });
             }}
           >
             <Edit2 className="size-3" />
@@ -279,11 +309,13 @@ function WalletsPage() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => setEditingRule({
-              id: row.original.id,
-              lowWatermark: row.original.low_watermark,
-              highWatermark: row.original.high_watermark,
-            })}
+            onClick={() =>
+              setEditingRule({
+                id: row.original.id,
+                lowWatermark: row.original.low_watermark,
+                highWatermark: row.original.high_watermark,
+              })
+            }
           >
             <Edit2 className="size-3" />
           </Button>
@@ -322,10 +354,18 @@ function WalletsPage() {
               onChange={(e) => setNewWalletAddr(e.target.value)}
               className="max-w-md font-mono text-xs"
             />
-            <Button size="sm" onClick={handleAddWallet} disabled={addWalletMutation.isPending}>
+            <Button
+              size="sm"
+              onClick={handleAddWallet}
+              disabled={addWalletMutation.isPending}
+            >
               {addWalletMutation.isPending ? "Adding..." : "Add"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setShowAddWallet(false)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAddWallet(false)}
+            >
               Cancel
             </Button>
           </CardContent>
@@ -352,7 +392,11 @@ function WalletsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Balance Manager Rules</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => setShowAddRule(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowAddRule(true)}
+          >
             <Plus className="mr-1 size-4" /> Add Rule
           </Button>
         </CardHeader>
@@ -394,14 +438,24 @@ function WalletsPage() {
               <Input
                 placeholder="Wallet name"
                 value={renaming.name}
-                onChange={(e) => setRenaming({ ...renaming, name: e.target.value })}
+                onChange={(e) =>
+                  setRenaming({ ...renaming, name: e.target.value })
+                }
               />
             </div>
             <DialogFooter>
-              <Button size="sm" variant="ghost" onClick={() => setRenaming(null)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setRenaming(null)}
+              >
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleRename} disabled={renameWalletMutation.isPending}>
+              <Button
+                size="sm"
+                onClick={handleRename}
+                disabled={renameWalletMutation.isPending}
+              >
                 {renameWalletMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -412,7 +466,10 @@ function WalletsPage() {
       {/* Add Rule Dialog */}
       {showAddRule && (
         <Dialog open onOpenChange={() => setShowAddRule(false)}>
-          <DialogContent className="max-w-md" onClose={() => setShowAddRule(false)}>
+          <DialogContent
+            className="max-w-md"
+            onClose={() => setShowAddRule(false)}
+          >
             <DialogHeader>
               <DialogTitle>Add Balance Manager Rule</DialogTitle>
             </DialogHeader>
@@ -421,7 +478,9 @@ function WalletsPage() {
                 <label className="text-sm font-medium">Subject Address *</label>
                 <Input
                   value={ruleForm.subject}
-                  onChange={(e) => setRuleForm((f) => ({ ...f, subject: e.target.value }))}
+                  onChange={(e) =>
+                    setRuleForm((f) => ({ ...f, subject: e.target.value }))
+                  }
                   placeholder="f0... or f1... or f3..."
                   className="font-mono text-xs"
                 />
@@ -430,7 +489,9 @@ function WalletsPage() {
                 <label className="text-sm font-medium">Second Address *</label>
                 <Input
                   value={ruleForm.second}
-                  onChange={(e) => setRuleForm((f) => ({ ...f, second: e.target.value }))}
+                  onChange={(e) =>
+                    setRuleForm((f) => ({ ...f, second: e.target.value }))
+                  }
                   placeholder="f0... or f1... or f3..."
                   className="font-mono text-xs"
                 />
@@ -441,7 +502,9 @@ function WalletsPage() {
                   <select
                     className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
                     value={ruleForm.actionType}
-                    onChange={(e) => setRuleForm((f) => ({ ...f, actionType: e.target.value }))}
+                    onChange={(e) =>
+                      setRuleForm((f) => ({ ...f, actionType: e.target.value }))
+                    }
                   >
                     <option value="requester">Requester</option>
                     <option value="active-provider">Active Provider</option>
@@ -452,7 +515,12 @@ function WalletsPage() {
                   <select
                     className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
                     value={ruleForm.subjectType}
-                    onChange={(e) => setRuleForm((f) => ({ ...f, subjectType: e.target.value }))}
+                    onChange={(e) =>
+                      setRuleForm((f) => ({
+                        ...f,
+                        subjectType: e.target.value,
+                      }))
+                    }
                   >
                     <option value="wallet">Wallet</option>
                     <option value="proofshare">Proof Share</option>
@@ -461,28 +529,48 @@ function WalletsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium">Low Watermark (FIL)</label>
+                  <label className="text-sm font-medium">
+                    Low Watermark (FIL)
+                  </label>
                   <Input
                     value={ruleForm.lowWatermark}
-                    onChange={(e) => setRuleForm((f) => ({ ...f, lowWatermark: e.target.value }))}
+                    onChange={(e) =>
+                      setRuleForm((f) => ({
+                        ...f,
+                        lowWatermark: e.target.value,
+                      }))
+                    }
                     placeholder="e.g. 5"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">High Watermark (FIL)</label>
+                  <label className="text-sm font-medium">
+                    High Watermark (FIL)
+                  </label>
                   <Input
                     value={ruleForm.highWatermark}
-                    onChange={(e) => setRuleForm((f) => ({ ...f, highWatermark: e.target.value }))}
+                    onChange={(e) =>
+                      setRuleForm((f) => ({
+                        ...f,
+                        highWatermark: e.target.value,
+                      }))
+                    }
                     placeholder="e.g. 10"
                   />
                 </div>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddRule(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowAddRule(false)}>
+                Cancel
+              </Button>
               <Button
                 onClick={handleAddRule}
-                disabled={addRuleMutation.isPending || !ruleForm.subject.trim() || !ruleForm.second.trim()}
+                disabled={
+                  addRuleMutation.isPending ||
+                  !ruleForm.subject.trim() ||
+                  !ruleForm.second.trim()
+                }
               >
                 {addRuleMutation.isPending ? "Adding..." : "Add Rule"}
               </Button>
@@ -494,29 +582,49 @@ function WalletsPage() {
       {/* Edit Rule Dialog */}
       {editingRule && (
         <Dialog open onOpenChange={() => setEditingRule(null)}>
-          <DialogContent className="max-w-sm" onClose={() => setEditingRule(null)}>
+          <DialogContent
+            className="max-w-sm"
+            onClose={() => setEditingRule(null)}
+          >
             <DialogHeader>
               <DialogTitle>Edit Rule #{editingRule.id}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Low Watermark (FIL)</label>
+                <label className="text-sm font-medium">
+                  Low Watermark (FIL)
+                </label>
                 <Input
                   value={editingRule.lowWatermark}
-                  onChange={(e) => setEditingRule((r) => r ? { ...r, lowWatermark: e.target.value } : r)}
+                  onChange={(e) =>
+                    setEditingRule((r) =>
+                      r ? { ...r, lowWatermark: e.target.value } : r,
+                    )
+                  }
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">High Watermark (FIL)</label>
+                <label className="text-sm font-medium">
+                  High Watermark (FIL)
+                </label>
                 <Input
                   value={editingRule.highWatermark}
-                  onChange={(e) => setEditingRule((r) => r ? { ...r, highWatermark: e.target.value } : r)}
+                  onChange={(e) =>
+                    setEditingRule((r) =>
+                      r ? { ...r, highWatermark: e.target.value } : r,
+                    )
+                  }
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingRule(null)}>Cancel</Button>
-              <Button onClick={handleUpdateRule} disabled={updateRuleMutation.isPending}>
+              <Button variant="outline" onClick={() => setEditingRule(null)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateRule}
+                disabled={updateRuleMutation.isPending}
+              >
                 {updateRuleMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>

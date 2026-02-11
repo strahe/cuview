@@ -1,23 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { usePageTitle } from "@/hooks/use-page-title";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import { DataTable } from "@/components/table/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Key, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import type { PdpService, PdpPipeline } from "@/types/pdp";
-import type { ColumnDef } from "@tanstack/react-table";
-import { ShieldCheck, Key, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState, useCallback } from "react";
+import { Input } from "@/components/ui/input";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { usePageTitle } from "@/hooks/use-page-title";
+import type { PdpPipeline, PdpService } from "@/types/pdp";
 
 export const Route = createFileRoute("/_app/pdp/")({
   component: PdpPage,
@@ -42,7 +42,9 @@ const pipelineColumns: ColumnDef<PdpPipeline>[] = [
     accessorKey: "client",
     header: "Client",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.client.slice(0, 12)}…</span>
+      <span className="font-mono text-xs">
+        {row.original.client.slice(0, 12)}…
+      </span>
     ),
   },
   {
@@ -52,12 +54,17 @@ const pipelineColumns: ColumnDef<PdpPipeline>[] = [
       const p = row.original;
       if (p.complete) return <StatusBadge status="done" label="Complete" />;
       if (p.indexed) return <StatusBadge status="running" label="Indexed" />;
-      if (p.after_save_cache) return <StatusBadge status="running" label="SaveCache" />;
-      if (p.after_add_piece_msg) return <StatusBadge status="running" label="AddPieceMsg" />;
-      if (p.after_add_piece) return <StatusBadge status="running" label="AddPiece" />;
-      if (p.aggregated) return <StatusBadge status="running" label="Aggregated" />;
+      if (p.after_save_cache)
+        return <StatusBadge status="running" label="SaveCache" />;
+      if (p.after_add_piece_msg)
+        return <StatusBadge status="running" label="AddPieceMsg" />;
+      if (p.after_add_piece)
+        return <StatusBadge status="running" label="AddPiece" />;
+      if (p.aggregated)
+        return <StatusBadge status="running" label="Aggregated" />;
       if (p.after_commp) return <StatusBadge status="running" label="CommP" />;
-      if (p.downloaded) return <StatusBadge status="running" label="Downloaded" />;
+      if (p.downloaded)
+        return <StatusBadge status="running" label="Downloaded" />;
       return <StatusBadge status="pending" label="Pending" />;
     },
   },
@@ -67,15 +74,17 @@ const pipelineColumns: ColumnDef<PdpPipeline>[] = [
 function PdpPage() {
   usePageTitle("PDP");
 
-  const { data: services, isLoading: servicesLoading } = useCurioRpc<PdpService[]>(
-    "PDPServices", [], { refetchInterval: 60_000 },
-  );
+  const { data: services, isLoading: servicesLoading } = useCurioRpc<
+    PdpService[]
+  >("PDPServices", [], { refetchInterval: 60_000 });
   const { data: keys, isLoading: keysLoading } = useCurioRpc<string[]>(
-    "ListPDPKeys", [], { refetchInterval: 60_000 },
+    "ListPDPKeys",
+    [],
+    { refetchInterval: 60_000 },
   );
-  const { data: pipelines, isLoading: pipelinesLoading } = useCurioRpc<PdpPipeline[]>(
-    "MK20PDPPipelines", [100, 0], { refetchInterval: 30_000 },
-  );
+  const { data: pipelines, isLoading: pipelinesLoading } = useCurioRpc<
+    PdpPipeline[]
+  >("MK20PDPPipelines", [100, 0], { refetchInterval: 30_000 });
 
   // Mutations
   const addServiceMutation = useCurioRpcMutation("AddPDPService", {
@@ -96,12 +105,17 @@ function PdpPage() {
   const [serviceForm, setServiceForm] = useState({ name: "", pubKey: "" });
   const [showImportKey, setShowImportKey] = useState(false);
   const [keyHex, setKeyHex] = useState("");
-  const [confirmRemoveService, setConfirmRemoveService] = useState<number | null>(null);
+  const [confirmRemoveService, setConfirmRemoveService] = useState<
+    number | null
+  >(null);
   const [confirmRemoveKey, setConfirmRemoveKey] = useState<string | null>(null);
 
   const handleAddService = useCallback(() => {
     if (!serviceForm.name.trim() || !serviceForm.pubKey.trim()) return;
-    addServiceMutation.mutate([serviceForm.name.trim(), serviceForm.pubKey.trim()]);
+    addServiceMutation.mutate([
+      serviceForm.name.trim(),
+      serviceForm.pubKey.trim(),
+    ]);
     setServiceForm({ name: "", pubKey: "" });
     setShowAddService(false);
   }, [serviceForm, addServiceMutation]);
@@ -130,7 +144,9 @@ function PdpPage() {
       accessorKey: "pubkey",
       header: "Public Key",
       cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.original.pubkey.slice(0, 24)}…</span>
+        <span className="font-mono text-xs">
+          {row.original.pubkey.slice(0, 24)}…
+        </span>
       ),
     },
     {
@@ -141,15 +157,32 @@ function PdpPage() {
         if (confirmRemoveService === id) {
           return (
             <div className="flex gap-1">
-              <Button size="sm" variant="destructive" onClick={() => { removeServiceMutation.mutate([id]); setConfirmRemoveService(null); }}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  removeServiceMutation.mutate([id]);
+                  setConfirmRemoveService(null);
+                }}
+              >
                 Confirm
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveService(null)}>×</Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setConfirmRemoveService(null)}
+              >
+                ×
+              </Button>
             </div>
           );
         }
         return (
-          <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveService(id)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setConfirmRemoveService(id)}
+          >
             <Trash2 className="size-3.5" />
           </Button>
         );
@@ -176,7 +209,11 @@ function PdpPage() {
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="size-4" /> PDP Services
           </CardTitle>
-          <Button size="sm" variant="outline" onClick={() => setShowAddService(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowAddService(true)}
+          >
             <Plus className="mr-1 size-4" /> Add Service
           </Button>
         </CardHeader>
@@ -195,27 +232,53 @@ function PdpPage() {
           <CardTitle className="flex items-center gap-2">
             <Key className="size-4" /> PDP Keys
           </CardTitle>
-          <Button size="sm" variant="outline" onClick={() => setShowImportKey(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowImportKey(true)}
+          >
             <Plus className="mr-1 size-4" /> Import Key
           </Button>
         </CardHeader>
         <CardContent>
           {keysLoading ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              Loading…
+            </p>
           ) : keys && keys.length > 0 ? (
             <ul className="space-y-2">
               {keys.map((key) => (
-                <li key={key} className="flex items-center justify-between rounded-md border border-[hsl(var(--border))] p-2">
+                <li
+                  key={key}
+                  className="flex items-center justify-between rounded-md border border-[hsl(var(--border))] p-2"
+                >
                   <span className="font-mono text-xs">{key}</span>
                   {confirmRemoveKey === key ? (
                     <div className="flex gap-1">
-                      <Button size="sm" variant="destructive" onClick={() => { removeKeyMutation.mutate([key]); setConfirmRemoveKey(null); }}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          removeKeyMutation.mutate([key]);
+                          setConfirmRemoveKey(null);
+                        }}
+                      >
                         Confirm
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveKey(null)}>×</Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setConfirmRemoveKey(null)}
+                      >
+                        ×
+                      </Button>
                     </div>
                   ) : (
-                    <Button size="sm" variant="ghost" onClick={() => setConfirmRemoveKey(key)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setConfirmRemoveKey(key)}
+                    >
                       <Trash2 className="size-3.5" />
                     </Button>
                   )}
@@ -223,7 +286,9 @@ function PdpPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">No PDP keys configured</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              No PDP keys configured
+            </p>
           )}
         </CardContent>
       </Card>
@@ -248,23 +313,51 @@ function PdpPage() {
       {/* Add Service Dialog */}
       {showAddService && (
         <Dialog open onOpenChange={() => setShowAddService(false)}>
-          <DialogContent className="max-w-md" onClose={() => setShowAddService(false)}>
+          <DialogContent
+            className="max-w-md"
+            onClose={() => setShowAddService(false)}
+          >
             <DialogHeader>
               <DialogTitle>Add PDP Service</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium">Service Name *</label>
-                <Input value={serviceForm.name} onChange={(e) => setServiceForm((f) => ({ ...f, name: e.target.value }))} placeholder="Service name" />
+                <Input
+                  value={serviceForm.name}
+                  onChange={(e) =>
+                    setServiceForm((f) => ({ ...f, name: e.target.value }))
+                  }
+                  placeholder="Service name"
+                />
               </div>
               <div>
                 <label className="text-sm font-medium">Public Key *</label>
-                <Input value={serviceForm.pubKey} onChange={(e) => setServiceForm((f) => ({ ...f, pubKey: e.target.value }))} placeholder="Public key (hex)" className="font-mono text-xs" />
+                <Input
+                  value={serviceForm.pubKey}
+                  onChange={(e) =>
+                    setServiceForm((f) => ({ ...f, pubKey: e.target.value }))
+                  }
+                  placeholder="Public key (hex)"
+                  className="font-mono text-xs"
+                />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddService(false)}>Cancel</Button>
-              <Button onClick={handleAddService} disabled={addServiceMutation.isPending || !serviceForm.name.trim() || !serviceForm.pubKey.trim()}>
+              <Button
+                variant="outline"
+                onClick={() => setShowAddService(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddService}
+                disabled={
+                  addServiceMutation.isPending ||
+                  !serviceForm.name.trim() ||
+                  !serviceForm.pubKey.trim()
+                }
+              >
                 {addServiceMutation.isPending ? "Adding..." : "Add Service"}
               </Button>
             </DialogFooter>
@@ -275,17 +368,30 @@ function PdpPage() {
       {/* Import Key Dialog */}
       {showImportKey && (
         <Dialog open onOpenChange={() => setShowImportKey(false)}>
-          <DialogContent className="max-w-md" onClose={() => setShowImportKey(false)}>
+          <DialogContent
+            className="max-w-md"
+            onClose={() => setShowImportKey(false)}
+          >
             <DialogHeader>
               <DialogTitle>Import PDP Key</DialogTitle>
             </DialogHeader>
             <div>
               <label className="text-sm font-medium">Private Key (hex) *</label>
-              <Input value={keyHex} onChange={(e) => setKeyHex(e.target.value)} placeholder="Hex-encoded private key" className="font-mono text-xs" />
+              <Input
+                value={keyHex}
+                onChange={(e) => setKeyHex(e.target.value)}
+                placeholder="Hex-encoded private key"
+                className="font-mono text-xs"
+              />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowImportKey(false)}>Cancel</Button>
-              <Button onClick={handleImportKey} disabled={importKeyMutation.isPending || !keyHex.trim()}>
+              <Button variant="outline" onClick={() => setShowImportKey(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleImportKey}
+                disabled={importKeyMutation.isPending || !keyHex.trim()}
+              >
                 {importKeyMutation.isPending ? "Importing..." : "Import Key"}
               </Button>
             </DialogFooter>

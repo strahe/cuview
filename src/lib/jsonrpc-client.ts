@@ -263,7 +263,7 @@ export class JsonRpcClient {
     this.clearReconnectTimer();
 
     const delay = Math.min(
-      this.config.reconnectInterval * Math.pow(2, this.reconnectAttempts),
+      this.config.reconnectInterval * 2 ** this.reconnectAttempts,
       30000, // Max delay in milliseconds, default is 30 seconds
     );
 
