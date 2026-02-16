@@ -24,7 +24,7 @@
     "apexcharts": "^5.3.6",
     "daisyui": "^5.5.18",
     "date-fns": "^4.1.0",
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "reka-ui": "^2.6.1",
     "tailwindcss": "^4.1.12",
