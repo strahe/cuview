@@ -41,6 +41,46 @@ export const Route = createFileRoute("/_app/sectors/")({
   component: SectorsPage,
 });
 
+// Deadline/Partition detail types
+interface DeadlinePartitionInfo {
+  partition: number;
+  all_sectors: number;
+  faulty_sectors: number;
+  recovering_sectors: number;
+  live_sectors: number;
+  active_sectors: number;
+}
+
+interface DeadlineDetailData {
+  sp_id: number;
+  sp_address: string;
+  deadline: number;
+  post_submissions: string;
+  disputable_proof_count: number;
+  partitions: DeadlinePartitionInfo[];
+}
+
+interface PartitionSectorInfo {
+  sector_number: number;
+  is_faulty: boolean;
+  is_recovering: boolean;
+  is_live: boolean;
+  is_active: boolean;
+}
+
+interface PartitionDetailData {
+  sp_id: number;
+  sp_address: string;
+  deadline: number;
+  partition: number;
+  all_sectors_count: number;
+  faulty_sectors_count: number;
+  recovering_sectors_count: number;
+  live_sectors_count: number;
+  active_sectors_count: number;
+  sectors: PartitionSectorInfo[] | null;
+}
+
 const columns: ColumnDef<SectorListItem>[] = [
   { accessorKey: "SectorNum", header: "Sector #" },
   {
@@ -126,6 +166,15 @@ function SectorsPage() {
   const [selectedSector, setSelectedSector] = useState<{
     sp: string;
     num: number;
+  } | null>(null);
+  const [selectedDeadline, setSelectedDeadline] = useState<{
+    sp: string;
+    deadline: number;
+  } | null>(null);
+  const [selectedPartition, setSelectedPartition] = useState<{
+    sp: string;
+    deadline: number;
+    partition: number;
   } | null>(null);
 
   const sectors = data ?? [];
@@ -254,7 +303,13 @@ function SectorsPage() {
                 {deadlineStats.map((ds, i) => (
                   <tr
                     key={i}
-                    className="border-b border-[hsl(var(--border))] last:border-0"
+                    className="cursor-pointer border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--muted)/0.5)]"
+                    onClick={() =>
+                      setSelectedDeadline({
+                        sp: ds.sp_address,
+                        deadline: ds.deadline,
+                      })
+                    }
                   >
                     <td className="py-2 font-mono text-xs">{ds.sp_address}</td>
                     <td className="py-2 text-right">{ds.deadline}</td>
@@ -319,6 +374,28 @@ function SectorsPage() {
           sp={selectedSector.sp}
           sectorNum={selectedSector.num}
           onClose={() => setSelectedSector(null)}
+        />
+      )}
+      {selectedDeadline && (
+        <DeadlineDetailDialog
+          sp={selectedDeadline.sp}
+          deadline={selectedDeadline.deadline}
+          onClose={() => setSelectedDeadline(null)}
+          onPartitionClick={(p) => {
+            setSelectedPartition({
+              sp: selectedDeadline.sp,
+              deadline: selectedDeadline.deadline,
+              partition: p,
+            });
+          }}
+        />
+      )}
+      {selectedPartition && (
+        <PartitionDetailDialog
+          sp={selectedPartition.sp}
+          deadline={selectedPartition.deadline}
+          partition={selectedPartition.partition}
+          onClose={() => setSelectedPartition(null)}
         />
       )}
     </div>
@@ -626,5 +703,220 @@ function CidRow({ label, value }: { label: string; value: string }) {
       </span>
       <span className="truncate font-mono">{value}</span>
     </div>
+  );
+}
+
+// --- Deadline Detail Dialog ---
+
+function DeadlineDetailDialog({
+  sp,
+  deadline,
+  onClose,
+  onPartitionClick,
+}: {
+  sp: string;
+  deadline: number;
+  onClose: () => void;
+  onPartitionClick: (partition: number) => void;
+}) {
+  const { data, isLoading } = useCurioRpc<DeadlineDetailData>(
+    "DeadlineDetail",
+    [sp, deadline],
+  );
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent onClose={onClose}>
+        <DialogHeader>
+          <DialogTitle>
+            Deadline {deadline} — {sp}
+          </DialogTitle>
+          <DialogDescription>
+            Partitions and sector distribution
+          </DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+            Loading...
+          </div>
+        ) : data ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+              <span>
+                Post Submissions:{" "}
+                <strong className="text-foreground">
+                  {data.post_submissions}
+                </strong>
+              </span>
+              <span>
+                Disputable Proofs:{" "}
+                <strong className="text-foreground">
+                  {data.disputable_proof_count}
+                </strong>
+              </span>
+            </div>
+            {data.partitions && data.partitions.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-[hsl(var(--border))]">
+                      <th className="py-1 text-left">Partition</th>
+                      <th className="py-1 text-right">All</th>
+                      <th className="py-1 text-right">Live</th>
+                      <th className="py-1 text-right">Active</th>
+                      <th className="py-1 text-right">Faulty</th>
+                      <th className="py-1 text-right">Recovering</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.partitions.map((p) => (
+                      <tr
+                        key={p.partition}
+                        className="cursor-pointer border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--muted)/0.5)]"
+                        onClick={() => onPartitionClick(p.partition)}
+                      >
+                        <td className="py-1 font-mono">#{p.partition}</td>
+                        <td className="py-1 text-right">{p.all_sectors}</td>
+                        <td className="py-1 text-right">{p.live_sectors}</td>
+                        <td className="py-1 text-right">{p.active_sectors}</td>
+                        <td className="py-1 text-right">
+                          {p.faulty_sectors > 0 ? (
+                            <span className="text-[hsl(var(--destructive))]">
+                              {p.faulty_sectors}
+                            </span>
+                          ) : (
+                            p.faulty_sectors
+                          )}
+                        </td>
+                        <td className="py-1 text-right">
+                          {p.recovering_sectors}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-4 text-center text-sm">Not found</div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// --- Partition Detail Dialog ---
+
+function PartitionDetailDialog({
+  sp,
+  deadline,
+  partition,
+  onClose,
+}: {
+  sp: string;
+  deadline: number;
+  partition: number;
+  onClose: () => void;
+}) {
+  const { data, isLoading } = useCurioRpc<PartitionDetailData>(
+    "PartitionDetail",
+    [sp, deadline, partition],
+  );
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent onClose={onClose}>
+        <DialogHeader>
+          <DialogTitle>
+            Partition #{partition} — Deadline {deadline}
+          </DialogTitle>
+          <DialogDescription>{sp}</DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+            Loading...
+          </div>
+        ) : data ? (
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-3 gap-2 text-xs sm:grid-cols-5">
+              <div className="text-center">
+                <div className="text-[hsl(var(--muted-foreground))]">All</div>
+                <div className="font-bold">{data.all_sectors_count}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[hsl(var(--muted-foreground))]">Live</div>
+                <div className="font-bold">{data.live_sectors_count}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[hsl(var(--muted-foreground))]">
+                  Active
+                </div>
+                <div className="font-bold">{data.active_sectors_count}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[hsl(var(--muted-foreground))]">
+                  Faulty
+                </div>
+                <div className="font-bold text-[hsl(var(--destructive))]">
+                  {data.faulty_sectors_count}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-[hsl(var(--muted-foreground))]">
+                  Recovering
+                </div>
+                <div className="font-bold">{data.recovering_sectors_count}</div>
+              </div>
+            </div>
+            {data.sectors && data.sectors.length > 0 && (
+              <div className="max-h-64 overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-[hsl(var(--background))]">
+                    <tr className="border-b border-[hsl(var(--border))]">
+                      <th className="py-1 text-left">Sector</th>
+                      <th className="py-1 text-center">Live</th>
+                      <th className="py-1 text-center">Active</th>
+                      <th className="py-1 text-center">Faulty</th>
+                      <th className="py-1 text-center">Recovering</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.sectors.map((s) => (
+                      <tr
+                        key={s.sector_number}
+                        className="border-b border-[hsl(var(--border))] last:border-0"
+                      >
+                        <td className="py-1 font-mono">#{s.sector_number}</td>
+                        <td className="py-1 text-center">
+                          {s.is_live ? "✓" : "—"}
+                        </td>
+                        <td className="py-1 text-center">
+                          {s.is_active ? "✓" : "—"}
+                        </td>
+                        <td className="py-1 text-center">
+                          {s.is_faulty ? (
+                            <span className="text-[hsl(var(--destructive))]">
+                              ✗
+                            </span>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="py-1 text-center">
+                          {s.is_recovering ? "↻" : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-4 text-center text-sm">Not found</div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -48,6 +48,15 @@ interface ExpSPAssignment {
   last_message_landed_at: string | null;
 }
 
+interface ExpBucketCount {
+  sp_id: number;
+  sp_address: string;
+  less_than_days: number;
+  total_count: number;
+  cc_count: number;
+  deal_count: number;
+}
+
 const bucketInvalidate = [["curio", "SectorExpBuckets"]];
 const presetInvalidate = [["curio", "SectorExpManagerPresets"]];
 const spInvalidate = [["curio", "SectorExpManagerSPs"]];
@@ -68,6 +77,11 @@ function ExpirationPage() {
   const { data: spAssignments, isLoading: spsLoading } = useCurioRpc<
     ExpSPAssignment[]
   >("SectorExpManagerSPs", [], { refetchInterval: 60_000 });
+  const { data: bucketCounts } = useCurioRpc<ExpBucketCount[]>(
+    "SectorExpBucketCounts",
+    [],
+    { refetchInterval: 60_000 },
+  );
 
   // Bucket mutations
   const addBucketMutation = useCurioRpcMutation("SectorExpBucketAdd", {
@@ -85,6 +99,10 @@ function ExpirationPage() {
     "SectorExpManagerPresetDelete",
     { invalidateKeys: presetInvalidate },
   );
+  const updatePresetMutation = useCurioRpcMutation(
+    "SectorExpManagerPresetUpdate",
+    { invalidateKeys: presetInvalidate },
+  );
 
   // SP mutations
   const addSPMutation = useCurioRpcMutation("SectorExpManagerSPAdd", {
@@ -96,6 +114,9 @@ function ExpirationPage() {
   const toggleSPMutation = useCurioRpcMutation("SectorExpManagerSPToggle", {
     invalidateKeys: spInvalidate,
   });
+  const evalConditionMutation = useCurioRpcMutation<boolean>(
+    "SectorExpManagerSPEvalCondition",
+  );
 
   // Bucket state
   const [showAddBucket, setShowAddBucket] = useState(false);
@@ -126,6 +147,11 @@ function ExpirationPage() {
   const [showAddSP, setShowAddSP] = useState(false);
   const [spForm, setSPForm] = useState({ sp: "", preset: "" });
   const [confirmRemoveSP, setConfirmRemoveSP] = useState<string | null>(null);
+  const [evalResult, setEvalResult] = useState<{
+    key: string;
+    result: boolean | null;
+  } | null>(null);
+  const [editPreset, setEditPreset] = useState<ExpPreset | null>(null);
 
   const handleAddBucket = useCallback(() => {
     const d = parseInt(newBucketDays, 10);
@@ -239,13 +265,22 @@ function ExpirationPage() {
           );
         }
         return (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setConfirmDeletePreset(n)}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setEditPreset(row.original)}
+            >
+              Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirmDeletePreset(n)}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
         );
       },
     },
@@ -325,6 +360,27 @@ function ExpirationPage() {
             <Button
               size="sm"
               variant="ghost"
+              onClick={() =>
+                evalConditionMutation.mutate(
+                  [row.original.sp_address, row.original.preset_name],
+                  {
+                    onSuccess: (result) => setEvalResult({ key, result }),
+                  },
+                )
+              }
+              disabled={evalConditionMutation.isPending}
+            >
+              Eval
+            </Button>
+            {evalResult?.key === key && evalResult.result !== null && (
+              <StatusBadge
+                status={evalResult.result ? "done" : "warning"}
+                label={evalResult.result ? "Match" : "No Match"}
+              />
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
               onClick={() => setConfirmRemoveSP(key)}
             >
               <Trash2 className="size-3.5" />
@@ -368,13 +424,55 @@ function ExpirationPage() {
                   <Plus className="mr-1 size-4" /> Add Bucket
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <DataTable
                   columns={bucketColumns}
                   data={buckets ?? []}
                   loading={bucketsLoading}
                   emptyMessage="No expiration buckets"
                 />
+                {bucketCounts && bucketCounts.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium">
+                      Bucket Sector Counts
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-[hsl(var(--border))]">
+                            <th className="py-1 text-left">SP</th>
+                            <th className="py-1 text-right">{"< Days"}</th>
+                            <th className="py-1 text-right">Total</th>
+                            <th className="py-1 text-right">CC</th>
+                            <th className="py-1 text-right">Deal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bucketCounts.map((bc, i) => (
+                            <tr
+                              key={i}
+                              className="border-b border-[hsl(var(--border))] last:border-0"
+                            >
+                              <td className="py-1 font-mono">
+                                {bc.sp_address}
+                              </td>
+                              <td className="py-1 text-right">
+                                {bc.less_than_days}
+                              </td>
+                              <td className="py-1 text-right font-medium">
+                                {bc.total_count}
+                              </td>
+                              <td className="py-1 text-right">{bc.cc_count}</td>
+                              <td className="py-1 text-right">
+                                {bc.deal_count}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -628,6 +726,136 @@ function ExpirationPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Preset Dialog */}
+      {editPreset && (
+        <EditPresetDialog
+          preset={editPreset}
+          onClose={() => setEditPreset(null)}
+          onSave={(updated) => {
+            updatePresetMutation.mutate([updated]);
+            setEditPreset(null);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function EditPresetDialog({
+  preset,
+  onClose,
+  onSave,
+}: {
+  preset: ExpPreset;
+  onClose: () => void;
+  onSave: (p: ExpPreset) => void;
+}) {
+  const [form, setForm] = useState<ExpPreset>({ ...preset });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent onClose={onClose}>
+        <DialogHeader>
+          <DialogTitle>Edit Preset: {preset.name}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium">Action Type</label>
+            <Input
+              value={form.action_type}
+              onChange={(e) =>
+                setForm({ ...form, action_type: e.target.value })
+              }
+              className="text-xs"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Above (days)</label>
+            <Input
+              type="number"
+              value={form.info_bucket_above_days}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  info_bucket_above_days: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              className="text-xs"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Below (days)</label>
+            <Input
+              type="number"
+              value={form.info_bucket_below_days}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  info_bucket_below_days: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              className="text-xs"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Target Exp (days)</label>
+            <Input
+              type="number"
+              value={form.target_expiration_days ?? ""}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  target_expiration_days: e.target.value
+                    ? parseInt(e.target.value, 10)
+                    : null,
+                })
+              }
+              className="text-xs"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Max Candidate (days)</label>
+            <Input
+              type="number"
+              value={form.max_candidate_days ?? ""}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  max_candidate_days: e.target.value
+                    ? parseInt(e.target.value, 10)
+                    : null,
+                })
+              }
+              className="text-xs"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.cc ?? false}
+              onChange={(e) => setForm({ ...form, cc: e.target.checked })}
+            />
+            <label className="text-xs">CC Only</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.drop_claims}
+              onChange={(e) =>
+                setForm({ ...form, drop_claims: e.target.checked })
+              }
+            />
+            <label className="text-xs">Drop Claims</label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={() => onSave(form)}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

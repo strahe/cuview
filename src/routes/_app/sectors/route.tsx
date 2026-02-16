@@ -15,6 +15,7 @@ const tabs = [
   { label: "Overview", to: "/sectors" },
   { label: "CC Scheduler", to: "/sectors/cc-scheduler" },
   { label: "Expiration", to: "/sectors/expiration" },
+  { label: "Diagnostics", to: "/sectors/diagnostics" },
 ];
 
 function SectorsLayout() {

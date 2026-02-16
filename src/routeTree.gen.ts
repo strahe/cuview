@@ -42,6 +42,7 @@ import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
 import { Route as AppActorIdRouteImport } from "./routes/_app/actor/$id"
 import { Route as AppSectorsExpirationIndexRouteImport } from "./routes/_app/sectors/expiration/index"
+import { Route as AppSectorsDiagnosticsIndexRouteImport } from "./routes/_app/sectors/diagnostics/index"
 import { Route as AppSectorsCcSchedulerIndexRouteImport } from "./routes/_app/sectors/cc-scheduler/index"
 import { Route as AppMarketSettingsIndexRouteImport } from "./routes/_app/market/settings/index"
 import { Route as AppMarketMk20DealsRouteImport } from "./routes/_app/market/mk20/deals"
@@ -212,6 +213,12 @@ const AppSectorsExpirationIndexRoute =
     path: "/expiration/",
     getParentRoute: () => AppSectorsRouteRoute,
   } as any)
+const AppSectorsDiagnosticsIndexRoute =
+  AppSectorsDiagnosticsIndexRouteImport.update({
+    id: "/diagnostics/",
+    path: "/diagnostics/",
+    getParentRoute: () => AppSectorsRouteRoute,
+  } as any)
 const AppSectorsCcSchedulerIndexRoute =
   AppSectorsCcSchedulerIndexRouteImport.update({
     id: "/cc-scheduler/",
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/market/settings/": typeof AppMarketSettingsIndexRoute
   "/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
+  "/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRoutesByTo {
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/market/settings": typeof AppMarketSettingsIndexRoute
   "/sectors/cc-scheduler": typeof AppSectorsCcSchedulerIndexRoute
+  "/sectors/diagnostics": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRoutesById {
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   "/_app/market/mk20/deals": typeof AppMarketMk20DealsRoute
   "/_app/market/settings/": typeof AppMarketSettingsIndexRoute
   "/_app/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
+  "/_app/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/_app/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
 }
 export interface FileRouteTypes {
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | "/market/mk20/deals"
     | "/market/settings/"
     | "/sectors/cc-scheduler/"
+    | "/sectors/diagnostics/"
     | "/sectors/expiration/"
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | "/market/mk20/deals"
     | "/market/settings"
     | "/sectors/cc-scheduler"
+    | "/sectors/diagnostics"
     | "/sectors/expiration"
   id:
     | "__root__"
@@ -457,6 +469,7 @@ export interface FileRouteTypes {
     | "/_app/market/mk20/deals"
     | "/_app/market/settings/"
     | "/_app/sectors/cc-scheduler/"
+    | "/_app/sectors/diagnostics/"
     | "/_app/sectors/expiration/"
   fileRoutesById: FileRoutesById
 }
@@ -699,6 +712,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppSectorsExpirationIndexRouteImport
       parentRoute: typeof AppSectorsRouteRoute
     }
+    "/_app/sectors/diagnostics/": {
+      id: "/_app/sectors/diagnostics/"
+      path: "/diagnostics"
+      fullPath: "/sectors/diagnostics/"
+      preLoaderRoute: typeof AppSectorsDiagnosticsIndexRouteImport
+      parentRoute: typeof AppSectorsRouteRoute
+    }
     "/_app/sectors/cc-scheduler/": {
       id: "/_app/sectors/cc-scheduler/"
       path: "/cc-scheduler"
@@ -774,12 +794,14 @@ const AppPipelineRouteRouteWithChildren =
 interface AppSectorsRouteRouteChildren {
   AppSectorsIndexRoute: typeof AppSectorsIndexRoute
   AppSectorsCcSchedulerIndexRoute: typeof AppSectorsCcSchedulerIndexRoute
+  AppSectorsDiagnosticsIndexRoute: typeof AppSectorsDiagnosticsIndexRoute
   AppSectorsExpirationIndexRoute: typeof AppSectorsExpirationIndexRoute
 }
 
 const AppSectorsRouteRouteChildren: AppSectorsRouteRouteChildren = {
   AppSectorsIndexRoute: AppSectorsIndexRoute,
   AppSectorsCcSchedulerIndexRoute: AppSectorsCcSchedulerIndexRoute,
+  AppSectorsDiagnosticsIndexRoute: AppSectorsDiagnosticsIndexRoute,
   AppSectorsExpirationIndexRoute: AppSectorsExpirationIndexRoute,
 }
 
