@@ -21,7 +21,7 @@
     "@tanstack/vue-table": "^8.21.3",
     "@tanstack/vue-virtual": "^3.13.12",
     "@vueuse/core": "^14.1.0",
-    "apexcharts": "^5.3.6",
+    "apexcharts": "^5.5.0",
     "daisyui": "^5.5.18",
     "date-fns": "^4.1.0",
     "pinia": "^3.0.3",
