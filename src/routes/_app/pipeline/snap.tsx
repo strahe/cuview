@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -50,6 +50,44 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
         "—"
       ),
   },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as {
+        onDelete?: (spId: number, sectorNum: number) => void;
+        onResetTasks?: (spId: number, sectorNum: number) => void;
+      };
+      const s = row.original;
+      // Extract SP ID from Address (e.g. "f01234" -> 1234)
+      const spId = Number.parseInt(
+        s.Address?.replace(/^[ft]0?/, "") || "0",
+        10,
+      );
+      return (
+        <div className="flex gap-1">
+          {meta?.onResetTasks && (
+            <button
+              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]"
+              onClick={() => meta.onResetTasks!(spId, s.SectorNumber)}
+              title="Reset task IDs"
+            >
+              <RotateCcw className="size-3" />
+            </button>
+          )}
+          {meta?.onDelete && (
+            <button
+              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))]"
+              onClick={() => meta.onDelete!(spId, s.SectorNumber)}
+              title="Delete upgrade"
+            >
+              <Trash2 className="size-3" />
+            </button>
+          )}
+        </div>
+      );
+    },
+  },
 ];
 
 function SnapPage() {
@@ -66,6 +104,12 @@ function SnapPage() {
       ["curio", "PipelineStatsSnap"],
       ["curio", "UpgradeSectors"],
     ],
+  });
+  const deleteMutation = useCurioRpcMutation("UpgradeDelete", {
+    invalidateKeys: [["curio", "UpgradeSectors"]],
+  });
+  const resetTasksMutation = useCurioRpcMutation("UpgradeResetTaskIDs", {
+    invalidateKeys: [["curio", "UpgradeSectors"]],
   });
 
   const [confirmRestart, setConfirmRestart] = useState(false);
@@ -198,6 +242,12 @@ function SnapPage() {
             searchPlaceholder="Search sectors..."
             searchColumn="Address"
             emptyMessage="No active snap upgrades"
+            meta={{
+              onDelete: (spId: number, sectorNum: number) =>
+                deleteMutation.mutate([spId, sectorNum]),
+              onResetTasks: (spId: number, sectorNum: number) =>
+                resetTasksMutation.mutate([spId, sectorNum]),
+            }}
           />
         </CardContent>
       </Card>

@@ -100,6 +100,26 @@ function PdpPage() {
     invalidateKeys: [["curio", "ListPDPKeys"]],
   });
 
+  // FS Registry
+  const { data: fsStatus } = useCurioRpc<{
+    address: string;
+    id: string;
+    active: boolean;
+    name: string;
+    description: string;
+    pdp_service: string;
+    capabilities: Record<string, string>;
+  }>("FSRegistryStatus", [], { refetchInterval: 120_000 });
+  const registerFSMutation = useCurioRpcMutation("FSRegister", {
+    invalidateKeys: [["curio", "FSRegistryStatus"]],
+  });
+  const updateProviderMutation = useCurioRpcMutation("FSUpdateProvider", {
+    invalidateKeys: [["curio", "FSRegistryStatus"]],
+  });
+  const updatePDPMutation = useCurioRpcMutation("FSUpdatePDP", {
+    invalidateKeys: [["curio", "FSRegistryStatus"]],
+  });
+
   // Form state
   const [showAddService, setShowAddService] = useState(false);
   const [serviceForm, setServiceForm] = useState({ name: "", pubKey: "" });
@@ -398,6 +418,126 @@ function PdpPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* FS Registry */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>FS Registry</CardTitle>
+          {!fsStatus?.active && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const name = prompt("Registry name:");
+                const desc = prompt("Description:");
+                const loc = prompt("Location:");
+                if (name && desc && loc)
+                  registerFSMutation.mutate([name, desc, loc]);
+              }}
+            >
+              <Plus className="mr-1 size-4" /> Register
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {fsStatus ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Name
+                  </div>
+                  <div>{fsStatus.name || "—"}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Status
+                  </div>
+                  <StatusBadge
+                    status={fsStatus.active ? "done" : "pending"}
+                    label={fsStatus.active ? "Active" : "Inactive"}
+                  />
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">ID</div>
+                  <div className="truncate font-mono text-xs">
+                    {fsStatus.id || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Address
+                  </div>
+                  <div className="truncate font-mono text-xs">
+                    {fsStatus.address || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Description
+                  </div>
+                  <div className="text-xs">{fsStatus.description || "—"}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    PDP Service
+                  </div>
+                  <div className="text-xs">{fsStatus.pdp_service || "—"}</div>
+                </div>
+              </div>
+              {fsStatus.capabilities &&
+                Object.keys(fsStatus.capabilities).length > 0 && (
+                  <div>
+                    <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                      Capabilities
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {Object.entries(fsStatus.capabilities).map(([k, v]) => (
+                        <span
+                          key={k}
+                          className="rounded bg-[hsl(var(--muted))] px-2 py-0.5 text-xs"
+                        >
+                          {k}: {v}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              {fsStatus.active && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const name = prompt("New name:", fsStatus.name);
+                      const desc = prompt(
+                        "New description:",
+                        fsStatus.description,
+                      );
+                      if (name && desc)
+                        updateProviderMutation.mutate([name, desc]);
+                    }}
+                  >
+                    Update Provider
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => updatePDPMutation.mutate([null, null])}
+                    disabled={updatePDPMutation.isPending}
+                  >
+                    Update PDP
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+              FS Registry not available
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

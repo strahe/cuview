@@ -65,6 +65,50 @@ interface PSPaymentSummary {
   last_payment: string;
 }
 
+interface PSWorkAsk {
+  id: number;
+  min_price_nfil: number;
+  created_at: string;
+  min_price_fil: string;
+}
+
+interface PSSettlement {
+  provider_id: number;
+  payment_nonce: number;
+  settled_at: string;
+  settle_message_cid: string;
+  address: string;
+  amount_for_this_settlement_fil: string;
+}
+
+interface PSClientRequest {
+  task_id: number;
+  sp_id: string;
+  sector_num: number;
+  request_cid?: string;
+  request_uploaded: boolean;
+  request_sent: boolean;
+  done: boolean;
+  created_at: string;
+  done_at?: string;
+  payment_amount?: string;
+}
+
+interface PSClientMessage {
+  started_at: string;
+  signed_cid: string;
+  wallet: number;
+  action: string;
+  success?: boolean;
+  completed_at?: string;
+  address: string;
+}
+
+interface PSTos {
+  provider: string;
+  client: string;
+}
+
 function extractNullStr(
   v: { Valid: boolean; String: string } | null | undefined,
 ): string | null {
@@ -128,10 +172,22 @@ function ProviderTab() {
     [],
     { refetchInterval: 60_000 },
   );
+  const { data: asks } = useCurioRpc<PSWorkAsk[]>("PSListAsks", [], {
+    refetchInterval: 30_000,
+  });
+  const { data: settlements } = useCurioRpc<PSSettlement[]>(
+    "PSListSettlements",
+    [],
+    { refetchInterval: 60_000 },
+  );
 
   const setMetaMutation = useCurioRpcMutation("PSSetMeta", {
     invalidateKeys: [["curio", "PSGetMeta"]],
   });
+  const withdrawAskMutation = useCurioRpcMutation("PSAskWithdraw", {
+    invalidateKeys: [["curio", "PSListAsks"]],
+  });
+  const settleMutation = useCurioRpcMutation<string>("PSProviderSettle");
 
   const [showSettings, setShowSettings] = useState(false);
   const [metaForm, setMetaForm] = useState({
@@ -280,6 +336,79 @@ function ProviderTab() {
         </Card>
       )}
 
+      {asks && asks.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Work Asks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {asks.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs">#{a.id}</span>
+                    <span>Min Price: {a.min_price_fil}</span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {a.created_at}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => withdrawAskMutation.mutate([a.id])}
+                    disabled={withdrawAskMutation.isPending}
+                  >
+                    Withdraw
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {settlements && settlements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Settlements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {settlements.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-xs">{s.address}</span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      Nonce: {s.payment_nonce} | CID:{" "}
+                      {s.settle_message_cid.slice(0, 16)}...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">
+                      {s.amount_for_this_settlement_fil}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => settleMutation.mutate([s.provider_id])}
+                      disabled={settleMutation.isPending}
+                    >
+                      Settle
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {showSettings && (
         <Dialog open onOpenChange={() => setShowSettings(false)}>
           <DialogContent
@@ -360,6 +489,30 @@ function ClientTab() {
     invalidateKeys: [["curio", "PSClientWallets"]],
   });
 
+  const { data: tos } = useCurioRpc<PSTos>("PSGetTos", [], {
+    refetchInterval: 300_000,
+  });
+  const { data: messages } = useCurioRpc<PSClientMessage[]>(
+    "PSClientListMessages",
+    [],
+    { refetchInterval: 30_000 },
+  );
+
+  const routerAddBalance = useCurioRpcMutation<string>(
+    "PSClientRouterAddBalance",
+    { invalidateKeys: [["curio", "PSClientWallets"]] },
+  );
+  const routerRequestWithdraw = useCurioRpcMutation<string>(
+    "PSClientRouterRequestWithdrawal",
+  );
+  const routerCancelWithdraw = useCurioRpcMutation<string>(
+    "PSClientRouterCancelWithdrawal",
+  );
+  const routerCompleteWithdraw = useCurioRpcMutation<string>(
+    "PSClientRouterCompleteWithdrawal",
+    { invalidateKeys: [["curio", "PSClientWallets"]] },
+  );
+
   const [showAddClient, setShowAddClient] = useState(false);
   const [clientForm, setClientForm] = useState({
     address: "",
@@ -372,6 +525,16 @@ function ClientTab() {
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [newWallet, setNewWallet] = useState("");
   const [confirmRemove, setConfirmRemove] = useState<number | null>(null);
+  const [requestSpId, setRequestSpId] = useState("");
+  const [routerWallet, setRouterWallet] = useState("");
+  const [routerAmount, setRouterAmount] = useState("");
+  const [showRequests, setShowRequests] = useState(false);
+
+  const requestsQuery = useCurioRpc<PSClientRequest[]>(
+    "PSClientRequests",
+    [Number.parseInt(requestSpId, 10)],
+    { enabled: showRequests && !!requestSpId.trim() },
+  );
 
   const handleAddClient = useCallback(() => {
     if (!clientForm.address.trim()) return;
@@ -674,6 +837,203 @@ function ClientTab() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Client Requests */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Requests</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-end gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+                SP ID
+              </label>
+              <Input
+                placeholder="SP ID"
+                value={requestSpId}
+                onChange={(e) => setRequestSpId(e.target.value)}
+                className="w-32 font-mono text-xs"
+              />
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowRequests(true)}
+              disabled={!requestSpId.trim()}
+            >
+              Load Requests
+            </Button>
+          </div>
+          {showRequests &&
+            requestsQuery.data &&
+            requestsQuery.data.length > 0 && (
+              <div className="max-h-48 space-y-1 overflow-y-auto">
+                {requestsQuery.data.map((r) => (
+                  <div
+                    key={r.task_id}
+                    className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono">#{r.task_id}</span>
+                      <span>Sector: {r.sector_num}</span>
+                      <StatusBadge
+                        status={
+                          r.done ? "done" : r.request_sent ? "info" : "pending"
+                        }
+                        label={
+                          r.done ? "Done" : r.request_sent ? "Sent" : "Pending"
+                        }
+                      />
+                    </div>
+                    {r.payment_amount && (
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        {r.payment_amount}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+        </CardContent>
+      </Card>
+
+      {/* Router Operations */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Router Balance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+                Wallet
+              </label>
+              <Input
+                placeholder="Wallet address"
+                value={routerWallet}
+                onChange={(e) => setRouterWallet(e.target.value)}
+                className="w-40 font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+                Amount (FIL)
+              </label>
+              <Input
+                placeholder="0"
+                value={routerAmount}
+                onChange={(e) => setRouterAmount(e.target.value)}
+                className="w-28 text-xs"
+              />
+            </div>
+            <Button
+              size="sm"
+              onClick={() =>
+                routerAddBalance.mutate([routerWallet, routerAmount])
+              }
+              disabled={
+                !routerWallet.trim() ||
+                !routerAmount.trim() ||
+                routerAddBalance.isPending
+              }
+            >
+              Add Balance
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                routerRequestWithdraw.mutate([routerWallet, routerAmount])
+              }
+              disabled={
+                !routerWallet.trim() ||
+                !routerAmount.trim() ||
+                routerRequestWithdraw.isPending
+              }
+            >
+              Request Withdraw
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => routerCancelWithdraw.mutate([routerWallet])}
+              disabled={!routerWallet.trim() || routerCancelWithdraw.isPending}
+            >
+              Cancel Withdraw
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => routerCompleteWithdraw.mutate([routerWallet])}
+              disabled={
+                !routerWallet.trim() || routerCompleteWithdraw.isPending
+              }
+            >
+              Complete Withdraw
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Messages */}
+      {messages && messages.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Messages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-48 space-y-1 overflow-y-auto">
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono">{m.action}</span>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      {m.started_at}
+                    </span>
+                    {m.success !== undefined && (
+                      <StatusBadge
+                        status={m.success ? "done" : "error"}
+                        label={m.success ? "OK" : "Failed"}
+                      />
+                    )}
+                  </div>
+                  <span className="truncate font-mono text-[hsl(var(--muted-foreground))]">
+                    {m.signed_cid.slice(0, 16)}...
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Terms of Service */}
+      {tos && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Terms of Service</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="mb-1 text-sm font-medium">Provider ToS</h4>
+                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-2 text-xs">
+                  {tos.provider}
+                </pre>
+              </div>
+              <div>
+                <h4 className="mb-1 text-sm font-medium">Client ToS</h4>
+                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-2 text-xs">
+                  {tos.client}
+                </pre>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

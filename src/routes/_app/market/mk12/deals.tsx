@@ -81,6 +81,29 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
       row.original.indexed ? <StatusBadge status="done" label="Yes" /> : "—",
   },
   { accessorKey: "created_at", header: "Created" },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as {
+        onRemove?: (id: string) => void;
+        onSealNow?: (spId: number, sectorNum: number) => void;
+      };
+      return (
+        <div className="flex gap-1">
+          {meta?.onRemove && (
+            <button
+              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))]"
+              onClick={() => meta.onRemove!(row.original.uuid)}
+              title="Remove pipeline"
+            >
+              <Trash2 className="size-3" />
+            </button>
+          )}
+        </div>
+      );
+    },
+  },
 ];
 
 const dealColumns: ColumnDef<StorageDealListItem>[] = [
@@ -143,6 +166,9 @@ function MK12DealsPage() {
   const { data: dealList, isLoading: dealsLoading } = useCurioRpc<
     StorageDealListItem[]
   >("MK12StorageDealList", [100, 0], { refetchInterval: 30_000 });
+  const { data: ddoDealList, isLoading: ddoLoading } = useCurioRpc<
+    StorageDealListItem[]
+  >("MK12DDOStorageDealList", [100, 0], { refetchInterval: 30_000 });
   const { data: failedStats } = useCurioRpc<PipelineFailedStats>(
     "MK12PipelineFailedTasks",
     [],
@@ -167,9 +193,13 @@ function MK12DealsPage() {
       ],
     },
   );
+  const removePipelineMutation = useCurioRpcMutation("DealPipelineRemove", {
+    invalidateKeys: [["curio", "GetMK12DealPipelines"]],
+  });
 
   const pipelines = pipelineData ?? [];
   const deals = dealList ?? [];
+  const ddoDeals = ddoDealList ?? [];
 
   const stats = useMemo(() => {
     const total = pipelines.length;
@@ -264,6 +294,9 @@ function MK12DealsPage() {
           <TabsTrigger active={tab === "deals"} onClick={() => setTab("deals")}>
             Deal List
           </TabsTrigger>
+          <TabsTrigger active={tab === "ddo"} onClick={() => setTab("ddo")}>
+            DDO Deals
+          </TabsTrigger>
         </TabsList>
         <TabsContent>
           {tab === "pipelines" && (
@@ -275,6 +308,9 @@ function MK12DealsPage() {
               searchPlaceholder="Search pipelines..."
               searchColumn="piece_cid"
               emptyMessage="No MK12 deal pipelines"
+              meta={{
+                onRemove: (id: string) => removePipelineMutation.mutate([id]),
+              }}
             />
           )}
           {tab === "deals" && (
@@ -286,6 +322,17 @@ function MK12DealsPage() {
               searchPlaceholder="Search deals..."
               searchColumn="piece_cid"
               emptyMessage="No MK12 storage deals"
+            />
+          )}
+          {tab === "ddo" && (
+            <DataTable
+              columns={dealColumns}
+              data={ddoDeals}
+              loading={ddoLoading}
+              searchable
+              searchPlaceholder="Search DDO deals..."
+              searchColumn="piece_cid"
+              emptyMessage="No MK12 DDO deals"
             />
           )}
         </TabsContent>

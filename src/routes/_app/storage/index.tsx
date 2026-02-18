@@ -199,6 +199,17 @@ function StoragePage() {
   const { data: storagePaths, isLoading: pathsLoading } = useCurioRpc<
     StoragePathInfo[]
   >("StoragePathList", [], { refetchInterval: 60_000 });
+  const { data: storeTypeStats } = useCurioRpc<
+    {
+      Type: string;
+      Capacity: number;
+      Available: number;
+      Used: number;
+      CapacityStr: string;
+      AvailableStr: string;
+      UsedStr: string;
+    }[]
+  >("StorageStoreTypeStats", [], { refetchInterval: 120_000 });
 
   const approveAllMutation = useCurioRpcMutation("StorageGCApproveAll", {
     invalidateKeys: [
@@ -216,6 +227,15 @@ function StoragePage() {
   const [selectedPath, setSelectedPath] = useState<StoragePathInfo | null>(
     null,
   );
+  const { data: pathDetail } = useCurioRpc<{
+    Info: StoragePathInfo;
+    URLs: string[];
+    GCMarks: number;
+    ByType: Record<string, number>;
+    ByMiner: Record<string, number>;
+  }>("StoragePathDetail", [selectedPath?.StorageID ?? ""], {
+    enabled: !!selectedPath,
+  });
 
   const storageSummary = useMemo(() => {
     if (!useStats) return { totalCapacity: 0, totalAvailable: 0, count: 0 };
@@ -328,6 +348,31 @@ function StoragePage() {
         </div>
       )}
 
+      {/* Store Type Stats */}
+      {activeTab === "usage" && storeTypeStats && storeTypeStats.length > 0 && (
+        <Card>
+          <CardContent className="pt-4">
+            <h3 className="mb-3 text-sm font-medium">Store Type Stats</h3>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {storeTypeStats.map((s) => (
+                <div
+                  key={s.Type}
+                  className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                >
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {s.Type}
+                  </p>
+                  <p className="text-sm font-medium">{s.UsedStr}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    of {s.CapacityStr}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Paths Tab */}
       {activeTab === "paths" && (
         <SectionCard title="Storage Paths" icon={FolderOpen}>
@@ -389,6 +434,7 @@ function StoragePage() {
       {selectedPath && (
         <PathDetailDialog
           path={selectedPath}
+          detail={pathDetail}
           onClose={() => setSelectedPath(null)}
         />
       )}
@@ -398,9 +444,17 @@ function StoragePage() {
 
 function PathDetailDialog({
   path,
+  detail,
   onClose,
 }: {
   path: StoragePathInfo;
+  detail?: {
+    Info: StoragePathInfo;
+    URLs: string[];
+    GCMarks: number;
+    ByType: Record<string, number>;
+    ByMiner: Record<string, number>;
+  } | null;
   onClose: () => void;
 }) {
   const { data: sectors, isLoading } = useCurioRpc<StoragePathSectorsResult>(
@@ -472,6 +526,61 @@ function PathDetailDialog({
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {detail && (
+            <div className="space-y-3">
+              {detail.URLs && detail.URLs.length > 0 && (
+                <div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    URLs
+                  </div>
+                  <div className="mt-1 space-y-1">
+                    {detail.URLs.map((u) => (
+                      <div key={u} className="truncate font-mono text-xs">
+                        {u}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    GC Marks
+                  </div>
+                  <div>{detail.GCMarks}</div>
+                </div>
+              </div>
+              {detail.ByType && Object.keys(detail.ByType).length > 0 && (
+                <div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    By Type
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {Object.entries(detail.ByType).map(([t, c]) => (
+                      <Badge key={t} variant="outline">
+                        {t}: {c}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {detail.ByMiner && Object.keys(detail.ByMiner).length > 0 && (
+                <div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    By Miner
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {Object.entries(detail.ByMiner).map(([m, c]) => (
+                      <Badge key={m} variant="outline">
+                        {m}: {c}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

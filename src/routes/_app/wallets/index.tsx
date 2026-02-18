@@ -191,6 +191,21 @@ function WalletsPage() {
     lowWatermark: string;
     highWatermark: string;
   } | null>(null);
+  const [msgCidQuery, setMsgCidQuery] = useState("");
+  const [msgCidSearch, setMsgCidSearch] = useState<string | null>(null);
+
+  const { data: messageDetail } = useCurioRpc<{
+    From: string;
+    To: string;
+    SendReason: string;
+    SignedCid: string;
+    UnsignedCid: string;
+    Nonce: number;
+    Value: string;
+    GasLimit: number;
+    GasFeeCap: string;
+    GasPremium: string;
+  }>("MessageByCid", [msgCidSearch!], { enabled: !!msgCidSearch });
 
   const handleAddWallet = useCallback(() => {
     if (!newWalletAddr.trim()) return;
@@ -631,6 +646,76 @@ function WalletsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Message Lookup */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Message Lookup</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Enter message CID..."
+              value={msgCidQuery}
+              onChange={(e) => setMsgCidQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && msgCidQuery.trim())
+                  setMsgCidSearch(msgCidQuery.trim());
+              }}
+              className="max-w-lg font-mono text-xs"
+            />
+            <Button
+              onClick={() => setMsgCidSearch(msgCidQuery.trim())}
+              disabled={!msgCidQuery.trim()}
+              size="sm"
+            >
+              Search
+            </Button>
+          </div>
+          {messageDetail && (
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">
+                  From
+                </span>
+                <div className="truncate font-mono text-xs">
+                  {messageDetail.From}
+                </div>
+              </div>
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">To</span>
+                <div className="truncate font-mono text-xs">
+                  {messageDetail.To}
+                </div>
+              </div>
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">
+                  Reason
+                </span>
+                <div className="text-xs">{messageDetail.SendReason}</div>
+              </div>
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">
+                  Value
+                </span>
+                <div>{messageDetail.Value}</div>
+              </div>
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">
+                  Nonce
+                </span>
+                <div>{messageDetail.Nonce}</div>
+              </div>
+              <div>
+                <span className="text-[hsl(var(--muted-foreground))]">
+                  Gas Limit
+                </span>
+                <div>{messageDetail.GasLimit}</div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

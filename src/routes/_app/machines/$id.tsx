@@ -64,6 +64,12 @@ function MachineDetailPage() {
 
   const [confirmRestart, setConfirmRestart] = useState(false);
 
+  const { data: nodeMetrics } = useCurioRpc<string>(
+    "ClusterNodeMetrics",
+    [machineId],
+    { refetchInterval: 60_000 },
+  );
+
   usePageTitle(data?.Info?.Name ?? `Machine #${machineId}`);
 
   if (isLoading && !data) {
@@ -220,6 +226,19 @@ function MachineDetailPage() {
 
       <RunningTasksPanel tasks={data.RunningTasks} />
       <FinishedTasksPanel tasks={data.FinishedTasks} />
+
+      {nodeMetrics && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Node Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-3 font-mono text-xs">
+              {nodeMetrics}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

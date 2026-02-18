@@ -25,6 +25,23 @@ interface MK20DealItem {
   miner?: { Valid: boolean; String: string } | string | null;
 }
 
+interface MK20PDPDealItem {
+  id: string;
+  created_at: string;
+  piece_cid_v2?: { Valid: boolean; String: string } | string | null;
+  processed: boolean;
+  error?: { Valid: boolean; String: string } | string | null;
+}
+
+interface MK20PDPFailedStats {
+  DownloadingFailed: number;
+  CommPFailed: number;
+  AggFailed: number;
+  AddPieceFailed: number;
+  SaveCacheFailed: number;
+  IndexFailed: number;
+}
+
 const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
   {
     accessorKey: "id",
@@ -160,8 +177,34 @@ function MK20DealsPage() {
     },
   );
 
+  // PDP deals & operations
+  const { data: pdpDealList, isLoading: pdpLoading } = useCurioRpc<
+    MK20PDPDealItem[]
+  >("MK20PDPStorageDeals", [100, 0], { refetchInterval: 30_000 });
+  const { data: pdpFailedStats } = useCurioRpc<MK20PDPFailedStats>(
+    "MK20PDPPipelineFailedTasks",
+    [],
+    { refetchInterval: 60_000 },
+  );
+  const bulkRemovePDP = useCurioRpcMutation(
+    "MK20BulkRemoveFailedPDPPipelines",
+    {
+      invalidateKeys: [
+        ["curio", "MK20PDPStorageDeals"],
+        ["curio", "MK20PDPPipelineFailedTasks"],
+      ],
+    },
+  );
+  const bulkRestartPDP = useCurioRpcMutation("MK20BulkRestartFailedPDPTasks", {
+    invalidateKeys: [
+      ["curio", "MK20PDPStorageDeals"],
+      ["curio", "MK20PDPPipelineFailedTasks"],
+    ],
+  });
+
   const pipelines = pipelineData ?? [];
   const deals = dealList ?? [];
+  const pdpDeals = pdpDealList ?? [];
 
   const stats = useMemo(() => {
     const total = pipelines.length;
@@ -243,6 +286,74 @@ function MK20DealsPage() {
         </Card>
       )}
 
+      {pdpFailedStats &&
+        (() => {
+          const total =
+            pdpFailedStats.DownloadingFailed +
+            pdpFailedStats.CommPFailed +
+            pdpFailedStats.AggFailed +
+            pdpFailedStats.AddPieceFailed +
+            pdpFailedStats.SaveCacheFailed +
+            pdpFailedStats.IndexFailed;
+          if (total === 0) return null;
+          return (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" />{" "}
+                  PDP Failed Tasks
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => bulkRestartPDP.mutate(["all"])}
+                    disabled={bulkRestartPDP.isPending}
+                  >
+                    <RotateCcw className="mr-1 size-3" /> Restart All
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => bulkRemovePDP.mutate(["all"])}
+                    disabled={bulkRemovePDP.isPending}
+                  >
+                    <Trash2 className="mr-1 size-3" /> Remove All
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+                  {(
+                    [
+                      ["Download", pdpFailedStats.DownloadingFailed],
+                      ["CommP", pdpFailedStats.CommPFailed],
+                      ["Aggregation", pdpFailedStats.AggFailed],
+                      ["AddPiece", pdpFailedStats.AddPieceFailed],
+                      ["SaveCache", pdpFailedStats.SaveCacheFailed],
+                      ["Index", pdpFailedStats.IndexFailed],
+                    ] as const
+                  ).map(([name, count]) => (
+                    <div
+                      key={name}
+                      className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                    >
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        {name}
+                      </p>
+                      <p
+                        className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}
+                      >
+                        {count}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
       <Tabs>
         <TabsList>
           <TabsTrigger
@@ -253,6 +364,9 @@ function MK20DealsPage() {
           </TabsTrigger>
           <TabsTrigger active={tab === "deals"} onClick={() => setTab("deals")}>
             DDO Deals
+          </TabsTrigger>
+          <TabsTrigger active={tab === "pdp"} onClick={() => setTab("pdp")}>
+            PDP Deals
           </TabsTrigger>
         </TabsList>
         <TabsContent>
@@ -276,6 +390,17 @@ function MK20DealsPage() {
               searchPlaceholder="Search deals..."
               searchColumn="id"
               emptyMessage="No MK20 DDO deals"
+            />
+          )}
+          {tab === "pdp" && (
+            <DataTable
+              columns={dealColumns}
+              data={pdpDeals}
+              loading={pdpLoading}
+              searchable
+              searchPlaceholder="Search PDP deals..."
+              searchColumn="id"
+              emptyMessage="No MK20 PDP deals"
             />
           )}
         </TabsContent>
