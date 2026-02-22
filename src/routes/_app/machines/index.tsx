@@ -64,10 +64,23 @@ const columns: ColumnDef<MachineSummary>[] = [
     header: "Uptime",
   },
   {
+    accessorKey: "Layers",
+    header: "Layers",
+    cell: ({ row }) => (
+      <span className="text-xs">{row.original.Layers || "—"}</span>
+    ),
+  },
+  {
     id: "status",
     header: "Status",
     cell: ({ row }) => {
       const m = row.original;
+      if (m.Restarting) {
+        return <StatusBadge status="running" label="Restarting" />;
+      }
+      if (m.RestartRequest) {
+        return <StatusBadge status="pending" label="Restart Pending" />;
+      }
       if (m.Unschedulable) {
         return <StatusBadge status="warning" label="Unschedulable" />;
       }

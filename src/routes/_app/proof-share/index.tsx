@@ -53,16 +53,26 @@ interface PSClientSettings {
 }
 
 interface PSClientWallet {
-  wallet: string;
-  balance: string;
-  locked: string;
+  wallet: number;
+  address: string;
+  chain_balance: string;
+  router_avail_balance: string;
+  router_unsettled_balance: string;
+  router_unlocked_balance: string;
+  available_balance: string;
+  withdraw_timestamp?: string;
 }
 
 interface PSPaymentSummary {
-  provider_id: number;
-  provider_address: string;
-  total_paid: string;
-  last_payment: string;
+  wallet_id: number;
+  last_payment_nonce: number;
+  address: string;
+  unsettled_amount_fil?: string;
+  last_settled_amount_fil?: string;
+  time_since_last_settlement?: string;
+  last_settled_at?: string;
+  contract_settled_fil?: string;
+  contract_last_nonce?: number;
 }
 
 interface PSWorkAsk {
@@ -319,15 +329,34 @@ function ProviderTab() {
             <div className="space-y-2">
               {payments.map((p) => (
                 <div
-                  key={p.provider_id}
-                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  key={p.wallet_id}
+                  className="flex flex-col gap-1 rounded border border-[hsl(var(--border))] p-2 text-sm"
                 >
-                  <span className="font-mono text-xs">
-                    {p.provider_address}
-                  </span>
-                  <div className="flex gap-4 text-[hsl(var(--muted-foreground))]">
-                    <span>Total: {p.total_paid}</span>
-                    <span>Last: {p.last_payment}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs">{p.address}</span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      Nonce: {p.last_payment_nonce}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+                    {p.unsettled_amount_fil && (
+                      <span>Unsettled: {p.unsettled_amount_fil}</span>
+                    )}
+                    {p.last_settled_amount_fil && (
+                      <span>Last Settled: {p.last_settled_amount_fil}</span>
+                    )}
+                    {p.time_since_last_settlement && (
+                      <span>Since Settlement: {p.time_since_last_settlement}</span>
+                    )}
+                    {p.last_settled_at && (
+                      <span>Settled At: {p.last_settled_at}</span>
+                    )}
+                    {p.contract_settled_fil && (
+                      <span>Contract Settled: {p.contract_settled_fil}</span>
+                    )}
+                    {p.contract_last_nonce !== undefined && (
+                      <span>Contract Nonce: {p.contract_last_nonce}</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -392,6 +421,9 @@ function ProviderTab() {
                   <div className="flex items-center gap-3">
                     <span className="font-medium">
                       {s.amount_for_this_settlement_fil}
+                    </span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {s.settled_at}
                     </span>
                     <Button
                       size="sm"
@@ -685,12 +717,20 @@ function ClientTab() {
               {wallets.map((w) => (
                 <div
                   key={w.wallet}
-                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  className="flex flex-col gap-1 rounded border border-[hsl(var(--border))] p-2 text-sm"
                 >
-                  <span className="font-mono text-xs">{w.wallet}</span>
-                  <div className="flex gap-4 text-[hsl(var(--muted-foreground))]">
-                    <span>Balance: {w.balance}</span>
-                    <span>Locked: {w.locked}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs">{w.address}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+                    <span>Chain: {w.chain_balance}</span>
+                    <span>Available: {w.available_balance}</span>
+                    <span>Router Avail: {w.router_avail_balance}</span>
+                    <span>Router Unsettled: {w.router_unsettled_balance}</span>
+                    <span>Unlocked: {w.router_unlocked_balance}</span>
+                    {w.withdraw_timestamp && (
+                      <span>Withdraw At: {w.withdraw_timestamp}</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -876,6 +916,7 @@ function ClientTab() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-mono">#{r.task_id}</span>
+                      {r.sp_id && <span className="font-mono">{r.sp_id}</span>}
                       <span>Sector: {r.sector_num}</span>
                       <StatusBadge
                         status={
@@ -886,11 +927,16 @@ function ClientTab() {
                         }
                       />
                     </div>
-                    {r.payment_amount && (
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        {r.payment_amount}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
+                      {r.request_cid && (
+                        <span className="font-mono">
+                          {r.request_cid.slice(0, 12)}…
+                        </span>
+                      )}
+                      <span>{r.created_at}</span>
+                      {r.done_at && <span>Done: {r.done_at}</span>}
+                      {r.payment_amount && <span>{r.payment_amount}</span>}
+                    </div>
                   </div>
                 ))}
               </div>

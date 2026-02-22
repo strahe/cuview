@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeft,
   Cpu,
+  Globe,
   HardDrive,
   RotateCcw,
   Server,
@@ -199,6 +200,12 @@ function MachineDetailPage() {
                 <dd className="font-mono">{info.Host}</dd>
               </div>
               <div className="flex justify-between">
+                <dt className="text-[hsl(var(--muted-foreground))]">
+                  Last Contact
+                </dt>
+                <dd>{info.LastContact || "—"}</dd>
+              </div>
+              <div className="flex justify-between">
                 <dt className="text-[hsl(var(--muted-foreground))]">Layers</dt>
                 <dd>{info.Layers || "—"}</dd>
               </div>
@@ -206,6 +213,34 @@ function MachineDetailPage() {
                 <dt className="text-[hsl(var(--muted-foreground))]">Tasks</dt>
                 <dd>{info.Tasks || "—"}</dd>
               </div>
+              {info.Miners && (
+                <div className="flex justify-between">
+                  <dt className="text-[hsl(var(--muted-foreground))]">
+                    Miners
+                  </dt>
+                  <dd>{info.Miners}</dd>
+                </div>
+              )}
+              {info.StartupTime && (
+                <div className="flex justify-between">
+                  <dt className="text-[hsl(var(--muted-foreground))]">
+                    Startup Time
+                  </dt>
+                  <dd>{new Date(info.StartupTime).toLocaleString()}</dd>
+                </div>
+              )}
+              {info.RestartRequest && (
+                <div className="flex justify-between">
+                  <dt className="text-[hsl(var(--muted-foreground))]">
+                    Restart Requested
+                  </dt>
+                  <dd>
+                    <Badge variant="outline">
+                      {new Date(info.RestartRequest).toLocaleString()}
+                    </Badge>
+                  </dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-[hsl(var(--muted-foreground))]">
                   Unschedulable
@@ -223,6 +258,63 @@ function MachineDetailPage() {
 
         <StoragePanel storage={data.Storage} />
       </div>
+
+      {data.StorageURLs && data.StorageURLs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="size-4" /> Storage URL Liveness
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b text-left text-[hsl(var(--muted-foreground))]">
+                    <th className="pb-2 pr-4">Storage ID</th>
+                    <th className="pb-2 pr-4">URL</th>
+                    <th className="pb-2 pr-4">Last Checked</th>
+                    <th className="pb-2 pr-4">Last Live</th>
+                    <th className="pb-2 pr-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.StorageURLs.map((u, i) => (
+                    <tr key={i} className="border-b last:border-0">
+                      <td className="py-1.5 pr-4 font-mono">
+                        {u.StorageID.slice(0, 8)}…
+                      </td>
+                      <td className="py-1.5 pr-4 font-mono">{u.URL}</td>
+                      <td className="py-1.5 pr-4">
+                        {u.LastChecked
+                          ? new Date(u.LastChecked).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td className="py-1.5 pr-4">
+                        {u.LastLive
+                          ? new Date(u.LastLive).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td className="py-1.5">
+                        {u.LastDeadReason ? (
+                          <span
+                            className="text-[hsl(var(--destructive))]"
+                            title={u.LastDeadReason}
+                          >
+                            Dead: {u.LastDeadReason.slice(0, 40)}
+                          </span>
+                        ) : (
+                          <StatusBadge status="done" label="Live" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <RunningTasksPanel tasks={data.RunningTasks} />
       <FinishedTasksPanel tasks={data.FinishedTasks} />
@@ -254,11 +346,17 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {storage.map((s) => {
             const usedPercent = s.UsedPercent ?? 0;
+            const groups = s.Groups
+              ? s.Groups.split(",").filter(Boolean)
+              : [];
             return (
-              <div key={s.ID} className="space-y-1">
+              <div
+                key={s.ID}
+                className="space-y-1.5 border-b pb-3 last:border-0"
+              >
                 <div className="flex justify-between text-sm">
                   <span className="font-mono text-xs">{s.ID}</span>
                   <span>{usedPercent.toFixed(1)}%</span>
@@ -272,11 +370,55 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                 <div className="flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
                   <span>
                     {formatBytes(s.Available)} free / {formatBytes(s.Capacity)}
+                    {s.MaxStorage > 0 &&
+                      ` (max: ${formatBytes(s.MaxStorage)})`}
                   </span>
                   <span>
                     {s.CanSeal && "Seal"} {s.CanStore && "Store"}
+                    {s.Weight > 0 && ` W:${s.Weight}`}
                   </span>
                 </div>
+                {(s.Reserved > 0 || s.FSAvailable > 0) && (
+                  <div className="flex gap-3 text-xs text-[hsl(var(--muted-foreground))]">
+                    {s.Reserved > 0 && (
+                      <span>
+                        Reserved: {formatBytes(s.Reserved)} (
+                        {s.ReservedPercent.toFixed(1)}%)
+                      </span>
+                    )}
+                    {s.FSAvailable > 0 && (
+                      <span>FS Available: {formatBytes(s.FSAvailable)}</span>
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1">
+                  {groups.map((g) => (
+                    <Badge key={g} variant="outline" className="text-[10px]">
+                      {g}
+                    </Badge>
+                  ))}
+                  {s.AllowTypes && (
+                    <Badge variant="outline" className="text-[10px]">
+                      Allow: {s.AllowTypes}
+                    </Badge>
+                  )}
+                  {s.DenyTypes && (
+                    <Badge variant="destructive" className="text-[10px]">
+                      Deny: {s.DenyTypes}
+                    </Badge>
+                  )}
+                </div>
+                {s.HeartbeatErr && (
+                  <p className="text-xs text-[hsl(var(--destructive))]">
+                    ⚠ {s.HeartbeatErr}
+                  </p>
+                )}
+                {s.LastHeartbeat && (
+                  <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
+                    Last heartbeat:{" "}
+                    {new Date(s.LastHeartbeat).toLocaleString()}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -290,6 +432,17 @@ const runningTaskCols: ColumnDef<MachineInfo["RunningTasks"][number]>[] = [
   { accessorKey: "ID", header: "ID" },
   { accessorKey: "Task", header: "Task" },
   { accessorKey: "Posted", header: "Posted" },
+  { accessorKey: "UpdateTime", header: "Updated" },
+  {
+    accessorKey: "Retries",
+    header: "Retries",
+    cell: ({ row }) =>
+      row.original.Retries > 0 ? (
+        <Badge variant="outline">{row.original.Retries}</Badge>
+      ) : (
+        "0"
+      ),
+  },
   {
     id: "sector",
     header: "Sector",
@@ -322,6 +475,9 @@ function RunningTasksPanel({ tasks }: { tasks: MachineInfo["RunningTasks"] }) {
 const finishedTaskCols: ColumnDef<MachineInfo["FinishedTasks"][number]>[] = [
   { accessorKey: "ID", header: "ID" },
   { accessorKey: "Task", header: "Task" },
+  { accessorKey: "Posted", header: "Posted" },
+  { accessorKey: "Start", header: "Start" },
+  { accessorKey: "End", header: "End" },
   { accessorKey: "Took", header: "Duration" },
   { accessorKey: "Queued", header: "Queued" },
   {

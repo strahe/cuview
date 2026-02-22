@@ -107,7 +107,17 @@ function PdpPage() {
     active: boolean;
     name: string;
     description: string;
-    pdp_service: string;
+    payee: string;
+    pdp_service: {
+      service_url: string;
+      min_size: number;
+      max_size: number;
+      ipni_piece: boolean;
+      ipni_ipfs: boolean;
+      price: number;
+      min_proving_period: number;
+      location: string;
+    } | null;
     capabilities: Record<string, string>;
   }>("FSRegistryStatus", [], { refetchInterval: 120_000 });
   const registerFSMutation = useCurioRpcMutation("FSRegister", {
@@ -478,13 +488,92 @@ function PdpPage() {
                   </div>
                   <div className="text-xs">{fsStatus.description || "—"}</div>
                 </div>
+                {fsStatus.payee && (
+                  <div>
+                    <div className="text-[hsl(var(--muted-foreground))]">
+                      Payee
+                    </div>
+                    <div className="truncate font-mono text-xs">
+                      {fsStatus.payee}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {fsStatus.pdp_service && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
+                  <div className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
                     PDP Service
                   </div>
-                  <div className="text-xs">{fsStatus.pdp_service || "—"}</div>
+                  <div className="mt-1 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Service URL
+                      </div>
+                      <div className="truncate text-xs">
+                        {fsStatus.pdp_service.service_url || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Min Size
+                      </div>
+                      <div className="font-mono text-xs">
+                        {fsStatus.pdp_service.min_size}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Max Size
+                      </div>
+                      <div className="font-mono text-xs">
+                        {fsStatus.pdp_service.max_size}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Price
+                      </div>
+                      <div className="font-mono text-xs">
+                        {fsStatus.pdp_service.price}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Min Proving Period
+                      </div>
+                      <div className="font-mono text-xs">
+                        {fsStatus.pdp_service.min_proving_period}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Location
+                      </div>
+                      <div className="text-xs">
+                        {fsStatus.pdp_service.location || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        IPNI Piece
+                      </div>
+                      <StatusBadge
+                        status={fsStatus.pdp_service.ipni_piece ? "done" : "pending"}
+                        label={fsStatus.pdp_service.ipni_piece ? "Yes" : "No"}
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        IPNI IPFS
+                      </div>
+                      <StatusBadge
+                        status={fsStatus.pdp_service.ipni_ipfs ? "done" : "pending"}
+                        label={fsStatus.pdp_service.ipni_ipfs ? "Yes" : "No"}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
               {fsStatus.capabilities &&
                 Object.keys(fsStatus.capabilities).length > 0 && (
                   <div>

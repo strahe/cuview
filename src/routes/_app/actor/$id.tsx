@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, Trophy, User } from "lucide-react";
+import { ArrowLeft, Coins, Trophy, User } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -111,6 +111,7 @@ function ActorDetailPage() {
           value={formatFilecoin(summary.ActorAvailable)}
         />
         <KPICard label="QaP" value={summary.QualityAdjustedPower} />
+        <KPICard label="Raw Power" value={summary.RawBytePower} />
         <KPICard label="Sector Size" value={data.SectorSize} />
       </div>
 
@@ -119,6 +120,36 @@ function ActorDetailPage() {
         <KPICard label="Wins (7d)" value={summary.Win7} />
         <KPICard label="Wins (30d)" value={summary.Win30} />
       </div>
+
+      {/* Financials */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="size-4" />
+            Financials
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="space-y-2 text-sm">
+            <InfoRow
+              label="Vesting Funds"
+              value={formatFilecoin(summary.VestingFunds)}
+            />
+            <InfoRow
+              label="Initial Pledge"
+              value={formatFilecoin(summary.InitialPledgeRequirement)}
+            />
+            <InfoRow
+              label="PreCommit Deposits"
+              value={formatFilecoin(summary.PreCommitDeposits)}
+            />
+            <InfoRow
+              label="Worker Balance"
+              value={formatFilecoin(data.WorkerBalance)}
+            />
+          </dl>
+        </CardContent>
+      </Card>
 
       {/* Sector Expiration Chart */}
       {charts?.All && charts.All.length > 0 && (
@@ -173,11 +204,69 @@ function ActorDetailPage() {
                 label="Worker Balance"
                 value={formatFilecoin(data.WorkerBalance)}
               />
+              {data.PendingOwnerAddress && (
+                <InfoRow
+                  label="Pending Owner"
+                  value={data.PendingOwnerAddress}
+                  mono
+                />
+              )}
               <InfoRow label="Peer ID" value={data.PeerID} mono />
               <InfoRow
                 label="Config Layers"
                 value={summary.CLayers?.join(", ") || "—"}
               />
+              {data.BeneficiaryTerm && (
+                <>
+                  <InfoRow
+                    label="Beneficiary Quota"
+                    value={formatFilecoin(data.BeneficiaryTerm.Quota)}
+                  />
+                  <InfoRow
+                    label="Beneficiary Used Quota"
+                    value={formatFilecoin(data.BeneficiaryTerm.UsedQuota)}
+                  />
+                  <InfoRow
+                    label="Beneficiary Expiration"
+                    value={String(data.BeneficiaryTerm.Expiration)}
+                  />
+                </>
+              )}
+              {data.PendingBeneficiaryTerm && (
+                <>
+                  <InfoRow
+                    label="Pending Beneficiary"
+                    value={data.PendingBeneficiaryTerm.NewBeneficiary}
+                    mono
+                  />
+                  <InfoRow
+                    label="Pending Quota"
+                    value={formatFilecoin(
+                      data.PendingBeneficiaryTerm.NewQuota,
+                    )}
+                  />
+                  <InfoRow
+                    label="Pending Expiration"
+                    value={String(data.PendingBeneficiaryTerm.NewExpiration)}
+                  />
+                  <InfoRow
+                    label="Approved by Beneficiary"
+                    value={
+                      data.PendingBeneficiaryTerm.ApprovedByBeneficiary
+                        ? "Yes"
+                        : "No"
+                    }
+                  />
+                  <InfoRow
+                    label="Approved by Nominee"
+                    value={
+                      data.PendingBeneficiaryTerm.ApprovedByNominee
+                        ? "Yes"
+                        : "No"
+                    }
+                  />
+                </>
+              )}
             </dl>
           </CardContent>
         </Card>

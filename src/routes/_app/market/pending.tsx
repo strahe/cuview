@@ -32,9 +32,15 @@ const columns: ColumnDef<OpenDealInfo>[] = [
   },
   {
     accessorKey: "PieceSize",
-    header: "Size",
+    header: "Piece Size",
     cell: ({ row }) =>
       row.original.PieceSizeStr || formatBytes(row.original.PieceSize),
+  },
+  {
+    accessorKey: "RawSize",
+    header: "Raw Size",
+    cell: ({ row }) =>
+      row.original.RawSize ? formatBytes(row.original.RawSize) : "—",
   },
   {
     id: "snap",

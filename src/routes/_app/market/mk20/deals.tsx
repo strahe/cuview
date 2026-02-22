@@ -67,9 +67,74 @@ const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
     ),
   },
   {
+    accessorKey: "contract",
+    header: "Contract",
+    cell: ({ row }) => {
+      const c = row.original.contract;
+      return c ? (
+        <span className="font-mono text-xs" title={c}>
+          {c.slice(0, 10)}…
+        </span>
+      ) : (
+        "—"
+      );
+    },
+  },
+  {
+    accessorKey: "piece_cid",
+    header: "Piece CID",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs" title={row.original.piece_cid}>
+        {row.original.piece_cid.slice(0, 12)}…
+      </span>
+    ),
+  },
+  {
     accessorKey: "piece_size",
     header: "Size",
     cell: ({ row }) => formatBytes(row.original.piece_size),
+  },
+  {
+    accessorKey: "raw_size",
+    header: "Raw Size",
+    cell: ({ row }) => formatBytes(row.original.raw_size),
+  },
+  {
+    accessorKey: "url",
+    header: "URL",
+    cell: ({ row }) => {
+      const u = row.original.url;
+      return u ? (
+        <span className="font-mono text-xs" title={u}>
+          {u.slice(0, 20)}…
+        </span>
+      ) : (
+        "—"
+      );
+    },
+  },
+  {
+    accessorKey: "allocation_id",
+    header: "Allocation",
+    cell: ({ row }) => {
+      const a = row.original.allocation_id;
+      return a != null ? <span className="font-mono text-xs">{a}</span> : "—";
+    },
+  },
+  {
+    accessorKey: "duration",
+    header: "Duration",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.duration}</span>
+    ),
+  },
+  {
+    accessorKey: "sector",
+    header: "Sector",
+    cell: ({ row }) => {
+      const s = row.original.sector;
+      return s != null ? <span className="font-mono text-xs">{s}</span> : "—";
+    },
   },
   {
     id: "stage",

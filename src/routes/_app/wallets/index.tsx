@@ -131,6 +131,30 @@ const balanceRuleColumns: ColumnDef<BalanceManagerRule>[] = [
     header: "High Mark",
     cell: ({ row }) => formatFilecoin(row.original.high_watermark),
   },
+  {
+    accessorKey: "last_msg_cid",
+    header: "Last Msg",
+    cell: ({ row }) =>
+      row.original.last_msg_cid ? (
+        <span className="font-mono text-xs" title={row.original.last_msg_cid}>
+          {row.original.last_msg_cid.slice(0, 12)}…
+        </span>
+      ) : (
+        "—"
+      ),
+  },
+  {
+    accessorKey: "last_msg_landed_at",
+    header: "Last Landed",
+    cell: ({ row }) =>
+      row.original.last_msg_landed_at ? (
+        <span className="text-xs">
+          {new Date(row.original.last_msg_landed_at).toLocaleString()}
+        </span>
+      ) : (
+        "—"
+      ),
+  },
 ];
 
 function WalletsPage() {
@@ -195,16 +219,22 @@ function WalletsPage() {
   const [msgCidSearch, setMsgCidSearch] = useState<string | null>(null);
 
   const { data: messageDetail } = useCurioRpc<{
-    From: string;
-    To: string;
-    SendReason: string;
-    SignedCid: string;
-    UnsignedCid: string;
-    Nonce: number;
-    Value: string;
-    GasLimit: number;
-    GasFeeCap: string;
-    GasPremium: string;
+    from_key: string;
+    to_addr: string;
+    send_reason: string;
+    send_task_id: number;
+    unsigned_cid: string;
+    signed_cid: string;
+    nonce: number;
+    send_time: string;
+    send_success: boolean;
+    send_error: string;
+    executed_tsk_epoch: number;
+    executed_msg_cid: string;
+    executed_rcpt_exitcode: number;
+    executed_rcpt_gas_used: number;
+    value_str: string;
+    fee_str: string;
   }>("MessageByCid", [msgCidSearch!], { enabled: !!msgCidSearch });
 
   const handleAddWallet = useCallback(() => {
@@ -673,44 +703,177 @@ function WalletsPage() {
             </Button>
           </div>
           {messageDetail && (
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div className="space-y-4">
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  From
-                </span>
-                <div className="truncate font-mono text-xs">
-                  {messageDetail.From}
+                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                  Message Info
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      From
+                    </span>
+                    <div className="truncate font-mono text-xs">
+                      {messageDetail.from_key}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      To
+                    </span>
+                    <div className="truncate font-mono text-xs">
+                      {messageDetail.to_addr}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Reason
+                    </span>
+                    <div className="text-xs">{messageDetail.send_reason}</div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Value
+                    </span>
+                    <div>{messageDetail.value_str || "—"}</div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Nonce
+                    </span>
+                    <div>{messageDetail.nonce}</div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Fee
+                    </span>
+                    <div>{messageDetail.fee_str || "—"}</div>
+                  </div>
                 </div>
               </div>
+
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">To</span>
-                <div className="truncate font-mono text-xs">
-                  {messageDetail.To}
+                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                  CIDs
+                </h4>
+                <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                  {messageDetail.signed_cid && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Signed CID
+                      </span>
+                      <div className="truncate font-mono text-xs">
+                        {messageDetail.signed_cid}
+                      </div>
+                    </div>
+                  )}
+                  {messageDetail.unsigned_cid && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Unsigned CID
+                      </span>
+                      <div className="truncate font-mono text-xs">
+                        {messageDetail.unsigned_cid}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Reason
-                </span>
-                <div className="text-xs">{messageDetail.SendReason}</div>
+                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                  Send Status
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Send Time
+                    </span>
+                    <div className="text-xs">
+                      {messageDetail.send_time
+                        ? new Date(messageDetail.send_time).toLocaleString()
+                        : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Send Success
+                    </span>
+                    <div>
+                      <Badge
+                        variant={
+                          messageDetail.send_success
+                            ? "default"
+                            : "destructive"
+                        }
+                      >
+                        {messageDetail.send_success ? "Yes" : "No"}
+                      </Badge>
+                    </div>
+                  </div>
+                  {messageDetail.send_error && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Send Error
+                      </span>
+                      <div className="text-xs text-[hsl(var(--destructive))]">
+                        {messageDetail.send_error}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Value
-                </span>
-                <div>{messageDetail.Value}</div>
-              </div>
-              <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Nonce
-                </span>
-                <div>{messageDetail.Nonce}</div>
-              </div>
-              <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Gas Limit
-                </span>
-                <div>{messageDetail.GasLimit}</div>
+                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                  Execution
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                  {messageDetail.executed_tsk_epoch > 0 && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Epoch
+                      </span>
+                      <div>{messageDetail.executed_tsk_epoch}</div>
+                    </div>
+                  )}
+                  {messageDetail.executed_msg_cid && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Executed Msg CID
+                      </span>
+                      <div className="truncate font-mono text-xs">
+                        {messageDetail.executed_msg_cid}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[hsl(var(--muted-foreground))]">
+                      Exit Code
+                    </span>
+                    <div>
+                      <Badge
+                        variant={
+                          messageDetail.executed_rcpt_exitcode === 0
+                            ? "default"
+                            : "destructive"
+                        }
+                      >
+                        {messageDetail.executed_rcpt_exitcode}
+                      </Badge>
+                    </div>
+                  </div>
+                  {messageDetail.executed_rcpt_gas_used > 0 && (
+                    <div>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        Gas Used
+                      </span>
+                      <div>
+                        {messageDetail.executed_rcpt_gas_used.toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

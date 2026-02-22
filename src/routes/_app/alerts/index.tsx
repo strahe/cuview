@@ -75,6 +75,29 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
       />
     ),
   },
+  {
+    accessorKey: "comment_count",
+    header: "Comments",
+    cell: ({ row }) => {
+      const count = row.original.comment_count ?? 0;
+      return count > 0 ? (
+        <Badge variant="secondary" className="gap-1">
+          <MessageSquare className="size-3" />
+          {count}
+        </Badge>
+      ) : null;
+    },
+  },
+  {
+    accessorKey: "sent_to_plugins",
+    header: "Notified",
+    cell: ({ row }) => (
+      <StatusBadge
+        status={row.original.sent_to_plugins ? "done" : "warning"}
+        label={row.original.sent_to_plugins ? "Sent" : "No"}
+      />
+    ),
+  },
 ];
 
 interface MuteTableMeta {
@@ -86,6 +109,8 @@ const muteColumns: ColumnDef<AlertMute>[] = [
   { accessorKey: "category", header: "Category" },
   { accessorKey: "machine_pattern", header: "Machine Pattern" },
   { accessorKey: "message_pattern", header: "Message Pattern" },
+  { accessorKey: "reason", header: "Reason" },
+  { accessorKey: "muted_by", header: "Muted By" },
   {
     accessorKey: "active",
     header: "Status",
@@ -487,6 +512,37 @@ function AlertDetailDialog({
           <div>
             <div className="text-[hsl(var(--muted-foreground))]">Time</div>
             <div>{alert.created_at}</div>
+          </div>
+          {alert.acknowledged && (
+            <div className="flex gap-6">
+              {alert.acknowledged_by && (
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Acknowledged By</div>
+                  <div>{alert.acknowledged_by}</div>
+                </div>
+              )}
+              {alert.acknowledged_at && (
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Acknowledged At</div>
+                  <div>{alert.acknowledged_at}</div>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex gap-6">
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">Sent to Plugins</div>
+              <StatusBadge
+                status={alert.sent_to_plugins ? "done" : "warning"}
+                label={alert.sent_to_plugins ? "Yes" : "No"}
+              />
+            </div>
+            {alert.sent_at && (
+              <div>
+                <div className="text-[hsl(var(--muted-foreground))]">Sent At</div>
+                <div>{alert.sent_at}</div>
+              </div>
+            )}
           </div>
 
           {/* Comments */}

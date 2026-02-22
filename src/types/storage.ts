@@ -65,6 +65,7 @@ export interface StoragePathInfo {
   URLList?: string[];
   HostList?: string[];
   GroupList?: string[];
+  AllowToList?: string[];
   AllowTypesList?: string[];
   DenyTypesList?: string[];
   AllowMinersList?: string[];
@@ -77,6 +78,55 @@ export interface StoragePathInfo {
   FSAvailableStr?: string;
   LastHeartbeat?: string;
   HeartbeatErr?: string;
+}
+
+export interface StoragePathURLLiveness {
+  URL: string;
+  LastChecked: string;
+  LastLive?: string;
+  LastDead?: string;
+  LastDeadReason?: string;
+  IsLive: boolean;
+  Host: string;
+  LastCheckedStr: string;
+  LastLiveStr?: string;
+  LastDeadStr?: string;
+}
+
+export interface StoragePathDetailGCMark {
+  MinerID: number;
+  SectorNum: number;
+  FileType: number;
+  CreatedAt: string;
+  Approved: boolean;
+  Miner: string;
+  FileTypeStr: string;
+  CreatedAtStr: string;
+}
+
+export interface StoragePathTypeSummary {
+  FileType: string;
+  Count: number;
+  Primary: number;
+}
+
+export interface StoragePathMinerSummary {
+  Miner: string;
+  Count: number;
+  Primary: number;
+}
+
+export interface StoragePathDetailResult {
+  Info: StoragePathInfo;
+  URLs: StoragePathURLLiveness[];
+  GCMarks: StoragePathDetailGCMark[];
+  TotalSectorEntries: number;
+  PrimaryEntries: number;
+  SecondaryEntries: number;
+  ByType: StoragePathTypeSummary[];
+  ByMiner: StoragePathMinerSummary[];
+  PendingGC: number;
+  ApprovedGC: number;
 }
 
 export interface StoragePathSector {

@@ -2,9 +2,13 @@ export interface ActorSummaryData {
   Address: string;
   CLayers: string[];
   QualityAdjustedPower: string;
+  RawBytePower: string;
   Deadlines: Deadline[];
   ActorBalance: string;
   ActorAvailable: string;
+  VestingFunds: string;
+  InitialPledgeRequirement: string;
+  PreCommitDeposits: string;
   Win1: number;
   Win7: number;
   Win30: number;

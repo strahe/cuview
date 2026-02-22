@@ -293,10 +293,12 @@ function SectorsPage() {
                 <tr className="border-b border-[hsl(var(--border))]">
                   <th className="py-2 text-left font-medium">SP</th>
                   <th className="py-2 text-right font-medium">Deadline</th>
+                  <th className="py-2 text-right font-medium">All</th>
                   <th className="py-2 text-right font-medium">Live</th>
                   <th className="py-2 text-right font-medium">Active</th>
                   <th className="py-2 text-right font-medium">Faulty</th>
                   <th className="py-2 text-right font-medium">Recovering</th>
+                  <th className="py-2 text-left font-medium">PoSt</th>
                 </tr>
               </thead>
               <tbody>
@@ -314,6 +316,9 @@ function SectorsPage() {
                     <td className="py-2 font-mono text-xs">{ds.sp_address}</td>
                     <td className="py-2 text-right">{ds.deadline}</td>
                     <td className="py-2 text-right font-mono">
+                      {ds.all_sectors}
+                    </td>
+                    <td className="py-2 text-right font-mono">
                       {ds.live_sectors}
                     </td>
                     <td className="py-2 text-right font-mono">
@@ -330,6 +335,9 @@ function SectorsPage() {
                     </td>
                     <td className="py-2 text-right font-mono">
                       {ds.recovering_sectors}
+                    </td>
+                    <td className="py-2 font-mono text-xs">
+                      {ds.post_submissions || "—"}
                     </td>
                   </tr>
                 ))}

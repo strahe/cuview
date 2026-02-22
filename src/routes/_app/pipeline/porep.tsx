@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +39,94 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
       if (s.AfterSDR) return <StatusBadge status="running" label="SDR" />;
       return <StatusBadge status="pending" label="Pending" />;
     },
+  },
+  {
+    id: "taskId",
+    header: "Task",
+    cell: ({ row }) => {
+      const s = row.original;
+      const tid =
+        s.TaskSDR ??
+        s.TaskTreeD ??
+        s.TaskTreeC ??
+        s.TaskTreeR ??
+        s.TaskSynthetic ??
+        s.TaskPrecommitMsg ??
+        s.TaskPoRep ??
+        s.TaskFinalize ??
+        s.TaskMoveStorage ??
+        s.TaskCommitMsg;
+      return tid ? (
+        <span className="font-mono text-xs">#{tid}</span>
+      ) : (
+        "—"
+      );
+    },
+  },
+  {
+    id: "progress",
+    header: "Progress",
+    cell: ({ row }) => {
+      const s = row.original;
+      // Determine started vs after for current stage
+      if (s.Failed || s.AfterCommitMsgSuccess) return null;
+      if (s.AfterCommitMsg && s.StartedCommitMsg)
+        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+      if (s.AfterPoRep && s.StartedPoRep)
+        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+      if (s.AfterPrecommitMsg && s.StartedPrecommitMsg)
+        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+      if (s.AfterTreeR && s.StartedTreeRC)
+        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+      if (s.AfterSDR && s.StartedSDR)
+        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+      return <Badge variant="secondary" className="text-[10px]">Waiting</Badge>;
+    },
+  },
+  {
+    id: "msgCids",
+    header: "Messages",
+    cell: ({ row }) => {
+      const s = row.original;
+      const cids: string[] = [];
+      if (s.PreCommitMsgCid) cids.push(`PC:${s.PreCommitMsgCid.slice(0, 10)}`);
+      if (s.CommitMsgCid) cids.push(`C:${s.CommitMsgCid.slice(0, 10)}`);
+      return cids.length > 0 ? (
+        <span className="font-mono text-[10px]">{cids.join(" ")}</span>
+      ) : (
+        "—"
+      );
+    },
+  },
+  {
+    id: "chain",
+    header: "Chain",
+    cell: ({ row }) => {
+      const s = row.original;
+      if (!s.ChainAlloc && !s.ChainSector) return "—";
+      return (
+        <div className="flex gap-1">
+          {s.ChainActive && (
+            <Badge variant="default" className="text-[10px]">Active</Badge>
+          )}
+          {s.ChainUnproven && (
+            <Badge variant="outline" className="text-[10px]">Unproven</Badge>
+          )}
+          {s.ChainFaulty && (
+            <Badge variant="destructive" className="text-[10px]">Faulty</Badge>
+          )}
+          {s.ChainSector && !s.ChainActive && !s.ChainUnproven && !s.ChainFaulty && (
+            <Badge variant="secondary" className="text-[10px]">Allocated</Badge>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    id: "seedEpoch",
+    header: "Seed",
+    cell: ({ row }) =>
+      row.original.SeedEpoch ? row.original.SeedEpoch : "—",
   },
   {
     accessorKey: "FailedReason",

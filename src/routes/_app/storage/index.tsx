@@ -22,6 +22,7 @@ import type {
   StorageGCMark,
   StorageGCMarksResponse,
   StorageGCStatsEntry,
+  StoragePathDetailResult,
   StoragePathInfo,
   StoragePathSector,
   StoragePathSectorsResult,
@@ -136,6 +137,122 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     ),
   },
   {
+    accessorKey: "Weight",
+    header: "Weight",
+    cell: ({ row }) => (
+      <span className="text-xs">{row.original.Weight ?? "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "MaxStorageStr",
+    header: "Max Storage",
+    cell: ({ row }) => (
+      <span className="text-xs">{row.original.MaxStorageStr || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "FSAvailableStr",
+    header: "FS Available",
+    cell: ({ row }) => (
+      <span className="text-xs">{row.original.FSAvailableStr || "—"}</span>
+    ),
+  },
+  {
+    id: "reserved",
+    header: "Reserved",
+    cell: ({ row }) => {
+      const r = row.original;
+      if (!r.ReservedStr) return <span className="text-xs">—</span>;
+      return (
+        <span className="text-xs">
+          {r.ReservedStr} ({r.ReservedPercent?.toFixed(1) ?? 0}%)
+        </span>
+      );
+    },
+  },
+  {
+    id: "groups",
+    header: "Groups",
+    cell: ({ row }) => {
+      const groups = row.original.GroupList;
+      if (!groups || groups.length === 0) return <span className="text-xs">—</span>;
+      return (
+        <div className="flex flex-wrap gap-1">
+          {groups.map((g) => (
+            <Badge key={g} variant="outline" className="text-xs">
+              {g}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    id: "allowTo",
+    header: "Allow To",
+    cell: ({ row }) => {
+      const list = row.original.AllowToList;
+      if (!list || list.length === 0) return <span className="text-xs">—</span>;
+      return (
+        <div className="flex flex-wrap gap-1">
+          {list.map((v) => (
+            <Badge key={v} variant="outline" className="text-xs">
+              {v}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    id: "typeRules",
+    header: "Type Rules",
+    cell: ({ row }) => {
+      const allow = row.original.AllowTypesList;
+      const deny = row.original.DenyTypesList;
+      if ((!allow || allow.length === 0) && (!deny || deny.length === 0))
+        return <span className="text-xs">—</span>;
+      return (
+        <div className="flex flex-wrap gap-1">
+          {allow?.map((t) => (
+            <Badge key={`a-${t}`} variant="outline" className="text-xs text-green-600">
+              +{t}
+            </Badge>
+          ))}
+          {deny?.map((t) => (
+            <Badge key={`d-${t}`} variant="destructive" className="text-xs">
+              −{t}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    id: "minerRules",
+    header: "Miner Rules",
+    cell: ({ row }) => {
+      const allow = row.original.AllowMinersList;
+      const deny = row.original.DenyMinersList;
+      if ((!allow || allow.length === 0) && (!deny || deny.length === 0))
+        return <span className="text-xs">—</span>;
+      return (
+        <div className="flex flex-wrap gap-1">
+          {allow?.map((m) => (
+            <Badge key={`a-${m}`} variant="outline" className="text-xs text-green-600">
+              +{m}
+            </Badge>
+          ))}
+          {deny?.map((m) => (
+            <Badge key={`d-${m}`} variant="destructive" className="text-xs">
+              −{m}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     id: "hosts",
     header: "Hosts",
     cell: ({ row }) => (
@@ -143,6 +260,26 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
         {row.original.HostList?.join(", ") || "—"}
       </span>
     ),
+  },
+  {
+    accessorKey: "LastHeartbeat",
+    header: "Last Heartbeat",
+    cell: ({ row }) => (
+      <span className="text-xs">{row.original.LastHeartbeat || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "HeartbeatErr",
+    header: "Heartbeat Error",
+    cell: ({ row }) => {
+      const err = row.original.HeartbeatErr;
+      if (!err) return <span className="text-xs">—</span>;
+      return (
+        <span className="text-xs text-[hsl(var(--destructive))]" title={err}>
+          {err.length > 30 ? `${err.slice(0, 30)}…` : err}
+        </span>
+      );
+    },
   },
 ];
 
@@ -227,15 +364,13 @@ function StoragePage() {
   const [selectedPath, setSelectedPath] = useState<StoragePathInfo | null>(
     null,
   );
-  const { data: pathDetail } = useCurioRpc<{
-    Info: StoragePathInfo;
-    URLs: string[];
-    GCMarks: number;
-    ByType: Record<string, number>;
-    ByMiner: Record<string, number>;
-  }>("StoragePathDetail", [selectedPath?.StorageID ?? ""], {
-    enabled: !!selectedPath,
-  });
+  const { data: pathDetail } = useCurioRpc<StoragePathDetailResult>(
+    "StoragePathDetail",
+    [selectedPath?.StorageID ?? ""],
+    {
+      enabled: !!selectedPath,
+    },
+  );
 
   const storageSummary = useMemo(() => {
     if (!useStats) return { totalCapacity: 0, totalAvailable: 0, count: 0 };
@@ -366,6 +501,9 @@ function StoragePage() {
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">
                     of {s.CapacityStr}
                   </p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {s.AvailableStr} avail
+                  </p>
                 </div>
               ))}
             </div>
@@ -448,13 +586,7 @@ function PathDetailDialog({
   onClose,
 }: {
   path: StoragePathInfo;
-  detail?: {
-    Info: StoragePathInfo;
-    URLs: string[];
-    GCMarks: number;
-    ByType: Record<string, number>;
-    ByMiner: Record<string, number>;
-  } | null;
+  detail?: StoragePathDetailResult | null;
   onClose: () => void;
 }) {
   const { data: sectors, isLoading } = useCurioRpc<StoragePathSectorsResult>(
@@ -512,6 +644,36 @@ function PathDetailDialog({
                 label={path.HealthStatus || (path.HealthOK ? "OK" : "Error")}
               />
             </div>
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">Weight</div>
+              <div>{path.Weight ?? "—"}</div>
+            </div>
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">Max Storage</div>
+              <div>{path.MaxStorageStr || "—"}</div>
+            </div>
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">FS Available</div>
+              <div>{path.FSAvailableStr || "—"}</div>
+            </div>
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">Reserved</div>
+              <div>
+                {path.ReservedStr
+                  ? `${path.ReservedStr} (${path.ReservedPercent?.toFixed(1) ?? 0}%)`
+                  : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[hsl(var(--muted-foreground))]">Last Heartbeat</div>
+              <div>{path.LastHeartbeat || "—"}</div>
+            </div>
+            {path.HeartbeatErr && (
+              <div>
+                <div className="text-[hsl(var(--muted-foreground))]">Heartbeat Error</div>
+                <div className="text-[hsl(var(--destructive))]">{path.HeartbeatErr}</div>
+              </div>
+            )}
           </div>
 
           {path.HostList && path.HostList.length > 0 && (
@@ -529,8 +691,83 @@ function PathDetailDialog({
             </div>
           )}
 
+          {path.GroupList && path.GroupList.length > 0 && (
+            <div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">Groups</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {path.GroupList.map((g) => (
+                  <Badge key={g} variant="outline">{g}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {path.AllowToList && path.AllowToList.length > 0 && (
+            <div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">Allow To</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {path.AllowToList.map((v) => (
+                  <Badge key={v} variant="outline">{v}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {((path.AllowTypesList && path.AllowTypesList.length > 0) ||
+            (path.DenyTypesList && path.DenyTypesList.length > 0)) && (
+            <div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">Type Rules</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {path.AllowTypesList?.map((t) => (
+                  <Badge key={`a-${t}`} variant="outline" className="text-green-600">+{t}</Badge>
+                ))}
+                {path.DenyTypesList?.map((t) => (
+                  <Badge key={`d-${t}`} variant="destructive">−{t}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {((path.AllowMinersList && path.AllowMinersList.length > 0) ||
+            (path.DenyMinersList && path.DenyMinersList.length > 0)) && (
+            <div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">Miner Rules</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {path.AllowMinersList?.map((m) => (
+                  <Badge key={`a-${m}`} variant="outline" className="text-green-600">+{m}</Badge>
+                ))}
+                {path.DenyMinersList?.map((m) => (
+                  <Badge key={`d-${m}`} variant="destructive">−{m}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           {detail && (
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Total Sectors</div>
+                  <div>{detail.TotalSectorEntries}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Primary</div>
+                  <div>{detail.PrimaryEntries}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Secondary</div>
+                  <div>{detail.SecondaryEntries}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Pending GC</div>
+                  <div>{detail.PendingGC}</div>
+                </div>
+                <div>
+                  <div className="text-[hsl(var(--muted-foreground))]">Approved GC</div>
+                  <div>{detail.ApprovedGC}</div>
+                </div>
+              </div>
+
               {detail.URLs && detail.URLs.length > 0 && (
                 <div>
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
@@ -538,44 +775,44 @@ function PathDetailDialog({
                   </div>
                   <div className="mt-1 space-y-1">
                     {detail.URLs.map((u) => (
-                      <div key={u} className="truncate font-mono text-xs">
-                        {u}
+                      <div key={u.URL} className="flex items-center gap-2">
+                        <StatusBadge
+                          status={u.IsLive ? "done" : "failed"}
+                          label={u.IsLive ? "Live" : "Dead"}
+                        />
+                        <span className="truncate font-mono text-xs">{u.URL}</span>
+                        <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                          checked {u.LastCheckedStr}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    GC Marks
-                  </div>
-                  <div>{detail.GCMarks}</div>
-                </div>
-              </div>
-              {detail.ByType && Object.keys(detail.ByType).length > 0 && (
+
+              {detail.ByType && detail.ByType.length > 0 && (
                 <div>
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
                     By Type
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {Object.entries(detail.ByType).map(([t, c]) => (
-                      <Badge key={t} variant="outline">
-                        {t}: {c}
+                    {detail.ByType.map((t) => (
+                      <Badge key={t.FileType} variant="outline">
+                        {t.FileType}: {t.Count} ({t.Primary} primary)
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
-              {detail.ByMiner && Object.keys(detail.ByMiner).length > 0 && (
+              {detail.ByMiner && detail.ByMiner.length > 0 && (
                 <div>
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
                     By Miner
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {Object.entries(detail.ByMiner).map(([m, c]) => (
-                      <Badge key={m} variant="outline">
-                        {m}: {c}
+                    {detail.ByMiner.map((m) => (
+                      <Badge key={m.Miner} variant="outline">
+                        {m.Miner}: {m.Count} ({m.Primary} primary)
                       </Badge>
                     ))}
                   </div>

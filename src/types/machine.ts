@@ -26,11 +26,15 @@ export interface MachineInfo {
     GPU: number;
     Layers: string;
     Tasks: string;
+    Miners: string;
     Unschedulable: boolean;
     RunningTasks: number;
+    StartupTime?: string;
+    RestartRequest?: string;
   };
   Storage: Array<{
     ID: string;
+    URLs: string;
     Weight: number;
     MaxStorage: number;
     CanSeal: boolean;
@@ -51,10 +55,20 @@ export interface MachineInfo {
     UsedPercent: number;
     ReservedPercent: number;
   }>;
+  StorageURLs?: Array<{
+    StorageID: string;
+    URL: string;
+    LastChecked: string;
+    LastLive?: string;
+    LastDead?: string;
+    LastDeadReason?: string;
+  }>;
   RunningTasks: Array<{
     ID: number;
     Task: string;
     Posted: string;
+    UpdateTime: string;
+    Retries: number;
     PoRepSector?: number;
     PoRepSectorSP?: number;
     PoRepSectorMiner: string;
@@ -64,10 +78,12 @@ export interface MachineInfo {
     Task: string;
     Posted: string;
     Start: string;
+    End: string;
     Queued: string;
     Took: string;
     Outcome: string;
     Message: string;
+    Result: boolean;
   }>;
 }
 

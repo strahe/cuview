@@ -100,6 +100,22 @@ function OverviewPage() {
                     </div>
                     <div className="font-medium">{netSummary.Reachability}</div>
                   </div>
+                  {netSummary.Bandwidth && (
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Bandwidth
+                      </div>
+                      <div className="font-medium">{netSummary.Bandwidth}</div>
+                    </div>
+                  )}
+                  {netSummary.Nodes && netSummary.Nodes.length > 0 && (
+                    <div>
+                      <div className="text-[hsl(var(--muted-foreground))]">
+                        Node Count
+                      </div>
+                      <div className="font-medium">{netSummary.Nodes.length}</div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

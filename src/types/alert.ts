@@ -8,6 +8,9 @@ export interface AlertHistoryItem {
   acknowledged: boolean;
   acknowledged_at?: string;
   acknowledged_by?: string;
+  sent_to_plugins: boolean;
+  sent_at?: string;
+  comment_count: number;
 }
 
 export interface AlertHistoryListResult {
@@ -28,6 +31,8 @@ export interface AlertMute {
   category: string;
   machine_pattern: string;
   message_pattern: string;
+  reason: string;
+  muted_by: string;
   created_at: string;
   expires_at?: string;
   active: boolean;

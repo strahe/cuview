@@ -68,6 +68,7 @@ export interface MK12Pipeline {
   created_at: string;
   indexed: boolean;
   announce: boolean;
+  piece_cid_v2: string | null;
   complete: boolean;
   miner: string;
 }
@@ -122,6 +123,7 @@ export interface Mk20PipelineRaw {
   aggr_index: number;
   agg_task_id: SqlNullableNumber | number | null;
   aggregated: boolean;
+  duration: number;
   sector: SqlNullableNumber | number | null;
   reg_seal_proof: SqlNullableNumber | number | null;
   sector_offset: SqlNullableNumber | number | null;
@@ -157,6 +159,7 @@ export interface Mk20Pipeline {
   aggr_index: number;
   agg_task_id: number | null;
   aggregated: boolean;
+  duration: number;
   sector: number | null;
   reg_seal_proof: number | null;
   sector_offset: number | null;
@@ -235,6 +238,7 @@ export interface OpenDealInfo {
   SectorNumber: number; // sector_number
   PieceCID: string; // piece_cid
   PieceSize: number; // piece_size (bytes)
+  RawSize: number; // data_raw_size (bytes)
   CreatedAt: string; // created_at timestamp
   SnapDeals: boolean; // is_snap
   PieceSizeStr: string; // formatted size string

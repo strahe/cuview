@@ -36,15 +36,46 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
     },
   },
   {
+    id: "taskId",
+    header: "Task",
+    cell: ({ row }) => {
+      const s = row.original;
+      const tid =
+        s.TaskIDEncode ?? s.TaskIDProve ?? s.TaskIDSubmit ?? s.TaskIDMoveStorage;
+      return tid ? (
+        <span className="font-mono text-xs">#{tid}</span>
+      ) : (
+        "—"
+      );
+    },
+  },
+  {
+    id: "updateReady",
+    header: "Ready At",
+    cell: ({ row }) =>
+      row.original.UpdateReadyAt ? (
+        <span className="text-xs">
+          {new Date(row.original.UpdateReadyAt).toLocaleString()}
+        </span>
+      ) : (
+        "—"
+      ),
+  },
+  {
     accessorKey: "FailedReason",
     header: "Error",
     cell: ({ row }) =>
       row.original.Failed ? (
         <span
           className="max-w-xs truncate text-xs text-[hsl(var(--destructive))]"
-          title={row.original.FailedReason}
+          title={`${row.original.FailedReason}${row.original.FailedReasonMsg ? ": " + row.original.FailedReasonMsg : ""}`}
         >
           {row.original.FailedReason}
+          {row.original.FailedReasonMsg && (
+            <span className="ml-1 text-[hsl(var(--muted-foreground))]">
+              ({row.original.FailedReasonMsg.slice(0, 30)})
+            </span>
+          )}
         </span>
       ) : (
         "—"

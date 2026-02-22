@@ -130,6 +130,7 @@ export function normalizeMk20Pipeline(raw: Mk20PipelineRaw): Mk20Pipeline {
     aggr_index: raw.aggr_index,
     agg_task_id: unwrapSqlNullableNumber(raw.agg_task_id),
     aggregated: raw.aggregated,
+    duration: raw.duration,
     sector: unwrapSqlNullableNumber(raw.sector),
     reg_seal_proof: unwrapSqlNullableNumber(raw.reg_seal_proof),
     sector_offset: unwrapSqlNullableNumber(raw.sector_offset),

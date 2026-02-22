@@ -61,6 +61,60 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
     cell: ({ row }) => formatBytes(row.original.piece_size),
   },
   {
+    id: "offline",
+    header: "Offline",
+    cell: ({ row }) =>
+      row.original.offline ? (
+        <StatusBadge status="pending" label="Offline" />
+      ) : null,
+  },
+  {
+    id: "raw_size",
+    header: "Raw Size",
+    cell: ({ row }) =>
+      row.original.raw_size != null
+        ? formatBytes(row.original.raw_size)
+        : "—",
+  },
+  {
+    id: "sector",
+    header: "Sector",
+    cell: ({ row }) =>
+      row.original.sector != null ? row.original.sector : "—",
+  },
+  {
+    id: "url",
+    header: "URL",
+    cell: ({ row }) => {
+      const url = row.original.url;
+      if (!url) return "—";
+      return (
+        <span className="font-mono text-xs" title={url}>
+          {url.length > 30 ? `${url.slice(0, 30)}…` : url}
+        </span>
+      );
+    },
+  },
+  {
+    id: "piece_cid_v2",
+    header: "CID v2",
+    cell: ({ row }) => {
+      const v2 = row.original.piece_cid_v2;
+      if (!v2 || v2 === row.original.piece_cid) return "—";
+      return (
+        <span className="font-mono text-xs">{v2.slice(0, 12)}…</span>
+      );
+    },
+  },
+  {
+    id: "announce",
+    header: "Announce",
+    cell: ({ row }) =>
+      row.original.announce ? (
+        <StatusBadge status="done" label="Yes" />
+      ) : "—",
+  },
+  {
     id: "stage",
     header: "Stage",
     cell: ({ row }) => {
