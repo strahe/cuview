@@ -346,7 +346,9 @@ function ProviderTab() {
                       <span>Last Settled: {p.last_settled_amount_fil}</span>
                     )}
                     {p.time_since_last_settlement && (
-                      <span>Since Settlement: {p.time_since_last_settlement}</span>
+                      <span>
+                        Since Settlement: {p.time_since_last_settlement}
+                      </span>
                     )}
                     {p.last_settled_at && (
                       <span>Settled At: {p.last_settled_at}</span>

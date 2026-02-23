@@ -349,9 +349,7 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
         <div className="space-y-4">
           {storage.map((s) => {
             const usedPercent = s.UsedPercent ?? 0;
-            const groups = s.Groups
-              ? s.Groups.split(",").filter(Boolean)
-              : [];
+            const groups = s.Groups ? s.Groups.split(",").filter(Boolean) : [];
             return (
               <div
                 key={s.ID}
@@ -370,8 +368,7 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                 <div className="flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
                   <span>
                     {formatBytes(s.Available)} free / {formatBytes(s.Capacity)}
-                    {s.MaxStorage > 0 &&
-                      ` (max: ${formatBytes(s.MaxStorage)})`}
+                    {s.MaxStorage > 0 && ` (max: ${formatBytes(s.MaxStorage)})`}
                   </span>
                   <span>
                     {s.CanSeal && "Seal"} {s.CanStore && "Store"}
@@ -415,8 +412,7 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                 )}
                 {s.LastHeartbeat && (
                   <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
-                    Last heartbeat:{" "}
-                    {new Date(s.LastHeartbeat).toLocaleString()}
+                    Last heartbeat: {new Date(s.LastHeartbeat).toLocaleString()}
                   </p>
                 )}
               </div>

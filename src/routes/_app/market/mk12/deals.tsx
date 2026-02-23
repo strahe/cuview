@@ -72,9 +72,7 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
     id: "raw_size",
     header: "Raw Size",
     cell: ({ row }) =>
-      row.original.raw_size != null
-        ? formatBytes(row.original.raw_size)
-        : "—",
+      row.original.raw_size != null ? formatBytes(row.original.raw_size) : "—",
   },
   {
     id: "sector",
@@ -101,18 +99,14 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
     cell: ({ row }) => {
       const v2 = row.original.piece_cid_v2;
       if (!v2 || v2 === row.original.piece_cid) return "—";
-      return (
-        <span className="font-mono text-xs">{v2.slice(0, 12)}…</span>
-      );
+      return <span className="font-mono text-xs">{v2.slice(0, 12)}…</span>;
     },
   },
   {
     id: "announce",
     header: "Announce",
     cell: ({ row }) =>
-      row.original.announce ? (
-        <StatusBadge status="done" label="Yes" />
-      ) : "—",
+      row.original.announce ? <StatusBadge status="done" label="Yes" /> : "—",
   },
   {
     id: "stage",

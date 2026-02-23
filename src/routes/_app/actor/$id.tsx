@@ -241,9 +241,7 @@ function ActorDetailPage() {
                   />
                   <InfoRow
                     label="Pending Quota"
-                    value={formatFilecoin(
-                      data.PendingBeneficiaryTerm.NewQuota,
-                    )}
+                    value={formatFilecoin(data.PendingBeneficiaryTerm.NewQuota)}
                   />
                   <InfoRow
                     label="Pending Expiration"

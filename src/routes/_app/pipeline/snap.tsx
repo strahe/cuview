@@ -41,12 +41,11 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
     cell: ({ row }) => {
       const s = row.original;
       const tid =
-        s.TaskIDEncode ?? s.TaskIDProve ?? s.TaskIDSubmit ?? s.TaskIDMoveStorage;
-      return tid ? (
-        <span className="font-mono text-xs">#{tid}</span>
-      ) : (
-        "—"
-      );
+        s.TaskIDEncode ??
+        s.TaskIDProve ??
+        s.TaskIDSubmit ??
+        s.TaskIDMoveStorage;
+      return tid ? <span className="font-mono text-xs">#{tid}</span> : "—";
     },
   },
   {
@@ -68,7 +67,7 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
       row.original.Failed ? (
         <span
           className="max-w-xs truncate text-xs text-[hsl(var(--destructive))]"
-          title={`${row.original.FailedReason}${row.original.FailedReasonMsg ? ": " + row.original.FailedReasonMsg : ""}`}
+          title={`${row.original.FailedReason}${row.original.FailedReasonMsg ? `: ${row.original.FailedReasonMsg}` : ""}`}
         >
           {row.original.FailedReason}
           {row.original.FailedReasonMsg && (

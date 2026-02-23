@@ -175,7 +175,8 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     header: "Groups",
     cell: ({ row }) => {
       const groups = row.original.GroupList;
-      if (!groups || groups.length === 0) return <span className="text-xs">—</span>;
+      if (!groups || groups.length === 0)
+        return <span className="text-xs">—</span>;
       return (
         <div className="flex flex-wrap gap-1">
           {groups.map((g) => (
@@ -215,7 +216,11 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
       return (
         <div className="flex flex-wrap gap-1">
           {allow?.map((t) => (
-            <Badge key={`a-${t}`} variant="outline" className="text-xs text-green-600">
+            <Badge
+              key={`a-${t}`}
+              variant="outline"
+              className="text-xs text-green-600"
+            >
               +{t}
             </Badge>
           ))}
@@ -239,7 +244,11 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
       return (
         <div className="flex flex-wrap gap-1">
           {allow?.map((m) => (
-            <Badge key={`a-${m}`} variant="outline" className="text-xs text-green-600">
+            <Badge
+              key={`a-${m}`}
+              variant="outline"
+              className="text-xs text-green-600"
+            >
               +{m}
             </Badge>
           ))}
@@ -649,15 +658,21 @@ function PathDetailDialog({
               <div>{path.Weight ?? "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Max Storage</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Max Storage
+              </div>
               <div>{path.MaxStorageStr || "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">FS Available</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                FS Available
+              </div>
               <div>{path.FSAvailableStr || "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Reserved</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Reserved
+              </div>
               <div>
                 {path.ReservedStr
                   ? `${path.ReservedStr} (${path.ReservedPercent?.toFixed(1) ?? 0}%)`
@@ -665,13 +680,19 @@ function PathDetailDialog({
               </div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Last Heartbeat</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Last Heartbeat
+              </div>
               <div>{path.LastHeartbeat || "—"}</div>
             </div>
             {path.HeartbeatErr && (
               <div>
-                <div className="text-[hsl(var(--muted-foreground))]">Heartbeat Error</div>
-                <div className="text-[hsl(var(--destructive))]">{path.HeartbeatErr}</div>
+                <div className="text-[hsl(var(--muted-foreground))]">
+                  Heartbeat Error
+                </div>
+                <div className="text-[hsl(var(--destructive))]">
+                  {path.HeartbeatErr}
+                </div>
               </div>
             )}
           </div>
@@ -693,10 +714,14 @@ function PathDetailDialog({
 
           {path.GroupList && path.GroupList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">Groups</div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                Groups
+              </div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.GroupList.map((g) => (
-                  <Badge key={g} variant="outline">{g}</Badge>
+                  <Badge key={g} variant="outline">
+                    {g}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -704,10 +729,14 @@ function PathDetailDialog({
 
           {path.AllowToList && path.AllowToList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">Allow To</div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                Allow To
+              </div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowToList.map((v) => (
-                  <Badge key={v} variant="outline">{v}</Badge>
+                  <Badge key={v} variant="outline">
+                    {v}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -716,13 +745,23 @@ function PathDetailDialog({
           {((path.AllowTypesList && path.AllowTypesList.length > 0) ||
             (path.DenyTypesList && path.DenyTypesList.length > 0)) && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">Type Rules</div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                Type Rules
+              </div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowTypesList?.map((t) => (
-                  <Badge key={`a-${t}`} variant="outline" className="text-green-600">+{t}</Badge>
+                  <Badge
+                    key={`a-${t}`}
+                    variant="outline"
+                    className="text-green-600"
+                  >
+                    +{t}
+                  </Badge>
                 ))}
                 {path.DenyTypesList?.map((t) => (
-                  <Badge key={`d-${t}`} variant="destructive">−{t}</Badge>
+                  <Badge key={`d-${t}`} variant="destructive">
+                    −{t}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -731,13 +770,23 @@ function PathDetailDialog({
           {((path.AllowMinersList && path.AllowMinersList.length > 0) ||
             (path.DenyMinersList && path.DenyMinersList.length > 0)) && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">Miner Rules</div>
+              <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                Miner Rules
+              </div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowMinersList?.map((m) => (
-                  <Badge key={`a-${m}`} variant="outline" className="text-green-600">+{m}</Badge>
+                  <Badge
+                    key={`a-${m}`}
+                    variant="outline"
+                    className="text-green-600"
+                  >
+                    +{m}
+                  </Badge>
                 ))}
                 {path.DenyMinersList?.map((m) => (
-                  <Badge key={`d-${m}`} variant="destructive">−{m}</Badge>
+                  <Badge key={`d-${m}`} variant="destructive">
+                    −{m}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -747,23 +796,33 @@ function PathDetailDialog({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Total Sectors</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Total Sectors
+                  </div>
                   <div>{detail.TotalSectorEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Primary</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Primary
+                  </div>
                   <div>{detail.PrimaryEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Secondary</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Secondary
+                  </div>
                   <div>{detail.SecondaryEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Pending GC</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Pending GC
+                  </div>
                   <div>{detail.PendingGC}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Approved GC</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Approved GC
+                  </div>
                   <div>{detail.ApprovedGC}</div>
                 </div>
               </div>
@@ -780,7 +839,9 @@ function PathDetailDialog({
                           status={u.IsLive ? "done" : "failed"}
                           label={u.IsLive ? "Live" : "Dead"}
                         />
-                        <span className="truncate font-mono text-xs">{u.URL}</span>
+                        <span className="truncate font-mono text-xs">
+                          {u.URL}
+                        </span>
                         <span className="text-xs text-[hsl(var(--muted-foreground))]">
                           checked {u.LastCheckedStr}
                         </span>

@@ -113,7 +113,9 @@ function OverviewPage() {
                       <div className="text-[hsl(var(--muted-foreground))]">
                         Node Count
                       </div>
-                      <div className="font-medium">{netSummary.Nodes.length}</div>
+                      <div className="font-medium">
+                        {netSummary.Nodes.length}
+                      </div>
                     </div>
                   )}
                 </>

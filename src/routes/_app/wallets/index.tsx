@@ -802,9 +802,7 @@ function WalletsPage() {
                     <div>
                       <Badge
                         variant={
-                          messageDetail.send_success
-                            ? "default"
-                            : "destructive"
+                          messageDetail.send_success ? "default" : "destructive"
                         }
                       >
                         {messageDetail.send_success ? "Yes" : "No"}

@@ -517,13 +517,17 @@ function AlertDetailDialog({
             <div className="flex gap-6">
               {alert.acknowledged_by && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Acknowledged By</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Acknowledged By
+                  </div>
                   <div>{alert.acknowledged_by}</div>
                 </div>
               )}
               {alert.acknowledged_at && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">Acknowledged At</div>
+                  <div className="text-[hsl(var(--muted-foreground))]">
+                    Acknowledged At
+                  </div>
                   <div>{alert.acknowledged_at}</div>
                 </div>
               )}
@@ -531,7 +535,9 @@ function AlertDetailDialog({
           )}
           <div className="flex gap-6">
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Sent to Plugins</div>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                Sent to Plugins
+              </div>
               <StatusBadge
                 status={alert.sent_to_plugins ? "done" : "warning"}
                 label={alert.sent_to_plugins ? "Yes" : "No"}
@@ -539,7 +545,9 @@ function AlertDetailDialog({
             </div>
             {alert.sent_at && (
               <div>
-                <div className="text-[hsl(var(--muted-foreground))]">Sent At</div>
+                <div className="text-[hsl(var(--muted-foreground))]">
+                  Sent At
+                </div>
                 <div>{alert.sent_at}</div>
               </div>
             )}

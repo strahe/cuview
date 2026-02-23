@@ -558,7 +558,9 @@ function PdpPage() {
                         IPNI Piece
                       </div>
                       <StatusBadge
-                        status={fsStatus.pdp_service.ipni_piece ? "done" : "pending"}
+                        status={
+                          fsStatus.pdp_service.ipni_piece ? "done" : "pending"
+                        }
                         label={fsStatus.pdp_service.ipni_piece ? "Yes" : "No"}
                       />
                     </div>
@@ -567,7 +569,9 @@ function PdpPage() {
                         IPNI IPFS
                       </div>
                       <StatusBadge
-                        status={fsStatus.pdp_service.ipni_ipfs ? "done" : "pending"}
+                        status={
+                          fsStatus.pdp_service.ipni_ipfs ? "done" : "pending"
+                        }
                         label={fsStatus.pdp_service.ipni_ipfs ? "Yes" : "No"}
                       />
                     </div>

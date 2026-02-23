@@ -56,11 +56,7 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
         s.TaskFinalize ??
         s.TaskMoveStorage ??
         s.TaskCommitMsg;
-      return tid ? (
-        <span className="font-mono text-xs">#{tid}</span>
-      ) : (
-        "—"
-      );
+      return tid ? <span className="font-mono text-xs">#{tid}</span> : "—";
     },
   },
   {
@@ -71,16 +67,40 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
       // Determine started vs after for current stage
       if (s.Failed || s.AfterCommitMsgSuccess) return null;
       if (s.AfterCommitMsg && s.StartedCommitMsg)
-        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+        return (
+          <Badge variant="outline" className="text-[10px]">
+            Running
+          </Badge>
+        );
       if (s.AfterPoRep && s.StartedPoRep)
-        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+        return (
+          <Badge variant="outline" className="text-[10px]">
+            Running
+          </Badge>
+        );
       if (s.AfterPrecommitMsg && s.StartedPrecommitMsg)
-        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+        return (
+          <Badge variant="outline" className="text-[10px]">
+            Running
+          </Badge>
+        );
       if (s.AfterTreeR && s.StartedTreeRC)
-        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
+        return (
+          <Badge variant="outline" className="text-[10px]">
+            Running
+          </Badge>
+        );
       if (s.AfterSDR && s.StartedSDR)
-        return <Badge variant="outline" className="text-[10px]">Running</Badge>;
-      return <Badge variant="secondary" className="text-[10px]">Waiting</Badge>;
+        return (
+          <Badge variant="outline" className="text-[10px]">
+            Running
+          </Badge>
+        );
+      return (
+        <Badge variant="secondary" className="text-[10px]">
+          Waiting
+        </Badge>
+      );
     },
   },
   {
@@ -107,17 +127,28 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
       return (
         <div className="flex gap-1">
           {s.ChainActive && (
-            <Badge variant="default" className="text-[10px]">Active</Badge>
+            <Badge variant="default" className="text-[10px]">
+              Active
+            </Badge>
           )}
           {s.ChainUnproven && (
-            <Badge variant="outline" className="text-[10px]">Unproven</Badge>
+            <Badge variant="outline" className="text-[10px]">
+              Unproven
+            </Badge>
           )}
           {s.ChainFaulty && (
-            <Badge variant="destructive" className="text-[10px]">Faulty</Badge>
+            <Badge variant="destructive" className="text-[10px]">
+              Faulty
+            </Badge>
           )}
-          {s.ChainSector && !s.ChainActive && !s.ChainUnproven && !s.ChainFaulty && (
-            <Badge variant="secondary" className="text-[10px]">Allocated</Badge>
-          )}
+          {s.ChainSector &&
+            !s.ChainActive &&
+            !s.ChainUnproven &&
+            !s.ChainFaulty && (
+              <Badge variant="secondary" className="text-[10px]">
+                Allocated
+              </Badge>
+            )}
         </div>
       );
     },
@@ -125,8 +156,7 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
   {
     id: "seedEpoch",
     header: "Seed",
-    cell: ({ row }) =>
-      row.original.SeedEpoch ? row.original.SeedEpoch : "—",
+    cell: ({ row }) => (row.original.SeedEpoch ? row.original.SeedEpoch : "—"),
   },
   {
     accessorKey: "FailedReason",

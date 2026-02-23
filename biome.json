@@ -2,7 +2,13 @@
   "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["src/**", "*.json", "*.ts"],
+    "includes": [
+      "src/**",
+      "!src/index.css",
+      "!src/routeTree.gen.ts",
+      "*.json",
+      "*.ts"
+    ],
     "ignoreUnknown": true
   },
   "formatter": {
@@ -35,7 +41,7 @@
         "noNonNullAssertion": "off"
       }
     },
-    "includes": ["src/**", "!src/routeTree.gen.ts"]
+    "includes": ["src/**", "!src/index.css", "!src/routeTree.gen.ts"]
   },
   "javascript": {
     "formatter": {

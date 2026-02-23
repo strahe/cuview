@@ -53,17 +53,26 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
               <div className="flex flex-wrap gap-3 text-xs text-[hsl(var(--muted-foreground))]">
                 {item.SyncState && (
                   <span>
-                    Sync: <span className="font-medium text-[hsl(var(--foreground))]">{item.SyncState}</span>
+                    Sync:{" "}
+                    <span className="font-medium text-[hsl(var(--foreground))]">
+                      {item.SyncState}
+                    </span>
                   </span>
                 )}
                 {item.Version && (
                   <span>
-                    Version: <span className="font-medium text-[hsl(var(--foreground))]">{item.Version}</span>
+                    Version:{" "}
+                    <span className="font-medium text-[hsl(var(--foreground))]">
+                      {item.Version}
+                    </span>
                   </span>
                 )}
                 {item.CLayers && item.CLayers.length > 0 && (
                   <span>
-                    Layers: <span className="font-medium text-[hsl(var(--foreground))]">{item.CLayers.join(", ")}</span>
+                    Layers:{" "}
+                    <span className="font-medium text-[hsl(var(--foreground))]">
+                      {item.CLayers.join(", ")}
+                    </span>
                   </span>
                 )}
               </div>
