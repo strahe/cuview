@@ -155,3 +155,5 @@ test-results/
 
 # Git worktrees
 .worktrees/
+.serena/
+tsconfig.tsbuildinfo
