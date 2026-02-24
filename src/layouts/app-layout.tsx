@@ -8,6 +8,7 @@ import {
   Sun,
 } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
+import { SettingsDialog } from "@/components/settings-dialog";
 import {
   type ConnectionStatus,
   useConnectionStatus,
@@ -46,6 +47,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const layout = useLayout();
   const connectionStatus = useConnectionStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { data: version } = useCurioRpc<string>("Version", [], {
     refetchInterval: 300_000,
@@ -183,6 +185,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 )}
               </button>
               <button
+                onClick={() => setSettingsOpen(true)}
                 className="rounded-md p-2 hover:bg-[hsl(var(--accent))]"
                 title="Settings"
               >
@@ -195,6 +198,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
         {/* Page Content */}
         <div className="relative">{children}</div>
       </main>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }

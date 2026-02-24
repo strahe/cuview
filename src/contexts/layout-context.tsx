@@ -6,6 +6,12 @@ import {
   useEffect,
   useState,
 } from "react";
+import {
+  COLOR_THEME_KEY,
+  type ColorTheme,
+  DEFAULT_COLOR_THEME,
+  getColorTheme,
+} from "@/lib/color-themes";
 
 type ThemeName = "light" | "dark";
 
@@ -13,10 +19,12 @@ interface LayoutContextValue {
   sidebarCollapsed: boolean;
   theme: ThemeName;
   isDark: boolean;
+  colorTheme: string;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleTheme: () => void;
   setTheme: (theme: ThemeName) => void;
+  setColorTheme: (name: string) => void;
 }
 
 const LayoutContext = createContext<LayoutContextValue | null>(null);
@@ -34,6 +42,10 @@ function getInitialTheme(): ThemeName {
   return "light";
 }
 
+function getInitialColorTheme(): string {
+  return localStorage.getItem(COLOR_THEME_KEY) ?? DEFAULT_COLOR_THEME;
+}
+
 function applyThemeToDOM(theme: ThemeName) {
   const root = document.documentElement;
   if (theme === "dark") {
@@ -43,17 +55,56 @@ function applyThemeToDOM(theme: ThemeName) {
   }
 }
 
+const COLOR_THEME_CSS_PROPS = [
+  "--primary",
+  "--primary-foreground",
+  "--secondary",
+  "--secondary-foreground",
+  "--chart-1",
+  "--chart-2",
+  "--chart-3",
+  "--chart-4",
+  "--chart-5",
+  "--sidebar-primary",
+  "--sidebar-primary-foreground",
+];
+
+function applyColorThemeToDOM(ct: ColorTheme | undefined, isDark: boolean) {
+  const root = document.documentElement;
+  if (!ct || Object.keys(ct.cssVars.light).length === 0) {
+    for (const prop of COLOR_THEME_CSS_PROPS) {
+      root.style.removeProperty(prop);
+    }
+    return;
+  }
+  const vars = isDark ? ct.cssVars.dark : ct.cssVars.light;
+  for (const prop of COLOR_THEME_CSS_PROPS) {
+    if (vars[prop]) {
+      root.style.setProperty(prop, vars[prop]);
+    } else {
+      root.style.removeProperty(prop);
+    }
+  }
+}
+
 export function LayoutProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsedState] = useState(() => {
     return localStorage.getItem(SIDEBAR_KEY) === "true";
   });
 
   const [theme, setThemeState] = useState<ThemeName>(getInitialTheme);
+  const [colorTheme, setColorThemeState] =
+    useState<string>(getInitialColorTheme);
 
   useEffect(() => {
     applyThemeToDOM(theme);
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  useEffect(() => {
+    applyColorThemeToDOM(getColorTheme(colorTheme), theme === "dark");
+    localStorage.setItem(COLOR_THEME_KEY, colorTheme);
+  }, [colorTheme, theme]);
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
@@ -75,16 +126,22 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
     setThemeState(newTheme);
   }, []);
 
+  const setColorTheme = useCallback((name: string) => {
+    setColorThemeState(name);
+  }, []);
+
   return (
     <LayoutContext.Provider
       value={{
         sidebarCollapsed,
         theme,
         isDark: theme === "dark",
+        colorTheme,
         toggleSidebar,
         setSidebarCollapsed,
         toggleTheme,
         setTheme,
+        setColorTheme,
       }}
     >
       {children}

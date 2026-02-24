@@ -157,3 +157,4 @@ test-results/
 .worktrees/
 .serena/
 tsconfig.tsbuildinfo
+AGENTS.md
