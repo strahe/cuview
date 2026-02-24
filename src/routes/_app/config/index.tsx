@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FileText, History, Plus, Save, Settings } from "lucide-react";
+import {
+  Code,
+  Eye,
+  FileText,
+  History,
+  Plus,
+  Save,
+  Settings,
+} from "lucide-react";
 import { useCallback, useState } from "react";
+import { ConfigVisualEditor } from "@/components/composed/config/config-visual-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import { useCurioRest } from "@/hooks/use-curio-query";
@@ -56,22 +66,29 @@ function ConfigPage() {
   );
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [editMode, setEditMode] = useState<"visual" | "json">(() => {
+    const saved = localStorage.getItem("cuview-config-edit-mode");
+    return saved === "json" ? "json" : "visual";
+  });
 
   const loadLayer = useCallback(
     async (name: string) => {
       setSelectedLayer(name);
-      setLoadingLayer(true);
       setStatusMsg(null);
-      try {
-        const data = await fetchConfigLayer(api, name);
-        setLayerContent(JSON.stringify(data, null, 2));
-      } catch (err) {
-        setStatusMsg(`Error loading layer: ${err}`);
-      } finally {
-        setLoadingLayer(false);
+      // Only load raw JSON content when in JSON edit mode
+      if (editMode === "json") {
+        setLoadingLayer(true);
+        try {
+          const data = await fetchConfigLayer(api, name);
+          setLayerContent(JSON.stringify(data, null, 2));
+        } catch (err) {
+          setStatusMsg(`Error loading layer: ${err}`);
+        } finally {
+          setLoadingLayer(false);
+        }
       }
     },
-    [api],
+    [api, editMode],
   );
 
   const handleSave = useCallback(async () => {
@@ -115,6 +132,18 @@ function ConfigPage() {
       setLoadingHistory(false);
     }
   }, [api, selectedLayer]);
+
+  const switchEditMode = useCallback(
+    (mode: "visual" | "json") => {
+      setEditMode(mode);
+      localStorage.setItem("cuview-config-edit-mode", mode);
+      // Reload layer content for raw JSON mode when switching
+      if (mode === "json" && selectedLayer) {
+        loadLayer(selectedLayer);
+      }
+    },
+    [selectedLayer, loadLayer],
+  );
 
   return (
     <div className="space-y-6 p-6">
@@ -207,7 +236,25 @@ function ConfigPage() {
               {selectedLayer ? `Layer: ${selectedLayer}` : "Select a layer"}
             </CardTitle>
             {selectedLayer && (
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <Tabs>
+                  <TabsList>
+                    <TabsTrigger
+                      active={editMode === "visual"}
+                      onClick={() => switchEditMode("visual")}
+                    >
+                      <Eye className="mr-1 size-3.5" />
+                      Visual
+                    </TabsTrigger>
+                    <TabsTrigger
+                      active={editMode === "json"}
+                      onClick={() => switchEditMode("json")}
+                    >
+                      <Code className="mr-1 size-3.5" />
+                      JSON
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 <Button
                   size="sm"
                   variant="outline"
@@ -217,31 +264,39 @@ function ConfigPage() {
                   <History className="mr-1 size-4" />
                   {loadingHistory ? "Loading…" : "History"}
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSave}
-                  disabled={saving || selectedLayer === "default"}
-                >
-                  <Save className="mr-1 size-4" />
-                  {saving ? "Saving…" : "Save"}
-                </Button>
+                {editMode === "json" && (
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={saving || selectedLayer === "default"}
+                  >
+                    <Save className="mr-1 size-4" />
+                    {saving ? "Saving…" : "Save"}
+                  </Button>
+                )}
               </div>
             )}
           </CardHeader>
           <CardContent>
-            {loadingLayer ? (
+            {!selectedLayer ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Select a configuration layer to view and edit.
+              </p>
+            ) : editMode === "visual" ? (
+              <ConfigVisualEditor
+                key={selectedLayer}
+                layerName={selectedLayer}
+                onStatusMessage={setStatusMsg}
+              />
+            ) : loadingLayer ? (
               <Skeleton className="h-96" />
-            ) : selectedLayer ? (
+            ) : (
               <Textarea
                 value={layerContent}
                 onChange={(e) => setLayerContent(e.target.value)}
                 className="min-h-96 font-mono text-xs"
                 disabled={selectedLayer === "default"}
               />
-            ) : (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Select a configuration layer to view and edit.
-              </p>
             )}
           </CardContent>
         </Card>
