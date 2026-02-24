@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_app/pipeline")({
 const tabs = [
   { label: "PoRep", to: "/pipeline/porep" },
   { label: "Snap", to: "/pipeline/snap" },
+  { label: "Stats", to: "/pipeline/stats" },
 ];
 
 function PipelineLayout() {

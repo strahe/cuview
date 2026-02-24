@@ -33,6 +33,7 @@ import { Route as AppActorIndexRouteImport } from "./routes/_app/actor/index"
 import { Route as AppTasksOverviewRouteImport } from "./routes/_app/tasks/overview"
 import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history"
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
+import { Route as AppPipelineStatsRouteImport } from "./routes/_app/pipeline/stats"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
 import { Route as AppMarketPiecesRouteImport } from "./routes/_app/market/pieces"
@@ -167,6 +168,11 @@ const AppTasksActiveRoute = AppTasksActiveRouteImport.update({
   path: "/active",
   getParentRoute: () => AppTasksRouteRoute,
 } as any)
+const AppPipelineStatsRoute = AppPipelineStatsRouteImport.update({
+  id: "/stats",
+  path: "/stats",
+  getParentRoute: () => AppPipelineRouteRoute,
+} as any)
 const AppPipelineSnapRoute = AppPipelineSnapRouteImport.update({
   id: "/snap",
   path: "/snap",
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   "/market/pieces": typeof AppMarketPiecesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
+  "/pipeline/stats": typeof AppPipelineStatsRoute
   "/tasks/active": typeof AppTasksActiveRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   "/market/pieces": typeof AppMarketPiecesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
+  "/pipeline/stats": typeof AppPipelineStatsRoute
   "/tasks/active": typeof AppTasksActiveRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
@@ -332,6 +340,7 @@ export interface FileRoutesById {
   "/_app/market/pieces": typeof AppMarketPiecesRoute
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
+  "/_app/pipeline/stats": typeof AppPipelineStatsRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
   "/_app/tasks/history": typeof AppTasksHistoryRoute
   "/_app/tasks/overview": typeof AppTasksOverviewRoute
@@ -373,6 +382,7 @@ export interface FileRouteTypes {
     | "/market/pieces"
     | "/pipeline/porep"
     | "/pipeline/snap"
+    | "/pipeline/stats"
     | "/tasks/active"
     | "/tasks/history"
     | "/tasks/overview"
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | "/market/pieces"
     | "/pipeline/porep"
     | "/pipeline/snap"
+    | "/pipeline/stats"
     | "/tasks/active"
     | "/tasks/history"
     | "/tasks/overview"
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | "/_app/market/pieces"
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
+    | "/_app/pipeline/stats"
     | "/_app/tasks/active"
     | "/_app/tasks/history"
     | "/_app/tasks/overview"
@@ -649,6 +661,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppTasksActiveRouteImport
       parentRoute: typeof AppTasksRouteRoute
     }
+    "/_app/pipeline/stats": {
+      id: "/_app/pipeline/stats"
+      path: "/stats"
+      fullPath: "/pipeline/stats"
+      preLoaderRoute: typeof AppPipelineStatsRouteImport
+      parentRoute: typeof AppPipelineRouteRoute
+    }
     "/_app/pipeline/snap": {
       id: "/_app/pipeline/snap"
       path: "/snap"
@@ -779,12 +798,14 @@ const AppMarketRouteRouteWithChildren = AppMarketRouteRoute._addFileChildren(
 interface AppPipelineRouteRouteChildren {
   AppPipelinePorepRoute: typeof AppPipelinePorepRoute
   AppPipelineSnapRoute: typeof AppPipelineSnapRoute
+  AppPipelineStatsRoute: typeof AppPipelineStatsRoute
   AppPipelineIndexRoute: typeof AppPipelineIndexRoute
 }
 
 const AppPipelineRouteRouteChildren: AppPipelineRouteRouteChildren = {
   AppPipelinePorepRoute: AppPipelinePorepRoute,
   AppPipelineSnapRoute: AppPipelineSnapRoute,
+  AppPipelineStatsRoute: AppPipelineStatsRoute,
   AppPipelineIndexRoute: AppPipelineIndexRoute,
 }
 

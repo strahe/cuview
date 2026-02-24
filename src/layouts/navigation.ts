@@ -121,13 +121,13 @@ export const navigationGroups: NavigationGroup[] = [
         keywords: ["pdp", "proof of data possession"],
       },
       {
-        label: "Proof Share",
+        label: "Snark Market",
         icon: Shield,
         to: "/proof-share",
-        keywords: ["proof", "share", "proving", "windowed post"],
+        keywords: ["proof", "share", "proving", "windowed post", "snark"],
       },
       {
-        label: "Configurations",
+        label: "Configuration",
         icon: Settings,
         to: "/config",
         keywords: ["config", "configuration", "settings", "toml"],

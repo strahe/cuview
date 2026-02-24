@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import type { SnapPipelineSummary, SnapSectorEntry } from "@/types/pipeline";
+import type { PipelineWaterfallStats, SnapSectorEntry } from "@/types/pipeline";
 
 export const Route = createFileRoute("/_app/pipeline/snap")({
   component: SnapPage,
@@ -121,9 +121,10 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
 ];
 
 function SnapPage() {
-  const { data: summaryData, isLoading: summaryLoading } = useCurioRpc<
-    SnapPipelineSummary[]
-  >("PipelineStatsSnap", [], { refetchInterval: 30_000 });
+  const { data: summaryData, isLoading: summaryLoading } =
+    useCurioRpc<PipelineWaterfallStats>("PipelineStatsSnap", [], {
+      refetchInterval: 30_000,
+    });
 
   const { data: sectorsData, isLoading: sectorsLoading } = useCurioRpc<
     SnapSectorEntry[]
@@ -146,18 +147,73 @@ function SnapPage() {
 
   const totals = useMemo(() => {
     if (!summaryData) return null;
-    return summaryData.reduce(
-      (acc, s) => ({
-        encode: acc.encode + s.CountEncode,
-        prove: acc.prove + s.CountProve,
-        submit: acc.submit + s.CountSubmit,
-        moveStorage: acc.moveStorage + s.CountMoveStorage,
-        done: acc.done + s.CountDone,
-        failed: acc.failed + s.CountFailed,
-      }),
-      { encode: 0, prove: 0, submit: 0, moveStorage: 0, done: 0, failed: 0 },
+
+    const getStageCount = (name: string) => {
+      const stage = summaryData.Stages.find((s) => s.Name === name);
+      return (stage?.Pending ?? 0) + (stage?.Running ?? 0);
+    };
+
+    const allSectors = sectorsData ?? [];
+    return {
+      encode: getStageCount("Encode"),
+      prove: getStageCount("Prove"),
+      submit: getStageCount("Submit"),
+      moveStorage: getStageCount("MoveStorage"),
+      done: allSectors.filter((s) => s.AfterProveMsgSuccess && !s.Failed)
+        .length,
+      failed: allSectors.filter((s) => s.Failed).length,
+    };
+  }, [summaryData, sectorsData]);
+
+  const actorSummary = useMemo(() => {
+    if (!sectorsData?.length) return [];
+
+    const byActor = new Map<
+      string,
+      {
+        Actor: string;
+        CountEncode: number;
+        CountProve: number;
+        CountSubmit: number;
+        CountMoveStorage: number;
+        CountDone: number;
+        CountFailed: number;
+      }
+    >();
+
+    for (const sector of sectorsData) {
+      const actor = sector.Address || "unknown";
+      const current = byActor.get(actor) ?? {
+        Actor: actor,
+        CountEncode: 0,
+        CountProve: 0,
+        CountSubmit: 0,
+        CountMoveStorage: 0,
+        CountDone: 0,
+        CountFailed: 0,
+      };
+
+      if (sector.Failed) {
+        current.CountFailed += 1;
+      } else if (sector.AfterProveMsgSuccess) {
+        current.CountDone += 1;
+      } else if (sector.AfterMoveStorage) {
+        current.CountMoveStorage += 1;
+      } else if (sector.AfterSubmit) {
+        current.CountSubmit += 1;
+      } else if (sector.AfterProve) {
+        current.CountProve += 1;
+      } else {
+        current.CountEncode += 1;
+      }
+
+      byActor.set(actor, current);
+    }
+
+    return Array.from(byActor.values()).sort((a, b) =>
+      a.Actor.localeCompare(b.Actor),
     );
-  }, [summaryData]);
+  }, [sectorsData]);
 
   if (summaryLoading && !summaryData) {
     return (
@@ -218,7 +274,7 @@ function SnapPage() {
         </div>
       )}
 
-      {summaryData && summaryData.length > 0 && (
+      {actorSummary.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Pipeline by Actor</CardTitle>
@@ -238,7 +294,7 @@ function SnapPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {summaryData.map((s) => (
+                  {actorSummary.map((s) => (
                     <tr
                       key={s.Actor}
                       className="border-b border-[hsl(var(--border))] last:border-0"

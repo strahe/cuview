@@ -178,3 +178,12 @@ export interface SnapPipelineSummary {
   CountDone: number;
   CountFailed: number;
 }
+
+export interface PipelineWaterfallStats {
+  Total: number;
+  Stages: Array<{
+    Name: string;
+    Pending: number;
+    Running: number;
+  }>;
+}

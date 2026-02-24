@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeft,
   Cpu,
+  ExternalLink,
   Globe,
   HardDrive,
   RotateCcw,
@@ -252,6 +253,29 @@ function MachineDetailPage() {
                   />
                 </dd>
               </div>
+              {info.Host && (
+                <div className="flex justify-between">
+                  <dt className="text-[hsl(var(--muted-foreground))]">Debug</dt>
+                  <dd className="flex gap-2">
+                    {[
+                      { label: "pprof", path: "/debug/pprof" },
+                      { label: "metrics", path: "/debug/metrics" },
+                      { label: "vars", path: "/debug/vars" },
+                    ].map((link) => (
+                      <a
+                        key={link.path}
+                        href={`http://${info.Host}${link.path}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-xs text-[hsl(var(--primary))] hover:underline"
+                      >
+                        {link.label}
+                        <ExternalLink className="size-3" />
+                      </a>
+                    ))}
+                  </dd>
+                </div>
+              )}
             </dl>
           </CardContent>
         </Card>

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import {
@@ -71,17 +71,39 @@ function ActiveTasksPage() {
     { refetchInterval: 10_000 },
   );
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [showBgTasks, setShowBgTasks] = useState(false);
   const { data: taskDetail } = useCurioRpc<HarmonyTask>(
     "HarmonyTaskDetails",
     [selectedTaskId!],
     { enabled: selectedTaskId !== null },
   );
 
+  const filteredData = useMemo(() => {
+    const tasks = data ?? [];
+    if (showBgTasks) return tasks;
+    return tasks.filter((t) => !t.Name.startsWith("bg:"));
+  }, [data, showBgTasks]);
+
   return (
-    <div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="show-bg-tasks"
+          checked={showBgTasks}
+          onChange={(e) => setShowBgTasks(e.target.checked)}
+          className="size-4 rounded border-[hsl(var(--border))] accent-[hsl(var(--primary))]"
+        />
+        <label
+          htmlFor="show-bg-tasks"
+          className="cursor-pointer text-sm text-[hsl(var(--muted-foreground))]"
+        >
+          Show background tasks
+        </label>
+      </div>
       <DataTable
         columns={columns}
-        data={data ?? []}
+        data={filteredData}
         loading={isLoading}
         searchable
         searchPlaceholder="Search tasks..."

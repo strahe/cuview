@@ -1,18 +1,69 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Monitor } from "lucide-react";
+import { Monitor, Pause, Play, RotateCcw } from "lucide-react";
 import { useMemo } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
-import { useCurioRpc } from "@/hooks/use-curio-query";
+import { Button } from "@/components/ui/button";
+import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type { MachineSummary } from "@/types/machine";
 
 export const Route = createFileRoute("/_app/machines/")({
   component: MachinesPage,
 });
+
+function MachineActions({ machine }: { machine: MachineSummary }) {
+  const invalidateKeys = [["curio", "ClusterMachines"]];
+  const cordonMutation = useCurioRpcMutation("Cordon", { invalidateKeys });
+  const uncordonMutation = useCurioRpcMutation("Uncordon", { invalidateKeys });
+  const restartMutation = useCurioRpcMutation("Restart", { invalidateKeys });
+
+  return (
+    <div
+      className="flex items-center gap-1"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {machine.Unschedulable ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          title="Uncordon"
+          onClick={() => uncordonMutation.mutate([machine.ID])}
+          disabled={uncordonMutation.isPending}
+        >
+          <Play className="size-3.5" />
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          title="Cordon"
+          onClick={() => cordonMutation.mutate([machine.ID])}
+          disabled={cordonMutation.isPending}
+        >
+          <Pause className="size-3.5" />
+        </Button>
+      )}
+      {machine.Unschedulable && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          title="Restart"
+          onClick={() => restartMutation.mutate([machine.ID])}
+          disabled={restartMutation.isPending}
+        >
+          <RotateCcw className="size-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+}
 
 const columns: ColumnDef<MachineSummary>[] = [
   {
@@ -73,6 +124,12 @@ const columns: ColumnDef<MachineSummary>[] = [
       }
       return <StatusBadge status="done" label="Online" />;
     },
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => <MachineActions machine={row.original} />,
+    size: 80,
   },
 ];
 
