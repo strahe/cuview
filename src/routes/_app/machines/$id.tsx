@@ -349,7 +349,6 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
         <div className="space-y-4">
           {storage.map((s) => {
             const usedPercent = s.UsedPercent ?? 0;
-            const groups = s.Groups ? s.Groups.split(",").filter(Boolean) : [];
             return (
               <div
                 key={s.ID}
@@ -368,51 +367,14 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                 <div className="flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
                   <span>
                     {formatBytes(s.Available)} free / {formatBytes(s.Capacity)}
-                    {s.MaxStorage > 0 && ` (max: ${formatBytes(s.MaxStorage)})`}
                   </span>
                   <span>
                     {s.CanSeal && "Seal"} {s.CanStore && "Store"}
-                    {s.Weight > 0 && ` W:${s.Weight}`}
                   </span>
-                </div>
-                {(s.Reserved > 0 || s.FSAvailable > 0) && (
-                  <div className="flex gap-3 text-xs text-[hsl(var(--muted-foreground))]">
-                    {s.Reserved > 0 && (
-                      <span>
-                        Reserved: {formatBytes(s.Reserved)} (
-                        {s.ReservedPercent.toFixed(1)}%)
-                      </span>
-                    )}
-                    {s.FSAvailable > 0 && (
-                      <span>FS Available: {formatBytes(s.FSAvailable)}</span>
-                    )}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-1">
-                  {groups.map((g) => (
-                    <Badge key={g} variant="outline" className="text-[10px]">
-                      {g}
-                    </Badge>
-                  ))}
-                  {s.AllowTypes && (
-                    <Badge variant="outline" className="text-[10px]">
-                      Allow: {s.AllowTypes}
-                    </Badge>
-                  )}
-                  {s.DenyTypes && (
-                    <Badge variant="destructive" className="text-[10px]">
-                      Deny: {s.DenyTypes}
-                    </Badge>
-                  )}
                 </div>
                 {s.HeartbeatErr && (
                   <p className="text-xs text-[hsl(var(--destructive))]">
                     ⚠ {s.HeartbeatErr}
-                  </p>
-                )}
-                {s.LastHeartbeat && (
-                  <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
-                    Last heartbeat: {new Date(s.LastHeartbeat).toLocaleString()}
                   </p>
                 )}
               </div>

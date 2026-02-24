@@ -17,6 +17,16 @@ export const Route = createFileRoute("/_app/pipeline/porep")({
 });
 
 const sectorColumns: ColumnDef<SectorListEntry>[] = [
+  {
+    id: "expand",
+    header: "",
+    cell: ({ row }) => (
+      <button onClick={() => row.toggleExpanded()} className="p-1">
+        {row.getIsExpanded() ? "▼" : "▶"}
+      </button>
+    ),
+    size: 30,
+  },
   { accessorKey: "SectorNumber", header: "Sector" },
   { accessorKey: "Address", header: "Miner" },
   { accessorKey: "CreateTime", header: "Created" },
@@ -25,19 +35,39 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
     header: "Stage",
     cell: ({ row }) => {
       const s = row.original;
+      const isRunning =
+        s.StartedSDR ||
+        s.StartedTreeRC ||
+        s.StartedPrecommitMsg ||
+        s.StartedPoRep ||
+        s.StartedCommitMsg;
       if (s.Failed) return <StatusBadge status="failed" label="Failed" />;
       if (s.AfterCommitMsgSuccess)
         return <StatusBadge status="done" label="Done" />;
-      if (s.AfterCommitMsg)
-        return <StatusBadge status="running" label="CommitMsg" />;
-      if (s.AfterPoRep) return <StatusBadge status="running" label="PoRep" />;
-      if (s.AfterPrecommitMsgSuccess)
-        return <StatusBadge status="running" label="WaitSeed" />;
-      if (s.AfterPrecommitMsg)
-        return <StatusBadge status="running" label="PreCommit" />;
-      if (s.AfterTreeR) return <StatusBadge status="running" label="Trees" />;
-      if (s.AfterSDR) return <StatusBadge status="running" label="SDR" />;
-      return <StatusBadge status="pending" label="Pending" />;
+      const label = s.AfterCommitMsg
+        ? "CommitMsg"
+        : s.AfterPoRep
+          ? "PoRep"
+          : s.AfterPrecommitMsgSuccess
+            ? "WaitSeed"
+            : s.AfterPrecommitMsg
+              ? "PreCommit"
+              : s.AfterTreeR
+                ? "Trees"
+                : s.AfterSDR
+                  ? "SDR"
+                  : "Pending";
+      return (
+        <span className="inline-flex items-center">
+          <StatusBadge
+            status={label === "Pending" ? "pending" : "running"}
+            label={label}
+          />
+          {isRunning && !s.Failed && !s.AfterCommitMsgSuccess && (
+            <span className="ml-1 inline-block size-1.5 animate-pulse rounded-full bg-green-500" />
+          )}
+        </span>
+      );
     },
   },
   {
@@ -57,65 +87,6 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
         s.TaskMoveStorage ??
         s.TaskCommitMsg;
       return tid ? <span className="font-mono text-xs">#{tid}</span> : "—";
-    },
-  },
-  {
-    id: "progress",
-    header: "Progress",
-    cell: ({ row }) => {
-      const s = row.original;
-      // Determine started vs after for current stage
-      if (s.Failed || s.AfterCommitMsgSuccess) return null;
-      if (s.AfterCommitMsg && s.StartedCommitMsg)
-        return (
-          <Badge variant="outline" className="text-[10px]">
-            Running
-          </Badge>
-        );
-      if (s.AfterPoRep && s.StartedPoRep)
-        return (
-          <Badge variant="outline" className="text-[10px]">
-            Running
-          </Badge>
-        );
-      if (s.AfterPrecommitMsg && s.StartedPrecommitMsg)
-        return (
-          <Badge variant="outline" className="text-[10px]">
-            Running
-          </Badge>
-        );
-      if (s.AfterTreeR && s.StartedTreeRC)
-        return (
-          <Badge variant="outline" className="text-[10px]">
-            Running
-          </Badge>
-        );
-      if (s.AfterSDR && s.StartedSDR)
-        return (
-          <Badge variant="outline" className="text-[10px]">
-            Running
-          </Badge>
-        );
-      return (
-        <Badge variant="secondary" className="text-[10px]">
-          Waiting
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "msgCids",
-    header: "Messages",
-    cell: ({ row }) => {
-      const s = row.original;
-      const cids: string[] = [];
-      if (s.PreCommitMsgCid) cids.push(`PC:${s.PreCommitMsgCid.slice(0, 10)}`);
-      if (s.CommitMsgCid) cids.push(`C:${s.CommitMsgCid.slice(0, 10)}`);
-      return cids.length > 0 ? (
-        <span className="font-mono text-[10px]">{cids.join(" ")}</span>
-      ) : (
-        "—"
-      );
     },
   },
   {
@@ -154,11 +125,6 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
     },
   },
   {
-    id: "seedEpoch",
-    header: "Seed",
-    cell: ({ row }) => (row.original.SeedEpoch ? row.original.SeedEpoch : "—"),
-  },
-  {
     accessorKey: "FailedReason",
     header: "Error",
     cell: ({ row }) =>
@@ -174,6 +140,43 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
       ),
   },
 ];
+
+function SectorSubRow({ row }: { row: any }) {
+  const s = row.original;
+  const started = [
+    s.StartedSDR && "SDR",
+    s.StartedTreeRC && "TreeRC",
+    s.StartedPrecommitMsg && "PreCommit",
+    s.StartedPoRep && "PoRep",
+    s.StartedCommitMsg && "Commit",
+  ].filter(Boolean);
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">
+          PreCommit Msg:
+        </span>{" "}
+        <span className="font-mono">
+          {s.PreCommitMsgCid?.slice(0, 16) || "—"}
+        </span>
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Commit Msg:</span>{" "}
+        <span className="font-mono">{s.CommitMsgCid?.slice(0, 16) || "—"}</span>
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Seed Epoch:</span>{" "}
+        {s.SeedEpoch || "—"}
+      </div>
+      {started.length > 0 && (
+        <div>
+          <span className="text-[hsl(var(--muted-foreground))]">Running:</span>{" "}
+          {started.join(", ")}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PoRepPage() {
   const { data: summaryData, isLoading: summaryLoading } = useCurioRpc<
@@ -338,6 +341,8 @@ function PoRepPage() {
             searchPlaceholder="Search sectors..."
             searchColumn="Address"
             emptyMessage="No active pipeline sectors"
+            getRowCanExpand={() => true}
+            renderSubComponent={SectorSubRow}
           />
         </CardContent>
       </Card>

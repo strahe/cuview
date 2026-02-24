@@ -44,6 +44,16 @@ interface MK20PDPFailedStats {
 
 const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
   {
+    id: "expand",
+    header: "",
+    cell: ({ row }) => (
+      <button onClick={() => row.toggleExpanded()} className="p-1">
+        {row.getIsExpanded() ? "▼" : "▶"}
+      </button>
+    ),
+    size: 30,
+  },
+  {
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => (
@@ -67,66 +77,9 @@ const pipelineColumns: ColumnDef<Mk20Pipeline>[] = [
     ),
   },
   {
-    accessorKey: "contract",
-    header: "Contract",
-    cell: ({ row }) => {
-      const c = row.original.contract;
-      return c ? (
-        <span className="font-mono text-xs" title={c}>
-          {c.slice(0, 10)}…
-        </span>
-      ) : (
-        "—"
-      );
-    },
-  },
-  {
-    accessorKey: "piece_cid",
-    header: "Piece CID",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs" title={row.original.piece_cid}>
-        {row.original.piece_cid.slice(0, 12)}…
-      </span>
-    ),
-  },
-  {
     accessorKey: "piece_size",
     header: "Size",
     cell: ({ row }) => formatBytes(row.original.piece_size),
-  },
-  {
-    accessorKey: "raw_size",
-    header: "Raw Size",
-    cell: ({ row }) => formatBytes(row.original.raw_size),
-  },
-  {
-    accessorKey: "url",
-    header: "URL",
-    cell: ({ row }) => {
-      const u = row.original.url;
-      return u ? (
-        <span className="font-mono text-xs" title={u}>
-          {u.slice(0, 20)}…
-        </span>
-      ) : (
-        "—"
-      );
-    },
-  },
-  {
-    accessorKey: "allocation_id",
-    header: "Allocation",
-    cell: ({ row }) => {
-      const a = row.original.allocation_id;
-      return a != null ? <span className="font-mono text-xs">{a}</span> : "—";
-    },
-  },
-  {
-    accessorKey: "duration",
-    header: "Duration",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.duration}</span>
-    ),
   },
   {
     accessorKey: "sector",
@@ -207,6 +160,42 @@ const dealColumns: ColumnDef<MK20DealItem>[] = [
   },
   { accessorKey: "created_at", header: "Created" },
 ];
+
+function PipelineSubRow({ row }: { row: any }) {
+  const d = row.original;
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Contract:</span>{" "}
+        <span className="font-mono" title={d.contract}>
+          {d.contract?.slice(0, 16)}
+        </span>
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Piece CID:</span>{" "}
+        <span className="font-mono" title={d.piece_cid}>
+          {d.piece_cid?.slice(0, 16)}
+        </span>
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Raw Size:</span>{" "}
+        {d.raw_size ? formatBytes(d.raw_size) : "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">URL:</span>{" "}
+        {d.url ? <span title={d.url}>{d.url.slice(0, 40)}</span> : "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Allocation:</span>{" "}
+        {d.allocation_id ?? "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Duration:</span>{" "}
+        {d.duration ?? "—"}
+      </div>
+    </div>
+  );
+}
 
 function MK20DealsPage() {
   const [tab, setTab] = useState("pipelines");
@@ -444,6 +433,8 @@ function MK20DealsPage() {
               searchPlaceholder="Search pipelines..."
               searchColumn="client"
               emptyMessage="No MK20 deal pipelines"
+              getRowCanExpand={() => true}
+              renderSubComponent={PipelineSubRow}
             />
           )}
           {tab === "deals" && (

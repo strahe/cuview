@@ -31,6 +31,16 @@ interface StorageDealListItem {
 
 const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
   {
+    id: "expand",
+    header: "",
+    cell: ({ row }) => (
+      <button onClick={() => row.toggleExpanded()} className="p-1">
+        {row.getIsExpanded() ? "▼" : "▶"}
+      </button>
+    ),
+    size: 30,
+  },
+  {
     accessorKey: "uuid",
     header: "UUID",
     cell: ({ row }) => (
@@ -61,54 +71,6 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
     cell: ({ row }) => formatBytes(row.original.piece_size),
   },
   {
-    id: "offline",
-    header: "Offline",
-    cell: ({ row }) =>
-      row.original.offline ? (
-        <StatusBadge status="pending" label="Offline" />
-      ) : null,
-  },
-  {
-    id: "raw_size",
-    header: "Raw Size",
-    cell: ({ row }) =>
-      row.original.raw_size != null ? formatBytes(row.original.raw_size) : "—",
-  },
-  {
-    id: "sector",
-    header: "Sector",
-    cell: ({ row }) =>
-      row.original.sector != null ? row.original.sector : "—",
-  },
-  {
-    id: "url",
-    header: "URL",
-    cell: ({ row }) => {
-      const url = row.original.url;
-      if (!url) return "—";
-      return (
-        <span className="font-mono text-xs" title={url}>
-          {url.length > 30 ? `${url.slice(0, 30)}…` : url}
-        </span>
-      );
-    },
-  },
-  {
-    id: "piece_cid_v2",
-    header: "CID v2",
-    cell: ({ row }) => {
-      const v2 = row.original.piece_cid_v2;
-      if (!v2 || v2 === row.original.piece_cid) return "—";
-      return <span className="font-mono text-xs">{v2.slice(0, 12)}…</span>;
-    },
-  },
-  {
-    id: "announce",
-    header: "Announce",
-    cell: ({ row }) =>
-      row.original.announce ? <StatusBadge status="done" label="Yes" /> : "—",
-  },
-  {
     id: "stage",
     header: "Stage",
     cell: ({ row }) => {
@@ -128,7 +90,6 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
     cell: ({ row }) =>
       row.original.indexed ? <StatusBadge status="done" label="Yes" /> : "—",
   },
-  { accessorKey: "created_at", header: "Created" },
   {
     id: "actions",
     header: "",
@@ -204,6 +165,38 @@ const dealColumns: ColumnDef<StorageDealListItem>[] = [
   },
   { accessorKey: "created_at", header: "Created" },
 ];
+
+function PipelineSubRow({ row }: { row: any }) {
+  const d = row.original;
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Offline:</span>{" "}
+        {d.offline ? "Yes" : "No"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Raw Size:</span>{" "}
+        {d.raw_size ? formatBytes(d.raw_size) : "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Sector:</span>{" "}
+        {d.sector ?? "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">URL:</span>{" "}
+        {d.url ? <span title={d.url}>{d.url.slice(0, 40)}</span> : "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">CID v2:</span>{" "}
+        {d.piece_cid_v2 || "—"}
+      </div>
+      <div>
+        <span className="text-[hsl(var(--muted-foreground))]">Announce:</span>{" "}
+        {d.announce ? "Yes" : "No"}
+      </div>
+    </div>
+  );
+}
 
 function MK12DealsPage() {
   const [tab, setTab] = useState("pipelines");
@@ -356,6 +349,8 @@ function MK12DealsPage() {
               searchPlaceholder="Search pipelines..."
               searchColumn="piece_cid"
               emptyMessage="No MK12 deal pipelines"
+              getRowCanExpand={() => true}
+              renderSubComponent={PipelineSubRow}
               meta={{
                 onRemove: (id: string) => removePipelineMutation.mutate([id]),
               }}

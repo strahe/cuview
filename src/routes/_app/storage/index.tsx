@@ -104,8 +104,6 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     ),
   },
   { accessorKey: "CapacityStr", header: "Capacity" },
-  { accessorKey: "UsedStr", header: "Used" },
-  { accessorKey: "AvailableStr", header: "Available" },
   {
     accessorKey: "UsedPercent",
     header: "Usage",
@@ -124,6 +122,7 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
       );
     },
   },
+  { accessorKey: "AvailableStr", header: "Available" },
   {
     accessorKey: "HealthStatus",
     header: "Health",
@@ -137,131 +136,6 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
     ),
   },
   {
-    accessorKey: "Weight",
-    header: "Weight",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.Weight ?? "—"}</span>
-    ),
-  },
-  {
-    accessorKey: "MaxStorageStr",
-    header: "Max Storage",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.MaxStorageStr || "—"}</span>
-    ),
-  },
-  {
-    accessorKey: "FSAvailableStr",
-    header: "FS Available",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.FSAvailableStr || "—"}</span>
-    ),
-  },
-  {
-    id: "reserved",
-    header: "Reserved",
-    cell: ({ row }) => {
-      const r = row.original;
-      if (!r.ReservedStr) return <span className="text-xs">—</span>;
-      return (
-        <span className="text-xs">
-          {r.ReservedStr} ({r.ReservedPercent?.toFixed(1) ?? 0}%)
-        </span>
-      );
-    },
-  },
-  {
-    id: "groups",
-    header: "Groups",
-    cell: ({ row }) => {
-      const groups = row.original.GroupList;
-      if (!groups || groups.length === 0)
-        return <span className="text-xs">—</span>;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {groups.map((g) => (
-            <Badge key={g} variant="outline" className="text-xs">
-              {g}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "allowTo",
-    header: "Allow To",
-    cell: ({ row }) => {
-      const list = row.original.AllowToList;
-      if (!list || list.length === 0) return <span className="text-xs">—</span>;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {list.map((v) => (
-            <Badge key={v} variant="outline" className="text-xs">
-              {v}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "typeRules",
-    header: "Type Rules",
-    cell: ({ row }) => {
-      const allow = row.original.AllowTypesList;
-      const deny = row.original.DenyTypesList;
-      if ((!allow || allow.length === 0) && (!deny || deny.length === 0))
-        return <span className="text-xs">—</span>;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {allow?.map((t) => (
-            <Badge
-              key={`a-${t}`}
-              variant="outline"
-              className="text-xs text-green-600"
-            >
-              +{t}
-            </Badge>
-          ))}
-          {deny?.map((t) => (
-            <Badge key={`d-${t}`} variant="destructive" className="text-xs">
-              −{t}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "minerRules",
-    header: "Miner Rules",
-    cell: ({ row }) => {
-      const allow = row.original.AllowMinersList;
-      const deny = row.original.DenyMinersList;
-      if ((!allow || allow.length === 0) && (!deny || deny.length === 0))
-        return <span className="text-xs">—</span>;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {allow?.map((m) => (
-            <Badge
-              key={`a-${m}`}
-              variant="outline"
-              className="text-xs text-green-600"
-            >
-              +{m}
-            </Badge>
-          ))}
-          {deny?.map((m) => (
-            <Badge key={`d-${m}`} variant="destructive" className="text-xs">
-              −{m}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
     id: "hosts",
     header: "Hosts",
     cell: ({ row }) => (
@@ -269,26 +143,6 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
         {row.original.HostList?.join(", ") || "—"}
       </span>
     ),
-  },
-  {
-    accessorKey: "LastHeartbeat",
-    header: "Last Heartbeat",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.LastHeartbeat || "—"}</span>
-    ),
-  },
-  {
-    accessorKey: "HeartbeatErr",
-    header: "Heartbeat Error",
-    cell: ({ row }) => {
-      const err = row.original.HeartbeatErr;
-      if (!err) return <span className="text-xs">—</span>;
-      return (
-        <span className="text-xs text-[hsl(var(--destructive))]" title={err}>
-          {err.length > 30 ? `${err.slice(0, 30)}…` : err}
-        </span>
-      );
-    },
   },
 ];
 

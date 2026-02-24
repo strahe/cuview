@@ -104,7 +104,6 @@ const pendingMsgColumns: ColumnDef<PendingMessage>[] = [
 ];
 
 const balanceRuleColumns: ColumnDef<BalanceManagerRule>[] = [
-  { accessorKey: "id", header: "ID" },
   {
     accessorKey: "subject_address",
     header: "Subject",
@@ -130,30 +129,6 @@ const balanceRuleColumns: ColumnDef<BalanceManagerRule>[] = [
     accessorKey: "high_watermark",
     header: "High Mark",
     cell: ({ row }) => formatFilecoin(row.original.high_watermark),
-  },
-  {
-    accessorKey: "last_msg_cid",
-    header: "Last Msg",
-    cell: ({ row }) =>
-      row.original.last_msg_cid ? (
-        <span className="font-mono text-xs" title={row.original.last_msg_cid}>
-          {row.original.last_msg_cid.slice(0, 12)}…
-        </span>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    accessorKey: "last_msg_landed_at",
-    header: "Last Landed",
-    cell: ({ row }) =>
-      row.original.last_msg_landed_at ? (
-        <span className="text-xs">
-          {new Date(row.original.last_msg_landed_at).toLocaleString()}
-        </span>
-      ) : (
-        "—"
-      ),
   },
 ];
 

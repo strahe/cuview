@@ -75,29 +75,6 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
       />
     ),
   },
-  {
-    accessorKey: "comment_count",
-    header: "Comments",
-    cell: ({ row }) => {
-      const count = row.original.comment_count ?? 0;
-      return count > 0 ? (
-        <Badge variant="secondary" className="gap-1">
-          <MessageSquare className="size-3" />
-          {count}
-        </Badge>
-      ) : null;
-    },
-  },
-  {
-    accessorKey: "sent_to_plugins",
-    header: "Notified",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.sent_to_plugins ? "done" : "warning"}
-        label={row.original.sent_to_plugins ? "Sent" : "No"}
-      />
-    ),
-  },
 ];
 
 interface MuteTableMeta {

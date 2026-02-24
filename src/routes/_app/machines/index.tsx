@@ -33,13 +33,6 @@ const columns: ColumnDef<MachineSummary>[] = [
     ),
   },
   {
-    accessorKey: "Address",
-    header: "Address",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.Address}</span>
-    ),
-  },
-  {
     accessorKey: "Cpu",
     header: "CPU",
   },
@@ -58,17 +51,6 @@ const columns: ColumnDef<MachineSummary>[] = [
   {
     accessorKey: "SinceContact",
     header: "Last Contact",
-  },
-  {
-    accessorKey: "Uptime",
-    header: "Uptime",
-  },
-  {
-    accessorKey: "Layers",
-    header: "Layers",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.Layers || "—"}</span>
-    ),
   },
   {
     id: "status",
