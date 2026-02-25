@@ -45,11 +45,10 @@ export async function fetchConfigSchema(
   api: CurioApiService,
   signal?: AbortSignal,
 ): Promise<ConfigSchemaDocument | null> {
-  const response = await api.restGet<ConfigSchemaDocument>(
-    "/api/config/schema",
-    { signal },
-  );
-  return response ?? null;
+  const response = await api.restGet<unknown>("/api/config/schema", {
+    signal,
+  });
+  return normalizeConfigSchemaResponse(response);
 }
 
 export async function fetchConfigLayer(
@@ -109,4 +108,44 @@ export async function fetchConfigHistoryEntry(
     { signal },
   );
   return response ?? null;
+}
+
+function normalizeConfigSchemaResponse(
+  response: unknown,
+): ConfigSchemaDocument | null {
+  if (isConfigSchemaDocument(response)) {
+    return response;
+  }
+  if (typeof response !== "object" || response === null) {
+    return null;
+  }
+
+  const wrapped = response as {
+    schema?: unknown;
+    Schema?: unknown;
+  };
+
+  if (isConfigSchemaDocument(wrapped.schema)) {
+    return wrapped.schema;
+  }
+  if (isConfigSchemaDocument(wrapped.Schema)) {
+    return wrapped.Schema;
+  }
+  return null;
+}
+
+function isConfigSchemaDocument(value: unknown): value is ConfigSchemaDocument {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    "$schema" in candidate ||
+    "properties" in candidate ||
+    "$defs" in candidate ||
+    "definitions" in candidate ||
+    "$ref" in candidate ||
+    "type" in candidate
+  );
 }
