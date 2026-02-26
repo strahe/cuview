@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   Bell,
+  BellRing,
   ChevronLeft,
   Menu,
   Moon,
@@ -54,6 +55,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { data: alertCount } = useCurioRpc<number>("AlertPendingCount", [], {
     refetchInterval: 30_000,
   });
+  const hasActiveAlerts = (alertCount ?? 0) > 0;
 
   const openSearch = useCallback(() => {
     // Trigger ⌘K which AppQuickSearch listens for
@@ -141,14 +143,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
               )}
               <Link
                 to="/alerts"
-                className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-xs ${
-                  alertCount != null && alertCount > 0
-                    ? "bg-destructive/[0.1] text-destructive"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-2 py-0.5 text-xs",
+                  hasActiveAlerts
+                    ? "border border-destructive/30 bg-destructive/10 text-destructive"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
-                <Bell className="size-3" />
-                {alertCount != null && alertCount > 0 ? alertCount : ""}
+                {hasActiveAlerts ? (
+                  <BellRing className="size-3.5" />
+                ) : (
+                  <Bell className="size-3" />
+                )}
+                {hasActiveAlerts ? alertCount : ""}
               </Link>
             </div>
 

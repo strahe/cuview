@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import type { ActorSummaryData } from "@/types/actor";
 import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
+import type { PipelineWaterfallStats } from "@/types/pipeline";
 import type { StorageUseStat } from "@/types/storage";
 import type { SyncerStateItem } from "@/types/sync";
 import type { TaskHistorySummary, TaskSummary } from "@/types/task";
+import type { WalletInfo } from "@/types/wallet";
 import { formatBytes, formatNumber, formatPercentage } from "@/utils/format";
 
 export interface DashboardMetrics {
@@ -18,6 +20,16 @@ export interface DashboardMetrics {
   storageCapacityLabel: string;
   storageAvailableLabel: string;
   actorCount: number;
+  totalQaP: string;
+  totalRawPower: string;
+  wins1d: number;
+  wins7d: number;
+  wins30d: number;
+  pipelineActive: number;
+  pipelinePorepActive: number;
+  pipelineSnapActive: number;
+  pipelineFailed: number;
+  alertPending: number;
 }
 
 export interface HeroCard {
@@ -52,6 +64,22 @@ export function useDashboardSummary() {
     [20, 0],
     { refetchInterval: 20_000 },
   );
+  const alertPending = useCurioRpc<number>("AlertPendingCount", [], {
+    refetchInterval: 15_000,
+  });
+  const pipelinePorepStats = useCurioRpc<PipelineWaterfallStats>(
+    "PipelineStatsSDR",
+    [],
+    { refetchInterval: 30_000 },
+  );
+  const pipelineSnapStats = useCurioRpc<PipelineWaterfallStats>(
+    "PipelineStatsSnap",
+    [],
+    { refetchInterval: 30_000 },
+  );
+  const wallets = useCurioRpc<WalletInfo[]>("Wallets", [], {
+    refetchInterval: 60_000,
+  });
 
   const loading =
     machines.isLoading ||
@@ -89,6 +117,39 @@ export function useDashboardSummary() {
     const used = Math.max(capacity - available, 0);
     const usagePercent = capacity === 0 ? 0 : (used / capacity) * 100;
 
+    // Aggregate actor power and wins
+    const actorList = actors.data ?? [];
+    let totalQaP = BigInt(0);
+    let totalRaw = BigInt(0);
+    let w1 = 0;
+    let w7 = 0;
+    let w30 = 0;
+    for (const a of actorList) {
+      try {
+        totalQaP += BigInt(a.QualityAdjustedPower || "0");
+      } catch {
+        /* ignore parse errors */
+      }
+      try {
+        totalRaw += BigInt(a.RawBytePower || "0");
+      } catch {
+        /* ignore parse errors */
+      }
+      w1 += a.Win1 || 0;
+      w7 += a.Win7 || 0;
+      w30 += a.Win30 || 0;
+    }
+
+    // Pipeline active counts
+    const porepActive = pipelinePorepStats.data?.Total ?? 0;
+    const snapActive = pipelineSnapStats.data?.Total ?? 0;
+    const porepFailed =
+      pipelinePorepStats.data?.Stages?.find((s) => s.Name === "Failed")
+        ?.Pending ?? 0;
+    const snapFailed =
+      pipelineSnapStats.data?.Stages?.find((s) => s.Name === "Failed")
+        ?.Pending ?? 0;
+
     return {
       machinesOnline: online,
       machinesTotal: total,
@@ -99,7 +160,17 @@ export function useDashboardSummary() {
       storageUsedLabel: formatBytes(used),
       storageCapacityLabel: formatBytes(capacity),
       storageAvailableLabel: formatBytes(available),
-      actorCount: actors.data?.length ?? 0,
+      actorCount: actorList.length,
+      totalQaP: formatPower(totalQaP),
+      totalRawPower: formatPower(totalRaw),
+      wins1d: w1,
+      wins7d: w7,
+      wins30d: w30,
+      pipelineActive: porepActive + snapActive,
+      pipelinePorepActive: porepActive,
+      pipelineSnapActive: snapActive,
+      pipelineFailed: porepFailed + snapFailed,
+      alertPending: alertPending.data ?? 0,
     };
   }, [
     machines.data,
@@ -107,13 +178,30 @@ export function useDashboardSummary() {
     storageStats.data,
     actors.data,
     taskSummary.data,
+    pipelinePorepStats.data,
+    pipelineSnapStats.data,
+    alertPending.data,
   ]);
 
   const heroCards = useMemo<HeroCard[]>(
     () => [
       {
+        id: "power",
+        label: "Total Power",
+        value: metrics.totalQaP,
+        subtitle: `Raw ${metrics.totalRawPower}`,
+        status: "info",
+      },
+      {
+        id: "wins",
+        label: "Block Wins (24h)",
+        value: formatNumber(metrics.wins1d),
+        subtitle: `7d: ${metrics.wins7d} · 30d: ${metrics.wins30d}`,
+        status: metrics.wins1d > 0 ? "success" : "warning",
+      },
+      {
         id: "machines",
-        label: "Machines Online",
+        label: "Machines",
         value: `${metrics.machinesOnline}/${metrics.machinesTotal}`,
         subtitle: `Health ${formatPercentage(metrics.machineHealth, 0)}`,
         status: metrics.machineHealth >= 80 ? "success" : "warning",
@@ -127,17 +215,22 @@ export function useDashboardSummary() {
       },
       {
         id: "storage",
-        label: "Storage Used",
+        label: "Storage",
         value: metrics.storageUsedLabel,
-        subtitle: `Total ${metrics.storageCapacityLabel}`,
-        status: "info",
+        subtitle: `of ${metrics.storageCapacityLabel}`,
+        status:
+          metrics.storageUsagePercent >= 95
+            ? "warning"
+            : metrics.storageUsagePercent >= 80
+              ? "info"
+              : "success",
       },
       {
-        id: "actors",
-        label: "Storage Providers",
-        value: formatNumber(metrics.actorCount),
-        subtitle: "Registered actors",
-        status: "success",
+        id: "pipeline",
+        label: "Pipeline",
+        value: formatNumber(metrics.pipelineActive),
+        subtitle: `PoRep: ${metrics.pipelinePorepActive} · Snap: ${metrics.pipelineSnapActive}`,
+        status: metrics.pipelineFailed > 0 ? "warning" : "info",
       },
     ],
     [metrics],
@@ -162,6 +255,10 @@ export function useDashboardSummary() {
       syncerState.refetch(),
       taskSummary.refetch(),
       taskHistory.refetch(),
+      alertPending.refetch(),
+      pipelinePorepStats.refetch(),
+      pipelineSnapStats.refetch(),
+      wallets.refetch(),
     ]);
   };
 
@@ -183,6 +280,34 @@ export function useDashboardSummary() {
     actorsLoading: actors.isLoading,
     syncerState: syncerState.data ?? [],
     syncLoading: syncerState.isLoading,
+    pipelinePorepStats: pipelinePorepStats.data ?? null,
+    pipelineSnapStats: pipelineSnapStats.data ?? null,
+    pipelineLoading:
+      pipelinePorepStats.isLoading || pipelineSnapStats.isLoading,
+    wallets: wallets.data ?? [],
+    walletsLoading: wallets.isLoading,
     refresh,
   };
+}
+
+/** Format bigint power to human-readable string (e.g., "15.2 PiB") */
+function formatPower(bytes: bigint): string {
+  if (bytes === BigInt(0)) return "0 B";
+  const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+  const k = BigInt(1024);
+  let unitIndex = 0;
+  let current = bytes;
+  while (current >= k * BigInt(1024) && unitIndex < units.length - 1) {
+    current = current / k;
+    unitIndex++;
+  }
+  // Final division with decimal precision
+  const whole = Number(current / k);
+  const remainder = Number((current % k) * BigInt(100)) / Number(k);
+  unitIndex++;
+  if (unitIndex >= units.length) {
+    return `${whole} ${units[units.length - 1]}`;
+  }
+  const val = whole + remainder / 100;
+  return `${val.toFixed(val >= 100 ? 0 : val >= 10 ? 1 : 2)} ${units[unitIndex]}`;
 }

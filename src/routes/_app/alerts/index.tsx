@@ -49,13 +49,25 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
     accessorKey: "Message",
     header: "Message",
     cell: ({ row }) => (
-      <span className="max-w-md truncate text-sm">{row.original.Message}</span>
+      <div
+        className="max-w-[28rem] truncate text-sm"
+        title={row.original.Message}
+      >
+        {row.original.Message}
+      </div>
     ),
   },
   {
     accessorKey: "MachineName",
     header: "Machine",
-    cell: ({ row }) => <span>{row.original.MachineName ?? "—"}</span>,
+    cell: ({ row }) => (
+      <div
+        className="max-w-[12rem] truncate"
+        title={row.original.MachineName ?? "—"}
+      >
+        {row.original.MachineName ?? "—"}
+      </div>
+    ),
   },
   {
     accessorKey: "CreatedAt",
@@ -94,8 +106,27 @@ interface MuteTableMeta {
 
 const muteColumns: ColumnDef<AlertMute>[] = [
   { accessorKey: "AlertName", header: "Category" },
-  { accessorKey: "Pattern", header: "Pattern" },
-  { accessorKey: "Reason", header: "Reason" },
+  {
+    accessorKey: "Pattern",
+    header: "Pattern",
+    cell: ({ row }) => (
+      <div
+        className="max-w-[18rem] truncate"
+        title={row.original.Pattern ?? ""}
+      >
+        {row.original.Pattern || "—"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "Reason",
+    header: "Reason",
+    cell: ({ row }) => (
+      <div className="max-w-[18rem] truncate" title={row.original.Reason ?? ""}>
+        {row.original.Reason || "—"}
+      </div>
+    ),
+  },
   { accessorKey: "MutedBy", header: "Muted By" },
   {
     accessorKey: "Active",
@@ -262,7 +293,7 @@ function AlertsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 overflow-x-hidden p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Bell className="size-5" />
@@ -303,7 +334,7 @@ function AlertsPage() {
       {categories && categories.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <Badge key={cat} variant="outline">
+            <Badge key={cat} variant="outline" className="break-all">
               {cat}
             </Badge>
           ))}

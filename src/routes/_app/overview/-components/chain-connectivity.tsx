@@ -12,10 +12,10 @@ interface ChainConnectivityProps {
 export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
   if (loading) {
     return (
-      <SectionCard title="Chain Connectivity" icon={Link2}>
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+      <SectionCard title="Chain Endpoints" icon={Link2}>
+        <div className="space-y-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-full" />
           ))}
         </div>
       </SectionCard>
@@ -24,7 +24,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
 
   if (!data.length) {
     return (
-      <SectionCard title="Chain Connectivity" icon={Link2}>
+      <SectionCard title="Chain Endpoints" icon={Link2}>
         <p className="text-sm text-muted-foreground">
           No chain endpoints configured
         </p>
@@ -33,50 +33,28 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
   }
 
   return (
-    <SectionCard title="Chain Connectivity" icon={Link2}>
-      <div className="space-y-2">
+    <SectionCard title="Chain Endpoints" icon={Link2}>
+      <div className="space-y-1.5">
         {data.map((item, i) => (
           <div
             key={i}
-            className="flex flex-col gap-1 rounded-md border border-border px-3 py-2"
+            className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
           >
-            <div className="flex items-center justify-between">
-              <span className="truncate text-sm font-mono">
-                {item.Address || "Unknown"}
-              </span>
+            <span className="min-w-0 flex-1 truncate font-mono text-xs">
+              {item.Address || "Unknown"}
+            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              {item.Reachable && item.SyncState && (
+                <span className="text-xs text-muted-foreground">
+                  {item.SyncState}
+                </span>
+              )}
               <StatusBadge
                 status={item.Reachable ? "success" : "error"}
-                label={item.Reachable ? "Connected" : "Unreachable"}
+                label={item.Reachable ? "OK" : "Down"}
+                className="text-[10px]"
               />
             </div>
-            {item.Reachable && (
-              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                {item.SyncState && (
-                  <span>
-                    Sync:{" "}
-                    <span className="font-medium text-foreground">
-                      {item.SyncState}
-                    </span>
-                  </span>
-                )}
-                {item.Version && (
-                  <span>
-                    Version:{" "}
-                    <span className="font-medium text-foreground">
-                      {item.Version}
-                    </span>
-                  </span>
-                )}
-                {item.CLayers && item.CLayers.length > 0 && (
-                  <span>
-                    Layers:{" "}
-                    <span className="font-medium text-foreground">
-                      {item.CLayers.join(", ")}
-                    </span>
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         ))}
       </div>

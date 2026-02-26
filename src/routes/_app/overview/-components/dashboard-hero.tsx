@@ -25,46 +25,49 @@ export function DashboardHero({
 }: DashboardHeroProps) {
   if (loading && cards.every((c) => c.value === "0" || c.value === "0/0")) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="px-5 py-4">
-              <Skeleton className="mb-2 h-4 w-24" />
-              <Skeleton className="mb-1 h-8 w-16" />
-              <Skeleton className="h-3 w-32" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="px-4 py-3">
+                <Skeleton className="mb-1.5 h-3 w-20" />
+                <Skeleton className="mb-1 h-7 w-14" />
+                <Skeleton className="h-3 w-28" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Curio cluster overview
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Cluster Overview</h1>
         <Button variant="outline" size="sm" onClick={onRefresh}>
           <RefreshCw className="size-4" />
           Refresh
         </Button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map((card) => (
           <Card
             key={card.id}
             className={cn("border-l-4", statusColors[card.status])}
           >
-            <CardContent className="px-5 py-4">
-              <p className="text-sm font-medium text-muted-foreground">
+            <CardContent className="px-4 py-3">
+              <p className="text-xs font-medium text-muted-foreground">
                 {card.label}
               </p>
-              <p className="mt-2 text-2xl font-bold">{card.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xl font-bold leading-tight">
+                {card.value}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {card.subtitle}
               </p>
             </CardContent>

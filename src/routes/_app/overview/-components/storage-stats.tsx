@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { HardDrive } from "lucide-react";
 import { ProgressStat } from "@/components/composed/progress-stat";
 import { SectionCard } from "@/components/composed/section-card";
@@ -13,10 +14,10 @@ interface StorageStatsProps {
 export function StorageStats({ data, loading }: StorageStatsProps) {
   if (loading) {
     return (
-      <SectionCard title="Storage Usage" icon={HardDrive}>
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-full" />
+      <SectionCard title="Storage" icon={HardDrive}>
+        <div className="space-y-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-7 w-full" />
           ))}
         </div>
       </SectionCard>
@@ -25,7 +26,7 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
 
   if (!data.length) {
     return (
-      <SectionCard title="Storage Usage" icon={HardDrive}>
+      <SectionCard title="Storage" icon={HardDrive}>
         <p className="text-sm text-muted-foreground">
           No storage data available
         </p>
@@ -34,8 +35,19 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
   }
 
   return (
-    <SectionCard title="Storage Usage" icon={HardDrive}>
-      <div className="space-y-4">
+    <SectionCard
+      title="Storage"
+      icon={HardDrive}
+      action={
+        <Link
+          to="/storage"
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          View all →
+        </Link>
+      }
+    >
+      <div className="space-y-3">
         {data.map((stat, i) => {
           const used = Math.max(stat.Capacity - stat.Available, 0);
           const usagePercent =

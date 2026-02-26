@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -20,7 +21,7 @@ export function DashboardRecentTasks({
       <SectionCard title="Recent Tasks" icon={Zap}>
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton key={i} className="h-8 w-full" />
           ))}
         </div>
       </SectionCard>
@@ -44,7 +45,18 @@ export function DashboardRecentTasks({
   }
 
   return (
-    <SectionCard title="Recent Tasks" icon={Zap}>
+    <SectionCard
+      title="Recent Tasks"
+      icon={Zap}
+      action={
+        <Link
+          to="/tasks/history"
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          View all →
+        </Link>
+      }
+    >
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -59,7 +71,7 @@ export function DashboardRecentTasks({
             </tr>
           </thead>
           <tbody>
-            {data.map((task) => (
+            {data.slice(0, 10).map((task) => (
               <tr
                 key={task.TaskID}
                 className="border-b border-border/50 last:border-0 hover:bg-muted/50"
@@ -70,8 +82,10 @@ export function DashboardRecentTasks({
                     label={task.Result ? "OK" : "Fail"}
                   />
                 </td>
-                <td className="py-1.5 pr-3 font-medium">{task.Name}</td>
-                <td className="py-1.5 pr-3 text-muted-foreground">
+                <td className="max-w-[14rem] truncate py-1.5 pr-3 font-medium">
+                  {task.Name}
+                </td>
+                <td className="max-w-[10rem] truncate py-1.5 pr-3 text-muted-foreground">
                   {task.CompletedBy || "—"}
                 </td>
                 <td className="py-1.5 pr-3 text-xs text-muted-foreground">
@@ -83,7 +97,10 @@ export function DashboardRecentTasks({
                 <td className="py-1.5 pr-3 text-xs text-muted-foreground">
                   {task.Took || "—"}
                 </td>
-                <td className="max-w-[200px] truncate py-1.5 text-xs text-destructive">
+                <td
+                  className="max-w-[12rem] truncate py-1.5 text-xs text-destructive"
+                  title={task.Err || ""}
+                >
                   {task.Err || ""}
                 </td>
               </tr>
