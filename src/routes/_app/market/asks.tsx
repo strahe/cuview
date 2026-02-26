@@ -73,8 +73,8 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="space-y-1">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Miner</label>
             <Input
               placeholder="f0..."
@@ -83,7 +83,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
               className="w-32 font-mono text-xs"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Price</label>
             <Input
               placeholder="0"
@@ -92,7 +92,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
               className="w-28"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">
               Verified Price
             </label>
@@ -103,7 +103,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
               className="w-28"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Min Size</label>
             <Input
               placeholder="256B"
@@ -112,7 +112,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
               className="w-24"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Max Size</label>
             <Input
               placeholder="32GiB"

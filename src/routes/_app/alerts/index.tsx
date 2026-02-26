@@ -34,6 +34,7 @@ import type {
   AlertHistoryListResult,
   AlertMute,
 } from "@/types/alert";
+import { formatDateTime } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/alerts/")({
   component: AlertsPage,
@@ -41,37 +42,46 @@ export const Route = createFileRoute("/_app/alerts/")({
 
 const alertColumns: ColumnDef<AlertHistoryItem>[] = [
   {
-    accessorKey: "severity",
-    header: "Severity",
-    cell: ({ row }) => {
-      const s = row.original.severity;
-      return (
-        <StatusBadge
-          status={
-            s === "critical" ? "failed" : s === "warning" ? "warning" : "info"
-          }
-          label={s}
-        />
-      );
-    },
+    accessorKey: "AlertName",
+    header: "Category",
   },
-  { accessorKey: "category", header: "Category" },
   {
-    accessorKey: "message",
+    accessorKey: "Message",
     header: "Message",
     cell: ({ row }) => (
-      <span className="max-w-md truncate text-sm">{row.original.message}</span>
+      <span className="max-w-md truncate text-sm">{row.original.Message}</span>
     ),
   },
-  { accessorKey: "machine_name", header: "Machine" },
-  { accessorKey: "created_at", header: "Time" },
   {
-    accessorKey: "acknowledged",
+    accessorKey: "MachineName",
+    header: "Machine",
+    cell: ({ row }) => <span>{row.original.MachineName ?? "—"}</span>,
+  },
+  {
+    accessorKey: "CreatedAt",
+    header: "Time",
+    cell: ({ row }) => <span>{formatDateTime(row.original.CreatedAt)}</span>,
+  },
+  {
+    accessorKey: "CommentCount",
+    header: "Comments",
+    cell: ({ row }) => {
+      const count = row.original.CommentCount;
+      return count > 0 ? (
+        <Badge variant="outline" className="gap-1">
+          <MessageSquare className="size-3" />
+          {count}
+        </Badge>
+      ) : null;
+    },
+  },
+  {
+    accessorKey: "Acknowledged",
     header: "Status",
     cell: ({ row }) => (
       <StatusBadge
-        status={row.original.acknowledged ? "done" : "warning"}
-        label={row.original.acknowledged ? "Ack" : "Pending"}
+        status={row.original.Acknowledged ? "done" : "warning"}
+        label={row.original.Acknowledged ? "Ack" : "Active"}
       />
     ),
   },
@@ -83,23 +93,34 @@ interface MuteTableMeta {
 }
 
 const muteColumns: ColumnDef<AlertMute>[] = [
-  { accessorKey: "category", header: "Category" },
-  { accessorKey: "machine_pattern", header: "Machine Pattern" },
-  { accessorKey: "message_pattern", header: "Message Pattern" },
-  { accessorKey: "reason", header: "Reason" },
-  { accessorKey: "muted_by", header: "Muted By" },
+  { accessorKey: "AlertName", header: "Category" },
+  { accessorKey: "Pattern", header: "Pattern" },
+  { accessorKey: "Reason", header: "Reason" },
+  { accessorKey: "MutedBy", header: "Muted By" },
   {
-    accessorKey: "active",
+    accessorKey: "Active",
     header: "Status",
     cell: ({ row }) => (
       <StatusBadge
-        status={row.original.active ? "done" : "warning"}
-        label={row.original.active ? "Active" : "Inactive"}
+        status={row.original.Active ? "done" : "warning"}
+        label={row.original.Active ? "Active" : "Inactive"}
       />
     ),
   },
-  { accessorKey: "expires_at", header: "Expires" },
-  { accessorKey: "created_at", header: "Created" },
+  {
+    accessorKey: "ExpiresAt",
+    header: "Expires",
+    cell: ({ row }) => (
+      <span>
+        {row.original.ExpiresAt ? formatDateTime(row.original.ExpiresAt) : "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "MutedAt",
+    header: "Created",
+    cell: ({ row }) => <span>{formatDateTime(row.original.MutedAt)}</span>,
+  },
   {
     id: "actions",
     header: "",
@@ -108,14 +129,14 @@ const muteColumns: ColumnDef<AlertMute>[] = [
       const meta = table.options.meta as MuteTableMeta | undefined;
       return (
         <div className="flex gap-1">
-          {!mute.active && (
+          {!mute.Active && (
             <Button
               size="sm"
               variant="ghost"
               title="Reactivate"
               onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
-                meta?.onReactivate(mute.id);
+                meta?.onReactivate(mute.ID);
               }}
             >
               <RotateCcw className="size-3.5" />
@@ -127,7 +148,7 @@ const muteColumns: ColumnDef<AlertMute>[] = [
             title="Remove"
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
-              meta?.onRemove(mute.id);
+              meta?.onRemove(mute.ID);
             }}
           >
             <Trash2 className="size-3.5 text-destructive" />
@@ -209,10 +230,10 @@ function AlertsPage() {
   });
 
   const alerts = alertHistory?.Alerts ?? [];
-  const unackedAlerts = alerts.filter((a) => !a.acknowledged);
+  const unackedAlerts = alerts.filter((a) => !a.Acknowledged);
 
   const handleAckAll = useCallback(() => {
-    const ids = unackedAlerts.map((a) => a.id);
+    const ids = unackedAlerts.map((a) => a.ID);
     if (ids.length > 0) {
       ackMultipleMutation.mutate([ids]);
     }
@@ -297,7 +318,7 @@ function AlertsPage() {
           loading={historyLoading}
           searchable
           searchPlaceholder="Search alerts..."
-          searchColumn="message"
+          searchColumn="Message"
           emptyMessage="No alerts"
           onRowClick={(row) => setSelectedAlert(row)}
         />
@@ -409,7 +430,7 @@ function AlertsPage() {
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
           onAck={() => {
-            ackMutation.mutate([selectedAlert.id]);
+            ackMutation.mutate([selectedAlert.ID]);
             setSelectedAlert(null);
           }}
           acking={ackMutation.isPending}
@@ -432,70 +453,61 @@ function AlertDetailDialog({
 }) {
   const { data: comments } = useCurioRpc<AlertComment[]>(
     "AlertCommentList",
-    [alert.id],
+    [alert.ID],
     { refetchInterval: 10_000 },
   );
   const addCommentMutation = useCurioRpcMutation("AlertCommentAdd", {
-    invalidateKeys: [["curio", "AlertCommentList", alert.id]],
+    invalidateKeys: [["curio", "AlertCommentList", alert.ID]],
   });
   const [newComment, setNewComment] = useState("");
 
   const handleAddComment = useCallback(() => {
     if (!newComment.trim()) return;
-    addCommentMutation.mutate([alert.id, newComment.trim()]);
+    addCommentMutation.mutate([alert.ID, newComment.trim()]);
     setNewComment("");
-  }, [alert.id, newComment, addCommentMutation]);
+  }, [alert.ID, newComment, addCommentMutation]);
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <StatusBadge
-              status={
-                alert.severity === "critical"
-                  ? "failed"
-                  : alert.severity === "warning"
-                    ? "warning"
-                    : "info"
-              }
-              label={alert.severity}
-            />
-            Alert #{alert.id}
+            <Bell className="size-4" />
+            Alert #{alert.ID}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
           <div>
             <div className="text-muted-foreground">Category</div>
-            <div>{alert.category}</div>
+            <div>{alert.AlertName}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Machine</div>
-            <div>{alert.machine_name}</div>
+            <div>{alert.MachineName ?? "—"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Message</div>
             <div className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs">
-              {alert.message}
+              {alert.Message}
             </div>
           </div>
           <div>
             <div className="text-muted-foreground">Time</div>
-            <div>{alert.created_at}</div>
+            <div>{formatDateTime(alert.CreatedAt)}</div>
           </div>
-          {alert.acknowledged && (
+          {alert.Acknowledged && (
             <div className="flex gap-6">
-              {alert.acknowledged_by && (
+              {alert.AcknowledgedBy && (
                 <div>
                   <div className="text-muted-foreground">Acknowledged By</div>
-                  <div>{alert.acknowledged_by}</div>
+                  <div>{alert.AcknowledgedBy}</div>
                 </div>
               )}
-              {alert.acknowledged_at && (
+              {alert.AcknowledgedAt && (
                 <div>
                   <div className="text-muted-foreground">Acknowledged At</div>
-                  <div>{alert.acknowledged_at}</div>
+                  <div>{formatDateTime(alert.AcknowledgedAt)}</div>
                 </div>
               )}
             </div>
@@ -504,14 +516,14 @@ function AlertDetailDialog({
             <div>
               <div className="text-muted-foreground">Sent to Plugins</div>
               <StatusBadge
-                status={alert.sent_to_plugins ? "done" : "warning"}
-                label={alert.sent_to_plugins ? "Yes" : "No"}
+                status={alert.SentToPlugins ? "done" : "warning"}
+                label={alert.SentToPlugins ? "Yes" : "No"}
               />
             </div>
-            {alert.sent_at && (
+            {alert.SentAt && (
               <div>
                 <div className="text-muted-foreground">Sent At</div>
-                <div>{alert.sent_at}</div>
+                <div>{formatDateTime(alert.SentAt)}</div>
               </div>
             )}
           </div>
@@ -526,14 +538,14 @@ function AlertDetailDialog({
               <div className="mb-3 max-h-40 space-y-2 overflow-y-auto">
                 {comments.map((c) => (
                   <div
-                    key={c.id}
+                    key={c.ID}
                     className="rounded-md border border-border p-2 text-xs"
                   >
                     <div className="mb-1 flex justify-between text-muted-foreground">
-                      <span>{c.author}</span>
-                      <span>{c.created_at}</span>
+                      <span>{c.CreatedBy}</span>
+                      <span>{formatDateTime(c.CreatedAt)}</span>
                     </div>
-                    <div>{c.comment}</div>
+                    <div>{c.Comment}</div>
                   </div>
                 ))}
               </div>
@@ -558,7 +570,7 @@ function AlertDetailDialog({
         </div>
 
         <DialogFooter>
-          {!alert.acknowledged && (
+          {!alert.Acknowledged && (
             <Button size="sm" onClick={onAck} disabled={acking}>
               <Check className="mr-1 size-4" />
               {acking ? "Acknowledging..." : "Acknowledge"}

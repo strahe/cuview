@@ -81,7 +81,7 @@ export const getVolumeTypeBadgeColor = (
 export const getStorageTypeLabel = (stat?: StorageUseStat | null): string => {
   if (!stat) return "";
 
-  if (stat.can_seal === false && stat.can_store === false) {
+  if (stat.CanSeal === false && stat.CanStore === false) {
     return "Readonly";
   }
 

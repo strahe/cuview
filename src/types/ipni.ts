@@ -27,6 +27,7 @@ export interface IpniAdDetail {
   addresses: string;
   entries: string;
   piece_cid: string;
+  piece_cid_v2: string;
   piece_size: number;
   miner: string;
   entry_count: number;

@@ -22,12 +22,19 @@ export interface DeadlineCount {
   Recovering: number;
 }
 
+// Matches Go ActorDeadline (no json tags = PascalCase)
 export interface Deadline {
+  Empty: boolean;
   Current: boolean;
   Proven: boolean;
   PartFaulty: boolean;
   Faulty: boolean;
   Count?: DeadlineCount;
+  PartitionCount: number;
+  PartitionsPosted: number;
+  PartitionsProven: boolean;
+  OpenAt: string;
+  ElapsedMinutes: number;
 }
 
 // Enhanced types for actor detail and management

@@ -1,6 +1,5 @@
 import {
   ArrowRightLeft,
-  Bell,
   Cpu,
   Database,
   Globe,
@@ -101,12 +100,6 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Wallet,
         to: "/wallets",
         keywords: ["wallet", "keys", "balance"],
-      },
-      {
-        label: "Alerts",
-        icon: Bell,
-        to: "/alerts",
-        keywords: ["alert", "notification", "warning", "error"],
       },
       {
         label: "IPNI",

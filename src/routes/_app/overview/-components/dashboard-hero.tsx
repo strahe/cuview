@@ -28,7 +28,7 @@ export function DashboardHero({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
-            <CardContent className="p-6">
+            <CardContent className="px-5 py-4">
               <Skeleton className="mb-2 h-4 w-24" />
               <Skeleton className="mb-1 h-8 w-16" />
               <Skeleton className="h-3 w-32" />
@@ -59,7 +59,7 @@ export function DashboardHero({
             key={card.id}
             className={cn("border-l-4", statusColors[card.status])}
           >
-            <CardContent className="p-6">
+            <CardContent className="px-5 py-4">
               <p className="text-sm font-medium text-muted-foreground">
                 {card.label}
               </p>

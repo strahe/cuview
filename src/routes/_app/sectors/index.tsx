@@ -524,23 +524,31 @@ function SectorDetailDialog({
               <div>
                 <h4 className="mb-2 text-sm font-medium">On-Chain State</h4>
                 <div className="flex flex-wrap gap-2">
-                  {data.PartitionState.Live && (
+                  {data.PartitionState.in_live_sectors && (
                     <StatusBadge status="done" label="Live" />
                   )}
-                  {data.PartitionState.Active && (
+                  {data.PartitionState.in_active_sectors && (
                     <StatusBadge status="done" label="Active" />
                   )}
-                  {data.PartitionState.Faulty && (
+                  {data.PartitionState.in_faulty_sectors && (
                     <StatusBadge status="failed" label="Faulty" />
                   )}
-                  {data.PartitionState.Recovering && (
+                  {data.PartitionState.in_recovering_sectors && (
                     <StatusBadge status="warning" label="Recovering" />
                   )}
-                  {data.PartitionState.Terminated && (
-                    <StatusBadge status="failed" label="Terminated" />
-                  )}
-                  {data.PartitionState.Unproven && (
+                  {data.PartitionState.in_unproven_sectors && (
                     <StatusBadge status="warning" label="Unproven" />
+                  )}
+                  {data.PartitionState.partition_post_submitted && (
+                    <StatusBadge status="done" label="PoSt Submitted" />
+                  )}
+                  {data.PartitionState.is_current_deadline && (
+                    <StatusBadge status="info" label="Current Deadline" />
+                  )}
+                  {data.PartitionState.hours_until_proof && (
+                    <Badge variant="outline" className="text-xs">
+                      Proof in {data.PartitionState.hours_until_proof}
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -557,9 +565,9 @@ function SectorDetailDialog({
                       key={i}
                       className="flex items-center justify-between rounded-sm border border-border px-2 py-1"
                     >
-                      <span className="truncate font-mono">{p.PieceCID}</span>
+                      <span className="truncate font-mono">{p.PieceCid}</span>
                       <span className="ml-2 text-muted-foreground">
-                        {p.PieceSize}
+                        {p.StrPieceSize || p.PieceSize}
                       </span>
                     </div>
                   ))}
@@ -578,10 +586,19 @@ function SectorDetailDialog({
                       key={i}
                       className="flex items-center gap-2 rounded-sm border border-border px-2 py-1"
                     >
-                      <Badge variant="outline" className="text-xs">
-                        {l.FileType}
-                      </Badge>
-                      <span className="truncate font-mono">{l.StorageID}</span>
+                      {l.PathType && (
+                        <Badge variant="outline" className="text-xs">
+                          {l.PathType}
+                        </Badge>
+                      )}
+                      {l.FileType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {l.FileType}
+                        </Badge>
+                      )}
+                      <span className="truncate font-mono text-muted-foreground">
+                        {l.Locations?.map((loc) => loc.StorageID).join(", ")}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -596,17 +613,36 @@ function SectorDetailDialog({
                 <div className="max-h-40 space-y-1 overflow-y-auto text-xs">
                   {data.TaskHistory.slice(0, 10).map((t) => (
                     <div
-                      key={t.ID}
+                      key={t.PipelineTaskID}
                       className="flex items-center justify-between rounded-sm border border-border px-2 py-1"
                     >
                       <div className="flex items-center gap-2">
                         <StatusBadge
-                          status={t.Result ? "done" : "failed"}
-                          label={t.Result ? "OK" : "Fail"}
+                          status={
+                            t.Result.Valid
+                              ? t.Result.Bool
+                                ? "done"
+                                : "failed"
+                              : "warning"
+                          }
+                          label={
+                            t.Result.Valid
+                              ? t.Result.Bool
+                                ? "OK"
+                                : "Fail"
+                              : "?"
+                          }
                         />
-                        <span>{t.Name}</span>
+                        <span>{t.Name.Valid ? t.Name.String : "Unknown"}</span>
                       </div>
-                      <span className="text-muted-foreground">{t.Took}</span>
+                      <div className="flex items-center gap-2">
+                        {t.CompletedBy.Valid && (
+                          <span className="text-muted-foreground">
+                            {t.CompletedBy.String}
+                          </span>
+                        )}
+                        <span className="text-muted-foreground">{t.Took}</span>
+                      </div>
                     </div>
                   ))}
                 </div>

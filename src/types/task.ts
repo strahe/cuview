@@ -14,7 +14,6 @@ export interface TaskHistorySummary {
   TaskID: number;
   Posted: string;
   Start: string;
-  End: string;
   Queued: string;
   Took: string;
   Result: boolean;

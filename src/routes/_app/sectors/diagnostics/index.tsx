@@ -108,10 +108,12 @@ function DiagnosticsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {activeTab === "commr" && <CommRCheckPanel />}
-        {activeTab === "unsealed" && <UnsealedCheckPanel />}
-        {activeTab === "vanilla" && <VanillaTestPanel />}
-        {activeTab === "wdpost" && <WdPostTestPanel />}
+        <div className="mt-4">
+          {activeTab === "commr" && <CommRCheckPanel />}
+          {activeTab === "unsealed" && <UnsealedCheckPanel />}
+          {activeTab === "vanilla" && <VanillaTestPanel />}
+          {activeTab === "wdpost" && <WdPostTestPanel />}
+        </div>
       </Tabs>
     </div>
   );

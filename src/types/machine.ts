@@ -68,6 +68,9 @@ export interface MachineInfo {
     Task: string;
     Posted: string;
     UpdateTime: string;
+    InitiatedBy?: number;
+    AddedBy: number;
+    PreviousTask?: number;
     Retries: number;
     PoRepSector?: number;
     PoRepSectorSP?: number;
@@ -75,6 +78,7 @@ export interface MachineInfo {
   }>;
   FinishedTasks: Array<{
     ID: number;
+    TaskID: number;
     Task: string;
     Posted: string;
     Start: string;

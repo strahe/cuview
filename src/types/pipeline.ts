@@ -81,15 +81,16 @@ export interface PorepPipelineSummary {
   CountFailed: number;
 }
 
+// Matches Go PipelineStats (no json tags = PascalCase)
 export interface PipelineStats {
-  TotalSectors: number;
-  CompletedSectors: number;
-  FailedSectors: number;
-  InProgressSectors: number;
-  PendingSectors: number;
-  SuccessRate: number;
-  AverageTimePerSector?: string;
-  LastUpdated: string;
+  Total: number;
+  Stages: PipelineStage[];
+}
+
+export interface PipelineStage {
+  Name: string;
+  Pending: number;
+  Running: number;
 }
 
 export interface PipelineFailedStats {
@@ -123,9 +124,6 @@ export interface PipelineFilters {
 export interface PipelineOverviewStats {
   porepStats: PipelineStats;
   snapStats: PipelineStats;
-  totalActiveSectors: number;
-  totalFailedTasks: number;
-  lastUpdate: string;
 }
 
 export interface SnapSectorEntry {
@@ -179,11 +177,5 @@ export interface SnapPipelineSummary {
   CountFailed: number;
 }
 
-export interface PipelineWaterfallStats {
-  Total: number;
-  Stages: Array<{
-    Name: string;
-    Pending: number;
-    Running: number;
-  }>;
-}
+// PipelineWaterfallStats is an alias for PipelineStats (same Go struct)
+export type PipelineWaterfallStats = PipelineStats;

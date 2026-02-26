@@ -152,7 +152,7 @@ function ProofSharePage() {
           <TabsTrigger value="provider">Provider</TabsTrigger>
           <TabsTrigger value="client">Client</TabsTrigger>
         </TabsList>
-        <div>
+        <div className="mt-4">
           {tab === "provider" && <ProviderTab />}
           {tab === "client" && <ClientTab />}
         </div>

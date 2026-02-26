@@ -19,9 +19,11 @@ import { usePageTitle } from "@/hooks/use-page-title";
 import type {
   BalanceManagerRule,
   PendingMessage,
+  PendingMessages,
   WalletInfo,
 } from "@/types/wallet";
 import { formatFilecoin } from "@/utils/filecoin";
+import { formatDateTime } from "@/utils/format";
 
 export const Route = createFileRoute("/_app/wallets/")({
   component: WalletsPage,
@@ -53,53 +55,20 @@ const walletColumns: ColumnDef<WalletInfo>[] = [
 
 const pendingMsgColumns: ColumnDef<PendingMessage>[] = [
   {
-    accessorKey: "Cid",
-    header: "CID",
+    accessorKey: "message",
+    header: "Message CID",
     cell: ({ row }) => (
       <span className="font-mono text-xs">
-        {row.original.Cid.slice(0, 12)}…
+        {row.original.message.slice(0, 20)}…
       </span>
     ),
   },
   {
-    accessorKey: "From",
-    header: "From",
+    accessorKey: "added_at",
+    header: "Added",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.From}</span>
+      <span className="text-xs">{formatDateTime(row.original.added_at)}</span>
     ),
-  },
-  {
-    accessorKey: "To",
-    header: "To",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.To}</span>
-    ),
-  },
-  { accessorKey: "Method", header: "Method" },
-  {
-    accessorKey: "Value",
-    header: "Value",
-    cell: ({ row }) => formatFilecoin(row.original.Value),
-  },
-  {
-    accessorKey: "State",
-    header: "State",
-    cell: ({ row }) => {
-      const s = row.original.State;
-      return (
-        <Badge
-          variant={
-            s === "confirmed"
-              ? "default"
-              : s === "failed"
-                ? "destructive"
-                : "outline"
-          }
-        >
-          {s}
-        </Badge>
-      );
-    },
   },
 ];
 
@@ -139,9 +108,11 @@ function WalletsPage() {
     WalletInfo[]
   >("Wallets", [], { refetchInterval: 30_000 });
 
-  const { data: pendingMsgs, isLoading: msgsLoading } = useCurioRpc<
-    PendingMessage[]
-  >("PendingMessages", [], { refetchInterval: 20_000 });
+  const { data: pendingMsgsData, isLoading: msgsLoading } =
+    useCurioRpc<PendingMessages>("PendingMessages", [], {
+      refetchInterval: 20_000,
+    });
+  const pendingMsgs = pendingMsgsData?.messages;
 
   const { data: rules, isLoading: rulesLoading } = useCurioRpc<
     BalanceManagerRule[]

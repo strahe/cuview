@@ -26,6 +26,7 @@ import type {
   StoragePathInfo,
   StoragePathSector,
   StoragePathSectorsResult,
+  StorageStoreStats,
   StorageUseStat,
 } from "@/types/storage";
 import { formatBytes } from "@/utils/format";
@@ -38,40 +39,41 @@ type StorageTab = "usage" | "paths" | "gc";
 
 const gcMarkColumns: ColumnDef<StorageGCMark>[] = [
   {
-    accessorKey: "miner",
+    accessorKey: "Miner",
     header: "Miner",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.miner}</span>
+      <span className="font-mono text-xs">{row.original.Miner}</span>
     ),
   },
-  { accessorKey: "sector_num", header: "Sector" },
+  { accessorKey: "SectorNum", header: "Sector" },
   {
-    accessorKey: "file_type",
+    accessorKey: "TypeName",
     header: "File Type",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.original.file_type}</Badge>
-    ),
+    cell: ({ row }) => <Badge variant="outline">{row.original.TypeName}</Badge>,
   },
   {
-    accessorKey: "storage_id",
+    accessorKey: "StorageID",
     header: "Storage",
     cell: ({ row }) => (
       <span className="font-mono text-xs">
-        {row.original.storage_id.slice(0, 12)}…
+        {row.original.StorageID.slice(0, 12)}…
       </span>
     ),
   },
   {
-    accessorKey: "approved",
+    accessorKey: "Approved",
     header: "Status",
     cell: ({ row }) => (
       <StatusBadge
-        status={row.original.approved ? "done" : "warning"}
-        label={row.original.approved ? "Approved" : "Pending"}
+        status={row.original.Approved ? "done" : "warning"}
+        label={row.original.Approved ? "Approved" : "Pending"}
       />
     ),
   },
-  { accessorKey: "created_at", header: "Created" },
+  {
+    accessorKey: "PathType",
+    header: "Path Type",
+  },
 ];
 
 const pathColumns: ColumnDef<StoragePathInfo>[] = [
@@ -147,7 +149,7 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
 ];
 
 const pathSectorColumns: ColumnDef<StoragePathSector>[] = [
-  { accessorKey: "MinerStr", header: "Miner" },
+  { accessorKey: "Miner", header: "Miner" },
   { accessorKey: "SectorNum", header: "Sector" },
   { accessorKey: "FileTypeStr", header: "File Type" },
   {
@@ -199,17 +201,11 @@ function StoragePage() {
   const { data: storagePaths, isLoading: pathsLoading } = useCurioRpc<
     StoragePathInfo[]
   >("StoragePathList", [], { refetchInterval: 60_000 });
-  const { data: storeTypeStats } = useCurioRpc<
-    {
-      Type: string;
-      Capacity: number;
-      Available: number;
-      Used: number;
-      CapacityStr: string;
-      AvailableStr: string;
-      UsedStr: string;
-    }[]
-  >("StorageStoreTypeStats", [], { refetchInterval: 120_000 });
+  const { data: storeTypeStats } = useCurioRpc<StorageStoreStats[]>(
+    "StorageStoreTypeStats",
+    [],
+    { refetchInterval: 120_000 },
+  );
 
   const approveAllMutation = useCurioRpcMutation("StorageGCApproveAll", {
     invalidateKeys: [
@@ -245,11 +241,9 @@ function StoragePage() {
   }, [useStats]);
 
   const gcSummary = useMemo(() => {
-    if (!gcStats) return { total: 0, approved: 0, unapproved: 0 };
+    if (!gcStats) return { total: 0 };
     return {
-      total: gcStats.reduce((s, g) => s + g.sector_count, 0),
-      approved: gcStats.reduce((s, g) => s + g.approved_count, 0),
-      unapproved: gcStats.reduce((s, g) => s + g.unapproved_count, 0),
+      total: gcStats.reduce((s, g) => s + g.Count, 0),
     };
   }, [gcStats]);
 
@@ -309,12 +303,12 @@ function StoragePage() {
                       {s.Type || "Unknown"}
                     </span>
                     <div className="flex gap-1">
-                      {s.can_seal && (
+                      {s.CanSeal && (
                         <Badge variant="outline" className="text-xs">
                           Seal
                         </Badge>
                       )}
-                      {s.can_store && (
+                      {s.CanStore && (
                         <Badge variant="outline" className="text-xs">
                           Store
                         </Badge>
@@ -346,16 +340,16 @@ function StoragePage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {storeTypeStats.map((s) => (
                 <div
-                  key={s.Type}
+                  key={s.type}
                   className="rounded border border-border p-2 text-center"
                 >
-                  <p className="text-xs text-muted-foreground">{s.Type}</p>
-                  <p className="text-sm font-medium">{s.UsedStr}</p>
+                  <p className="text-xs text-muted-foreground">{s.type}</p>
+                  <p className="text-sm font-medium">{s.use_str}</p>
                   <p className="text-xs text-muted-foreground">
-                    of {s.CapacityStr}
+                    of {s.cap_str}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {s.AvailableStr} avail
+                    {s.avail_str} avail
                   </p>
                 </div>
               ))}
@@ -383,18 +377,15 @@ function StoragePage() {
       {/* GC Tab */}
       {activeTab === "gc" && (
         <SectionCard title="Garbage Collection" icon={Trash2}>
-          <div className="mb-4 grid grid-cols-3 gap-4">
-            <KPICard label="GC Marks" value={gcSummary.total} />
-            <KPICard label="Approved" value={gcSummary.approved} />
-            <KPICard label="Pending" value={gcSummary.unapproved} />
+          <div className="mb-4 grid grid-cols-2 gap-4">
+            <KPICard label="Total GC Marks" value={gcSummary.total} />
+            <KPICard label="Actors" value={gcStats?.length ?? 0} />
           </div>
           <div className="mb-4 flex gap-2">
             <Button
               size="sm"
               onClick={() => approveAllMutation.mutate([])}
-              disabled={
-                approveAllMutation.isPending || gcSummary.unapproved === 0
-              }
+              disabled={approveAllMutation.isPending}
             >
               <CheckCircle className="mr-1 size-4" />
               {approveAllMutation.isPending ? "Approving..." : "Approve All"}
@@ -403,9 +394,7 @@ function StoragePage() {
               size="sm"
               variant="outline"
               onClick={() => unapproveAllMutation.mutate([])}
-              disabled={
-                unapproveAllMutation.isPending || gcSummary.approved === 0
-              }
+              disabled={unapproveAllMutation.isPending}
             >
               {unapproveAllMutation.isPending
                 ? "Unapproving..."

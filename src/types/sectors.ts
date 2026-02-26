@@ -20,48 +20,83 @@ export interface SectorTerminationPayload {
   Sector: number;
 }
 
+// Matches Go SectorPieceMeta (no json tags = PascalCase field names)
 export interface SectorPieceMeta {
-  PieceCID: string;
+  PieceIndex: number;
   PieceSize: number;
-  DealID?: number;
-  DataURL?: string;
+  PieceCid: string;
+  PieceCidV2: string;
+  DataRawSize: { Int64: number; Valid: boolean };
+  F05DealID: { Int64: number; Valid: boolean };
+  DealID: { String: string; Valid: boolean };
+  IsSnapPiece: boolean;
+  DataUrl: { String: string; Valid: boolean };
+  F05PublishCid: { String: string; Valid: boolean };
+  DDOPam: { String: string; Valid: boolean };
+  StrPieceSize: string;
+  StrDataRawSize: string;
+  PieceParkDataUrl: string;
+  PieceParkCreatedAt: string;
+  PieceParkID: number;
+  PieceParkTaskID: number | null;
+  PieceParkCleanupTaskID: number | null;
+  MK12Deal: { Bool: boolean; Valid: boolean };
+  LegacyDeal: { Bool: boolean; Valid: boolean };
+  DeleteOnFinalize: { Bool: boolean; Valid: boolean };
+  IsParkedPiece: boolean;
+  IsParkedPieceFound: boolean;
+  PieceParkComplete: boolean;
 }
 
+// Matches Go LocationTable (no json tags = PascalCase)
 export interface LocationTable {
-  StorageID: string;
-  FileType: string;
-  ReadTs?: string;
-  ReadRefs?: number;
-  WriteTs?: string;
-  WriteLock?: boolean;
+  PathType: string | null;
+  PathTypeRowSpan: number;
+  FileType: string | null;
+  FileTypeRowSpan: number;
+  Locations: FileLocations[];
 }
 
+export interface FileLocations {
+  StorageID: string;
+  Urls: string[];
+}
+
+// Matches Go SectorInfoTaskSummary (no json tags = PascalCase)
 export interface SectorInfoTaskSummary {
   ID: number;
   Name: string;
-  Posted: string;
+  SincePosted: string;
   Owner?: string;
+  OwnerID?: string;
 }
 
+// Matches Go TaskHistory (no json tags = PascalCase field names)
 export interface TaskHistory {
-  ID: number;
-  Name: string;
-  Posted: string;
-  Start: string;
-  Queued: string;
+  PipelineTaskID: number;
+  WorkStart: { Time: string; Valid: boolean };
+  WorkEnd: { Time: string; Valid: boolean };
+  Name: { String: string; Valid: boolean };
+  CompletedBy: { String: string; Valid: boolean };
+  Result: { Bool: boolean; Valid: boolean };
+  Err: { String: string; Valid: boolean };
   Took: string;
-  Result: boolean;
-  Err: string;
-  CompletedBy: string;
 }
 
+// Matches Go SectorPartitionState (snake_case json tags)
 export interface SectorPartitionState {
-  Live: boolean;
-  Active: boolean;
-  Faulty: boolean;
-  Recovering: boolean;
-  Terminated: boolean;
-  Unproven: boolean;
+  deadline: number;
+  partition: number;
+  in_all_sectors: boolean;
+  in_live_sectors: boolean;
+  in_active_sectors: boolean;
+  in_faulty_sectors: boolean;
+  in_recovering_sectors: boolean;
+  in_unproven_sectors: boolean;
+  partition_post_submitted: boolean;
+  is_current_deadline: boolean;
+  epochs_until_proof?: number;
+  hours_until_proof?: string;
 }
 
 export interface SectorDetail {

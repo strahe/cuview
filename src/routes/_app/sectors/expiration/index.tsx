@@ -402,7 +402,7 @@ function ExpirationPage() {
           <TabsTrigger value="presets">Presets</TabsTrigger>
           <TabsTrigger value="sps">SP Assignments</TabsTrigger>
         </TabsList>
-        <div>
+        <div className="mt-4">
           {tab === "buckets" && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

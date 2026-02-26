@@ -67,8 +67,8 @@ function MoveToEscrowForm() {
         <CardTitle className="text-sm">Move Balance to Escrow</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="space-y-1">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Miner</label>
             <Input
               placeholder="f0..."
@@ -77,7 +77,7 @@ function MoveToEscrowForm() {
               className="w-40 font-mono text-xs"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">
               Amount (FIL)
             </label>
@@ -88,7 +88,7 @@ function MoveToEscrowForm() {
               className="w-32"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">
               Wallet (optional)
             </label>

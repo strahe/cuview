@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   Bell,
   ChevronLeft,
@@ -138,15 +139,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   v{version}
                 </span>
               )}
-              {alertCount != null && alertCount > 0 && (
-                <a
-                  href="/alerts"
-                  className="flex items-center gap-1 rounded-md bg-destructive/[0.1] px-2 py-0.5 text-xs text-destructive"
-                >
-                  <Bell className="size-3" />
-                  {alertCount}
-                </a>
-              )}
+              <Link
+                to="/alerts"
+                className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-xs ${
+                  alertCount != null && alertCount > 0
+                    ? "bg-destructive/[0.1] text-destructive"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Bell className="size-3" />
+                {alertCount != null && alertCount > 0 ? alertCount : ""}
+              </Link>
             </div>
 
             {/* Search */}

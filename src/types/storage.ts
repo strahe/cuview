@@ -1,39 +1,47 @@
+// Matches Go StorageUseStats (no json tags = PascalCase field names)
 export interface StorageUseStat {
-  can_seal: boolean;
-  can_store: boolean;
+  CanSeal: boolean;
+  CanStore: boolean;
   Type: string;
   Capacity: number;
   Available: number;
   UseStr?: string;
   CapStr?: string;
-  subEntries?: StorageBreakdown[];
 }
 
-export interface StorageBreakdown {
+// Matches Go StorageStoreStats (snake_case json tags)
+export interface StorageStoreStats {
   type: string;
   capacity: number;
   available: number;
+  used: number;
+  cap_str: string;
+  use_str: string;
   avail_str: string;
 }
 
+// Matches Go StorageGCStats (no json tags = PascalCase field names)
 export interface StorageGCStatsEntry {
-  storage_id: string;
-  sector_count: number;
-  approved_count: number;
-  unapproved_count: number;
-  total_size: number;
+  Actor: number;
+  Count: number;
+  Miner: string;
 }
 
+// Matches Go StorageGCMark (no json tags = PascalCase field names)
 export interface StorageGCMark {
-  id: number;
-  storage_id: string;
-  sp_id: number;
-  sector_num: number;
-  file_type: string;
-  approved: boolean;
-  approved_at?: string;
-  created_at: string;
-  miner: string;
+  Actor: number;
+  SectorNum: number;
+  FileType: number;
+  StorageID: string;
+  CreatedAt: string;
+  Approved: boolean;
+  ApprovedAt?: string;
+  CanSeal: boolean;
+  CanStore: boolean;
+  Urls: string;
+  TypeName: string;
+  PathType: string;
+  Miner: string;
 }
 
 export interface StorageGCMarksResponse {
@@ -41,12 +49,7 @@ export interface StorageGCMarksResponse {
   Total: number;
 }
 
-export interface StorageStoreStats {
-  Type: string;
-  Count: number;
-  Size: number;
-  SizeStr: string;
-}
+// Matches Go StorageStoreStats (already correct above)
 
 export interface StoragePathInfo {
   StorageID: string;
@@ -137,7 +140,7 @@ export interface StoragePathSector {
   ReadRefs: number;
   HasWriteLock: boolean;
   FileTypeStr: string;
-  MinerStr: string;
+  Miner: string;
 }
 
 export interface StoragePathSectorsResult {

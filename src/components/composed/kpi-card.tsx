@@ -28,7 +28,7 @@ export function KPICard({
           {displayTitle}
         </p>
         <div className="mt-0.5 flex items-baseline gap-1.5">
-          <p className="text-lg font-semibold leading-tight">{value}</p>
+          <p className="text-xl font-semibold leading-tight">{value}</p>
           {displayDescription && (
             <span className="text-xs text-muted-foreground">
               {displayDescription}
