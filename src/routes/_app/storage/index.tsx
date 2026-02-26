@@ -2,20 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, FolderOpen, HardDrive, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { SectionCard } from "@/components/composed/section-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { KPICard } from "@/components/composed/kpi-card";
-import { SectionCard } from "@/components/composed/section-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { TabsList, TabsTrigger } from "@/components/composed/tabs";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+} from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type {
@@ -282,26 +282,18 @@ function StoragePage() {
         <KPICard label="Used" value={`${usedPct}%`} />
       </div>
 
-      <TabsList>
-        <TabsTrigger
-          active={activeTab === "usage"}
-          onClick={() => setActiveTab("usage")}
-        >
-          Usage
-        </TabsTrigger>
-        <TabsTrigger
-          active={activeTab === "paths"}
-          onClick={() => setActiveTab("paths")}
-        >
-          Paths ({storagePaths?.length ?? 0})
-        </TabsTrigger>
-        <TabsTrigger
-          active={activeTab === "gc"}
-          onClick={() => setActiveTab("gc")}
-        >
-          GC ({gcSummary.total})
-        </TabsTrigger>
-      </TabsList>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as StorageTab)}
+      >
+        <TabsList>
+          <TabsTrigger value="usage">Usage</TabsTrigger>
+          <TabsTrigger value="paths">
+            Paths ({storagePaths?.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="gc">GC ({gcSummary.total})</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Usage Tab */}
       {activeTab === "usage" && useStats && useStats.length > 0 && (
@@ -458,10 +450,7 @@ function PathDetailDialog({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent
-        className="max-w-3xl max-h-[80vh] overflow-y-auto"
-        onClose={onClose}
-      >
+      <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen className="size-5" />

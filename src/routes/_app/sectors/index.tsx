@@ -8,14 +8,6 @@ import {
   HardDrive,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/composed/dialog";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -23,6 +15,14 @@ import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   useCurioRest,
   useCurioRpc,
@@ -428,10 +428,7 @@ function SectorDetailDialog({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent
-        className="max-w-2xl max-h-[80vh] overflow-y-auto"
-        onClose={onClose}
-      >
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             Sector {sectorNum}{" "}
@@ -721,7 +718,7 @@ function DeadlineDetailDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent onClose={onClose}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             Deadline {deadline} — {sp}
@@ -821,7 +818,7 @@ function PartitionDetailDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent onClose={onClose}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             Partition #{partition} — Deadline {deadline}

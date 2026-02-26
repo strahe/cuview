@@ -2,15 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/dialog";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type { TaskHistoryEntry, TaskHistorySummary } from "@/types/task";
 
@@ -93,7 +93,7 @@ function TaskDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent onClose={onClose} className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Task #{taskId} History</DialogTitle>
         </DialogHeader>

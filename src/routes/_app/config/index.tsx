@@ -14,18 +14,18 @@ import {
   ConfigVisualEditor,
   type ConfigVisualEditorHandle,
 } from "@/components/composed/config/config-visual-editor";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/composed/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import { useCurioRest } from "@/hooks/use-curio-query";
@@ -305,19 +305,16 @@ function ConfigPage() {
             </CardTitle>
             {selectedLayer && (
               <div className="flex items-center gap-2">
-                <Tabs>
+                <Tabs
+                  value={editMode}
+                  onValueChange={(v) => switchEditMode(v as "visual" | "json")}
+                >
                   <TabsList>
-                    <TabsTrigger
-                      active={editMode === "visual"}
-                      onClick={() => switchEditMode("visual")}
-                    >
+                    <TabsTrigger value="visual">
                       <Eye className="mr-1 size-3.5" />
                       Visual
                     </TabsTrigger>
-                    <TabsTrigger
-                      active={editMode === "json"}
-                      onClick={() => switchEditMode("json")}
-                    >
+                    <TabsTrigger value="json">
                       <Code className="mr-1 size-3.5" />
                       JSON
                     </TabsTrigger>
@@ -393,10 +390,7 @@ function ConfigPage() {
 
       {/* Config History Dialog */}
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
-        <DialogContent
-          onClose={() => setShowHistory(false)}
-          className="max-w-2xl"
-        >
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>History: {selectedLayer}</DialogTitle>
           </DialogHeader>

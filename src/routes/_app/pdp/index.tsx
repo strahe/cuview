@@ -2,18 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Key, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { KPICard } from "@/components/composed/kpi-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -341,10 +341,7 @@ function PdpPage() {
       {/* Add Service Dialog */}
       {showAddService && (
         <Dialog open onOpenChange={() => setShowAddService(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowAddService(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add PDP Service</DialogTitle>
             </DialogHeader>
@@ -396,10 +393,7 @@ function PdpPage() {
       {/* Import Key Dialog */}
       {showImportKey && (
         <Dialog open onOpenChange={() => setShowImportKey(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowImportKey(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Import PDP Key</DialogTitle>
             </DialogHeader>

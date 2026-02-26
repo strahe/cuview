@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/composed/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/diagnostics/")({
@@ -92,30 +92,18 @@ function DiagnosticsPage() {
 
   return (
     <div className="space-y-4">
-      <Tabs>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v)}>
         <TabsList>
-          <TabsTrigger
-            active={activeTab === "commr"}
-            onClick={() => setActiveTab("commr")}
-          >
+          <TabsTrigger value="commr">
             <ShieldCheck className="mr-1 size-3.5" /> CommR Check
           </TabsTrigger>
-          <TabsTrigger
-            active={activeTab === "unsealed"}
-            onClick={() => setActiveTab("unsealed")}
-          >
+          <TabsTrigger value="unsealed">
             <HardDrive className="mr-1 size-3.5" /> Unsealed Check
           </TabsTrigger>
-          <TabsTrigger
-            active={activeTab === "vanilla"}
-            onClick={() => setActiveTab("vanilla")}
-          >
+          <TabsTrigger value="vanilla">
             <Zap className="mr-1 size-3.5" /> Vanilla Test
           </TabsTrigger>
-          <TabsTrigger
-            active={activeTab === "wdpost"}
-            onClick={() => setActiveTab("wdpost")}
-          >
+          <TabsTrigger value="wdpost">
             <Play className="mr-1 size-3.5" /> WdPost Test
           </TabsTrigger>
         </TabsList>

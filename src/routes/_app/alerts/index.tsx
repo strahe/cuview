@@ -11,19 +11,19 @@ import {
   Trash2,
 } from "lucide-react";
 import { type MouseEvent, useCallback, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/composed/dialog";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
@@ -330,10 +330,7 @@ function AlertsPage() {
       {/* Add Mute Rule Dialog */}
       {showMuteForm && (
         <Dialog open onOpenChange={() => setShowMuteForm(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowMuteForm(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add Mute Rule</DialogTitle>
             </DialogHeader>
@@ -451,10 +448,7 @@ function AlertDetailDialog({
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent
-        className="max-w-lg max-h-[80vh] overflow-y-auto"
-        onClose={onClose}
-      >
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <StatusBadge

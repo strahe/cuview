@@ -1,6 +1,4 @@
-import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export interface KPICardProps {
@@ -9,10 +7,6 @@ export interface KPICardProps {
   value: string | number;
   description?: string;
   subtitle?: string;
-  icon?: LucideIcon;
-  trend?: "up" | "down" | "neutral";
-  trendValue?: string;
-  loading?: boolean;
   className?: string;
 }
 
@@ -22,55 +16,25 @@ export function KPICard({
   value,
   description,
   subtitle,
-  icon: Icon,
-  trend,
-  trendValue,
-  loading,
   className,
 }: KPICardProps) {
   const displayTitle = title ?? label ?? "";
   const displayDescription = description ?? subtitle;
-  if (loading) {
-    return (
-      <Card className={className}>
-        <CardContent className="p-6">
-          <Skeleton className="mb-2 h-4 w-24" />
-          <Skeleton className="mb-1 h-8 w-16" />
-          <Skeleton className="h-3 w-32" />
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-muted-foreground">
-            {displayTitle}
-          </p>
-          {Icon && <Icon className="size-4 text-muted-foreground" />}
-        </div>
-        <div className="mt-2 flex items-baseline gap-2">
-          <p className="text-2xl font-bold">{value}</p>
-          {trend && trendValue && (
-            <span
-              className={cn(
-                "text-xs font-medium",
-                trend === "up" && "text-success",
-                trend === "down" && "text-destructive",
-                trend === "neutral" && "text-muted-foreground",
-              )}
-            >
-              {trendValue}
+    <Card className={cn("shadow-none", className)}>
+      <CardContent className="px-4 py-3">
+        <p className="text-xs font-medium text-muted-foreground">
+          {displayTitle}
+        </p>
+        <div className="mt-0.5 flex items-baseline gap-1.5">
+          <p className="text-lg font-semibold leading-tight">{value}</p>
+          {displayDescription && (
+            <span className="text-xs text-muted-foreground">
+              {displayDescription}
             </span>
           )}
         </div>
-        {displayDescription && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {displayDescription}
-          </p>
-        )}
       </CardContent>
     </Card>
   );

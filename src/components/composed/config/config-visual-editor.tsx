@@ -14,7 +14,12 @@ import {
   titleId,
 } from "@rjsf/utils";
 import validator from "@rjsf/validator-ajv8";
-import { AlertCircle, ChevronDown, CircleHelp } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ChevronDown,
+  CircleHelp,
+} from "lucide-react";
 import {
   forwardRef,
   useCallback,
@@ -22,7 +27,7 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
-import { Alert } from "@/components/composed/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import {
@@ -163,7 +168,7 @@ export const ConfigVisualEditor = forwardRef<
     return (
       <Alert variant="destructive">
         <AlertCircle className="size-4" />
-        {error}
+        <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
   }
@@ -179,7 +184,10 @@ export const ConfigVisualEditor = forwardRef<
   return (
     <div className="space-y-4">
       {isDefault && (
-        <Alert variant="warning">The default layer is read-only.</Alert>
+        <Alert className="border-warning/50 text-warning">
+          <AlertTriangle className="size-4" />
+          <AlertDescription>The default layer is read-only.</AlertDescription>
+        </Alert>
       )}
 
       {/* RJSF Form with shadcn theme */}

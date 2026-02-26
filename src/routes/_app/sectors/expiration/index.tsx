@@ -2,24 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { StatusBadge } from "@/components/composed/status-badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/composed/tabs";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/expiration/")({
@@ -398,25 +393,16 @@ function ExpirationPage() {
 
   return (
     <div className="space-y-6">
-      <Tabs>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "buckets" | "presets" | "sps")}
+      >
         <TabsList>
-          <TabsTrigger
-            active={tab === "buckets"}
-            onClick={() => setTab("buckets")}
-          >
-            Expiration Buckets
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "presets"}
-            onClick={() => setTab("presets")}
-          >
-            Presets
-          </TabsTrigger>
-          <TabsTrigger active={tab === "sps"} onClick={() => setTab("sps")}>
-            SP Assignments
-          </TabsTrigger>
+          <TabsTrigger value="buckets">Expiration Buckets</TabsTrigger>
+          <TabsTrigger value="presets">Presets</TabsTrigger>
+          <TabsTrigger value="sps">SP Assignments</TabsTrigger>
         </TabsList>
-        <TabsContent>
+        <div>
           {tab === "buckets" && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -527,16 +513,13 @@ function ExpirationPage() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </div>
       </Tabs>
 
       {/* Add Bucket Dialog */}
       {showAddBucket && (
         <Dialog open onOpenChange={() => setShowAddBucket(false)}>
-          <DialogContent
-            className="max-w-sm"
-            onClose={() => setShowAddBucket(false)}
-          >
+          <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Add Expiration Bucket</DialogTitle>
             </DialogHeader>
@@ -566,10 +549,7 @@ function ExpirationPage() {
       {/* Add Preset Dialog */}
       {showAddPreset && (
         <Dialog open onOpenChange={() => setShowAddPreset(false)}>
-          <DialogContent
-            className="max-w-lg"
-            onClose={() => setShowAddPreset(false)}
-          >
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add Expiration Preset</DialogTitle>
             </DialogHeader>
@@ -667,10 +647,7 @@ function ExpirationPage() {
       {/* Add SP Assignment Dialog */}
       {showAddSP && (
         <Dialog open onOpenChange={() => setShowAddSP(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowAddSP(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add SP Assignment</DialogTitle>
             </DialogHeader>
@@ -760,7 +737,7 @@ function EditPresetDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent onClose={onClose}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Preset: {preset.name}</DialogTitle>
         </DialogHeader>

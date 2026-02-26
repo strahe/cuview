@@ -2,23 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/composed/tabs";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type {
   AllowDenyEntry,
@@ -333,28 +328,16 @@ function MarketSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <Tabs>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "filters" | "contracts" | "products")}
+      >
         <TabsList>
-          <TabsTrigger
-            active={tab === "filters"}
-            onClick={() => setTab("filters")}
-          >
-            Filters
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "contracts"}
-            onClick={() => setTab("contracts")}
-          >
-            Contracts
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "products"}
-            onClick={() => setTab("products")}
-          >
-            Products & Data Sources
-          </TabsTrigger>
+          <TabsTrigger value="filters">Filters</TabsTrigger>
+          <TabsTrigger value="contracts">Contracts</TabsTrigger>
+          <TabsTrigger value="products">Products & Data Sources</TabsTrigger>
         </TabsList>
-        <TabsContent>
+        <div>
           {tab === "filters" && (
             <div className="space-y-6">
               <Card>
@@ -423,10 +406,7 @@ function MarketSettingsPage() {
               {/* Add Pricing Filter Dialog */}
               {showAddPricing && (
                 <Dialog open onOpenChange={() => setShowAddPricing(false)}>
-                  <DialogContent
-                    className="max-w-md"
-                    onClose={() => setShowAddPricing(false)}
-                  >
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add Pricing Filter</DialogTitle>
                     </DialogHeader>
@@ -567,10 +547,7 @@ function MarketSettingsPage() {
               {/* Add Client Filter Dialog */}
               {showAddClient && (
                 <Dialog open onOpenChange={() => setShowAddClient(false)}>
-                  <DialogContent
-                    className="max-w-md"
-                    onClose={() => setShowAddClient(false)}
-                  >
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add Client Filter</DialogTitle>
                     </DialogHeader>
@@ -722,10 +699,7 @@ function MarketSettingsPage() {
               {/* Add Allow/Deny Dialog */}
               {showAddAllowDeny && (
                 <Dialog open onOpenChange={() => setShowAddAllowDeny(false)}>
-                  <DialogContent
-                    className="max-w-sm"
-                    onClose={() => setShowAddAllowDeny(false)}
-                  >
+                  <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
                       <DialogTitle>Add Allow/Deny Entry</DialogTitle>
                     </DialogHeader>
@@ -851,10 +825,7 @@ function MarketSettingsPage() {
 
               {showAddContract && (
                 <Dialog open onOpenChange={() => setShowAddContract(false)}>
-                  <DialogContent
-                    className="max-w-md"
-                    onClose={() => setShowAddContract(false)}
-                  >
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add Market Contract</DialogTitle>
                     </DialogHeader>
@@ -994,7 +965,7 @@ function MarketSettingsPage() {
               </Card>
             </div>
           )}
-        </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

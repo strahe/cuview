@@ -2,17 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Check, Edit2, Plus, Trash2, Wallet } from "lucide-react";
 import { type MouseEvent, useCallback, useState } from "react";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -447,7 +447,7 @@ function WalletsPage() {
       {/* Rename Dialog */}
       {renaming && (
         <Dialog open onOpenChange={() => setRenaming(null)}>
-          <DialogContent onClose={() => setRenaming(null)}>
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Rename Wallet</DialogTitle>
             </DialogHeader>
@@ -486,10 +486,7 @@ function WalletsPage() {
       {/* Add Rule Dialog */}
       {showAddRule && (
         <Dialog open onOpenChange={() => setShowAddRule(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowAddRule(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add Balance Manager Rule</DialogTitle>
             </DialogHeader>
@@ -602,10 +599,7 @@ function WalletsPage() {
       {/* Edit Rule Dialog */}
       {editingRule && (
         <Dialog open onOpenChange={() => setEditingRule(null)}>
-          <DialogContent
-            className="max-w-sm"
-            onClose={() => setEditingRule(null)}
-          >
+          <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Edit Rule #{editingRule.id}</DialogTitle>
             </DialogHeader>

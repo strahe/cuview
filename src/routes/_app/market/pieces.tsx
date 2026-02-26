@@ -1,22 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useCallback, useState } from "react";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { StatusBadge } from "@/components/composed/status-badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/composed/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import { formatBytes } from "@/utils/format";
 
@@ -172,28 +167,19 @@ function PiecesPage() {
 
   return (
     <div className="space-y-6">
-      <Tabs>
+      <Tabs
+        value={tab}
+        onValueChange={(v) =>
+          setTab(v as "piece" | "content" | "deal" | "upload")
+        }
+      >
         <TabsList>
-          <TabsTrigger active={tab === "piece"} onClick={() => setTab("piece")}>
-            Piece Lookup
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "content"}
-            onClick={() => setTab("content")}
-          >
-            Content Search
-          </TabsTrigger>
-          <TabsTrigger active={tab === "deal"} onClick={() => setTab("deal")}>
-            Deal Info
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "upload"}
-            onClick={() => setTab("upload")}
-          >
-            Upload Status
-          </TabsTrigger>
+          <TabsTrigger value="piece">Piece Lookup</TabsTrigger>
+          <TabsTrigger value="content">Content Search</TabsTrigger>
+          <TabsTrigger value="deal">Deal Info</TabsTrigger>
+          <TabsTrigger value="upload">Upload Status</TabsTrigger>
         </TabsList>
-        <TabsContent>
+        <div>
           {tab === "piece" && (
             <Card>
               <CardHeader>
@@ -576,15 +562,12 @@ function PiecesPage() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </div>
       </Tabs>
 
       {showDealDetail && (
         <Dialog open onOpenChange={() => setShowDealDetail(null)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowDealDetail(null)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Deal {showDealDetail.slice(0, 12)}…</DialogTitle>
             </DialogHeader>

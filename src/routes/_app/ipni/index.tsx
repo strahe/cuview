@@ -4,12 +4,12 @@ import { Globe, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
-import { TabsList, TabsTrigger } from "@/components/composed/tabs";
 import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type {
@@ -128,26 +128,13 @@ function IpniPage() {
         <h1 className="text-2xl font-bold tracking-tight">IPNI</h1>
       </div>
 
-      <TabsList>
-        <TabsTrigger
-          active={activeTab === "overview"}
-          onClick={() => setActiveTab("overview")}
-        >
-          Overview
-        </TabsTrigger>
-        <TabsTrigger
-          active={activeTab === "ads"}
-          onClick={() => setActiveTab("ads")}
-        >
-          Advertisements
-        </TabsTrigger>
-        <TabsTrigger
-          active={activeTab === "entries"}
-          onClick={() => setActiveTab("entries")}
-        >
-          Entries
-        </TabsTrigger>
-      </TabsList>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as IpniTab)}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ads">Advertisements</TabsTrigger>
+          <TabsTrigger value="entries">Entries</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {activeTab === "overview" && (
         <div className="space-y-6">

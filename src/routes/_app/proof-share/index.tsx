@@ -2,25 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Settings, Shield, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { KPICard } from "@/components/composed/kpi-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/composed/tabs";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 
@@ -149,25 +144,18 @@ function ProofSharePage() {
         <h1 className="text-2xl font-bold tracking-tight">Proof Share</h1>
       </div>
 
-      <Tabs>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "provider" | "client")}
+      >
         <TabsList>
-          <TabsTrigger
-            active={tab === "provider"}
-            onClick={() => setTab("provider")}
-          >
-            Provider
-          </TabsTrigger>
-          <TabsTrigger
-            active={tab === "client"}
-            onClick={() => setTab("client")}
-          >
-            Client
-          </TabsTrigger>
+          <TabsTrigger value="provider">Provider</TabsTrigger>
+          <TabsTrigger value="client">Client</TabsTrigger>
         </TabsList>
-        <TabsContent>
+        <div>
           {tab === "provider" && <ProviderTab />}
           {tab === "client" && <ClientTab />}
-        </TabsContent>
+        </div>
       </Tabs>
     </div>
   );
@@ -450,10 +438,7 @@ function ProviderTab() {
 
       {showSettings && (
         <Dialog open onOpenChange={() => setShowSettings(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowSettings(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Provider Settings</DialogTitle>
             </DialogHeader>
@@ -750,10 +735,7 @@ function ClientTab() {
 
       {showAddClient && (
         <Dialog open onOpenChange={() => setShowAddClient(false)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setShowAddClient(false)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add Client</DialogTitle>
             </DialogHeader>
@@ -854,10 +836,7 @@ function ClientTab() {
 
       {showAddWallet && (
         <Dialog open onOpenChange={() => setShowAddWallet(false)}>
-          <DialogContent
-            className="max-w-sm"
-            onClose={() => setShowAddWallet(false)}
-          >
+          <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Add Wallet</DialogTitle>
             </DialogHeader>

@@ -4,15 +4,10 @@ import { AlertTriangle, RotateCcw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/composed/tabs";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type { Mk20Pipeline, Mk20PipelineFailedStats } from "@/types/market";
 import { formatBytes } from "@/utils/format";
@@ -408,22 +403,16 @@ function MK20DealsPage() {
           );
         })()}
 
-      <Tabs>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "pipelines" | "deals" | "pdp")}
+      >
         <TabsList>
-          <TabsTrigger
-            active={tab === "pipelines"}
-            onClick={() => setTab("pipelines")}
-          >
-            Pipelines
-          </TabsTrigger>
-          <TabsTrigger active={tab === "deals"} onClick={() => setTab("deals")}>
-            DDO Deals
-          </TabsTrigger>
-          <TabsTrigger active={tab === "pdp"} onClick={() => setTab("pdp")}>
-            PDP Deals
-          </TabsTrigger>
+          <TabsTrigger value="pipelines">Pipelines</TabsTrigger>
+          <TabsTrigger value="deals">DDO Deals</TabsTrigger>
+          <TabsTrigger value="pdp">PDP Deals</TabsTrigger>
         </TabsList>
-        <TabsContent>
+        <div>
           {tab === "pipelines" && (
             <DataTable
               columns={pipelineColumns}
@@ -459,7 +448,7 @@ function MK20DealsPage() {
               emptyMessage="No MK20 PDP deals"
             />
           )}
-        </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

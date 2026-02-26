@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/composed/dialog";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
+} from "@/components/ui/dialog";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import type { TaskSummary } from "@/types/task";
 
@@ -113,10 +113,7 @@ function ActiveTasksPage() {
       />
       {selectedTaskId !== null && taskDetail && (
         <Dialog open onOpenChange={() => setSelectedTaskId(null)}>
-          <DialogContent
-            className="max-w-md"
-            onClose={() => setSelectedTaskId(null)}
-          >
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 Task #{taskDetail.ID} - {taskDetail.Name}
