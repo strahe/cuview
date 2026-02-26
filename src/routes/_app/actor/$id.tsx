@@ -85,7 +85,7 @@ function ActorDetailPage() {
   if (!data) {
     return (
       <div className="p-6">
-        <p className="text-[hsl(var(--muted-foreground))]">Actor not found.</p>
+        <p className="text-muted-foreground">Actor not found.</p>
       </div>
     );
   }
@@ -160,29 +160,22 @@ function ActorDetailPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={formatBucketData(charts)}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke={"var(--border)"} />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--background))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: "var(--background)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                   }}
                 />
                 <Legend />
-                <Bar
-                  dataKey="all"
-                  name="All Sectors"
-                  fill="hsl(var(--primary))"
-                />
+                <Bar dataKey="all" name="All Sectors" fill={"var(--primary)"} />
                 <Bar
                   dataKey="cc"
                   name="CC Sectors"
-                  fill="hsl(var(--muted-foreground))"
+                  fill={"var(--muted-foreground)"}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -289,7 +282,7 @@ function ActorDetailPage() {
               {data.Wallets.map((w) => (
                 <div
                   key={w.Address}
-                  className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-2 last:border-0"
+                  className="flex items-center justify-between border-b border-border pb-2 last:border-0"
                 >
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{w.Type}</Badge>
@@ -353,7 +346,7 @@ function InfoRow({
 }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-[hsl(var(--muted-foreground))]">{label}</dt>
+      <dt className="text-muted-foreground">{label}</dt>
       <dd className={mono ? "truncate font-mono text-xs" : ""}>
         {value || "—"}
       </dd>
@@ -363,21 +356,17 @@ function InfoRow({
 
 function DeadlineGrid({ deadlines }: { deadlines: Deadline[] }) {
   if (!deadlines.length) {
-    return (
-      <p className="text-sm text-[hsl(var(--muted-foreground))]">
-        No deadline data
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">No deadline data</p>;
   }
 
   return (
     <div className="grid grid-cols-8 gap-1">
       {deadlines.map((d, i) => {
-        let color = "bg-[hsl(var(--muted))]";
-        if (d.Current) color = "bg-[hsl(var(--primary))]";
-        else if (d.Faulty) color = "bg-[hsl(var(--destructive))]";
-        else if (d.PartFaulty) color = "bg-[hsl(var(--warning,40_96%_40%))]";
-        else if (d.Proven) color = "bg-[hsl(var(--success,142_76%_36%))]";
+        let color = "bg-muted";
+        if (d.Current) color = "bg-primary";
+        else if (d.Faulty) color = "bg-destructive";
+        else if (d.PartFaulty) color = "bg-warning";
+        else if (d.Proven) color = "bg-success";
 
         return (
           <div

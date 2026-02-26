@@ -90,9 +90,7 @@ function MachineDetailPage() {
   if (!data) {
     return (
       <div className="p-6">
-        <p className="text-[hsl(var(--muted-foreground))]">
-          Machine not found.
-        </p>
+        <p className="text-muted-foreground">Machine not found.</p>
       </div>
     );
   }
@@ -138,9 +136,7 @@ function MachineDetailPage() {
         )}
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">
-              Confirm restart?
-            </span>
+            <span className="text-xs text-destructive">Confirm restart?</span>
             <Button
               size="sm"
               variant="destructive"
@@ -197,44 +193,36 @@ function MachineDetailPage() {
           <CardContent>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">Host</dt>
+                <dt className="text-muted-foreground">Host</dt>
                 <dd className="font-mono">{info.Host}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">
-                  Last Contact
-                </dt>
+                <dt className="text-muted-foreground">Last Contact</dt>
                 <dd>{info.LastContact || "—"}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">Layers</dt>
+                <dt className="text-muted-foreground">Layers</dt>
                 <dd>{info.Layers || "—"}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">Tasks</dt>
+                <dt className="text-muted-foreground">Tasks</dt>
                 <dd>{info.Tasks || "—"}</dd>
               </div>
               {info.Miners && (
                 <div className="flex justify-between">
-                  <dt className="text-[hsl(var(--muted-foreground))]">
-                    Miners
-                  </dt>
+                  <dt className="text-muted-foreground">Miners</dt>
                   <dd>{info.Miners}</dd>
                 </div>
               )}
               {info.StartupTime && (
                 <div className="flex justify-between">
-                  <dt className="text-[hsl(var(--muted-foreground))]">
-                    Startup Time
-                  </dt>
+                  <dt className="text-muted-foreground">Startup Time</dt>
                   <dd>{new Date(info.StartupTime).toLocaleString()}</dd>
                 </div>
               )}
               {info.RestartRequest && (
                 <div className="flex justify-between">
-                  <dt className="text-[hsl(var(--muted-foreground))]">
-                    Restart Requested
-                  </dt>
+                  <dt className="text-muted-foreground">Restart Requested</dt>
                   <dd>
                     <Badge variant="outline">
                       {new Date(info.RestartRequest).toLocaleString()}
@@ -243,9 +231,7 @@ function MachineDetailPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <dt className="text-[hsl(var(--muted-foreground))]">
-                  Unschedulable
-                </dt>
+                <dt className="text-muted-foreground">Unschedulable</dt>
                 <dd>
                   <StatusBadge
                     status={info.Unschedulable ? "warning" : "done"}
@@ -255,7 +241,7 @@ function MachineDetailPage() {
               </div>
               {info.Host && (
                 <div className="flex justify-between">
-                  <dt className="text-[hsl(var(--muted-foreground))]">Debug</dt>
+                  <dt className="text-muted-foreground">Debug</dt>
                   <dd className="flex gap-2">
                     {[
                       { label: "pprof", path: "/debug/pprof" },
@@ -267,7 +253,7 @@ function MachineDetailPage() {
                         href={`http://${info.Host}${link.path}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-0.5 text-xs text-[hsl(var(--primary))] hover:underline"
+                        className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
                       >
                         {link.label}
                         <ExternalLink className="size-3" />
@@ -294,7 +280,7 @@ function MachineDetailPage() {
             <div className="overflow-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b text-left text-[hsl(var(--muted-foreground))]">
+                  <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-2 pr-4">Storage ID</th>
                     <th className="pb-2 pr-4">URL</th>
                     <th className="pb-2 pr-4">Last Checked</th>
@@ -322,7 +308,7 @@ function MachineDetailPage() {
                       <td className="py-1.5">
                         {u.LastDeadReason ? (
                           <span
-                            className="text-[hsl(var(--destructive))]"
+                            className="text-destructive"
                             title={u.LastDeadReason}
                           >
                             Dead: {u.LastDeadReason.slice(0, 40)}
@@ -349,7 +335,7 @@ function MachineDetailPage() {
             <CardTitle>Node Metrics</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-3 font-mono text-xs">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-muted p-3 font-mono text-xs">
               {nodeMetrics}
             </pre>
           </CardContent>
@@ -382,13 +368,13 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                   <span className="font-mono text-xs">{s.ID}</span>
                   <span>{usedPercent.toFixed(1)}%</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-[hsl(var(--muted))]">
+                <div className="h-2 w-full rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-[hsl(var(--primary))]"
+                    className="h-full rounded-full bg-primary"
                     style={{ width: `${Math.min(usedPercent, 100)}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>
                     {formatBytes(s.Available)} free / {formatBytes(s.Capacity)}
                   </span>
@@ -397,9 +383,7 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                   </span>
                 </div>
                 {s.HeartbeatErr && (
-                  <p className="text-xs text-[hsl(var(--destructive))]">
-                    ⚠ {s.HeartbeatErr}
-                  </p>
+                  <p className="text-xs text-destructive">⚠ {s.HeartbeatErr}</p>
                 )}
               </div>
             );

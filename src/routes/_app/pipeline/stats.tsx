@@ -65,7 +65,7 @@ function WaterfallChart({
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No pipeline activity
           </p>
         </CardContent>
@@ -84,29 +84,29 @@ function WaterfallChart({
             data={chartData}
             margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <CartesianGrid strokeDasharray="3 3" stroke={"var(--border)"} />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
               angle={-30}
               textAnchor="end"
               height={60}
             />
             <YAxis
-              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
               allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
-                color: "hsl(var(--foreground))",
+                color: "var(--foreground)",
               }}
             />
             <Legend />
-            <Bar dataKey="Pending" fill="hsl(var(--destructive))" />
-            <Bar dataKey="Running" fill="hsl(var(--chart-2))" />
+            <Bar dataKey="Pending" fill={"var(--destructive)"} />
+            <Bar dataKey="Running" fill={"var(--chart-2)"} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -20,7 +20,7 @@ const columns: ColumnDef<ActorSummaryData>[] = [
       <Link
         to="/actor/$id"
         params={{ id: row.original.Address }}
-        className="font-mono text-xs text-[hsl(var(--primary))] hover:underline"
+        className="font-mono text-xs text-primary hover:underline"
       >
         {row.original.Address}
       </Link>

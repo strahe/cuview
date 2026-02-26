@@ -2,19 +2,24 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { StatusBadge } from "@/components/composed/status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/expiration/")({
@@ -439,7 +444,7 @@ function ExpirationPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b border-[hsl(var(--border))]">
+                          <tr className="border-b border-border">
                             <th className="py-1 text-left">SP</th>
                             <th className="py-1 text-right">{"< Days"}</th>
                             <th className="py-1 text-right">Total</th>
@@ -451,7 +456,7 @@ function ExpirationPage() {
                           {bucketCounts.map((bc, i) => (
                             <tr
                               key={i}
-                              className="border-b border-[hsl(var(--border))] last:border-0"
+                              className="border-b border-border last:border-0"
                             >
                               <td className="py-1 font-mono">
                                 {bc.sp_address}
@@ -582,7 +587,7 @@ function ExpirationPage() {
               <div>
                 <label className="text-sm font-medium">Action Type</label>
                 <select
-                  className="w-full rounded border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm"
+                  className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
                   value={presetForm.action_type}
                   onChange={(e) =>
                     setPresetForm((f) => ({
@@ -684,7 +689,7 @@ function ExpirationPage() {
                 <label className="text-sm font-medium">Preset Name *</label>
                 {presets && presets.length > 0 ? (
                   <select
-                    className="w-full rounded border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm"
+                    className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
                     value={spForm.preset}
                     onChange={(e) =>
                       setSPForm((f) => ({ ...f, preset: e.target.value }))

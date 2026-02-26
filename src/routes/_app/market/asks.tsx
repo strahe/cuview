@@ -75,9 +75,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
       <CardContent>
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
-              Miner
-            </label>
+            <label className="text-xs text-muted-foreground">Miner</label>
             <Input
               placeholder="f0..."
               value={miner}
@@ -86,9 +84,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
-              Price
-            </label>
+            <label className="text-xs text-muted-foreground">Price</label>
             <Input
               placeholder="0"
               value={price}
@@ -97,7 +93,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="text-xs text-muted-foreground">
               Verified Price
             </label>
             <Input
@@ -108,9 +104,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
-              Min Size
-            </label>
+            <label className="text-xs text-muted-foreground">Min Size</label>
             <Input
               placeholder="256B"
               value={minSize}
@@ -119,9 +113,7 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
-              Max Size
-            </label>
+            <label className="text-xs text-muted-foreground">Max Size</label>
             <Input
               placeholder="32GiB"
               value={maxSize}
@@ -138,12 +130,12 @@ function SetAskForm({ currentAsk }: { currentAsk?: StorageAsk }) {
           </Button>
         </div>
         {mutation.isError && (
-          <p className="mt-2 text-xs text-[hsl(var(--destructive))]">
+          <p className="mt-2 text-xs text-destructive">
             {(mutation.error as Error)?.message ?? "Failed to set ask"}
           </p>
         )}
         {mutation.isSuccess && (
-          <p className="mt-2 text-xs text-green-600">Ask updated</p>
+          <p className="mt-2 text-xs text-success">Ask updated</p>
         )}
       </CardContent>
     </Card>

@@ -8,13 +8,6 @@ import {
   HardDrive,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { KPICard } from "@/components/composed/kpi-card";
-import { SectionCard } from "@/components/composed/section-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +15,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { KPICard } from "@/components/composed/kpi-card";
+import { SectionCard } from "@/components/composed/section-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   useCurioRest,
   useCurioRpc,
@@ -230,21 +230,15 @@ function SectorsPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Total
-                      </div>
+                      <div className="text-muted-foreground">Total</div>
                       <div className="font-semibold">{sp.total_count}</div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        CC
-                      </div>
+                      <div className="text-muted-foreground">CC</div>
                       <div className="font-semibold">{sp.cc_count}</div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Non-CC
-                      </div>
+                      <div className="text-muted-foreground">Non-CC</div>
                       <div className="font-semibold">{sp.non_cc_count}</div>
                     </div>
                   </div>
@@ -260,7 +254,7 @@ function SectorsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[hsl(var(--border))]">
+                <tr className="border-b border-border">
                   <th className="py-2 text-left font-medium">Pipeline</th>
                   <th className="py-2 text-left font-medium">Stage</th>
                   <th className="py-2 text-right font-medium">Count</th>
@@ -268,10 +262,7 @@ function SectorsPage() {
               </thead>
               <tbody>
                 {pipelineStats.map((ps, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-[hsl(var(--border))] last:border-0"
-                  >
+                  <tr key={i} className="border-b border-border last:border-0">
                     <td className="py-2">{ps.pipeline_type}</td>
                     <td className="py-2">
                       <Badge variant="outline">{ps.stage}</Badge>
@@ -290,7 +281,7 @@ function SectorsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[hsl(var(--border))]">
+                <tr className="border-b border-border">
                   <th className="py-2 text-left font-medium">SP</th>
                   <th className="py-2 text-right font-medium">Deadline</th>
                   <th className="py-2 text-right font-medium">All</th>
@@ -305,7 +296,7 @@ function SectorsPage() {
                 {deadlineStats.map((ds, i) => (
                   <tr
                     key={i}
-                    className="cursor-pointer border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--muted)/0.5)]"
+                    className="cursor-pointer border-b border-border last:border-0 hover:bg-muted/[0.5]"
                     onClick={() =>
                       setSelectedDeadline({
                         sp: ds.sp_address,
@@ -326,7 +317,7 @@ function SectorsPage() {
                     </td>
                     <td className="py-2 text-right font-mono">
                       {ds.faulty_sectors > 0 ? (
-                        <span className="text-[hsl(var(--destructive))]">
+                        <span className="text-destructive">
                           {ds.faulty_sectors}
                         </span>
                       ) : (
@@ -353,7 +344,7 @@ function SectorsPage() {
             {fileTypeStats.map((ft) => (
               <Card key={ft.file_type}>
                 <CardContent className="pt-4 text-center">
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                  <div className="text-sm text-muted-foreground">
                     {ft.file_type}
                   </div>
                   <div className="text-2xl font-bold">{ft.count}</div>
@@ -444,7 +435,7 @@ function SectorDetailDialog({
         <DialogHeader>
           <DialogTitle>
             Sector {sectorNum}{" "}
-            <span className="font-mono text-sm font-normal text-[hsl(var(--muted-foreground))]">
+            <span className="font-mono text-sm font-normal text-muted-foreground">
               ({sp})
             </span>
           </DialogTitle>
@@ -452,7 +443,7 @@ function SectorDetailDialog({
         </DialogHeader>
 
         {isLoading && !data ? (
-          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+          <div className="py-8 text-center text-sm text-muted-foreground">
             Loading sector info...
           </div>
         ) : data ? (
@@ -567,10 +558,10 @@ function SectorDetailDialog({
                   {data.Pieces.map((p, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-sm border border-[hsl(var(--border))] px-2 py-1"
+                      className="flex items-center justify-between rounded-sm border border-border px-2 py-1"
                     >
                       <span className="truncate font-mono">{p.PieceCID}</span>
-                      <span className="ml-2 text-[hsl(var(--muted-foreground))]">
+                      <span className="ml-2 text-muted-foreground">
                         {p.PieceSize}
                       </span>
                     </div>
@@ -588,7 +579,7 @@ function SectorDetailDialog({
                   {data.Locations.map((l, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 rounded-sm border border-[hsl(var(--border))] px-2 py-1"
+                      className="flex items-center gap-2 rounded-sm border border-border px-2 py-1"
                     >
                       <Badge variant="outline" className="text-xs">
                         {l.FileType}
@@ -609,7 +600,7 @@ function SectorDetailDialog({
                   {data.TaskHistory.slice(0, 10).map((t) => (
                     <div
                       key={t.ID}
-                      className="flex items-center justify-between rounded-sm border border-[hsl(var(--border))] px-2 py-1"
+                      className="flex items-center justify-between rounded-sm border border-border px-2 py-1"
                     >
                       <div className="flex items-center gap-2">
                         <StatusBadge
@@ -618,9 +609,7 @@ function SectorDetailDialog({
                         />
                         <span>{t.Name}</span>
                       </div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        {t.Took}
-                      </span>
+                      <span className="text-muted-foreground">{t.Took}</span>
                     </div>
                   ))}
                 </div>
@@ -650,7 +639,7 @@ function SectorDetailDialog({
                 )}
                 {confirmAction === "remove" ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[hsl(var(--destructive))]">
+                    <span className="text-xs text-destructive">
                       Confirm remove?
                     </span>
                     <Button
@@ -685,7 +674,7 @@ function SectorDetailDialog({
             </DialogFooter>
           </div>
         ) : (
-          <div className="py-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+          <div className="py-8 text-center text-sm text-muted-foreground">
             Sector not found
           </div>
         )}
@@ -697,7 +686,7 @@ function SectorDetailDialog({
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[hsl(var(--muted-foreground))]">{label}</div>
+      <div className="text-muted-foreground">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
   );
@@ -706,9 +695,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 function CidRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2">
-      <span className="min-w-[100px] text-[hsl(var(--muted-foreground))]">
-        {label}:
-      </span>
+      <span className="min-w-[100px] text-muted-foreground">{label}:</span>
       <span className="truncate font-mono">{value}</span>
     </div>
   );
@@ -744,12 +731,12 @@ function DeadlineDetailDialog({
           </DialogDescription>
         </DialogHeader>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+          <div className="py-4 text-center text-sm text-muted-foreground">
             Loading...
           </div>
         ) : data ? (
           <div className="space-y-3 text-sm">
-            <div className="flex gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="flex gap-4 text-xs text-muted-foreground">
               <span>
                 Post Submissions:{" "}
                 <strong className="text-foreground">
@@ -767,7 +754,7 @@ function DeadlineDetailDialog({
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-[hsl(var(--border))]">
+                    <tr className="border-b border-border">
                       <th className="py-1 text-left">Partition</th>
                       <th className="py-1 text-right">All</th>
                       <th className="py-1 text-right">Live</th>
@@ -780,7 +767,7 @@ function DeadlineDetailDialog({
                     {data.partitions.map((p) => (
                       <tr
                         key={p.partition}
-                        className="cursor-pointer border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--muted)/0.5)]"
+                        className="cursor-pointer border-b border-border last:border-0 hover:bg-muted/[0.5]"
                         onClick={() => onPartitionClick(p.partition)}
                       >
                         <td className="py-1 font-mono">#{p.partition}</td>
@@ -789,7 +776,7 @@ function DeadlineDetailDialog({
                         <td className="py-1 text-right">{p.active_sectors}</td>
                         <td className="py-1 text-right">
                           {p.faulty_sectors > 0 ? (
-                            <span className="text-[hsl(var(--destructive))]">
+                            <span className="text-destructive">
                               {p.faulty_sectors}
                             </span>
                           ) : (
@@ -842,46 +829,40 @@ function PartitionDetailDialog({
           <DialogDescription>{sp}</DialogDescription>
         </DialogHeader>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+          <div className="py-4 text-center text-sm text-muted-foreground">
             Loading...
           </div>
         ) : data ? (
           <div className="space-y-3 text-sm">
             <div className="grid grid-cols-3 gap-2 text-xs sm:grid-cols-5">
               <div className="text-center">
-                <div className="text-[hsl(var(--muted-foreground))]">All</div>
+                <div className="text-muted-foreground">All</div>
                 <div className="font-bold">{data.all_sectors_count}</div>
               </div>
               <div className="text-center">
-                <div className="text-[hsl(var(--muted-foreground))]">Live</div>
+                <div className="text-muted-foreground">Live</div>
                 <div className="font-bold">{data.live_sectors_count}</div>
               </div>
               <div className="text-center">
-                <div className="text-[hsl(var(--muted-foreground))]">
-                  Active
-                </div>
+                <div className="text-muted-foreground">Active</div>
                 <div className="font-bold">{data.active_sectors_count}</div>
               </div>
               <div className="text-center">
-                <div className="text-[hsl(var(--muted-foreground))]">
-                  Faulty
-                </div>
-                <div className="font-bold text-[hsl(var(--destructive))]">
+                <div className="text-muted-foreground">Faulty</div>
+                <div className="font-bold text-destructive">
                   {data.faulty_sectors_count}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-[hsl(var(--muted-foreground))]">
-                  Recovering
-                </div>
+                <div className="text-muted-foreground">Recovering</div>
                 <div className="font-bold">{data.recovering_sectors_count}</div>
               </div>
             </div>
             {data.sectors && data.sectors.length > 0 && (
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-[hsl(var(--background))]">
-                    <tr className="border-b border-[hsl(var(--border))]">
+                  <thead className="sticky top-0 bg-background">
+                    <tr className="border-b border-border">
                       <th className="py-1 text-left">Sector</th>
                       <th className="py-1 text-center">Live</th>
                       <th className="py-1 text-center">Active</th>
@@ -893,7 +874,7 @@ function PartitionDetailDialog({
                     {data.sectors.map((s) => (
                       <tr
                         key={s.sector_number}
-                        className="border-b border-[hsl(var(--border))] last:border-0"
+                        className="border-b border-border last:border-0"
                       >
                         <td className="py-1 font-mono">#{s.sector_number}</td>
                         <td className="py-1 text-center">
@@ -904,9 +885,7 @@ function PartitionDetailDialog({
                         </td>
                         <td className="py-1 text-center">
                           {s.is_faulty ? (
-                            <span className="text-[hsl(var(--destructive))]">
-                              ✗
-                            </span>
+                            <span className="text-destructive">✗</span>
                           ) : (
                             "—"
                           )}

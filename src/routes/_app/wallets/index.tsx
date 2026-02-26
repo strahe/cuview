@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Check, Edit2, Plus, Trash2, Wallet } from "lucide-react";
-import { useCallback, useState } from "react";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type MouseEvent, useCallback, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -267,7 +267,7 @@ function WalletsPage() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               setRenaming({
                 addr: row.original.Address,
@@ -282,7 +282,7 @@ function WalletsPage() {
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={(e) => {
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   removeWalletMutation.mutate([row.original.Address]);
                   setConfirmRemove(null);
@@ -293,7 +293,7 @@ function WalletsPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={(e) => {
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   setConfirmRemove(null);
                 }}
@@ -305,7 +305,7 @@ function WalletsPage() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => {
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 setConfirmRemove(row.original.Address);
               }}
@@ -452,7 +452,7 @@ function WalletsPage() {
               <DialogTitle>Rename Wallet</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <div className="font-mono text-xs text-[hsl(var(--muted-foreground))]">
+              <div className="font-mono text-xs text-muted-foreground">
                 {renaming.addr}
               </div>
               <Input
@@ -520,7 +520,7 @@ function WalletsPage() {
                 <div>
                   <label className="text-sm font-medium">Action Type</label>
                   <select
-                    className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                     value={ruleForm.actionType}
                     onChange={(e) =>
                       setRuleForm((f) => ({ ...f, actionType: e.target.value }))
@@ -533,7 +533,7 @@ function WalletsPage() {
                 <div>
                   <label className="text-sm font-medium">Subject Type</label>
                   <select
-                    className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                     value={ruleForm.subjectType}
                     onChange={(e) =>
                       setRuleForm((f) => ({
@@ -680,63 +680,49 @@ function WalletsPage() {
           {messageDetail && (
             <div className="space-y-4">
               <div>
-                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                <h4 className="mb-2 text-xs font-semibold text-muted-foreground">
                   Message Info
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      From
-                    </span>
+                    <span className="text-muted-foreground">From</span>
                     <div className="truncate font-mono text-xs">
                       {messageDetail.from_key}
                     </div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      To
-                    </span>
+                    <span className="text-muted-foreground">To</span>
                     <div className="truncate font-mono text-xs">
                       {messageDetail.to_addr}
                     </div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Reason
-                    </span>
+                    <span className="text-muted-foreground">Reason</span>
                     <div className="text-xs">{messageDetail.send_reason}</div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Value
-                    </span>
+                    <span className="text-muted-foreground">Value</span>
                     <div>{messageDetail.value_str || "—"}</div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Nonce
-                    </span>
+                    <span className="text-muted-foreground">Nonce</span>
                     <div>{messageDetail.nonce}</div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Fee
-                    </span>
+                    <span className="text-muted-foreground">Fee</span>
                     <div>{messageDetail.fee_str || "—"}</div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                <h4 className="mb-2 text-xs font-semibold text-muted-foreground">
                   CIDs
                 </h4>
                 <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                   {messageDetail.signed_cid && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        Signed CID
-                      </span>
+                      <span className="text-muted-foreground">Signed CID</span>
                       <div className="truncate font-mono text-xs">
                         {messageDetail.signed_cid}
                       </div>
@@ -744,7 +730,7 @@ function WalletsPage() {
                   )}
                   {messageDetail.unsigned_cid && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
+                      <span className="text-muted-foreground">
                         Unsigned CID
                       </span>
                       <div className="truncate font-mono text-xs">
@@ -756,14 +742,12 @@ function WalletsPage() {
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                <h4 className="mb-2 text-xs font-semibold text-muted-foreground">
                   Send Status
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Send Time
-                    </span>
+                    <span className="text-muted-foreground">Send Time</span>
                     <div className="text-xs">
                       {messageDetail.send_time
                         ? new Date(messageDetail.send_time).toLocaleString()
@@ -771,9 +755,7 @@ function WalletsPage() {
                     </div>
                   </div>
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Send Success
-                    </span>
+                    <span className="text-muted-foreground">Send Success</span>
                     <div>
                       <Badge
                         variant={
@@ -786,10 +768,8 @@ function WalletsPage() {
                   </div>
                   {messageDetail.send_error && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        Send Error
-                      </span>
-                      <div className="text-xs text-[hsl(var(--destructive))]">
+                      <span className="text-muted-foreground">Send Error</span>
+                      <div className="text-xs text-destructive">
                         {messageDetail.send_error}
                       </div>
                     </div>
@@ -798,21 +778,19 @@ function WalletsPage() {
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+                <h4 className="mb-2 text-xs font-semibold text-muted-foreground">
                   Execution
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                   {messageDetail.executed_tsk_epoch > 0 && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        Epoch
-                      </span>
+                      <span className="text-muted-foreground">Epoch</span>
                       <div>{messageDetail.executed_tsk_epoch}</div>
                     </div>
                   )}
                   {messageDetail.executed_msg_cid && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
+                      <span className="text-muted-foreground">
                         Executed Msg CID
                       </span>
                       <div className="truncate font-mono text-xs">
@@ -821,9 +799,7 @@ function WalletsPage() {
                     </div>
                   )}
                   <div>
-                    <span className="text-[hsl(var(--muted-foreground))]">
-                      Exit Code
-                    </span>
+                    <span className="text-muted-foreground">Exit Code</span>
                     <div>
                       <Badge
                         variant={
@@ -838,9 +814,7 @@ function WalletsPage() {
                   </div>
                   {messageDetail.executed_rcpt_gas_used > 0 && (
                     <div>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        Gas Used
-                      </span>
+                      <span className="text-muted-foreground">Gas Used</span>
                       <div>
                         {messageDetail.executed_rcpt_gas_used.toLocaleString()}
                       </div>

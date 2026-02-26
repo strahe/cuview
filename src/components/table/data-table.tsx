@@ -106,7 +106,7 @@ export function DataTable<TData, TValue>({
     <div className={cn("space-y-4", className)}>
       {searchable && (
         <div className="relative max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-[hsl(var(--muted-foreground))]" />
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
             value={
@@ -128,7 +128,7 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="rounded-md border border-[hsl(var(--border))]">
+      <div className="rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -202,7 +202,7 @@ export function DataTable<TData, TValue>({
 
       {pagination && table.getPageCount() > 1 && (
         <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          <p className="text-sm text-muted-foreground">
             {table.getFilteredRowModel().rows.length} row(s) total
           </p>
           <div className="flex items-center gap-2">
@@ -215,7 +215,7 @@ export function DataTable<TData, TValue>({
               <ChevronLeft className="size-4" />
               Previous
             </Button>
-            <span className="text-sm text-[hsl(var(--muted-foreground))]">
+            <span className="text-sm text-muted-foreground">
               Page {table.getState().pagination.pageIndex + 1} of{" "}
               {table.getPageCount()}
             </span>

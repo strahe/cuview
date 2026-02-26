@@ -14,18 +14,18 @@ import {
   ConfigVisualEditor,
   type ConfigVisualEditorHandle,
 } from "@/components/composed/config/config-visual-editor";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/composed/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import { useCurioRest } from "@/hooks/use-curio-query";
@@ -219,8 +219,8 @@ function ConfigPage() {
         <div
           className={`rounded-md p-3 text-sm ${
             statusMsg.startsWith("Error")
-              ? "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
-              : "bg-[hsl(var(--success,142_76%_36%)/0.1)] text-[hsl(var(--success,142_76%_36%))]"
+              ? "bg-destructive/[0.1] text-destructive"
+              : "bg-success/10 text-success"
           }`}
         >
           {statusMsg}
@@ -245,10 +245,8 @@ function ConfigPage() {
                   <button
                     key={name}
                     onClick={() => loadLayer(name)}
-                    className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-[hsl(var(--muted))] ${
-                      selectedLayer === name
-                        ? "bg-[hsl(var(--muted))] font-medium"
-                        : ""
+                    className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                      selectedLayer === name ? "bg-muted font-medium" : ""
                     }`}
                   >
                     <FileText className="size-3.5" />
@@ -264,10 +262,10 @@ function ConfigPage() {
             )}
 
             {topology && topology.length > 0 && (
-              <div className="space-y-2 border-t border-[hsl(var(--border))] pt-4">
+              <div className="space-y-2 border-t border-border pt-4">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold">Topology</h3>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  <p className="text-xs text-muted-foreground">
                     Topology = node/worker to layer mapping.
                   </p>
                 </div>
@@ -275,15 +273,13 @@ function ConfigPage() {
                   {topology.map((entry, i) => (
                     <div
                       key={i}
-                      className="rounded-md border border-[hsl(var(--border))] p-2"
+                      className="rounded-md border border-border p-2"
                     >
                       <div className="flex items-center gap-1 text-sm">
                         <span className="font-medium">
                           {entry.Name || `Node ${entry.ID}`}
                         </span>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          →
-                        </span>
+                        <span className="text-muted-foreground">→</span>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {entry.LayersCSV.split(",")
@@ -370,7 +366,7 @@ function ConfigPage() {
           </CardHeader>
           <CardContent className="min-h-0 flex-1 overflow-y-auto">
             {!selectedLayer ? (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              <p className="text-sm text-muted-foreground">
                 Select a configuration layer to view and edit.
               </p>
             ) : editMode === "visual" ? (
@@ -406,14 +402,14 @@ function ConfigPage() {
           </DialogHeader>
           <div className="max-h-96 space-y-2 overflow-y-auto">
             {historyEntries.length === 0 ? (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              <p className="text-sm text-muted-foreground">
                 No history entries.
               </p>
             ) : (
               historyEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="cursor-pointer rounded border border-[hsl(var(--border))] p-3 text-sm hover:bg-[hsl(var(--muted))]"
+                  className="cursor-pointer rounded border border-border p-3 text-sm hover:bg-muted"
                   onClick={() => {
                     setLayerContent(entry.content);
                     setShowHistory(false);
@@ -422,11 +418,11 @@ function ConfigPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Version #{entry.id}</span>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       {entry.created_at}
                     </span>
                   </div>
-                  <pre className="mt-1 max-h-24 overflow-hidden text-xs text-[hsl(var(--muted-foreground))]">
+                  <pre className="mt-1 max-h-24 overflow-hidden text-xs text-muted-foreground">
                     {entry.content?.slice(0, 200)}
                     {entry.content?.length > 200 ? "…" : ""}
                   </pre>

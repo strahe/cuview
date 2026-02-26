@@ -1,17 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useCallback, useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { StatusBadge } from "@/components/composed/status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import { formatBytes } from "@/utils/format";
 
@@ -214,7 +219,7 @@ function PiecesPage() {
                 </div>
 
                 {isError && searchCid && (
-                  <p className="mt-3 text-sm text-[hsl(var(--destructive))]">
+                  <p className="mt-3 text-sm text-destructive">
                     Piece not found or invalid CID
                   </p>
                 )}
@@ -223,7 +228,7 @@ function PiecesPage() {
                   <div className="mt-6 space-y-4">
                     <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
+                        <div className="text-muted-foreground">
                           Piece CID v2
                         </div>
                         <div className="truncate font-mono text-xs">
@@ -231,7 +236,7 @@ function PiecesPage() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
+                        <div className="text-muted-foreground">
                           Piece CID v1
                         </div>
                         <div className="truncate font-mono text-xs">
@@ -239,32 +244,24 @@ function PiecesPage() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
-                          Size
-                        </div>
+                        <div className="text-muted-foreground">Size</div>
                         <div className="font-medium">
                           {formatBytes(pieceInfo.size)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
-                          Indexed
-                        </div>
+                        <div className="text-muted-foreground">Indexed</div>
                         <StatusBadge
                           status={pieceInfo.indexed ? "done" : "pending"}
                           label={pieceInfo.indexed ? "Yes" : "No"}
                         />
                       </div>
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
-                          Created
-                        </div>
+                        <div className="text-muted-foreground">Created</div>
                         <div className="text-xs">{pieceInfo.created_at}</div>
                       </div>
                       <div>
-                        <div className="text-[hsl(var(--muted-foreground))]">
-                          Indexed At
-                        </div>
+                        <div className="text-muted-foreground">Indexed At</div>
                         <div className="text-xs">{pieceInfo.indexed_at}</div>
                       </div>
                     </div>
@@ -278,7 +275,7 @@ function PiecesPage() {
                           {pieceInfo.ipni_ads.map((ad, i) => (
                             <div
                               key={i}
-                              className="truncate rounded border border-[hsl(var(--border))] px-2 py-1 font-mono text-xs"
+                              className="truncate rounded border border-border px-2 py-1 font-mono text-xs"
                             >
                               {ad}
                             </div>
@@ -296,7 +293,7 @@ function PiecesPage() {
                           {pieceInfo.deals.map((d) => (
                             <div
                               key={d.id}
-                              className="cursor-pointer rounded border border-[hsl(var(--border))] p-2 text-xs hover:bg-[hsl(var(--muted))]"
+                              className="cursor-pointer rounded border border-border p-2 text-xs hover:bg-muted"
                               onClick={() => setShowDealDetail(d.id)}
                             >
                               <div className="flex items-center justify-between">
@@ -313,7 +310,7 @@ function PiecesPage() {
                                   )}
                                 </div>
                               </div>
-                              <div className="mt-1 grid grid-cols-3 gap-2 text-[hsl(var(--muted-foreground))]">
+                              <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
                                 <span>Sector: {d.sector}</span>
                                 <span>Chain Deal: {d.chain_deal_id}</span>
                                 <span>Size: {formatBytes(d.length)}</span>
@@ -333,7 +330,7 @@ function PiecesPage() {
                           {dealDetail.map((d) => (
                             <div
                               key={d.deal_id}
-                              className="rounded border border-[hsl(var(--border))] p-2 text-xs"
+                              className="rounded border border-border p-2 text-xs"
                             >
                               <div className="grid grid-cols-3 gap-2">
                                 <span>
@@ -345,7 +342,7 @@ function PiecesPage() {
                                 <span className="font-mono">{d.miner}</span>
                                 <span>Sector: {d.sector_num}</span>
                               </div>
-                              <div className="mt-1 grid grid-cols-3 gap-2 text-[hsl(var(--muted-foreground))]">
+                              <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
                                 <span>Start: {d.start_epoch}</span>
                                 <span>End: {d.end_epoch}</span>
                                 <span>Size: {formatBytes(d.piece_size)}</span>
@@ -365,7 +362,7 @@ function PiecesPage() {
                           {parkStates.map((ps, i) => (
                             <div
                               key={i}
-                              className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                              className="flex items-center justify-between rounded border border-border p-2 text-xs"
                             >
                               <div className="flex items-center gap-2">
                                 <span>{ps.state}</span>
@@ -374,7 +371,7 @@ function PiecesPage() {
                                   label={ps.complete ? "Complete" : "Active"}
                                 />
                               </div>
-                              <span className="text-[hsl(var(--muted-foreground))]">
+                              <span className="text-muted-foreground">
                                 {ps.created_at}
                               </span>
                             </div>
@@ -437,12 +434,12 @@ function PiecesPage() {
                     {(contentResults ?? dataUrlResults ?? []).map((e, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                        className="flex items-center justify-between rounded border border-border p-2 text-xs"
                       >
                         <span className="truncate font-mono">
                           {e.piece_cid}
                         </span>
-                        <div className="flex gap-3 text-[hsl(var(--muted-foreground))]">
+                        <div className="flex gap-3 text-muted-foreground">
                           <span>SP: {e.sp_id}</span>
                           <span>Sector: {e.sector_num}</span>
                         </div>
@@ -484,47 +481,35 @@ function PiecesPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          ID
-                        </span>
+                        <span className="text-muted-foreground">ID</span>
                         <div className="truncate font-mono text-xs">
                           {dealInfo.id}
                         </div>
                       </div>
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          Miner
-                        </span>
+                        <span className="text-muted-foreground">Miner</span>
                         <div className="font-mono text-xs">
                           {dealInfo.miner}
                         </div>
                       </div>
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          Piece CID
-                        </span>
+                        <span className="text-muted-foreground">Piece CID</span>
                         <div className="truncate font-mono text-xs">
                           {dealInfo.piece_cid}
                         </div>
                       </div>
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          Size
-                        </span>
+                        <span className="text-muted-foreground">Size</span>
                         <div>{formatBytes(dealInfo.piece_size)}</div>
                       </div>
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          Epochs
-                        </span>
+                        <span className="text-muted-foreground">Epochs</span>
                         <div className="text-xs">
                           {dealInfo.start_epoch} → {dealInfo.end_epoch}
                         </div>
                       </div>
                       <div>
-                        <span className="text-[hsl(var(--muted-foreground))]">
-                          Flags
-                        </span>
+                        <span className="text-muted-foreground">Flags</span>
                         <div className="flex gap-1">
                           {dealInfo.verified && (
                             <StatusBadge status="done" label="Verified" />
@@ -542,7 +527,7 @@ function PiecesPage() {
                       </div>
                     </div>
                     {dealInfo.error && (
-                      <p className="text-sm text-[hsl(var(--destructive))]">
+                      <p className="text-sm text-destructive">
                         {dealInfo.error}
                       </p>
                     )}
@@ -579,7 +564,7 @@ function PiecesPage() {
                   </Button>
                 </div>
                 {uploadStatus && (
-                  <div className="rounded border border-[hsl(var(--border))] p-3 text-sm">
+                  <div className="rounded border border-border p-3 text-sm">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-xs">
                         {uploadStatus.id}
@@ -603,7 +588,7 @@ function PiecesPage() {
             <DialogHeader>
               <DialogTitle>Deal {showDealDetail.slice(0, 12)}…</DialogTitle>
             </DialogHeader>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            <p className="text-sm text-muted-foreground">
               Use the Deal Info tab to look up full deal details.
             </p>
           </DialogContent>

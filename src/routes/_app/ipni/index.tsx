@@ -4,12 +4,12 @@ import { Globe, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { TabsList, TabsTrigger } from "@/components/composed/tabs";
 import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type {
@@ -218,49 +218,35 @@ function IpniPage() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Ad CID
-                    </div>
+                    <div className="text-muted-foreground">Ad CID</div>
                     <div className="font-mono text-xs break-all">
                       {adDetail.ad_cid}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Miner
-                    </div>
+                    <div className="text-muted-foreground">Miner</div>
                     <div>{adDetail.miner}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Piece CID
-                    </div>
+                    <div className="text-muted-foreground">Piece CID</div>
                     <div className="font-mono text-xs break-all">
                       {adDetail.piece_cid || "—"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Piece Size
-                    </div>
+                    <div className="text-muted-foreground">Piece Size</div>
                     <div>{adDetail.piece_size}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Entry Count
-                    </div>
+                    <div className="text-muted-foreground">Entry Count</div>
                     <div>{adDetail.entry_count}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      CID Count
-                    </div>
+                    <div className="text-muted-foreground">CID Count</div>
                     <div>{adDetail.cid_count}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Status
-                    </div>
+                    <div className="text-muted-foreground">Status</div>
                     <div className="flex gap-1">
                       {adDetail.is_rm && (
                         <Badge variant="destructive">Removed</Badge>
@@ -274,9 +260,7 @@ function IpniPage() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Previous
-                    </div>
+                    <div className="text-muted-foreground">Previous</div>
                     <div className="font-mono text-xs">
                       {adDetail.previous || "—"}
                     </div>
@@ -323,47 +307,33 @@ function IpniPage() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Piece CID
-                    </div>
+                    <div className="text-muted-foreground">Piece CID</div>
                     <div className="font-mono text-xs break-all">
                       {entryInfo.PieceCID}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      From CAR
-                    </div>
+                    <div className="text-muted-foreground">From CAR</div>
                     <div>{entryInfo.FromCar ? "Yes" : "No"}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Num Blocks
-                    </div>
+                    <div className="text-muted-foreground">Num Blocks</div>
                     <div>{entryInfo.NumBlocks}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Size
-                    </div>
+                    <div className="text-muted-foreground">Size</div>
                     <div>{entryInfo.Size}</div>
                   </div>
                   {entryInfo.StartOffset != null && (
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Start Offset
-                      </div>
+                      <div className="text-muted-foreground">Start Offset</div>
                       <div>{entryInfo.StartOffset}</div>
                     </div>
                   )}
                   {entryInfo.Err && (
                     <div className="col-span-2">
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Error
-                      </div>
-                      <div className="text-[hsl(var(--destructive))]">
-                        {entryInfo.Err}
-                      </div>
+                      <div className="text-muted-foreground">Error</div>
+                      <div className="text-destructive">{entryInfo.Err}</div>
                     </div>
                   )}
                 </div>

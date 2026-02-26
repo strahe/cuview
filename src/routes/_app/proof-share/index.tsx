@@ -2,20 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Settings, Shield, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { KPICard } from "@/components/composed/kpi-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 
@@ -330,15 +335,15 @@ function ProviderTab() {
               {payments.map((p) => (
                 <div
                   key={p.wallet_id}
-                  className="flex flex-col gap-1 rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  className="flex flex-col gap-1 rounded border border-border p-2 text-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs">{p.address}</span>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       Nonce: {p.last_payment_nonce}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                     {p.unsettled_amount_fil && (
                       <span>Unsettled: {p.unsettled_amount_fil}</span>
                     )}
@@ -377,12 +382,12 @@ function ProviderTab() {
               {asks.map((a) => (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  className="flex items-center justify-between rounded border border-border p-2 text-sm"
                 >
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-xs">#{a.id}</span>
                     <span>Min Price: {a.min_price_fil}</span>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       {a.created_at}
                     </span>
                   </div>
@@ -411,11 +416,11 @@ function ProviderTab() {
               {settlements.map((s, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  className="flex items-center justify-between rounded border border-border p-2 text-sm"
                 >
                   <div className="flex flex-col gap-0.5">
                     <span className="font-mono text-xs">{s.address}</span>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       Nonce: {s.payment_nonce} | CID:{" "}
                       {s.settle_message_cid.slice(0, 16)}...
                     </span>
@@ -424,7 +429,7 @@ function ProviderTab() {
                     <span className="font-medium">
                       {s.amount_for_this_settlement_fil}
                     </span>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       {s.settled_at}
                     </span>
                     <Button
@@ -711,20 +716,18 @@ function ClientTab() {
         </CardHeader>
         <CardContent>
           {walletsLoading ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Loading…
-            </p>
+            <p className="text-sm text-muted-foreground">Loading…</p>
           ) : wallets && wallets.length > 0 ? (
             <div className="space-y-2">
               {wallets.map((w) => (
                 <div
                   key={w.wallet}
-                  className="flex flex-col gap-1 rounded border border-[hsl(var(--border))] p-2 text-sm"
+                  className="flex flex-col gap-1 rounded border border-border p-2 text-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs">{w.address}</span>
                   </div>
-                  <div className="flex flex-wrap gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                     <span>Chain: {w.chain_balance}</span>
                     <span>Available: {w.available_balance}</span>
                     <span>Router Avail: {w.router_avail_balance}</span>
@@ -738,7 +741,7 @@ function ClientTab() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            <p className="text-sm text-muted-foreground">
               No wallets configured
             </p>
           )}
@@ -889,7 +892,7 @@ function ClientTab() {
         <CardContent className="space-y-3">
           <div className="flex items-end gap-2">
             <div>
-              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+              <label className="mb-1 block text-xs text-muted-foreground">
                 SP ID
               </label>
               <Input
@@ -914,7 +917,7 @@ function ClientTab() {
                 {requestsQuery.data.map((r) => (
                   <div
                     key={r.task_id}
-                    className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                    className="flex items-center justify-between rounded border border-border p-2 text-xs"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-mono">#{r.task_id}</span>
@@ -929,7 +932,7 @@ function ClientTab() {
                         }
                       />
                     </div>
-                    <div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       {r.request_cid && (
                         <span className="font-mono">
                           {r.request_cid.slice(0, 12)}…
@@ -954,7 +957,7 @@ function ClientTab() {
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-end gap-2">
             <div>
-              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+              <label className="mb-1 block text-xs text-muted-foreground">
                 Wallet
               </label>
               <Input
@@ -965,7 +968,7 @@ function ClientTab() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+              <label className="mb-1 block text-xs text-muted-foreground">
                 Amount (FIL)
               </label>
               <Input
@@ -1035,11 +1038,11 @@ function ClientTab() {
               {messages.map((m, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                  className="flex items-center justify-between rounded border border-border p-2 text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-mono">{m.action}</span>
-                    <span className="text-[hsl(var(--muted-foreground))]">
+                    <span className="text-muted-foreground">
                       {m.started_at}
                     </span>
                     {m.success !== undefined && (
@@ -1049,7 +1052,7 @@ function ClientTab() {
                       />
                     )}
                   </div>
-                  <span className="truncate font-mono text-[hsl(var(--muted-foreground))]">
+                  <span className="truncate font-mono text-muted-foreground">
                     {m.signed_cid.slice(0, 16)}...
                   </span>
                 </div>
@@ -1069,13 +1072,13 @@ function ClientTab() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <h4 className="mb-1 text-sm font-medium">Provider ToS</h4>
-                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-2 text-xs">
+                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
                   {tos.provider}
                 </pre>
               </div>
               <div>
                 <h4 className="mb-1 text-sm font-medium">Client ToS</h4>
-                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-2 text-xs">
+                <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
                   {tos.client}
                 </pre>
               </div>

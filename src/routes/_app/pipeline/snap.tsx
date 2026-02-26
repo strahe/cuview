@@ -66,12 +66,12 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
     cell: ({ row }) =>
       row.original.Failed ? (
         <span
-          className="max-w-xs truncate text-xs text-[hsl(var(--destructive))]"
+          className="max-w-xs truncate text-xs text-destructive"
           title={`${row.original.FailedReason}${row.original.FailedReasonMsg ? `: ${row.original.FailedReasonMsg}` : ""}`}
         >
           {row.original.FailedReason}
           {row.original.FailedReasonMsg && (
-            <span className="ml-1 text-[hsl(var(--muted-foreground))]">
+            <span className="ml-1 text-muted-foreground">
               ({row.original.FailedReasonMsg.slice(0, 30)})
             </span>
           )}
@@ -98,7 +98,7 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
         <div className="flex gap-1">
           {meta?.onResetTasks && (
             <button
-              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]"
+              className="rounded p-1 text-xs text-muted-foreground hover:text-primary"
               onClick={() => meta.onResetTasks!(spId, s.SectorNumber)}
               title="Reset task IDs"
             >
@@ -107,7 +107,7 @@ const sectorColumns: ColumnDef<SnapSectorEntry>[] = [
           )}
           {meta?.onDelete && (
             <button
-              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))]"
+              className="rounded p-1 text-xs text-muted-foreground hover:text-destructive"
               onClick={() => meta.onDelete!(spId, s.SectorNumber)}
               title="Delete upgrade"
             >
@@ -231,7 +231,7 @@ function SnapPage() {
         <h2 className="text-lg font-semibold">Snap Pipeline</h2>
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">
+            <span className="text-xs text-destructive">
               Restart all failed Snap tasks?
             </span>
             <Button
@@ -283,7 +283,7 @@ function SnapPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[hsl(var(--border))] text-left text-[hsl(var(--muted-foreground))]">
+                  <tr className="border-b border-border text-left text-muted-foreground">
                     <th className="px-3 py-2">Actor</th>
                     <th className="px-3 py-2">Encode</th>
                     <th className="px-3 py-2">Prove</th>
@@ -297,7 +297,7 @@ function SnapPage() {
                   {actorSummary.map((s) => (
                     <tr
                       key={s.Actor}
-                      className="border-b border-[hsl(var(--border))] last:border-0"
+                      className="border-b border-border last:border-0"
                     >
                       <td className="px-3 py-2 font-mono">{s.Actor}</td>
                       <td className="px-3 py-2">{s.CountEncode}</td>

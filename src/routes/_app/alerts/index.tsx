@@ -10,20 +10,20 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { useCallback, useState } from "react";
-import { KPICard } from "@/components/composed/kpi-card";
-import { SectionCard } from "@/components/composed/section-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { type MouseEvent, useCallback, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { KPICard } from "@/components/composed/kpi-card";
+import { SectionCard } from "@/components/composed/section-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
@@ -113,7 +113,7 @@ const muteColumns: ColumnDef<AlertMute>[] = [
               size="sm"
               variant="ghost"
               title="Reactivate"
-              onClick={(e) => {
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 meta?.onReactivate(mute.id);
               }}
@@ -125,12 +125,12 @@ const muteColumns: ColumnDef<AlertMute>[] = [
             size="sm"
             variant="ghost"
             title="Remove"
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               meta?.onRemove(mute.id);
             }}
           >
-            <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+            <Trash2 className="size-3.5 text-destructive" />
           </Button>
         </div>
       );
@@ -473,38 +473,34 @@ function AlertDetailDialog({
 
         <div className="space-y-4 text-sm">
           <div>
-            <div className="text-[hsl(var(--muted-foreground))]">Category</div>
+            <div className="text-muted-foreground">Category</div>
             <div>{alert.category}</div>
           </div>
           <div>
-            <div className="text-[hsl(var(--muted-foreground))]">Machine</div>
+            <div className="text-muted-foreground">Machine</div>
             <div>{alert.machine_name}</div>
           </div>
           <div>
-            <div className="text-[hsl(var(--muted-foreground))]">Message</div>
-            <div className="whitespace-pre-wrap rounded-md bg-[hsl(var(--muted))] p-3 text-xs">
+            <div className="text-muted-foreground">Message</div>
+            <div className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs">
               {alert.message}
             </div>
           </div>
           <div>
-            <div className="text-[hsl(var(--muted-foreground))]">Time</div>
+            <div className="text-muted-foreground">Time</div>
             <div>{alert.created_at}</div>
           </div>
           {alert.acknowledged && (
             <div className="flex gap-6">
               {alert.acknowledged_by && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Acknowledged By
-                  </div>
+                  <div className="text-muted-foreground">Acknowledged By</div>
                   <div>{alert.acknowledged_by}</div>
                 </div>
               )}
               {alert.acknowledged_at && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Acknowledged At
-                  </div>
+                  <div className="text-muted-foreground">Acknowledged At</div>
                   <div>{alert.acknowledged_at}</div>
                 </div>
               )}
@@ -512,9 +508,7 @@ function AlertDetailDialog({
           )}
           <div className="flex gap-6">
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Sent to Plugins
-              </div>
+              <div className="text-muted-foreground">Sent to Plugins</div>
               <StatusBadge
                 status={alert.sent_to_plugins ? "done" : "warning"}
                 label={alert.sent_to_plugins ? "Yes" : "No"}
@@ -522,9 +516,7 @@ function AlertDetailDialog({
             </div>
             {alert.sent_at && (
               <div>
-                <div className="text-[hsl(var(--muted-foreground))]">
-                  Sent At
-                </div>
+                <div className="text-muted-foreground">Sent At</div>
                 <div>{alert.sent_at}</div>
               </div>
             )}
@@ -541,9 +533,9 @@ function AlertDetailDialog({
                 {comments.map((c) => (
                   <div
                     key={c.id}
-                    className="rounded-md border border-[hsl(var(--border))] p-2 text-xs"
+                    className="rounded-md border border-border p-2 text-xs"
                   >
-                    <div className="mb-1 flex justify-between text-[hsl(var(--muted-foreground))]">
+                    <div className="mb-1 flex justify-between text-muted-foreground">
                       <span>{c.author}</span>
                       <span>{c.created_at}</span>
                     </div>

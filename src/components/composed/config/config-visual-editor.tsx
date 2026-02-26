@@ -22,7 +22,7 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
-import { Alert } from "@/components/ui/alert";
+import { Alert } from "@/components/composed/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import {
@@ -170,7 +170,7 @@ export const ConfigVisualEditor = forwardRef<
 
   if (!schema) {
     return (
-      <p className="text-sm text-[hsl(var(--muted-foreground))]">
+      <p className="text-sm text-muted-foreground">
         No configuration schema available.
       </p>
     );
@@ -271,7 +271,7 @@ function ConfigFieldTemplate<
           <div className="flex items-center gap-1.5">
             <label
               className={`text-sm font-medium leading-none ${
-                hasErrors ? "text-[hsl(var(--destructive))]" : ""
+                hasErrors ? "text-destructive" : ""
               }`}
               htmlFor={id}
             >
@@ -283,7 +283,7 @@ function ConfigFieldTemplate<
                 type="button"
                 title={descriptionText.trim()}
                 aria-label={descriptionText.trim()}
-                className="inline-flex size-5 items-center justify-center rounded text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]"
+                className="inline-flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <CircleHelp className="size-3.5" />
               </button>
@@ -294,9 +294,7 @@ function ConfigFieldTemplate<
         {descriptionText && resolvedInfoDisplayMode === "inline" && (
           <p
             className={`text-xs ${
-              hasErrors
-                ? "text-[hsl(var(--destructive))]"
-                : "text-[hsl(var(--muted-foreground))]"
+              hasErrors ? "text-destructive" : "text-muted-foreground"
             }`}
           >
             {descriptionText}
@@ -385,7 +383,7 @@ function ConfigObjectFieldTemplate<
           if (!isRootObject) {
             return (
               <div key={`${element.name}-${index}`} className="flex">
-                <div className="w-full border-l-2 border-[hsl(var(--border))] pl-3">
+                <div className="w-full border-l-2 border-border pl-3">
                   {element.content}
                 </div>
               </div>
@@ -396,13 +394,13 @@ function ConfigObjectFieldTemplate<
             <details
               key={`${element.name}-${index}`}
               open
-              className="group overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm"
+              className="group overflow-hidden rounded-lg border border-border bg-card shadow-sm"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 bg-[hsl(var(--muted)/0.45)] px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 bg-muted/[0.45] px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
                 <span>{formatSectionTitle(element.name)}</span>
-                <ChevronDown className="size-4 text-[hsl(var(--muted-foreground))] transition-transform group-open:rotate-180" />
+                <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <div className="space-y-3 border-t border-[hsl(var(--border))] p-3">
+              <div className="space-y-3 border-t border-border p-3">
                 {element.content}
               </div>
             </details>

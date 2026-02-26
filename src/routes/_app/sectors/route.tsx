@@ -4,7 +4,7 @@ import {
   Outlet,
   useRouterState,
 } from "@tanstack/react-router";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsList, TabsTrigger } from "@/components/composed/tabs";
 import { usePageTitle } from "@/hooks/use-page-title";
 
 export const Route = createFileRoute("/_app/sectors")({
@@ -27,7 +27,7 @@ function SectorsLayout() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Sectors</h1>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+        <p className="text-sm text-muted-foreground">
           Sector management, scheduling, and expiration
         </p>
       </div>

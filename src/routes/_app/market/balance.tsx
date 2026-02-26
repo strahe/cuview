@@ -69,9 +69,7 @@ function MoveToEscrowForm() {
       <CardContent>
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
-              Miner
-            </label>
+            <label className="text-xs text-muted-foreground">Miner</label>
             <Input
               placeholder="f0..."
               value={miner}
@@ -80,7 +78,7 @@ function MoveToEscrowForm() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="text-xs text-muted-foreground">
               Amount (FIL)
             </label>
             <Input
@@ -91,7 +89,7 @@ function MoveToEscrowForm() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="text-xs text-muted-foreground">
               Wallet (optional)
             </label>
             <Input
@@ -110,12 +108,12 @@ function MoveToEscrowForm() {
           </Button>
         </div>
         {mutation.isError && (
-          <p className="mt-2 text-xs text-[hsl(var(--destructive))]">
+          <p className="mt-2 text-xs text-destructive">
             {(mutation.error as Error)?.message ?? "Transfer failed"}
           </p>
         )}
         {mutation.isSuccess && (
-          <p className="mt-2 text-xs text-green-600">Transfer submitted</p>
+          <p className="mt-2 text-xs text-success">Transfer submitted</p>
         )}
       </CardContent>
     </Card>

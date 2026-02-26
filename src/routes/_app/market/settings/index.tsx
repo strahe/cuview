@@ -2,18 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type {
   AllowDenyEntry,
@@ -67,11 +72,7 @@ const allowDenyColumns: ColumnDef<AllowDenyEntry>[] = [
     header: "Status",
     cell: ({ row }) => (
       <span
-        className={
-          row.original.status
-            ? "text-[hsl(var(--success))]"
-            : "text-[hsl(var(--destructive))]"
-        }
+        className={row.original.status ? "text-success" : "text-destructive"}
       >
         {row.original.status ? "Allow" : "Deny"}
       </span>
@@ -286,7 +287,7 @@ function MarketSettingsPage() {
           onClick={() => removePricingMutation.mutate([row.original.name])}
           disabled={removePricingMutation.isPending}
         >
-          <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+          <Trash2 className="size-3.5 text-destructive" />
         </Button>
       ),
     },
@@ -305,7 +306,7 @@ function MarketSettingsPage() {
           onClick={() => removeClientMutation.mutate([row.original.name])}
           disabled={removeClientMutation.isPending}
         >
-          <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+          <Trash2 className="size-3.5 text-destructive" />
         </Button>
       ),
     },
@@ -324,7 +325,7 @@ function MarketSettingsPage() {
           onClick={() => removeAllowMutation.mutate([row.original.wallet])}
           disabled={removeAllowMutation.isPending}
         >
-          <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+          <Trash2 className="size-3.5 text-destructive" />
         </Button>
       ),
     },
@@ -748,7 +749,7 @@ function MarketSettingsPage() {
                       <div>
                         <label className="text-sm font-medium">Action</label>
                         <select
-                          className="flex h-9 w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-1 text-sm"
+                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                           value={allowDenyForm.status ? "allow" : "deny"}
                           onChange={(e) =>
                             setAllowDenyForm((f) => ({
@@ -804,12 +805,12 @@ function MarketSettingsPage() {
                       {Object.entries(contracts).map(([addr, abi]) => (
                         <div
                           key={addr}
-                          className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-3"
+                          className="flex items-center justify-between rounded border border-border p-3"
                         >
                           <div className="min-w-0 flex-1">
                             <span className="font-mono text-xs">{addr}</span>
                             {abi && (
-                              <p className="mt-0.5 truncate text-xs text-[hsl(var(--muted-foreground))]">
+                              <p className="mt-0.5 truncate text-xs text-muted-foreground">
                                 ABI: {abi.slice(0, 60)}…
                               </p>
                             )}
@@ -834,14 +835,14 @@ function MarketSettingsPage() {
                                 removeContractMutation.mutate([addr])
                               }
                             >
-                              <Trash2 className="size-3.5 text-[hsl(var(--destructive))]" />
+                              <Trash2 className="size-3.5 text-destructive" />
                             </Button>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+                    <p className="py-4 text-center text-sm text-muted-foreground">
                       No market contracts
                     </p>
                   )}
@@ -877,7 +878,7 @@ function MarketSettingsPage() {
                       <div>
                         <label className="text-sm font-medium">ABI JSON</label>
                         <textarea
-                          className="flex min-h-[80px] w-full rounded-md border border-[hsl(var(--input))] bg-transparent px-3 py-2 font-mono text-xs"
+                          className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs"
                           value={contractForm.abi}
                           onChange={(e) =>
                             setContractForm((f) => ({
@@ -924,7 +925,7 @@ function MarketSettingsPage() {
                       {Object.entries(products).map(([name, enabled]) => (
                         <div
                           key={name}
-                          className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2"
+                          className="flex items-center justify-between rounded border border-border p-2"
                         >
                           <span className="text-sm">{name}</span>
                           <Button
@@ -946,7 +947,7 @@ function MarketSettingsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+                    <p className="py-4 text-center text-sm text-muted-foreground">
                       No products
                     </p>
                   )}
@@ -963,7 +964,7 @@ function MarketSettingsPage() {
                       {Object.entries(dataSources).map(([name, enabled]) => (
                         <div
                           key={name}
-                          className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2"
+                          className="flex items-center justify-between rounded border border-border p-2"
                         >
                           <span className="text-sm">{name}</span>
                           <Button
@@ -985,7 +986,7 @@ function MarketSettingsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+                    <p className="py-4 text-center text-sm text-muted-foreground">
                       No data sources
                     </p>
                   )}

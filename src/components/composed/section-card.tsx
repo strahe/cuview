@@ -23,9 +23,7 @@ export function SectionCard({
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
-          {Icon && (
-            <Icon className="size-5 text-[hsl(var(--muted-foreground))]" />
-          )}
+          {Icon && <Icon className="size-5 text-muted-foreground" />}
           <CardTitle className="text-base" title={tooltip}>
             {title}
           </CardTitle>

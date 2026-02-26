@@ -2,16 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { useCallback, useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioRpc } from "@/hooks/use-curio-query";
@@ -129,28 +129,22 @@ function TaskOverviewPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Total Tasks
-            </p>
+            <p className="text-sm text-muted-foreground">Total Tasks</p>
             <p className="mt-1 text-3xl font-bold">{totals.total}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Succeeded
-            </p>
-            <p className="mt-1 text-3xl font-bold text-[hsl(var(--success))]">
+            <p className="text-sm text-muted-foreground">Succeeded</p>
+            <p className="mt-1 text-3xl font-bold text-success">
               {totals.success}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Failed
-            </p>
-            <p className="mt-1 text-3xl font-bold text-[hsl(var(--destructive))]">
+            <p className="text-sm text-muted-foreground">Failed</p>
+            <p className="mt-1 text-3xl font-bold text-destructive">
               {totals.failed}
             </p>
           </CardContent>
@@ -182,7 +176,7 @@ function TaskOverviewPage() {
             </Button>
           </div>
           {taskStatus && (
-            <div className="mt-3 rounded border border-[hsl(var(--border))] p-3">
+            <div className="mt-3 rounded border border-border p-3">
               <div className="flex items-center gap-3">
                 <span className="font-mono text-sm">#{taskStatus.task_id}</span>
                 <span className="font-medium">{taskStatus.name}</span>
@@ -200,12 +194,12 @@ function TaskOverviewPage() {
                 />
               </div>
               {taskStatus.posted_at && (
-                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Posted: {taskStatus.posted_at}
                 </p>
               )}
               {taskStatus.owner_id && (
-                <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Owner Machine ID: {taskStatus.owner_id}
                 </p>
               )}
@@ -229,21 +223,21 @@ function TaskOverviewPage() {
               return (
                 <div
                   key={stat.Name}
-                  className="flex cursor-pointer items-center justify-between border-b border-[hsl(var(--border))] pb-2 last:border-0 hover:bg-[hsl(var(--accent)/0.3)]"
+                  className="flex cursor-pointer items-center justify-between border-b border-border pb-2 last:border-0 hover:bg-accent/[0.3]"
                   onClick={() => setSelectedTask(stat.Name)}
                 >
                   <span className="font-medium">{stat.Name}</span>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-[hsl(var(--muted-foreground))]">
+                    <span className="text-muted-foreground">
                       {stat.TotalCount} runs
                     </span>
                     <span
                       className={
                         rate >= 95
-                          ? "text-[hsl(var(--success))]"
+                          ? "text-success"
                           : rate >= 80
-                            ? "text-[hsl(var(--warning))]"
-                            : "text-[hsl(var(--destructive))]"
+                            ? "text-warning"
+                            : "text-destructive"
                       }
                     >
                       {rate.toFixed(1)}% success

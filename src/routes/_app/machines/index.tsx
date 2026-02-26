@@ -77,7 +77,7 @@ const columns: ColumnDef<MachineSummary>[] = [
       <Link
         to="/machines/$id"
         params={{ id: String(row.original.ID) }}
-        className="font-medium text-[hsl(var(--primary))] hover:underline"
+        className="font-medium text-primary hover:underline"
       >
         {row.original.Name || `Machine #${row.original.ID}`}
       </Link>

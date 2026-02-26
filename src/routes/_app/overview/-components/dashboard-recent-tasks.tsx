@@ -31,9 +31,7 @@ export function DashboardRecentTasks({
   if (error) {
     return (
       <SectionCard title="Recent Tasks" icon={Zap}>
-        <p className="text-sm text-[hsl(var(--destructive))]">
-          Failed to load recent tasks
-        </p>
+        <p className="text-sm text-destructive">Failed to load recent tasks</p>
       </SectionCard>
     );
   }
@@ -41,9 +39,7 @@ export function DashboardRecentTasks({
   if (!data.length) {
     return (
       <SectionCard title="Recent Tasks" icon={Zap}>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
-          No recent tasks
-        </p>
+        <p className="text-sm text-muted-foreground">No recent tasks</p>
       </SectionCard>
     );
   }
@@ -54,7 +50,7 @@ export function DashboardRecentTasks({
         {data.map((task, i) => (
           <div
             key={i}
-            className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+            className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted"
           >
             <div className="flex items-center gap-2">
               <StatusBadge
@@ -63,7 +59,7 @@ export function DashboardRecentTasks({
               />
               <span className="font-medium">{task.Name}</span>
             </div>
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+            <span className="text-xs text-muted-foreground">
               {task.End
                 ? formatDistanceToNow(new Date(task.End), {
                     addSuffix: true,

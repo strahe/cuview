@@ -2,15 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { RotateCcw } from "lucide-react";
 import { useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type { TaskHistoryEntry, TaskHistorySummary } from "@/types/task";
 
@@ -58,13 +58,13 @@ const columns: ColumnDef<TaskHistorySummary>[] = [
     cell: ({ row }) =>
       row.original.Err ? (
         <span
-          className="max-w-xs truncate text-xs text-[hsl(var(--destructive))]"
+          className="max-w-xs truncate text-xs text-destructive"
           title={row.original.Err}
         >
           {row.original.Err}
         </span>
       ) : (
-        <span className="text-xs text-[hsl(var(--muted-foreground))]">—</span>
+        <span className="text-xs text-muted-foreground">—</span>
       ),
   },
 ];
@@ -112,15 +112,10 @@ function TaskDetailDialog({
         )}
         <div className="max-h-96 space-y-3 overflow-y-auto">
           {entries.length === 0 ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              No history found.
-            </p>
+            <p className="text-sm text-muted-foreground">No history found.</p>
           ) : (
             entries.map((e, i) => (
-              <div
-                key={i}
-                className="rounded border border-[hsl(var(--border))] p-3 text-sm"
-              >
+              <div key={i} className="rounded border border-border p-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{e.Name}</span>
                   <StatusBadge
@@ -128,7 +123,7 @@ function TaskDetailDialog({
                     label={e.Result ? "Success" : "Failed"}
                   />
                 </div>
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[hsl(var(--muted-foreground))]">
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <div>
                     Completed by:{" "}
                     <span className="font-mono">{e.CompletedBy}</span>
@@ -138,7 +133,7 @@ function TaskDetailDialog({
                   <div>Posted: {e.Posted}</div>
                 </div>
                 {e.Err && (
-                  <div className="mt-2 rounded bg-[hsl(var(--destructive)/0.1)] p-2 text-xs text-[hsl(var(--destructive))]">
+                  <div className="mt-2 rounded bg-destructive/[0.1] p-2 text-xs text-destructive">
                     {e.Err}
                   </div>
                 )}

@@ -24,7 +24,7 @@ export function TaskCounts({ data, loading }: TaskCountsProps) {
   if (!data.length) {
     return (
       <SectionCard title="Task Statistics" icon={BarChart3}>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+        <p className="text-sm text-muted-foreground">
           No task statistics available
         </p>
       </SectionCard>
@@ -45,18 +45,18 @@ export function TaskCounts({ data, loading }: TaskCountsProps) {
           return (
             <div
               key={stat.Name}
-              className="flex items-center justify-between rounded-md border border-[hsl(var(--border))] px-3 py-2 text-sm"
+              className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
             >
               <span className="font-medium">{stat.Name}</span>
-              <div className="flex items-center gap-3 text-xs text-[hsl(var(--muted-foreground))]">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{stat.TotalCount} total</span>
                 <span
                   className={
                     successRate >= 95
-                      ? "text-[hsl(var(--success))]"
+                      ? "text-success"
                       : successRate >= 80
-                        ? "text-[hsl(var(--warning))]"
-                        : "text-[hsl(var(--destructive))]"
+                        ? "text-warning"
+                        : "text-destructive"
                   }
                 >
                   {successRate.toFixed(1)}%

@@ -25,7 +25,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
       title="Copy to clipboard"
     >
       {copied ? (
-        <Check className="size-4 text-[hsl(var(--success))]" />
+        <Check className="size-4 text-success" />
       ) : (
         <Copy className="size-4" />
       )}

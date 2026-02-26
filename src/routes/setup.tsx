@@ -56,23 +56,23 @@ function SetupPage() {
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] mx-auto mb-4 grid size-14 place-items-center rounded-2xl text-xl font-bold">
+          <div className="bg-primary text-primary-foreground mx-auto mb-4 grid size-14 place-items-center rounded-2xl text-xl font-bold">
             C
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
             Welcome to Cuview
           </h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm">
             Configure your Curio endpoint to get started.
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6"
+          className="rounded-lg border border-border bg-card p-6"
         >
           <div className="space-y-4">
             <div>
@@ -91,7 +91,7 @@ function SetupPage() {
                   setTestStatus("idle");
                 }}
                 placeholder="ws://localhost:4701/api/webrpc/v0"
-                className="border-[hsl(var(--input))] bg-[hsl(var(--background))] focus:ring-[hsl(var(--ring))] w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
 
@@ -101,18 +101,18 @@ function SetupPage() {
                 onClick={testConnection}
                 disabled={!endpoint.trim() || testStatus === "testing"}
                 className={cn(
-                  "flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-4 py-2 text-sm font-medium transition",
-                  "hover:bg-[hsl(var(--accent))] disabled:opacity-50",
+                  "flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium transition",
+                  "hover:bg-accent disabled:opacity-50",
                 )}
               >
                 {testStatus === "testing" && (
                   <Loader2 className="size-4 animate-spin" />
                 )}
                 {testStatus === "success" && (
-                  <CheckCircle2 className="size-4 text-[hsl(var(--success))]" />
+                  <CheckCircle2 className="size-4 text-success" />
                 )}
                 {testStatus === "error" && (
-                  <XCircle className="size-4 text-[hsl(var(--destructive))]" />
+                  <XCircle className="size-4 text-destructive" />
                 )}
                 Test Connection
               </button>
@@ -120,7 +120,7 @@ function SetupPage() {
               <button
                 type="submit"
                 disabled={!endpoint.trim()}
-                className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50"
               >
                 Connect
                 <ArrowRight className="size-4" />
@@ -128,14 +128,10 @@ function SetupPage() {
             </div>
 
             {testStatus === "error" && errorMessage && (
-              <p className="text-[hsl(var(--destructive))] text-sm">
-                {errorMessage}
-              </p>
+              <p className="text-destructive text-sm">{errorMessage}</p>
             )}
             {testStatus === "success" && (
-              <p className="text-[hsl(var(--success))] text-sm">
-                Connection successful!
-              </p>
+              <p className="text-success text-sm">Connection successful!</p>
             )}
           </div>
         </form>

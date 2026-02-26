@@ -1,21 +1,16 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
-import type { ReactNode } from "react";
+import type * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-[hsl(var(--foreground))] [&>svg~*]:pl-7",
+  "grid gap-0.5 rounded-lg border px-4 py-3 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4 w-full relative group/alert",
   {
     variants: {
       variant: {
-        default:
-          "bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border-[hsl(var(--border))]",
+        default: "bg-card text-card-foreground",
         destructive:
-          "border-[hsl(var(--destructive))]/50 text-[hsl(var(--destructive))] [&>svg]:text-[hsl(var(--destructive))]",
-        success:
-          "border-[hsl(var(--success))]/50 text-[hsl(var(--success))] [&>svg]:text-[hsl(var(--success))]",
-        warning:
-          "border-[hsl(var(--warning))]/50 text-[hsl(var(--warning))] [&>svg]:text-[hsl(var(--warning))]",
+          "text-destructive bg-card *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
       },
     },
     defaultVariants: {
@@ -24,37 +19,58 @@ const alertVariants = cva(
   },
 );
 
-interface AlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof alertVariants> {
-  icon?: ReactNode;
-}
-
-const iconMap = {
-  default: Info,
-  destructive: AlertCircle,
-  success: CheckCircle2,
-  warning: AlertTriangle,
-};
-
 function Alert({
   className,
-  variant = "default",
-  icon,
-  children,
+  variant,
   ...props
-}: AlertProps) {
-  const IconComponent = iconMap[variant ?? "default"];
+}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div
+      data-slot="alert"
       role="alert"
       className={cn(alertVariants({ variant }), className)}
       {...props}
-    >
-      {icon ?? <IconComponent className="size-4" />}
-      <div>{children}</div>
-    </div>
+    />
   );
 }
 
-export { Alert, alertVariants };
+function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-title"
+      className={cn(
+        "font-medium group-has-[>svg]/alert:col-start-2 [&_a]:hover:text-foreground [&_a]:underline [&_a]:underline-offset-3",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function AlertDescription({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-description"
+      className={cn(
+        "text-muted-foreground text-sm text-balance md:text-pretty [&_p:not(:last-child)]:mb-4 [&_a]:hover:text-foreground [&_a]:underline [&_a]:underline-offset-3",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function AlertAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-action"
+      className={cn("absolute top-2.5 right-3", className)}
+      {...props}
+    />
+  );
+}
+
+export { Alert, AlertTitle, AlertDescription, AlertAction };

@@ -26,7 +26,7 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
   if (!data.length) {
     return (
       <SectionCard title="Storage Usage" icon={HardDrive}>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+        <p className="text-sm text-muted-foreground">
           No storage data available
         </p>
       </SectionCard>
@@ -43,7 +43,7 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
 
           return (
             <div key={i}>
-              <div className="mb-1 flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
+              <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                 <span className="font-mono">
                   {stat.Type || `Storage ${i + 1}`}
                 </span>

@@ -4,10 +4,15 @@ import { AlertTriangle, RotateCcw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type { MK12Pipeline, PipelineFailedStats } from "@/types/market";
 import { formatBytes } from "@/utils/format";
@@ -102,7 +107,7 @@ const pipelineColumns: ColumnDef<MK12Pipeline>[] = [
         <div className="flex gap-1">
           {meta?.onRemove && (
             <button
-              className="rounded p-1 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))]"
+              className="rounded p-1 text-xs text-muted-foreground hover:text-destructive"
               onClick={() => meta.onRemove!(row.original.uuid)}
               title="Remove pipeline"
             >
@@ -171,27 +176,26 @@ function PipelineSubRow({ row }: { row: any }) {
   return (
     <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Offline:</span>{" "}
+        <span className="text-muted-foreground">Offline:</span>{" "}
         {d.offline ? "Yes" : "No"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Raw Size:</span>{" "}
+        <span className="text-muted-foreground">Raw Size:</span>{" "}
         {d.raw_size ? formatBytes(d.raw_size) : "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Sector:</span>{" "}
-        {d.sector ?? "—"}
+        <span className="text-muted-foreground">Sector:</span> {d.sector ?? "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">URL:</span>{" "}
+        <span className="text-muted-foreground">URL:</span>{" "}
         {d.url ? <span title={d.url}>{d.url.slice(0, 40)}</span> : "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">CID v2:</span>{" "}
+        <span className="text-muted-foreground">CID v2:</span>{" "}
         {d.piece_cid_v2 || "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Announce:</span>{" "}
+        <span className="text-muted-foreground">Announce:</span>{" "}
         {d.announce ? "Yes" : "No"}
       </div>
     </div>
@@ -272,8 +276,7 @@ function MK12DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" />{" "}
-              Failed Tasks
+              <AlertTriangle className="size-4 text-destructive" /> Failed Tasks
             </CardTitle>
             <div className="flex gap-2">
               <Button
@@ -307,13 +310,11 @@ function MK12DealsPage() {
               ).map(([name, count]) => (
                 <div
                   key={name}
-                  className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                  className="rounded border border-border p-2 text-center"
                 >
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {name}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{name}</p>
                   <p
-                    className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}
+                    className={`text-lg font-bold ${count > 0 ? "text-destructive" : ""}`}
                   >
                     {count}
                   </p>

@@ -2,20 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CheckCircle, FolderOpen, HardDrive, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { KPICard } from "@/components/composed/kpi-card";
-import { SectionCard } from "@/components/composed/section-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/composed/dialog";
+import { KPICard } from "@/components/composed/kpi-card";
+import { SectionCard } from "@/components/composed/section-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { TabsList, TabsTrigger } from "@/components/composed/tabs";
+import { DataTable } from "@/components/table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import type {
@@ -111,9 +111,9 @@ const pathColumns: ColumnDef<StoragePathInfo>[] = [
       const pct = row.original.UsedPercent;
       return (
         <div className="flex items-center gap-2">
-          <div className="h-2 w-16 overflow-hidden rounded-full bg-[hsl(var(--muted))]">
+          <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
             <div
-              className={`h-full rounded-full ${pct > 90 ? "bg-[hsl(var(--destructive))]" : pct > 70 ? "bg-[hsl(var(--warning,40_96%_40%))]" : "bg-[hsl(var(--primary))]"}`}
+              className={`h-full rounded-full ${pct > 90 ? "bg-destructive" : pct > 70 ? "bg-warning" : "bg-primary"}`}
               style={{ width: `${Math.min(pct, 100)}%` }}
             />
           </div>
@@ -329,13 +329,13 @@ function StoragePage() {
                       )}
                     </div>
                   </div>
-                  <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[hsl(var(--muted))]">
+                  <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
-                      className={`h-full rounded-full ${pct > 90 ? "bg-[hsl(var(--destructive))]" : pct > 70 ? "bg-[hsl(var(--warning,40_96%_40%))]" : "bg-[hsl(var(--primary))]"}`}
+                      className={`h-full rounded-full ${pct > 90 ? "bg-destructive" : pct > 70 ? "bg-warning" : "bg-primary"}`}
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-[hsl(var(--muted-foreground))]">
+                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{s.UseStr || formatBytes(used)}</span>
                     <span>{s.CapStr || formatBytes(s.Capacity)}</span>
                   </div>
@@ -355,16 +355,14 @@ function StoragePage() {
               {storeTypeStats.map((s) => (
                 <div
                   key={s.Type}
-                  className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                  className="rounded border border-border p-2 text-center"
                 >
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {s.Type}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{s.Type}</p>
                   <p className="text-sm font-medium">{s.UsedStr}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  <p className="text-xs text-muted-foreground">
                     of {s.CapacityStr}
                   </p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  <p className="text-xs text-muted-foreground">
                     {s.AvailableStr} avail
                   </p>
                 </div>
@@ -473,60 +471,48 @@ function PathDetailDialog({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Storage ID
-              </div>
+              <div className="text-muted-foreground">Storage ID</div>
               <div className="font-mono text-xs">{path.StorageID}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Type</div>
+              <div className="text-muted-foreground">Type</div>
               <div>{path.PathType}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Capacity
-              </div>
+              <div className="text-muted-foreground">Capacity</div>
               <div>{path.CapacityStr}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Available
-              </div>
+              <div className="text-muted-foreground">Available</div>
               <div>{path.AvailableStr}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Used</div>
+              <div className="text-muted-foreground">Used</div>
               <div>
                 {path.UsedStr} ({path.UsedPercent.toFixed(1)}%)
               </div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Health</div>
+              <div className="text-muted-foreground">Health</div>
               <StatusBadge
                 status={path.HealthOK ? "done" : "failed"}
                 label={path.HealthStatus || (path.HealthOK ? "OK" : "Error")}
               />
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">Weight</div>
+              <div className="text-muted-foreground">Weight</div>
               <div>{path.Weight ?? "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Max Storage
-              </div>
+              <div className="text-muted-foreground">Max Storage</div>
               <div>{path.MaxStorageStr || "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                FS Available
-              </div>
+              <div className="text-muted-foreground">FS Available</div>
               <div>{path.FSAvailableStr || "—"}</div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Reserved
-              </div>
+              <div className="text-muted-foreground">Reserved</div>
               <div>
                 {path.ReservedStr
                   ? `${path.ReservedStr} (${path.ReservedPercent?.toFixed(1) ?? 0}%)`
@@ -534,28 +520,20 @@ function PathDetailDialog({
               </div>
             </div>
             <div>
-              <div className="text-[hsl(var(--muted-foreground))]">
-                Last Heartbeat
-              </div>
+              <div className="text-muted-foreground">Last Heartbeat</div>
               <div>{path.LastHeartbeat || "—"}</div>
             </div>
             {path.HeartbeatErr && (
               <div>
-                <div className="text-[hsl(var(--muted-foreground))]">
-                  Heartbeat Error
-                </div>
-                <div className="text-[hsl(var(--destructive))]">
-                  {path.HeartbeatErr}
-                </div>
+                <div className="text-muted-foreground">Heartbeat Error</div>
+                <div className="text-destructive">{path.HeartbeatErr}</div>
               </div>
             )}
           </div>
 
           {path.HostList && path.HostList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                Hosts
-              </div>
+              <div className="text-sm text-muted-foreground">Hosts</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.HostList.map((h) => (
                   <Badge key={h} variant="outline">
@@ -568,9 +546,7 @@ function PathDetailDialog({
 
           {path.GroupList && path.GroupList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                Groups
-              </div>
+              <div className="text-sm text-muted-foreground">Groups</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.GroupList.map((g) => (
                   <Badge key={g} variant="outline">
@@ -583,9 +559,7 @@ function PathDetailDialog({
 
           {path.AllowToList && path.AllowToList.length > 0 && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                Allow To
-              </div>
+              <div className="text-sm text-muted-foreground">Allow To</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowToList.map((v) => (
                   <Badge key={v} variant="outline">
@@ -599,15 +573,13 @@ function PathDetailDialog({
           {((path.AllowTypesList && path.AllowTypesList.length > 0) ||
             (path.DenyTypesList && path.DenyTypesList.length > 0)) && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                Type Rules
-              </div>
+              <div className="text-sm text-muted-foreground">Type Rules</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowTypesList?.map((t) => (
                   <Badge
                     key={`a-${t}`}
                     variant="outline"
-                    className="text-green-600"
+                    className="text-success"
                   >
                     +{t}
                   </Badge>
@@ -624,15 +596,13 @@ function PathDetailDialog({
           {((path.AllowMinersList && path.AllowMinersList.length > 0) ||
             (path.DenyMinersList && path.DenyMinersList.length > 0)) && (
             <div>
-              <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                Miner Rules
-              </div>
+              <div className="text-sm text-muted-foreground">Miner Rules</div>
               <div className="flex flex-wrap gap-1 mt-1">
                 {path.AllowMinersList?.map((m) => (
                   <Badge
                     key={`a-${m}`}
                     variant="outline"
-                    className="text-green-600"
+                    className="text-success"
                   >
                     +{m}
                   </Badge>
@@ -650,42 +620,30 @@ function PathDetailDialog({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Total Sectors
-                  </div>
+                  <div className="text-muted-foreground">Total Sectors</div>
                   <div>{detail.TotalSectorEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Primary
-                  </div>
+                  <div className="text-muted-foreground">Primary</div>
                   <div>{detail.PrimaryEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Secondary
-                  </div>
+                  <div className="text-muted-foreground">Secondary</div>
                   <div>{detail.SecondaryEntries}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Pending GC
-                  </div>
+                  <div className="text-muted-foreground">Pending GC</div>
                   <div>{detail.PendingGC}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Approved GC
-                  </div>
+                  <div className="text-muted-foreground">Approved GC</div>
                   <div>{detail.ApprovedGC}</div>
                 </div>
               </div>
 
               {detail.URLs && detail.URLs.length > 0 && (
                 <div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                    URLs
-                  </div>
+                  <div className="text-sm text-muted-foreground">URLs</div>
                   <div className="mt-1 space-y-1">
                     {detail.URLs.map((u) => (
                       <div key={u.URL} className="flex items-center gap-2">
@@ -696,7 +654,7 @@ function PathDetailDialog({
                         <span className="truncate font-mono text-xs">
                           {u.URL}
                         </span>
-                        <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                        <span className="text-xs text-muted-foreground">
                           checked {u.LastCheckedStr}
                         </span>
                       </div>
@@ -707,9 +665,7 @@ function PathDetailDialog({
 
               {detail.ByType && detail.ByType.length > 0 && (
                 <div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                    By Type
-                  </div>
+                  <div className="text-sm text-muted-foreground">By Type</div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {detail.ByType.map((t) => (
                       <Badge key={t.FileType} variant="outline">
@@ -721,9 +677,7 @@ function PathDetailDialog({
               )}
               {detail.ByMiner && detail.ByMiner.length > 0 && (
                 <div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                    By Miner
-                  </div>
+                  <div className="text-sm text-muted-foreground">By Miner</div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {detail.ByMiner.map((m) => (
                       <Badge key={m.Miner} variant="outline">

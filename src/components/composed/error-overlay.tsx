@@ -12,12 +12,10 @@ export function ErrorOverlay({
 }: ErrorOverlayProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-      <AlertCircle className="size-10 text-[hsl(var(--destructive))]" />
+      <AlertCircle className="size-10 text-destructive" />
       <div>
         <p className="font-medium">Error</p>
-        <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-          {message}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{message}</p>
       </div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>

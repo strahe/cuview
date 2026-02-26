@@ -25,7 +25,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
   if (!data.length) {
     return (
       <SectionCard title="Chain Connectivity" icon={Link2}>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+        <p className="text-sm text-muted-foreground">
           No chain endpoints configured
         </p>
       </SectionCard>
@@ -38,7 +38,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
         {data.map((item, i) => (
           <div
             key={i}
-            className="flex flex-col gap-1 rounded-md border border-[hsl(var(--border))] px-3 py-2"
+            className="flex flex-col gap-1 rounded-md border border-border px-3 py-2"
           >
             <div className="flex items-center justify-between">
               <span className="truncate text-sm font-mono">
@@ -50,11 +50,11 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
               />
             </div>
             {item.Reachable && (
-              <div className="flex flex-wrap gap-3 text-xs text-[hsl(var(--muted-foreground))]">
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 {item.SyncState && (
                   <span>
                     Sync:{" "}
-                    <span className="font-medium text-[hsl(var(--foreground))]">
+                    <span className="font-medium text-foreground">
                       {item.SyncState}
                     </span>
                   </span>
@@ -62,7 +62,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
                 {item.Version && (
                   <span>
                     Version:{" "}
-                    <span className="font-medium text-[hsl(var(--foreground))]">
+                    <span className="font-medium text-foreground">
                       {item.Version}
                     </span>
                   </span>
@@ -70,7 +70,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
                 {item.CLayers && item.CLayers.length > 0 && (
                   <span>
                     Layers:{" "}
-                    <span className="font-medium text-[hsl(var(--foreground))]">
+                    <span className="font-medium text-foreground">
                       {item.CLayers.join(", ")}
                     </span>
                   </span>

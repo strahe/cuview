@@ -74,45 +74,33 @@ function OverviewPage() {
             <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
               {blockDelay !== undefined && (
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Block Delay
-                  </div>
+                  <div className="text-muted-foreground">Block Delay</div>
                   <div className="font-medium">{blockDelay}s</div>
                 </div>
               )}
               {netSummary && (
                 <>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Epoch
-                    </div>
+                    <div className="text-muted-foreground">Epoch</div>
                     <div className="font-medium">{netSummary.Epoch}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Peers
-                    </div>
+                    <div className="text-muted-foreground">Peers</div>
                     <div className="font-medium">{netSummary.PeerCount}</div>
                   </div>
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Reachability
-                    </div>
+                    <div className="text-muted-foreground">Reachability</div>
                     <div className="font-medium">{netSummary.Reachability}</div>
                   </div>
                   {netSummary.Bandwidth && (
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Bandwidth
-                      </div>
+                      <div className="text-muted-foreground">Bandwidth</div>
                       <div className="font-medium">{netSummary.Bandwidth}</div>
                     </div>
                   )}
                   {netSummary.Nodes && netSummary.Nodes.length > 0 && (
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Node Count
-                      </div>
+                      <div className="text-muted-foreground">Node Count</div>
                       <div className="font-medium">
                         {netSummary.Nodes.length}
                       </div>

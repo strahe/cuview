@@ -7,8 +7,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+} from "@/components/composed/command";
+import { Dialog, DialogContent } from "@/components/composed/dialog";
 import { navigationEntries } from "@/layouts/navigation";
 
 export function AppQuickSearch() {

@@ -44,6 +44,15 @@ pnpm build
 
 The output will be in the `dist/` directory.
 
+## UI Layering & Theme Switching
+
+- `src/components/ui/*` is the **base style layer** and should remain compatible
+  with `shadcn add --overwrite`.
+- Put business semantics in `src/components/composed/*` (for example custom
+  status wrappers), not in `ui/*`.
+- `src/style.css` is the single theme token source (`:root` + `.dark` + token
+  mappings). Keep page styles using semantic classes/tokens.
+
 ## License
 
 MIT

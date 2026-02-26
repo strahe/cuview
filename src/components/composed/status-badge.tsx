@@ -1,4 +1,5 @@
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type StatusType =
   | "success"
@@ -11,16 +12,25 @@ type StatusType =
   | "failed"
   | "idle";
 
-const variantMap: Record<StatusType, BadgeProps["variant"]> = {
-  success: "success",
-  done: "success",
+const variantMap: Record<
+  StatusType,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  success: "outline",
+  done: "outline",
   error: "destructive",
   failed: "destructive",
-  warning: "warning",
+  warning: "outline",
   pending: "secondary",
   idle: "secondary",
   running: "default",
   info: "outline",
+};
+
+const classMap: Partial<Record<StatusType, string>> = {
+  success: "border-success/30 text-success",
+  done: "border-success/30 text-success",
+  warning: "border-warning/30 text-warning",
 };
 
 interface StatusBadgeProps {
@@ -31,7 +41,10 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, label, className }: StatusBadgeProps) {
   return (
-    <Badge variant={variantMap[status]} className={className}>
+    <Badge
+      variant={variantMap[status]}
+      className={cn(classMap[status], className)}
+    >
       {label ?? status}
     </Badge>
   );

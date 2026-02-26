@@ -38,17 +38,17 @@ export class ErrorBoundary extends Component<
         <div className="flex min-h-[400px] items-center justify-center p-6">
           <Card className="max-w-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[hsl(var(--destructive))]">
+              <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="size-5" />
                 Something went wrong
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+              <p className="text-sm text-muted-foreground">
                 An unexpected error occurred. Please try refreshing the page.
               </p>
               {this.state.error && (
-                <pre className="max-h-32 overflow-auto rounded-md bg-[hsl(var(--muted))] p-3 text-xs">
+                <pre className="max-h-32 overflow-auto rounded-md bg-muted p-3 text-xs">
                   {this.state.error.message}
                 </pre>
               )}

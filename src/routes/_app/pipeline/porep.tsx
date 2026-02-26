@@ -64,7 +64,7 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
             label={label}
           />
           {isRunning && !s.Failed && !s.AfterCommitMsgSuccess && (
-            <span className="ml-1 inline-block size-1.5 animate-pulse rounded-full bg-green-500" />
+            <span className="ml-1 inline-block size-1.5 animate-pulse rounded-full bg-success" />
           )}
         </span>
       );
@@ -130,7 +130,7 @@ const sectorColumns: ColumnDef<SectorListEntry>[] = [
     cell: ({ row }) =>
       row.original.Failed ? (
         <span
-          className="max-w-xs truncate text-xs text-[hsl(var(--destructive))]"
+          className="max-w-xs truncate text-xs text-destructive"
           title={row.original.FailedReason}
         >
           {row.original.FailedReason}
@@ -153,24 +153,22 @@ function SectorSubRow({ row }: { row: any }) {
   return (
     <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">
-          PreCommit Msg:
-        </span>{" "}
+        <span className="text-muted-foreground">PreCommit Msg:</span>{" "}
         <span className="font-mono">
           {s.PreCommitMsgCid?.slice(0, 16) || "—"}
         </span>
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Commit Msg:</span>{" "}
+        <span className="text-muted-foreground">Commit Msg:</span>{" "}
         <span className="font-mono">{s.CommitMsgCid?.slice(0, 16) || "—"}</span>
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Seed Epoch:</span>{" "}
+        <span className="text-muted-foreground">Seed Epoch:</span>{" "}
         {s.SeedEpoch || "—"}
       </div>
       {started.length > 0 && (
         <div>
-          <span className="text-[hsl(var(--muted-foreground))]">Running:</span>{" "}
+          <span className="text-muted-foreground">Running:</span>{" "}
           {started.join(", ")}
         </div>
       )}
@@ -238,7 +236,7 @@ function PoRepPage() {
         <h2 className="text-lg font-semibold">PoRep Pipeline</h2>
         {confirmRestart ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--destructive))]">
+            <span className="text-xs text-destructive">
               Restart all failed PoRep tasks?
             </span>
             <Button
@@ -292,7 +290,7 @@ function PoRepPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[hsl(var(--border))] text-left text-[hsl(var(--muted-foreground))]">
+                  <tr className="border-b border-border text-left text-muted-foreground">
                     <th className="px-3 py-2">Actor</th>
                     <th className="px-3 py-2">SDR</th>
                     <th className="px-3 py-2">Trees</th>
@@ -308,7 +306,7 @@ function PoRepPage() {
                   {summaryData.map((s) => (
                     <tr
                       key={s.Actor}
-                      className="border-b border-[hsl(var(--border))] last:border-0"
+                      className="border-b border-border last:border-0"
                     >
                       <td className="px-3 py-2 font-mono">{s.Actor}</td>
                       <td className="px-3 py-2">{s.CountSDR}</td>

@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import type { TaskSummary } from "@/types/task";
 
@@ -92,11 +92,11 @@ function ActiveTasksPage() {
           id="show-bg-tasks"
           checked={showBgTasks}
           onChange={(e) => setShowBgTasks(e.target.checked)}
-          className="size-4 rounded border-[hsl(var(--border))] accent-[hsl(var(--primary))]"
+          className="size-4 rounded border-border accent-primary"
         />
         <label
           htmlFor="show-bg-tasks"
-          className="cursor-pointer text-sm text-[hsl(var(--muted-foreground))]"
+          className="cursor-pointer text-sm text-muted-foreground"
         >
           Show background tasks
         </label>
@@ -124,29 +124,21 @@ function ActiveTasksPage() {
             </DialogHeader>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Owner
-                </span>
+                <span className="text-muted-foreground">Owner</span>
                 <div className="font-mono text-xs">
                   {taskDetail.OwnerName || taskDetail.OwnerAddr || "—"}
                 </div>
               </div>
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Owner ID
-                </span>
+                <span className="text-muted-foreground">Owner ID</span>
                 <div>{taskDetail.OwnerID || "—"}</div>
               </div>
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Posted
-                </span>
+                <span className="text-muted-foreground">Posted</span>
                 <div className="text-xs">{taskDetail.PostedTime}</div>
               </div>
               <div>
-                <span className="text-[hsl(var(--muted-foreground))]">
-                  Updated
-                </span>
+                <span className="text-muted-foreground">Updated</span>
                 <div className="text-xs">{taskDetail.UpdateTime}</div>
               </div>
             </div>

@@ -46,12 +46,10 @@ export function KPICard({
     <Card className={className}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
+          <p className="text-sm font-medium text-muted-foreground">
             {displayTitle}
           </p>
-          {Icon && (
-            <Icon className="size-4 text-[hsl(var(--muted-foreground))]" />
-          )}
+          {Icon && <Icon className="size-4 text-muted-foreground" />}
         </div>
         <div className="mt-2 flex items-baseline gap-2">
           <p className="text-2xl font-bold">{value}</p>
@@ -59,9 +57,9 @@ export function KPICard({
             <span
               className={cn(
                 "text-xs font-medium",
-                trend === "up" && "text-[hsl(var(--success))]",
-                trend === "down" && "text-[hsl(var(--destructive))]",
-                trend === "neutral" && "text-[hsl(var(--muted-foreground))]",
+                trend === "up" && "text-success",
+                trend === "down" && "text-destructive",
+                trend === "neutral" && "text-muted-foreground",
               )}
             >
               {trendValue}
@@ -69,7 +67,7 @@ export function KPICard({
           )}
         </div>
         {displayDescription && (
-          <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="mt-1 text-xs text-muted-foreground">
             {displayDescription}
           </p>
         )}

@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/composed/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/diagnostics/")({
@@ -190,7 +190,7 @@ function CommRCheckPanel() {
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               SP Address
             </label>
             <Input
@@ -201,7 +201,7 @@ function CommRCheckPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Sector #
             </label>
             <Input
@@ -212,13 +212,13 @@ function CommRCheckPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               File Type
             </label>
             <select
               value={fileType}
               onChange={(e) => setFileType(e.target.value)}
-              className="h-9 rounded-md border border-[hsl(var(--border))] bg-transparent px-2 text-xs"
+              className="h-9 rounded-md border border-border bg-transparent px-2 text-xs"
             >
               <option value="sealed">Sealed</option>
               <option value="update">Update</option>
@@ -243,10 +243,8 @@ function CommRCheckPanel() {
         </div>
 
         {startCheck.data && (
-          <div className="rounded border border-[hsl(var(--border))] p-2 text-xs">
-            <span className="text-[hsl(var(--muted-foreground))]">
-              Check started:{" "}
-            </span>
+          <div className="rounded border border-border p-2 text-xs">
+            <span className="text-muted-foreground">Check started: </span>
             ID #{startCheck.data.check_id}
           </div>
         )}
@@ -254,9 +252,7 @@ function CommRCheckPanel() {
         {statusResult && <CheckResultCard result={statusResult} type="commr" />}
 
         {listLoading && (
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Loading...
-          </p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         )}
         {results && results.length > 0 && (
           <div className="space-y-2">
@@ -266,16 +262,16 @@ function CommRCheckPanel() {
             {results.map((r) => (
               <div
                 key={r.check_id}
-                className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                className="flex items-center justify-between rounded border border-border p-2 text-xs"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[hsl(var(--muted-foreground))]">
+                  <span className="font-mono text-muted-foreground">
                     #{r.check_id}
                   </span>
                   <span>{r.file_type}</span>
                   <CheckStatusBadge result={r} />
                   {r.create_time && (
-                    <span className="text-[hsl(var(--muted-foreground))]">
+                    <span className="text-muted-foreground">
                       {r.create_time}
                     </span>
                   )}
@@ -348,7 +344,7 @@ function UnsealedCheckPanel() {
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               SP Address
             </label>
             <Input
@@ -359,7 +355,7 @@ function UnsealedCheckPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Sector #
             </label>
             <Input
@@ -388,7 +384,7 @@ function UnsealedCheckPanel() {
         </div>
 
         {startCheck.data && (
-          <div className="rounded border border-[hsl(var(--border))] p-2 text-xs">
+          <div className="rounded border border-border p-2 text-xs">
             Check started: ID #{startCheck.data.check_id}
           </div>
         )}
@@ -398,9 +394,7 @@ function UnsealedCheckPanel() {
         )}
 
         {listLoading && (
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Loading...
-          </p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         )}
         {results && results.length > 0 && (
           <div className="space-y-2">
@@ -410,15 +404,15 @@ function UnsealedCheckPanel() {
             {results.map((r) => (
               <div
                 key={r.check_id}
-                className="flex items-center justify-between rounded border border-[hsl(var(--border))] p-2 text-xs"
+                className="flex items-center justify-between rounded border border-border p-2 text-xs"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[hsl(var(--muted-foreground))]">
+                  <span className="font-mono text-muted-foreground">
                     #{r.check_id}
                   </span>
                   <CheckStatusBadge result={r} />
                   {r.create_time && (
-                    <span className="text-[hsl(var(--muted-foreground))]">
+                    <span className="text-muted-foreground">
                       {r.create_time}
                     </span>
                   )}
@@ -467,7 +461,7 @@ function VanillaTestPanel() {
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               SP Address
             </label>
             <Input
@@ -478,7 +472,7 @@ function VanillaTestPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Sector #
             </label>
             <Input
@@ -552,7 +546,7 @@ function WdPostTestPanel() {
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               SP Address
             </label>
             <Input
@@ -563,7 +557,7 @@ function WdPostTestPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Deadline
             </label>
             <Input
@@ -574,7 +568,7 @@ function WdPostTestPanel() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Partition
             </label>
             <Input
@@ -615,7 +609,7 @@ function WdPostTestPanel() {
 
         <div className="flex items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-[hsl(var(--muted-foreground))]">
+            <label className="mb-1 block text-xs text-muted-foreground">
               Task ID (to check)
             </label>
             <Input
@@ -667,12 +661,12 @@ function CheckResultCard({
   type: "commr" | "unsealed";
 }) {
   return (
-    <div className="rounded border border-[hsl(var(--border))] p-3 text-xs">
+    <div className="rounded border border-border p-3 text-xs">
       <div className="mb-2 flex items-center gap-2">
         <span className="font-medium">Check #{result.check_id}</span>
         <CheckStatusBadge result={result} />
       </div>
-      <div className="grid grid-cols-2 gap-2 text-[hsl(var(--muted-foreground))] sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 text-muted-foreground sm:grid-cols-3">
         <div>
           SP: <span className="text-foreground">{result.sp_id}</span>
         </div>
@@ -700,9 +694,7 @@ function CheckResultCard({
           <div className="col-span-full">{result.message}</div>
         )}
         {result.error && (
-          <div className="col-span-full text-[hsl(var(--destructive))]">
-            {result.error}
-          </div>
+          <div className="col-span-full text-destructive">{result.error}</div>
         )}
       </div>
     </div>
@@ -711,36 +703,32 @@ function CheckResultCard({
 
 function VanillaReportCard({ report }: { report: VanillaTestReport }) {
   return (
-    <div className="rounded border border-[hsl(var(--border))] p-3 text-xs">
+    <div className="rounded border border-border p-3 text-xs">
       <div className="mb-2 flex items-center gap-3">
         <span className="font-medium">{report.miner}</span>
-        <span className="text-[hsl(var(--muted-foreground))]">
-          {report.total_time}
-        </span>
+        <span className="text-muted-foreground">{report.total_time}</span>
       </div>
       <div className="mb-2 flex gap-4">
         <span>
           Tested: <strong>{report.tested_count}</strong>/{report.sector_count}
         </span>
-        <span className="text-green-600">
+        <span className="text-success">
           Passed: <strong>{report.passed_count}</strong>
         </span>
-        <span className="text-red-600">
+        <span className="text-destructive">
           Failed: <strong>{report.failed_count}</strong>
         </span>
-        <span className="text-yellow-600">
+        <span className="text-warning">
           Slow: <strong>{report.slow_count}</strong>
         </span>
       </div>
-      {report.error && (
-        <div className="text-[hsl(var(--destructive))]">{report.error}</div>
-      )}
+      {report.error && <div className="text-destructive">{report.error}</div>}
       {report.results && report.results.length > 0 && (
         <div className="max-h-48 space-y-1 overflow-y-auto">
           {report.results.map((r) => (
             <div
               key={r.sector_number}
-              className="flex items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1"
+              className="flex items-center gap-2 rounded border border-border px-2 py-1"
             >
               <span className="font-mono">#{r.sector_number}</span>
               {r.generate_ok ? (
@@ -754,9 +742,7 @@ function VanillaReportCard({ report }: { report: VanillaTestReport }) {
                 <StatusBadge status="error" label="Verify Fail" />
               )}
               {r.slow && <StatusBadge status="warning" label="Slow" />}
-              <span className="text-[hsl(var(--muted-foreground))]">
-                {r.generate_time}
-              </span>
+              <span className="text-muted-foreground">{r.generate_time}</span>
             </div>
           ))}
         </div>
@@ -767,7 +753,7 @@ function VanillaReportCard({ report }: { report: VanillaTestReport }) {
 
 function WdPostResultCard({ result }: { result: WdPostTaskResult }) {
   return (
-    <div className="rounded border border-[hsl(var(--border))] p-3 text-xs">
+    <div className="rounded border border-border p-3 text-xs">
       <div className="mb-2 flex items-center gap-3">
         <span className="font-medium">Task #{result.task_id}</span>
         <StatusBadge
@@ -779,16 +765,14 @@ function WdPostResultCard({ result }: { result: WdPostTaskResult }) {
           }
         />
       </div>
-      <div className="flex gap-4 text-[hsl(var(--muted-foreground))]">
+      <div className="flex gap-4 text-muted-foreground">
         <span>SP: {result.sp_id}</span>
         <span>Deadline: {result.deadline}</span>
         <span>Partition: {result.partition}</span>
       </div>
       {result.result && <div className="mt-1">{result.result}</div>}
       {result.error && (
-        <div className="mt-1 text-[hsl(var(--destructive))]">
-          {result.error}
-        </div>
+        <div className="mt-1 text-destructive">{result.error}</div>
       )}
     </div>
   );

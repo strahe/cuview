@@ -20,21 +20,21 @@ export function ProgressStat({
   return (
     <div className={cn("space-y-1", className)}>
       <div className="flex justify-between text-sm">
-        <span className="text-[hsl(var(--muted-foreground))]">{label}</span>
+        <span className="text-muted-foreground">{label}</span>
         <span className="font-medium">
           {value}
           {suffix}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-[hsl(var(--muted))]">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={cn(
             "h-full rounded-full transition-all",
             percentage >= 90
-              ? "bg-[hsl(var(--destructive))]"
+              ? "bg-destructive"
               : percentage >= 70
-                ? "bg-[hsl(var(--warning))]"
-                : "bg-[hsl(var(--primary))]",
+                ? "bg-warning"
+                : "bg-primary",
           )}
           style={{ width: `${percentage}%` }}
         />

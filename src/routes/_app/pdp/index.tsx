@@ -2,18 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Key, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { KPICard } from "@/components/composed/kpi-card";
-import { StatusBadge } from "@/components/composed/status-badge";
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composed/dialog";
+import { KPICard } from "@/components/composed/kpi-card";
+import { StatusBadge } from "@/components/composed/status-badge";
+import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -272,15 +272,13 @@ function PdpPage() {
         </CardHeader>
         <CardContent>
           {keysLoading ? (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Loading…
-            </p>
+            <p className="text-sm text-muted-foreground">Loading…</p>
           ) : keys && keys.length > 0 ? (
             <ul className="space-y-2">
               {keys.map((key) => (
                 <li
                   key={key}
-                  className="flex items-center justify-between rounded-md border border-[hsl(var(--border))] p-2"
+                  className="flex items-center justify-between rounded-md border border-border p-2"
                 >
                   <span className="font-mono text-xs">{key}</span>
                   {confirmRemoveKey === key ? (
@@ -316,7 +314,7 @@ function PdpPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            <p className="text-sm text-muted-foreground">
               No PDP keys configured
             </p>
           )}
@@ -454,45 +452,35 @@ function PdpPage() {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Name
-                  </div>
+                  <div className="text-muted-foreground">Name</div>
                   <div>{fsStatus.name || "—"}</div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Status
-                  </div>
+                  <div className="text-muted-foreground">Status</div>
                   <StatusBadge
                     status={fsStatus.active ? "done" : "pending"}
                     label={fsStatus.active ? "Active" : "Inactive"}
                   />
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">ID</div>
+                  <div className="text-muted-foreground">ID</div>
                   <div className="truncate font-mono text-xs">
                     {fsStatus.id || "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Address
-                  </div>
+                  <div className="text-muted-foreground">Address</div>
                   <div className="truncate font-mono text-xs">
                     {fsStatus.address || "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--muted-foreground))]">
-                    Description
-                  </div>
+                  <div className="text-muted-foreground">Description</div>
                   <div className="text-xs">{fsStatus.description || "—"}</div>
                 </div>
                 {fsStatus.payee && (
                   <div>
-                    <div className="text-[hsl(var(--muted-foreground))]">
-                      Payee
-                    </div>
+                    <div className="text-muted-foreground">Payee</div>
                     <div className="truncate font-mono text-xs">
                       {fsStatus.payee}
                     </div>
@@ -501,44 +489,36 @@ function PdpPage() {
               </div>
               {fsStatus.pdp_service && (
                 <div>
-                  <div className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                  <div className="text-sm font-medium text-muted-foreground">
                     PDP Service
                   </div>
                   <div className="mt-1 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Service URL
-                      </div>
+                      <div className="text-muted-foreground">Service URL</div>
                       <div className="truncate text-xs">
                         {fsStatus.pdp_service.service_url || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Min Size
-                      </div>
+                      <div className="text-muted-foreground">Min Size</div>
                       <div className="font-mono text-xs">
                         {fsStatus.pdp_service.min_size}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Max Size
-                      </div>
+                      <div className="text-muted-foreground">Max Size</div>
                       <div className="font-mono text-xs">
                         {fsStatus.pdp_service.max_size}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Price
-                      </div>
+                      <div className="text-muted-foreground">Price</div>
                       <div className="font-mono text-xs">
                         {fsStatus.pdp_service.price}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
+                      <div className="text-muted-foreground">
                         Min Proving Period
                       </div>
                       <div className="font-mono text-xs">
@@ -546,17 +526,13 @@ function PdpPage() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        Location
-                      </div>
+                      <div className="text-muted-foreground">Location</div>
                       <div className="text-xs">
                         {fsStatus.pdp_service.location || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        IPNI Piece
-                      </div>
+                      <div className="text-muted-foreground">IPNI Piece</div>
                       <StatusBadge
                         status={
                           fsStatus.pdp_service.ipni_piece ? "done" : "pending"
@@ -565,9 +541,7 @@ function PdpPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--muted-foreground))]">
-                        IPNI IPFS
-                      </div>
+                      <div className="text-muted-foreground">IPNI IPFS</div>
                       <StatusBadge
                         status={
                           fsStatus.pdp_service.ipni_ipfs ? "done" : "pending"
@@ -581,14 +555,14 @@ function PdpPage() {
               {fsStatus.capabilities &&
                 Object.keys(fsStatus.capabilities).length > 0 && (
                   <div>
-                    <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    <div className="text-sm text-muted-foreground">
                       Capabilities
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {Object.entries(fsStatus.capabilities).map(([k, v]) => (
                         <span
                           key={k}
-                          className="rounded bg-[hsl(var(--muted))] px-2 py-0.5 text-xs"
+                          className="rounded bg-muted px-2 py-0.5 text-xs"
                         >
                           {k}: {v}
                         </span>
@@ -625,7 +599,7 @@ function PdpPage() {
               )}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+            <p className="py-4 text-center text-sm text-muted-foreground">
               FS Registry not available
             </p>
           )}

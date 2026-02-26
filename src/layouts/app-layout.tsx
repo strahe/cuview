@@ -20,10 +20,10 @@ import { CollapsibleSidebar } from "./collapsible-sidebar";
 
 function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
   const colorMap: Record<ConnectionStatus, string> = {
-    connected: "bg-[hsl(var(--success))]",
-    connecting: "bg-[hsl(var(--warning))]",
-    disconnected: "bg-[hsl(var(--destructive))]",
-    reconnecting: "bg-[hsl(var(--warning))]",
+    connected: "bg-success",
+    connecting: "bg-warning",
+    disconnected: "bg-destructive",
+    reconnecting: "bg-warning",
   };
 
   const labelMap: Record<ConnectionStatus, string> = {
@@ -36,9 +36,7 @@ function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className={cn("size-2 rounded-full", colorMap[status])} />
-      <span className="text-[hsl(var(--muted-foreground))]">
-        {labelMap[status]}
-      </span>
+      <span className="text-muted-foreground">{labelMap[status]}</span>
     </div>
   );
 }
@@ -64,7 +62,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[hsl(var(--background))]">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="fixed top-0 left-0 z-30 hidden lg:block">
         <CollapsibleSidebar
@@ -88,16 +86,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile Top Bar */}
       <div className="w-full lg:hidden">
-        <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3">
+        <div className="border-b border-border bg-card px-4 py-3">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-md p-2 hover:bg-[hsl(var(--accent))]"
+              className="rounded-md p-2 hover:bg-accent"
             >
               <Menu className="size-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] grid size-7 place-items-center rounded-lg text-xs font-bold">
+              <div className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-lg text-xs font-bold">
                 C
               </div>
               <span className="font-semibold">Cuview</span>
@@ -116,12 +114,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
         }}
       >
         {/* Top Bar */}
-        <div className="sticky top-0 z-20 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]/95 backdrop-blur-sm">
+        <div className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur-sm">
           <div className="flex items-center justify-between px-6 py-3">
             <div className="flex items-center gap-3">
               <button
                 onClick={layout.toggleSidebar}
-                className="rounded-md p-1.5 hover:bg-[hsl(var(--accent))]"
+                className="rounded-md p-1.5 hover:bg-accent"
                 title={
                   layout.sidebarCollapsed
                     ? "Expand sidebar"
@@ -136,14 +134,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </button>
               <ConnectionStatusBadge status={connectionStatus} />
               {version && (
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                <span className="text-xs text-muted-foreground">
                   v{version}
                 </span>
               )}
               {alertCount != null && alertCount > 0 && (
                 <a
                   href="/alerts"
-                  className="flex items-center gap-1 rounded-md bg-[hsl(var(--destructive)/0.1)] px-2 py-0.5 text-xs text-[hsl(var(--destructive))]"
+                  className="flex items-center gap-1 rounded-md bg-destructive/[0.1] px-2 py-0.5 text-xs text-destructive"
                 >
                   <Bell className="size-3" />
                   {alertCount}
@@ -155,7 +153,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <div className="mx-8 max-w-md flex-1">
               <button
                 onClick={openSearch}
-                className="border-[hsl(var(--input))] bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] flex h-9 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition hover:border-[hsl(var(--ring))]"
+                className="border-input bg-muted text-muted-foreground flex h-9 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition hover:border-ring"
               >
                 <span className="flex items-center gap-2">
                   <Search className="size-4 opacity-50" />
@@ -163,7 +161,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     Search pages, actors, or task types
                   </span>
                 </span>
-                <kbd className="border-[hsl(var(--border))] bg-[hsl(var(--card))] pointer-events-none hidden rounded border px-1.5 py-0.5 text-xs sm:inline-flex">
+                <kbd className="border-border bg-card pointer-events-none hidden rounded border px-1.5 py-0.5 text-xs sm:inline-flex">
                   ⌘K
                 </kbd>
               </button>
@@ -173,7 +171,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-1">
               <button
                 onClick={layout.toggleTheme}
-                className="rounded-md p-2 hover:bg-[hsl(var(--accent))]"
+                className="rounded-md p-2 hover:bg-accent"
                 title={
                   layout.isDark ? "Switch to light mode" : "Switch to dark mode"
                 }
@@ -186,7 +184,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </button>
               <button
                 onClick={() => setSettingsOpen(true)}
-                className="rounded-md p-2 hover:bg-[hsl(var(--accent))]"
+                className="rounded-md p-2 hover:bg-accent"
                 title="Settings"
               >
                 <Settings className="size-5" />

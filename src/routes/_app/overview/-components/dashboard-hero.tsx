@@ -6,10 +6,10 @@ import type { HeroCard } from "@/hooks/use-dashboard-summary";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
-  success: "border-l-[hsl(var(--success))]",
-  warning: "border-l-[hsl(var(--warning))]",
-  info: "border-l-[hsl(var(--info))]",
-  accent: "border-l-[hsl(var(--primary))]",
+  success: "border-l-success",
+  warning: "border-l-warning",
+  info: "border-l-info",
+  accent: "border-l-primary",
 };
 
 interface DashboardHeroProps {
@@ -44,7 +44,7 @@ export function DashboardHero({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          <p className="text-sm text-muted-foreground">
             Curio cluster overview
           </p>
         </div>
@@ -60,11 +60,11 @@ export function DashboardHero({
             className={cn("border-l-4", statusColors[card.status])}
           >
             <CardContent className="p-6">
-              <p className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
+              <p className="text-sm font-medium text-muted-foreground">
                 {card.label}
               </p>
               <p className="mt-2 text-2xl font-bold">{card.value}</p>
-              <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {card.subtitle}
               </p>
             </CardContent>

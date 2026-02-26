@@ -4,10 +4,15 @@ import { AlertTriangle, RotateCcw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/composed/tabs";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type { Mk20Pipeline, Mk20PipelineFailedStats } from "@/types/market";
 import { formatBytes } from "@/utils/format";
@@ -166,31 +171,31 @@ function PipelineSubRow({ row }: { row: any }) {
   return (
     <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Contract:</span>{" "}
+        <span className="text-muted-foreground">Contract:</span>{" "}
         <span className="font-mono" title={d.contract}>
           {d.contract?.slice(0, 16)}
         </span>
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Piece CID:</span>{" "}
+        <span className="text-muted-foreground">Piece CID:</span>{" "}
         <span className="font-mono" title={d.piece_cid}>
           {d.piece_cid?.slice(0, 16)}
         </span>
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Raw Size:</span>{" "}
+        <span className="text-muted-foreground">Raw Size:</span>{" "}
         {d.raw_size ? formatBytes(d.raw_size) : "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">URL:</span>{" "}
+        <span className="text-muted-foreground">URL:</span>{" "}
         {d.url ? <span title={d.url}>{d.url.slice(0, 40)}</span> : "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Allocation:</span>{" "}
+        <span className="text-muted-foreground">Allocation:</span>{" "}
         {d.allocation_id ?? "—"}
       </div>
       <div>
-        <span className="text-[hsl(var(--muted-foreground))]">Duration:</span>{" "}
+        <span className="text-muted-foreground">Duration:</span>{" "}
         {d.duration ?? "—"}
       </div>
     </div>
@@ -289,8 +294,7 @@ function MK20DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" />{" "}
-              Failed Tasks
+              <AlertTriangle className="size-4 text-destructive" /> Failed Tasks
             </CardTitle>
             <div className="flex gap-2">
               <Button
@@ -323,13 +327,11 @@ function MK20DealsPage() {
               ).map(([name, count]) => (
                 <div
                   key={name}
-                  className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                  className="rounded border border-border p-2 text-center"
                 >
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {name}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{name}</p>
                   <p
-                    className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}
+                    className={`text-lg font-bold ${count > 0 ? "text-destructive" : ""}`}
                   >
                     {count}
                   </p>
@@ -354,8 +356,8 @@ function MK20DealsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="size-4 text-[hsl(var(--destructive))]" />{" "}
-                  PDP Failed Tasks
+                  <AlertTriangle className="size-4 text-destructive" /> PDP
+                  Failed Tasks
                 </CardTitle>
                 <div className="flex gap-2">
                   <Button
@@ -390,13 +392,11 @@ function MK20DealsPage() {
                   ).map(([name, count]) => (
                     <div
                       key={name}
-                      className="rounded border border-[hsl(var(--border))] p-2 text-center"
+                      className="rounded border border-border p-2 text-center"
                     >
-                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                        {name}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{name}</p>
                       <p
-                        className={`text-lg font-bold ${count > 0 ? "text-[hsl(var(--destructive))]" : ""}`}
+                        className={`text-lg font-bold ${count > 0 ? "text-destructive" : ""}`}
                       >
                         {count}
                       </p>

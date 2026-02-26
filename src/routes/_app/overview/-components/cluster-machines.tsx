@@ -25,9 +25,7 @@ export function ClusterMachines({ data, loading }: ClusterMachinesProps) {
   if (!data.length) {
     return (
       <SectionCard title="Cluster Machines" icon={Server}>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
-          No machines in cluster
-        </p>
+        <p className="text-sm text-muted-foreground">No machines in cluster</p>
       </SectionCard>
     );
   }
@@ -36,10 +34,7 @@ export function ClusterMachines({ data, loading }: ClusterMachinesProps) {
     <SectionCard title="Cluster Machines" icon={Server}>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data.map((machine) => (
-          <div
-            key={machine.ID}
-            className="rounded-lg border border-[hsl(var(--border))] p-3"
-          >
+          <div key={machine.ID} className="rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <span className="truncate text-sm font-medium">
                 {machine.Address || `Machine #${machine.ID}`}
@@ -49,7 +44,7 @@ export function ClusterMachines({ data, loading }: ClusterMachinesProps) {
                 label={machine.Unschedulable ? "Offline" : "Online"}
               />
             </div>
-            <div className="mt-2 flex gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
               <span>Tasks: {machine.RunningTasks ?? 0}</span>
               {machine.Cpu != null && <span>CPU: {machine.Cpu}</span>}
               {machine.RamHumanized && <span>RAM: {machine.RamHumanized}</span>}
