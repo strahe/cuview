@@ -1,6 +1,6 @@
-# cuview
+# Cuview
 
-A modern, high-performance web dashboard for [Curio](https://github.com/filecoin-project/curio) (Filecoin Storage Provider) nodes.
+A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-project/curio) nodes.
 
 ## Features
 
@@ -10,6 +10,12 @@ A modern, high-performance web dashboard for [Curio](https://github.com/filecoin
 - **Market Operations**: Manage storage asks, balance escrow, and monitor deals (MK12/MK20).
 - **Advanced Diagnostics**: In-app sector diagnostics, CommR checks, and WdPost testing.
 - **System Control**: Manage Harmony tasks, machines, and configuration layers.
+
+## Usage
+
+- Hosted build (GitHub Pages): [cuview.strahe.com](http://cuview.strahe.com)
+- Match protocols to avoid mixed-content issues: use `http://` RPC endpoints with `http://` pages, and `https://` RPC endpoints with `https://` pages.
+- Self-hosting is supported by deploying the static build output (`dist/`) to any static host with access to Curio RPC.
 
 ## Development
 
@@ -43,15 +49,6 @@ pnpm build
 ```
 
 The output will be in the `dist/` directory.
-
-## UI Layering & Theme Switching
-
-- `src/components/ui/*` is the **base style layer** and should remain compatible
-  with `shadcn add --overwrite`.
-- Put business semantics in `src/components/composed/*` (for example custom
-  status wrappers), not in `ui/*`.
-- `src/style.css` is the single theme token source (`:root` + `.dark` + token
-  mappings). Keep page styles using semantic classes/tokens.
 
 ## License
 

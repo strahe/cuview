@@ -1,13 +1,13 @@
 # Copilot instructions for cuview
 
 ## Build, lint, and validation commands
-- Install dependencies: `npm install` (README also documents `pnpm install` and recommends pnpm).
-- Start dev server: `npm run dev` (equivalent from README: `pnpm dev`).
-- Full repo check used here: `npm run check` (`npm run typecheck && biome check src/`).
-- Lint only: `npm run lint` (auto-fix: `npm run lint:fix`).
-- Build production assets: `npm run build` (`tsc -b && vite build`).
-- Tests: there is currently no test script or test framework configured in this repository.
-- Single test command: not available until tests are added.
+- Install dependencies: `pnpm install`.
+- Start dev server: `pnpm run dev`.
+- Full repo check used here: `pnpm run check` (`pnpm run typecheck && biome check src/`).
+- Lint only: `pnpm run lint` (auto-fix: `pnpm run lint:fix`).
+- Build production assets: `pnpm run build` (`tsc -b && vite build`).
+- Tests: `pnpm run test` (Vitest run mode).
+- Single test command: `pnpm run test`.
 
 ## High-level architecture
 - App bootstrap is in `src/main.tsx`: creates a shared TanStack Query client and TanStack Router instance, then renders both providers at the app root.

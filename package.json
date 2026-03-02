@@ -3,6 +3,7 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "packageManager": "pnpm@10.28.1",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,7 +13,7 @@
     "lint:fix": "biome lint --fix src/",
     "format": "biome format --write src/",
     "format:check": "biome format src/",
-    "check": "npm run typecheck && biome check src/",
+    "check": "pnpm run typecheck && biome check src/",
     "test": "vitest run",
     "test:watch": "vitest"
   },
