@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useCurioApi } from "@/contexts/curio-api-context";
+import { useCurioApi, useCurioConnection } from "@/contexts/curio-api-context";
 import type { CurioApiService } from "@/services/curio-api";
 
 const DEFAULT_POLL_INTERVAL = 30_000;
@@ -22,9 +22,10 @@ export function useCurioRpc<T>(
   },
 ) {
   const api = useCurioApi();
+  const { endpoint } = useCurioConnection();
 
   return useQuery({
-    queryKey: ["curio", method, ...params],
+    queryKey: ["curio", method, endpoint, ...params],
     queryFn: () => api.call<T>(method, params),
     refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
     enabled: options?.enabled,
@@ -45,9 +46,13 @@ export function useCurioRest<T>(
   },
 ) {
   const api = useCurioApi();
+  const { endpoint } = useCurioConnection();
 
   return useQuery({
-    queryKey: options?.queryKey ?? ["curio-rest", path],
+    queryKey:
+      options?.queryKey !== undefined
+        ? ["curio-rest", ...options.queryKey, endpoint]
+        : ["curio-rest", path, endpoint],
     queryFn: ({ signal }) => api.restGet<T>(path, { signal }),
     refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
     enabled: options?.enabled,
@@ -113,10 +118,11 @@ export function useCurioRpcMutation<TData = unknown>(
 export function curioQueryOptions<T>(
   api: CurioApiService,
   method: string,
+  endpoint: string,
   params: unknown[] = [],
 ): UseQueryOptions<T> {
   return {
-    queryKey: ["curio", method, ...params],
+    queryKey: ["curio", method, endpoint, ...params],
     queryFn: () => api.call<T>(method, params),
     staleTime: 10_000,
   };

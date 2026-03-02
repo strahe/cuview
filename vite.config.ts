@@ -10,6 +10,7 @@ export default defineConfig({
       routesDirectory: "./src/routes",
       generatedRouteTree: "./src/routeTree.gen.ts",
       quoteStyle: "double",
+      routeFileIgnorePattern: "\\.(test|spec)\\.(ts|tsx)$",
     }),
     react(),
     tailwindcss(),

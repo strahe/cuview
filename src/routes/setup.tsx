@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useCallback, useState } from "react";
-import { setStoredEndpoint } from "@/contexts/curio-api-context";
+import { useCurioConnection } from "@/contexts/curio-api-context";
 import { cn } from "@/lib/utils";
+import { formatEndpointForDisplay } from "@/utils/endpoint";
 
 export const Route = createFileRoute("/setup")({
   component: SetupPage,
@@ -10,49 +11,50 @@ export const Route = createFileRoute("/setup")({
 
 type TestStatus = "idle" | "testing" | "success" | "error";
 
-function SetupPage() {
+export function SetupPage() {
   const navigate = useNavigate();
-  const [endpoint, setEndpoint] = useState("ws://localhost:4701/api/webrpc/v0");
+  const { endpoint: activeEndpoint, testAndSwitchEndpoint } =
+    useCurioConnection();
+
+  const [endpoint, setEndpoint] = useState(
+    formatEndpointForDisplay(activeEndpoint) || "http://localhost:4701",
+  );
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const testConnection = useCallback(async () => {
-    setTestStatus("testing");
-    setErrorMessage("");
+  const runConnectionFlow = useCallback(
+    async (navigateOnSuccess: boolean) => {
+      setTestStatus("testing");
+      setErrorMessage("");
 
-    try {
-      const ws = new WebSocket(endpoint);
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          ws.close();
-          reject(new Error("Connection timeout"));
-        }, 5000);
+      const result = await testAndSwitchEndpoint(endpoint);
 
-        ws.onopen = () => {
-          clearTimeout(timeout);
-          ws.close();
-          resolve();
-        };
-        ws.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("Connection failed"));
-        };
-      });
+      if (result.ok) {
+        setTestStatus("success");
+        setEndpoint(formatEndpointForDisplay(result.endpoint));
 
-      setTestStatus("success");
-    } catch (err) {
+        if (navigateOnSuccess) {
+          navigate({ to: "/overview" });
+        }
+        return;
+      }
+
       setTestStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Connection failed");
-    }
-  }, [endpoint]);
+      setErrorMessage(result.error);
+    },
+    [endpoint, navigate, testAndSwitchEndpoint],
+  );
+
+  const handleTestConnection = useCallback(() => {
+    void runConnectionFlow(false);
+  }, [runConnectionFlow]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      setStoredEndpoint(endpoint);
-      navigate({ to: "/overview" });
+      void runConnectionFlow(true);
     },
-    [endpoint, navigate],
+    [runConnectionFlow],
   );
 
   return (
@@ -89,8 +91,9 @@ function SetupPage() {
                 onChange={(e) => {
                   setEndpoint(e.target.value);
                   setTestStatus("idle");
+                  setErrorMessage("");
                 }}
-                placeholder="ws://localhost:4701/api/webrpc/v0"
+                placeholder="http://localhost:4701"
                 className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
@@ -98,7 +101,7 @@ function SetupPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={testConnection}
+                onClick={handleTestConnection}
                 disabled={!endpoint.trim() || testStatus === "testing"}
                 className={cn(
                   "flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium transition",
@@ -114,12 +117,12 @@ function SetupPage() {
                 {testStatus === "error" && (
                   <XCircle className="size-4 text-destructive" />
                 )}
-                Test Connection
+                {testStatus === "testing" ? "Testing..." : "Test Connection"}
               </button>
 
               <button
                 type="submit"
-                disabled={!endpoint.trim()}
+                disabled={!endpoint.trim() || testStatus === "testing"}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50"
               >
                 Connect
