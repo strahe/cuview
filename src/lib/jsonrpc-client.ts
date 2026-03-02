@@ -49,8 +49,7 @@ export class JsonRpcClient {
 
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private isDestroyed = false;
-
+  private isManuallyDisconnected = false;
   private events: Partial<JsonRpcClientEvents> = {};
 
   constructor(options: JsonRpcClientOptions = {}) {
@@ -75,9 +74,8 @@ export class JsonRpcClient {
   }
 
   async connect(): Promise<void> {
-    if (this.isDestroyed) {
-      throw new Error("Client has been destroyed");
-    }
+    this.isManuallyDisconnected = false;
+    this.clearReconnectTimer();
 
     return new Promise((resolve, reject) => {
       try {
@@ -107,7 +105,7 @@ export class JsonRpcClient {
           this.events.disconnected?.();
           this.rejectAllPending(new Error("WebSocket disconnected"));
 
-          if (event.code !== 1000 && !this.isDestroyed) {
+          if (event.code !== 1000 && !this.isManuallyDisconnected) {
             this.scheduleReconnect();
           }
         };
@@ -211,7 +209,7 @@ export class JsonRpcClient {
   }
 
   disconnect(): void {
-    this.isDestroyed = true;
+    this.isManuallyDisconnected = true;
     this.clearReconnectTimer();
 
     if (this.ws) {
@@ -254,7 +252,7 @@ export class JsonRpcClient {
 
   private scheduleReconnect(): void {
     if (
-      this.isDestroyed ||
+      this.isManuallyDisconnected ||
       this.reconnectAttempts >= this.config.maxReconnectAttempts
     ) {
       return;
