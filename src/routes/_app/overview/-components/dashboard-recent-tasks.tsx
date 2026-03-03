@@ -3,6 +3,7 @@ import { Zap } from "lucide-react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { TaskHistorySummary } from "@/types/task";
 
 interface DashboardRecentTasksProps {
@@ -51,6 +52,7 @@ export function DashboardRecentTasks({
       action={
         <Link
           to="/tasks/history"
+          search={DEFAULT_TASK_SEARCH}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
           View all →

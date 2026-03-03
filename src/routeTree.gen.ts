@@ -32,6 +32,7 @@ import { Route as AppAlertsIndexRouteImport } from "./routes/_app/alerts/index"
 import { Route as AppActorIndexRouteImport } from "./routes/_app/actor/index"
 import { Route as AppTasksOverviewRouteImport } from "./routes/_app/tasks/overview"
 import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history"
+import { Route as AppTasksAnalysisRouteImport } from "./routes/_app/tasks/analysis"
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
 import { Route as AppPipelineStatsRouteImport } from "./routes/_app/pipeline/stats"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
@@ -163,6 +164,11 @@ const AppTasksHistoryRoute = AppTasksHistoryRouteImport.update({
   path: "/history",
   getParentRoute: () => AppTasksRouteRoute,
 } as any)
+const AppTasksAnalysisRoute = AppTasksAnalysisRouteImport.update({
+  id: "/analysis",
+  path: "/analysis",
+  getParentRoute: () => AppTasksRouteRoute,
+} as any)
 const AppTasksActiveRoute = AppTasksActiveRouteImport.update({
   id: "/active",
   path: "/active",
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
   "/tasks/active": typeof AppTasksActiveRoute
+  "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
   "/actor/": typeof AppActorIndexRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
   "/tasks/active": typeof AppTasksActiveRoute
+  "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
   "/actor": typeof AppActorIndexRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/pipeline/stats": typeof AppPipelineStatsRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
+  "/_app/tasks/analysis": typeof AppTasksAnalysisRoute
   "/_app/tasks/history": typeof AppTasksHistoryRoute
   "/_app/tasks/overview": typeof AppTasksOverviewRoute
   "/_app/actor/": typeof AppActorIndexRoute
@@ -384,6 +393,7 @@ export interface FileRouteTypes {
     | "/pipeline/snap"
     | "/pipeline/stats"
     | "/tasks/active"
+    | "/tasks/analysis"
     | "/tasks/history"
     | "/tasks/overview"
     | "/actor/"
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | "/pipeline/snap"
     | "/pipeline/stats"
     | "/tasks/active"
+    | "/tasks/analysis"
     | "/tasks/history"
     | "/tasks/overview"
     | "/actor"
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | "/_app/pipeline/snap"
     | "/_app/pipeline/stats"
     | "/_app/tasks/active"
+    | "/_app/tasks/analysis"
     | "/_app/tasks/history"
     | "/_app/tasks/overview"
     | "/_app/actor/"
@@ -654,6 +666,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppTasksHistoryRouteImport
       parentRoute: typeof AppTasksRouteRoute
     }
+    "/_app/tasks/analysis": {
+      id: "/_app/tasks/analysis"
+      path: "/analysis"
+      fullPath: "/tasks/analysis"
+      preLoaderRoute: typeof AppTasksAnalysisRouteImport
+      parentRoute: typeof AppTasksRouteRoute
+    }
     "/_app/tasks/active": {
       id: "/_app/tasks/active"
       path: "/active"
@@ -832,6 +851,7 @@ const AppSectorsRouteRouteWithChildren = AppSectorsRouteRoute._addFileChildren(
 
 interface AppTasksRouteRouteChildren {
   AppTasksActiveRoute: typeof AppTasksActiveRoute
+  AppTasksAnalysisRoute: typeof AppTasksAnalysisRoute
   AppTasksHistoryRoute: typeof AppTasksHistoryRoute
   AppTasksOverviewRoute: typeof AppTasksOverviewRoute
   AppTasksIndexRoute: typeof AppTasksIndexRoute
@@ -839,6 +859,7 @@ interface AppTasksRouteRouteChildren {
 
 const AppTasksRouteRouteChildren: AppTasksRouteRouteChildren = {
   AppTasksActiveRoute: AppTasksActiveRoute,
+  AppTasksAnalysisRoute: AppTasksAnalysisRoute,
   AppTasksHistoryRoute: AppTasksHistoryRoute,
   AppTasksOverviewRoute: AppTasksOverviewRoute,
   AppTasksIndexRoute: AppTasksIndexRoute,

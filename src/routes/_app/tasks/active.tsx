@@ -1,147 +1,131 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
+import { useCallback, useMemo } from "react";
+import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
+import { taskQueueColumns } from "@/routes/_app/tasks/-components/task-columns";
+import { TaskDetailPanel } from "@/routes/_app/tasks/-components/task-detail-panel";
+import { useTasksLayoutControls } from "@/routes/_app/tasks/-components/tasks-layout-controls";
+import { TasksOverlayDrawer } from "@/routes/_app/tasks/-components/tasks-overlay-drawer";
+import { TasksToolbar } from "@/routes/_app/tasks/-components/tasks-toolbar";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import type { TaskSummary } from "@/types/task";
+  buildCoalescedQueueRows,
+  filterTaskSummaryRows,
+} from "./-module/filters";
+import { useTaskSummary } from "./-module/queries";
+import {
+  DEFAULT_TASK_SEARCH,
+  normalizeTaskSearch,
+  patchTaskSearch,
+} from "./-module/search-state";
+import type { TaskSearchPatch } from "./-module/types";
 
 export const Route = createFileRoute("/_app/tasks/active")({
+  validateSearch: (search) => normalizeTaskSearch(search),
   component: ActiveTasksPage,
 });
 
-interface HarmonyTask {
-  ID: number;
-  Name: string;
-  UpdateTime: string;
-  PostedTime: string;
-  OwnerID: number;
-  OwnerAddr: string;
-  OwnerName: string;
-}
+export function ActiveTasksPage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { data, isLoading } = useTaskSummary();
 
-const columns: ColumnDef<TaskSummary>[] = [
-  {
-    accessorKey: "ID",
-    header: "ID",
-  },
-  {
-    accessorKey: "Name",
-    header: "Task Type",
-  },
-  {
-    accessorKey: "Miner",
-    header: "Miner",
-  },
-  {
-    accessorKey: "Owner",
-    header: "Owner",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">
-        {row.original.Owner ?? "Unassigned"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "SincePostedStr",
-    header: "Duration",
-  },
-  {
-    id: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.Owner ? "running" : "pending"}
-        label={row.original.Owner ? "Running" : "Pending"}
+  const updateSearch = useCallback(
+    (patch: TaskSearchPatch) => {
+      navigate({
+        search: (prev) => patchTaskSearch(prev, patch),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const filteredRows = useMemo(
+    () =>
+      filterTaskSummaryRows(data, {
+        q: search.q,
+        showBg: search.showBg,
+        taskType: search.taskType,
+      }),
+    [data, search.q, search.showBg, search.taskType],
+  );
+
+  const queueRows = useMemo(() => {
+    if (search.coalesce) return buildCoalescedQueueRows(filteredRows);
+    return filteredRows.map((task) => ({
+      kind: "task" as const,
+      id: `task-${task.id}`,
+      task,
+    }));
+  }, [filteredRows, search.coalesce]);
+
+  const selectedTaskType =
+    search.taskId !== null
+      ? (data.find((task) => task.id === search.taskId)?.name ??
+        search.taskType)
+      : "";
+
+  const controls = useMemo(
+    () => (
+      <TasksToolbar
+        q={search.q}
+        onQueryChange={(value) => updateSearch({ q: value })}
+        result={search.result}
+        showBg={search.showBg}
+        onShowBgChange={(value) => updateSearch({ showBg: value })}
+        coalesce={search.coalesce}
+        onCoalesceChange={(value) => updateSearch({ coalesce: value })}
+        onReset={() =>
+          updateSearch({
+            q: DEFAULT_TASK_SEARCH.q,
+            showBg: DEFAULT_TASK_SEARCH.showBg,
+            coalesce: DEFAULT_TASK_SEARCH.coalesce,
+            taskId: null,
+            taskType: "",
+          })
+        }
+        minimal
       />
     ),
-  },
-];
-
-function ActiveTasksPage() {
-  const { data, isLoading } = useCurioRpc<TaskSummary[]>(
-    "ClusterTaskSummary",
-    [],
-    { refetchInterval: 10_000 },
-  );
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const [showBgTasks, setShowBgTasks] = useState(false);
-  const { data: taskDetail } = useCurioRpc<HarmonyTask>(
-    "HarmonyTaskDetails",
-    [selectedTaskId!],
-    { enabled: selectedTaskId !== null },
+    [search.q, search.result, search.showBg, search.coalesce, updateSearch],
   );
 
-  const filteredData = useMemo(() => {
-    const tasks = data ?? [];
-    if (showBgTasks) return tasks;
-    return tasks.filter((t) => !t.Name.startsWith("bg:"));
-  }, [data, showBgTasks]);
+  useTasksLayoutControls(controls);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="show-bg-tasks"
-          checked={showBgTasks}
-          onChange={(e) => setShowBgTasks(e.target.checked)}
-          className="size-4 rounded border-border accent-primary"
+    <>
+      <SectionCard
+        title="Active Queue"
+        tooltip="Execution queue for active tasks."
+      >
+        <DataTable
+          columns={taskQueueColumns}
+          data={queueRows}
+          loading={isLoading}
+          emptyMessage="No active tasks."
+          onRowClick={(row) => {
+            if (row.kind !== "task") return;
+            updateSearch({ taskId: row.task.id, taskType: row.task.name });
+          }}
         />
-        <label
-          htmlFor="show-bg-tasks"
-          className="cursor-pointer text-sm text-muted-foreground"
-        >
-          Show background tasks
-        </label>
-      </div>
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        loading={isLoading}
-        searchable
-        searchPlaceholder="Search tasks..."
-        searchColumn="Name"
-        emptyMessage="No active tasks"
-        onRowClick={(row) => setSelectedTaskId(row.ID)}
-      />
-      {selectedTaskId !== null && taskDetail && (
-        <Dialog open onOpenChange={() => setSelectedTaskId(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                Task #{taskDetail.ID} - {taskDetail.Name}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-muted-foreground">Owner</span>
-                <div className="font-mono text-xs">
-                  {taskDetail.OwnerName || taskDetail.OwnerAddr || "—"}
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Owner ID</span>
-                <div>{taskDetail.OwnerID || "—"}</div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Posted</span>
-                <div className="text-xs">{taskDetail.PostedTime}</div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Updated</span>
-                <div className="text-xs">{taskDetail.UpdateTime}</div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+      </SectionCard>
+
+      <TasksOverlayDrawer
+        open={search.taskId !== null}
+        onOpenChange={(open) => {
+          if (open) return;
+          updateSearch({ taskId: null, taskType: "" });
+        }}
+        title={
+          search.taskId !== null ? `Task #${search.taskId}` : "Task Detail"
+        }
+        description="Task status and execution history."
+      >
+        <TaskDetailPanel
+          taskId={search.taskId}
+          taskType={selectedTaskType}
+          embedded
+        />
+      </TasksOverlayDrawer>
+    </>
   );
 }

@@ -1,179 +1,164 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
-import { RotateCcw } from "lucide-react";
-import { useState } from "react";
-import { StatusBadge } from "@/components/composed/status-badge";
+import { useCallback, useMemo } from "react";
+import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
+import { taskHistoryColumns } from "@/routes/_app/tasks/-components/task-columns";
+import { TaskDetailPanel } from "@/routes/_app/tasks/-components/task-detail-panel";
+import { useTasksLayoutControls } from "@/routes/_app/tasks/-components/tasks-layout-controls";
+import { TasksOverlayDrawer } from "@/routes/_app/tasks/-components/tasks-overlay-drawer";
+import { TasksToolbar } from "@/routes/_app/tasks/-components/tasks-toolbar";
+import { filterTaskHistoryRows } from "./-module/filters";
+import { useTaskHistory } from "./-module/queries";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import type { TaskHistoryEntry, TaskHistorySummary } from "@/types/task";
+  DEFAULT_TASK_SEARCH,
+  normalizeTaskSearch,
+  patchTaskSearch,
+} from "./-module/search-state";
+import type { TaskSearchPatch } from "./-module/types";
 
 export const Route = createFileRoute("/_app/tasks/history")({
+  validateSearch: (search) => normalizeTaskSearch(search),
   component: TaskHistoryPage,
 });
 
-const columns: ColumnDef<TaskHistorySummary>[] = [
-  {
-    accessorKey: "TaskID",
-    header: "ID",
-  },
-  {
-    accessorKey: "Name",
-    header: "Task Type",
-  },
-  {
-    accessorKey: "CompletedBy",
-    header: "Completed By",
-    cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.CompletedBy}</span>
-    ),
-  },
-  {
-    accessorKey: "Took",
-    header: "Duration",
-  },
-  {
-    accessorKey: "Queued",
-    header: "Queued",
-  },
-  {
-    id: "result",
-    header: "Result",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.Result ? "done" : "failed"}
-        label={row.original.Result ? "Success" : "Failed"}
+export function TaskHistoryPage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { data, isLoading } = useTaskHistory(search.limit, search.offset);
+
+  const updateSearch = useCallback(
+    (patch: TaskSearchPatch) => {
+      navigate({
+        search: (prev) => patchTaskSearch(prev, patch),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const filteredRows = useMemo(
+    () =>
+      filterTaskHistoryRows(data, {
+        q: search.q,
+        result: search.result,
+        taskType: search.taskType,
+      }),
+    [data, search.q, search.result, search.taskType],
+  );
+
+  const hasPrev = search.offset > 0;
+  const hasNext = data.length >= search.limit;
+  const pageInfo = data.length
+    ? `Rows ${search.offset + 1}-${search.offset + data.length}`
+    : "Rows 0";
+
+  const selectedTaskType =
+    search.taskId !== null
+      ? (data.find((task) => task.taskId === search.taskId)?.name ??
+        search.taskType)
+      : "";
+
+  const controls = useMemo(
+    () => (
+      <TasksToolbar
+        q={search.q}
+        onQueryChange={(value) => updateSearch({ q: value })}
+        result={search.result}
+        onResultChange={(value) => updateSearch({ result: value })}
+        limit={search.limit}
+        onLimitChange={(value) => updateSearch({ limit: value })}
+        pageInfo={pageInfo}
+        onReset={() =>
+          updateSearch({
+            q: DEFAULT_TASK_SEARCH.q,
+            result: DEFAULT_TASK_SEARCH.result,
+            limit: DEFAULT_TASK_SEARCH.limit,
+            offset: DEFAULT_TASK_SEARCH.offset,
+            taskId: null,
+            taskType: "",
+          })
+        }
+        extraActions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!hasPrev}
+              onClick={() =>
+                updateSearch({
+                  offset: Math.max(search.offset - search.limit, 0),
+                })
+              }
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!hasNext}
+              onClick={() =>
+                updateSearch({
+                  offset: search.offset + search.limit,
+                })
+              }
+            >
+              Next
+            </Button>
+          </>
+        }
+        minimal
       />
     ),
-  },
-  {
-    accessorKey: "Err",
-    header: "Error",
-    cell: ({ row }) =>
-      row.original.Err ? (
-        <span
-          className="max-w-xs truncate text-xs text-destructive"
-          title={row.original.Err}
-        >
-          {row.original.Err}
-        </span>
-      ) : (
-        <span className="text-xs text-muted-foreground">—</span>
-      ),
-  },
-];
-
-function TaskDetailDialog({
-  taskId,
-  open,
-  onClose,
-}: {
-  taskId: number;
-  open: boolean;
-  onClose: () => void;
-}) {
-  const { data: history } = useCurioRpc<TaskHistoryEntry[]>(
-    "HarmonyTaskHistoryById",
-    [taskId],
-    { enabled: open },
+    [
+      hasNext,
+      hasPrev,
+      search.limit,
+      search.offset,
+      search.q,
+      search.result,
+      pageInfo,
+      updateSearch,
+    ],
   );
 
-  const restartMutation = useCurioRpcMutation("RestartFailedTask", {
-    invalidateKeys: [["curio", "ClusterTaskHistory"]],
-  });
-
-  const entries = history ?? [];
-  const latestFailed = entries.length > 0 && !entries[0]?.Result;
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Task #{taskId} History</DialogTitle>
-        </DialogHeader>
-        {latestFailed && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => restartMutation.mutate([taskId])}
-            disabled={restartMutation.isPending}
-          >
-            <RotateCcw className="mr-1 size-3" />
-            {restartMutation.isPending
-              ? "Restarting..."
-              : "Restart Failed Task"}
-          </Button>
-        )}
-        <div className="max-h-96 space-y-3 overflow-y-auto">
-          {entries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No history found.</p>
-          ) : (
-            entries.map((e, i) => (
-              <div key={i} className="rounded border border-border p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{e.Name}</span>
-                  <StatusBadge
-                    status={e.Result ? "done" : "failed"}
-                    label={e.Result ? "Success" : "Failed"}
-                  />
-                </div>
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <div>
-                    Completed by:{" "}
-                    <span className="font-mono">{e.CompletedBy}</span>
-                  </div>
-                  <div>Duration: {e.Took}</div>
-                  <div>Queued: {e.Queued}</div>
-                  <div>Posted: {e.Posted}</div>
-                </div>
-                {e.Err && (
-                  <div className="mt-2 rounded bg-destructive/[0.1] p-2 text-xs text-destructive">
-                    {e.Err}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function TaskHistoryPage() {
-  const { data, isLoading } = useCurioRpc<TaskHistorySummary[]>(
-    "ClusterTaskHistory",
-    [100, 0],
-    { refetchInterval: 20_000 },
-  );
-
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  useTasksLayoutControls(controls);
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={data ?? []}
-        loading={isLoading}
-        searchable
-        searchPlaceholder="Search task history..."
-        searchColumn="Name"
-        emptyMessage="No task history"
-        onRowClick={(row) => setSelectedTaskId(row.TaskID)}
-      />
-      {selectedTaskId !== null && (
-        <TaskDetailDialog
-          taskId={selectedTaskId}
-          open
-          onClose={() => setSelectedTaskId(null)}
+      <SectionCard title="Task Timeline">
+        <DataTable
+          columns={taskHistoryColumns}
+          data={filteredRows}
+          loading={isLoading}
+          emptyMessage="No task history."
+          pagination={false}
+          onRowClick={(row) =>
+            updateSearch({
+              taskId: row.taskId,
+              taskType: row.name,
+            })
+          }
         />
-      )}
+      </SectionCard>
+
+      <TasksOverlayDrawer
+        open={search.taskId !== null}
+        onOpenChange={(open) => {
+          if (open) return;
+          updateSearch({ taskId: null, taskType: "" });
+        }}
+        title={
+          search.taskId !== null ? `Task #${search.taskId}` : "Task Detail"
+        }
+        description="Task status and execution history."
+      >
+        <TaskDetailPanel
+          taskId={search.taskId}
+          taskType={selectedTaskType}
+          embedded
+        />
+      </TasksOverlayDrawer>
     </>
   );
 }

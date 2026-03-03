@@ -71,3 +71,51 @@ export interface TaskMachineMapping {
   MachineName: string;
   Enabled: boolean;
 }
+
+export interface RawTaskStatusSnake {
+  task_id: number;
+  status: string;
+  owner_id?: number;
+  name: string;
+  posted_at?: string;
+}
+
+export interface RawHarmonyTaskMachine {
+  MachineID?: number;
+  machine_id?: number;
+  Name?: string;
+  machine_name?: string;
+  MachineAddr?: string;
+  host_and_port?: string;
+  Actors?: string;
+  miners?: string;
+}
+
+export interface RawHarmonyTaskDetail {
+  ID: number;
+  Name: string;
+  UpdateTime: string;
+  PostedTime: string;
+  OwnerID: number;
+  OwnerAddr: string;
+  OwnerName: string;
+}
+
+export interface RawHarmonyTaskHistoryEntry {
+  ID: number;
+  TaskID: number;
+  Name: string;
+  WorkStart: string;
+  WorkEnd: string;
+  Posted: string;
+  Took?: string;
+  Result: boolean;
+  Err: string;
+  CompletedBy: string;
+  CompletedById?: number;
+  CompletedByName?: string;
+  Events?: Array<{
+    SpID?: number;
+    SectorNumber?: number;
+  }>;
+}
