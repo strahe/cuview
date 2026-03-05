@@ -16,6 +16,7 @@ import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
 import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
+import { Route as AppMachinesRouteRouteImport } from "./routes/_app/machines/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
 import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
@@ -84,6 +85,11 @@ const AppMarketRouteRoute = AppMarketRouteRouteImport.update({
   path: "/market",
   getParentRoute: () => AppRoute,
 } as any)
+const AppMachinesRouteRoute = AppMachinesRouteRouteImport.update({
+  id: "/machines",
+  path: "/machines",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWalletsIndexRoute = AppWalletsIndexRouteImport.update({
   id: "/wallets/",
   path: "/wallets/",
@@ -130,9 +136,9 @@ const AppMarketIndexRoute = AppMarketIndexRouteImport.update({
   getParentRoute: () => AppMarketRouteRoute,
 } as any)
 const AppMachinesIndexRoute = AppMachinesIndexRouteImport.update({
-  id: "/machines/",
-  path: "/machines/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppMachinesRouteRoute,
 } as any)
 const AppIpniIndexRoute = AppIpniIndexRouteImport.update({
   id: "/ipni/",
@@ -210,9 +216,9 @@ const AppMarketAsksRoute = AppMarketAsksRouteImport.update({
   getParentRoute: () => AppMarketRouteRoute,
 } as any)
 const AppMachinesIdRoute = AppMachinesIdRouteImport.update({
-  id: "/machines/$id",
-  path: "/machines/$id",
-  getParentRoute: () => AppRoute,
+  id: "/$id",
+  path: "/$id",
+  getParentRoute: () => AppMachinesRouteRoute,
 } as any)
 const AppActorIdRoute = AppActorIdRouteImport.update({
   id: "/actor/$id",
@@ -256,6 +262,7 @@ const AppMarketMk12DealsRoute = AppMarketMk12DealsRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
+  "/machines": typeof AppMachinesRouteRouteWithChildren
   "/market": typeof AppMarketRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/sectors": typeof AppSectorsRouteRouteWithChildren
@@ -336,6 +343,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_app": typeof AppRouteWithChildren
   "/setup": typeof SetupRoute
+  "/_app/machines": typeof AppMachinesRouteRouteWithChildren
   "/_app/market": typeof AppMarketRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
@@ -379,6 +387,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/setup"
+    | "/machines"
     | "/market"
     | "/pipeline"
     | "/sectors"
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_app"
     | "/setup"
+    | "/_app/machines"
     | "/_app/market"
     | "/_app/pipeline"
     | "/_app/sectors"
@@ -554,6 +564,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppMarketRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/machines": {
+      id: "/_app/machines"
+      path: "/machines"
+      fullPath: "/machines"
+      preLoaderRoute: typeof AppMachinesRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/wallets/": {
       id: "/_app/wallets/"
       path: "/wallets"
@@ -619,10 +636,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/machines/": {
       id: "/_app/machines/"
-      path: "/machines"
+      path: "/"
       fullPath: "/machines/"
       preLoaderRoute: typeof AppMachinesIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppMachinesRouteRoute
     }
     "/_app/ipni/": {
       id: "/_app/ipni/"
@@ -731,10 +748,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/machines/$id": {
       id: "/_app/machines/$id"
-      path: "/machines/$id"
+      path: "/$id"
       fullPath: "/machines/$id"
       preLoaderRoute: typeof AppMachinesIdRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppMachinesRouteRoute
     }
     "/_app/actor/$id": {
       id: "/_app/actor/$id"
@@ -787,6 +804,19 @@ declare module "@tanstack/react-router" {
     }
   }
 }
+
+interface AppMachinesRouteRouteChildren {
+  AppMachinesIdRoute: typeof AppMachinesIdRoute
+  AppMachinesIndexRoute: typeof AppMachinesIndexRoute
+}
+
+const AppMachinesRouteRouteChildren: AppMachinesRouteRouteChildren = {
+  AppMachinesIdRoute: AppMachinesIdRoute,
+  AppMachinesIndexRoute: AppMachinesIndexRoute,
+}
+
+const AppMachinesRouteRouteWithChildren =
+  AppMachinesRouteRoute._addFileChildren(AppMachinesRouteRouteChildren)
 
 interface AppMarketRouteRouteChildren {
   AppMarketAsksRoute: typeof AppMarketAsksRoute
@@ -870,17 +900,16 @@ const AppTasksRouteRouteWithChildren = AppTasksRouteRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
   AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppActorIdRoute: typeof AppActorIdRoute
-  AppMachinesIdRoute: typeof AppMachinesIdRoute
   AppActorIndexRoute: typeof AppActorIndexRoute
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppConfigIndexRoute: typeof AppConfigIndexRoute
   AppIpniIndexRoute: typeof AppIpniIndexRoute
-  AppMachinesIndexRoute: typeof AppMachinesIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppProofShareIndexRoute: typeof AppProofShareIndexRoute
@@ -889,17 +918,16 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppMachinesRouteRoute: AppMachinesRouteRouteWithChildren,
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
   AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppActorIdRoute: AppActorIdRoute,
-  AppMachinesIdRoute: AppMachinesIdRoute,
   AppActorIndexRoute: AppActorIndexRoute,
   AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppConfigIndexRoute: AppConfigIndexRoute,
   AppIpniIndexRoute: AppIpniIndexRoute,
-  AppMachinesIndexRoute: AppMachinesIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
   AppProofShareIndexRoute: AppProofShareIndexRoute,

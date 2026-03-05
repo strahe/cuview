@@ -19,64 +19,79 @@ import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { MachineInfo } from "@/types/machine";
 import { formatBytes } from "@/utils/format";
+import {
+  OFFLINE_THRESHOLD_SECONDS,
+  parseDurationSeconds,
+  splitCommaValues,
+} from "./-module/machine-signals";
 
 export const Route = createFileRoute("/_app/machines/$id")({
   component: MachineDetailPage,
 });
 
+type DetailActionType = "cordon" | "uncordon" | "restart" | "abort-restart";
+
+interface PendingDetailAction {
+  type: DetailActionType;
+}
+
 function MachineDetailPage() {
   const { id } = Route.useParams();
   const machineId = parseInt(id, 10);
 
-  const { data, isLoading } = useCurioRpc<MachineInfo>(
-    "ClusterNodeInfo",
-    [machineId],
-    { refetchInterval: 30_000 },
-  );
+  const {
+    data,
+    isLoading,
+    refetch: refetchNodeInfo,
+  } = useCurioRpc<MachineInfo>("ClusterNodeInfo", [machineId], {
+    refetchInterval: 30_000,
+  });
 
+  const invalidateKeys = [
+    ["curio", "ClusterNodeInfo"],
+    ["curio", "ClusterNodeMetrics"],
+    ["curio", "ClusterMachines"],
+  ];
   const cordonMutation = useCurioRpcMutation("Cordon", {
-    invalidateKeys: [
-      ["curio", "ClusterNodeInfo", machineId],
-      ["curio", "ClusterMachines"],
-    ],
+    invalidateKeys,
   });
   const uncordonMutation = useCurioRpcMutation("Uncordon", {
-    invalidateKeys: [
-      ["curio", "ClusterNodeInfo", machineId],
-      ["curio", "ClusterMachines"],
-    ],
+    invalidateKeys,
   });
   const restartMutation = useCurioRpcMutation("Restart", {
-    invalidateKeys: [
-      ["curio", "ClusterNodeInfo", machineId],
-      ["curio", "ClusterMachines"],
-    ],
+    invalidateKeys,
   });
   const abortRestartMutation = useCurioRpcMutation("AbortRestart", {
-    invalidateKeys: [
-      ["curio", "ClusterNodeInfo", machineId],
-      ["curio", "ClusterMachines"],
-    ],
+    invalidateKeys,
   });
 
-  const [confirmRestart, setConfirmRestart] = useState(false);
+  const [pendingAction, setPendingAction] =
+    useState<PendingDetailAction | null>(null);
 
-  const { data: nodeMetrics } = useCurioRpc<string>(
-    "ClusterNodeMetrics",
-    [machineId],
-    { refetchInterval: 60_000 },
-  );
+  const { data: nodeMetrics, refetch: refetchNodeMetrics } =
+    useCurioRpc<string>("ClusterNodeMetrics", [machineId], {
+      refetchInterval: 60_000,
+    });
 
   usePageTitle(data?.Info?.Name ?? `Machine #${machineId}`);
 
   if (isLoading && !data) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <div className="grid gap-4 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -89,26 +104,127 @@ function MachineDetailPage() {
 
   if (!data) {
     return (
-      <div className="p-6">
+      <div className="py-2">
         <p className="text-muted-foreground">Machine not found.</p>
       </div>
     );
   }
 
   const info = data.Info;
+  const layerItems = splitCommaValues(info.Layers ?? "");
+  const taskItems = splitCommaValues(info.Tasks ?? "");
+  const lastContactSeconds = parseDurationSeconds(info.LastContact ?? "");
+  const storageHeartbeatErrors = data.Storage.filter((s) =>
+    Boolean(s.HeartbeatErr),
+  );
+  const deadStorageUrls = (data.StorageURLs ?? []).filter((u) =>
+    Boolean(u.LastDeadReason),
+  );
+  const machineAlerts: Array<{
+    key: string;
+    status: "failed" | "warning" | "pending";
+    label: string;
+  }> = [];
+  if (
+    lastContactSeconds !== null &&
+    lastContactSeconds > OFFLINE_THRESHOLD_SECONDS
+  ) {
+    machineAlerts.push({
+      key: "offline",
+      status: "failed",
+      label: `Offline (${info.LastContact})`,
+    });
+  }
+  if (info.RestartRequest) {
+    machineAlerts.push({
+      key: "restart",
+      status: "pending",
+      label: "Restart Requested",
+    });
+  }
+  if (deadStorageUrls.length > 0) {
+    machineAlerts.push({
+      key: "storage-url",
+      status: "warning",
+      label: `${deadStorageUrls.length} Dead Storage URL`,
+    });
+  }
+  if (storageHeartbeatErrors.length > 0) {
+    machineAlerts.push({
+      key: "storage-heartbeat",
+      status: "warning",
+      label: `${storageHeartbeatErrors.length} Storage Heartbeat Errors`,
+    });
+  }
+
+  const mutationPending =
+    cordonMutation.isPending ||
+    uncordonMutation.isPending ||
+    restartMutation.isPending ||
+    abortRestartMutation.isPending;
+
+  const actionMeta = pendingAction
+    ? {
+        title:
+          pendingAction.type === "cordon"
+            ? "Confirm Cordon"
+            : pendingAction.type === "uncordon"
+              ? "Confirm Uncordon"
+              : pendingAction.type === "restart"
+                ? "Confirm Restart"
+                : "Confirm Abort Restart",
+        description:
+          pendingAction.type === "cordon"
+            ? "This machine will stop receiving new tasks."
+            : pendingAction.type === "uncordon"
+              ? "This machine will resume scheduling."
+              : pendingAction.type === "restart"
+                ? "This machine will receive a restart request."
+                : "This will clear the pending restart request.",
+        confirmLabel:
+          pendingAction.type === "cordon"
+            ? "Cordon"
+            : pendingAction.type === "uncordon"
+              ? "Uncordon"
+              : pendingAction.type === "restart"
+                ? "Restart"
+                : "Abort Restart",
+      }
+    : null;
+
+  const confirmAction = () => {
+    if (!pendingAction) return;
+    const idParam: [number] = [machineId];
+    const onSuccess = () => {
+      void Promise.all([refetchNodeInfo(), refetchNodeMetrics()]);
+      setPendingAction(null);
+    };
+    if (pendingAction.type === "cordon") {
+      cordonMutation.mutate(idParam, { onSuccess });
+    }
+    if (pendingAction.type === "uncordon") {
+      uncordonMutation.mutate(idParam, { onSuccess });
+    }
+    if (pendingAction.type === "restart") {
+      restartMutation.mutate(idParam, { onSuccess });
+    }
+    if (pendingAction.type === "abort-restart") {
+      abortRestartMutation.mutate(idParam, { onSuccess });
+    }
+  };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
         <Link to="/machines">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-1 size-4" /> Back
           </Button>
         </Link>
         <Server className="size-5" />
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight">
           {info.Name || `Machine #${info.ID}`}
-        </h1>
+        </h2>
         {info.Unschedulable && <Badge variant="destructive">Cordoned</Badge>}
       </div>
 
@@ -117,64 +233,67 @@ function MachineDetailPage() {
         {info.Unschedulable ? (
           <Button
             size="sm"
-            onClick={() => uncordonMutation.mutate([machineId])}
-            disabled={uncordonMutation.isPending}
+            onClick={() => setPendingAction({ type: "uncordon" })}
+            disabled={mutationPending}
           >
             <Shield className="mr-1 size-4" />
-            {uncordonMutation.isPending ? "Uncordoning..." : "Uncordon"}
+            Uncordon
           </Button>
         ) : (
           <Button
             size="sm"
             variant="outline"
-            onClick={() => cordonMutation.mutate([machineId])}
-            disabled={cordonMutation.isPending}
+            onClick={() => setPendingAction({ type: "cordon" })}
+            disabled={mutationPending}
           >
             <ShieldOff className="mr-1 size-4" />
-            {cordonMutation.isPending ? "Cordoning..." : "Cordon"}
-          </Button>
-        )}
-        {confirmRestart ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-destructive">Confirm restart?</span>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => {
-                restartMutation.mutate([machineId]);
-                setConfirmRestart(false);
-              }}
-              disabled={restartMutation.isPending}
-            >
-              Yes
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setConfirmRestart(false)}
-            >
-              No
-            </Button>
-          </div>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setConfirmRestart(true)}
-          >
-            <RotateCcw className="mr-1 size-4" /> Restart
+            Cordon
           </Button>
         )}
         <Button
           size="sm"
-          variant="ghost"
-          onClick={() => abortRestartMutation.mutate([machineId])}
-          disabled={abortRestartMutation.isPending}
+          variant="outline"
+          onClick={() => setPendingAction({ type: "restart" })}
+          disabled={mutationPending}
         >
-          <XCircle className="mr-1 size-4" />
-          {abortRestartMutation.isPending ? "Aborting..." : "Abort Restart"}
+          <RotateCcw className="mr-1 size-4" /> Restart
         </Button>
+        {info.RestartRequest ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setPendingAction({ type: "abort-restart" })}
+            disabled={mutationPending}
+          >
+            <XCircle className="mr-1 size-4" />
+            Abort Restart
+          </Button>
+        ) : null}
       </div>
+
+      {machineAlerts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Machine Alerts</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {machineAlerts.map((alert) => (
+                <StatusBadge
+                  key={alert.key}
+                  status={alert.status}
+                  label={alert.label}
+                />
+              ))}
+            </div>
+            {deadStorageUrls[0]?.LastDeadReason ? (
+              <p className="text-xs text-muted-foreground">
+                Latest storage URL error: {deadStorageUrls[0].LastDeadReason}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard label="CPU" value={info.CPU} subtitle="cores" />
@@ -200,13 +319,56 @@ function MachineDetailPage() {
                 <dt className="text-muted-foreground">Last Contact</dt>
                 <dd>{info.LastContact || "—"}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Layers</dt>
-                <dd>{info.Layers || "—"}</dd>
+                <dd className="max-w-[70%]">
+                  {layerItems.length > 0 ? (
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {layerItems.slice(0, 6).map((layer) => (
+                        <Link key={`layer-${layer}`} to="/config">
+                          <Badge
+                            variant="outline"
+                            title={`Open config and inspect layer: ${layer}`}
+                          >
+                            {layer}
+                          </Badge>
+                        </Link>
+                      ))}
+                      {layerItems.length > 6 ? (
+                        <Badge variant="secondary">
+                          +{layerItems.length - 6}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Tasks</dt>
-                <dd>{info.Tasks || "—"}</dd>
+                <dd className="max-w-[70%]">
+                  {taskItems.length > 0 ? (
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {taskItems.slice(0, 6).map((task) => (
+                        <Link
+                          key={`task-${task}`}
+                          to="/tasks/analysis"
+                          search={{ ...DEFAULT_TASK_SEARCH, taskType: task }}
+                        >
+                          <Badge variant="outline">{task}</Badge>
+                        </Link>
+                      ))}
+                      {taskItems.length > 6 ? (
+                        <Badge variant="secondary">
+                          +{taskItems.length - 6}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
               </div>
               {info.Miners && (
                 <div className="flex justify-between">
@@ -341,6 +503,34 @@ function MachineDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog
+        open={Boolean(pendingAction)}
+        onOpenChange={(open) => {
+          if (!open) setPendingAction(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{actionMeta?.title ?? "Confirm Action"}</DialogTitle>
+            <DialogDescription>
+              {actionMeta?.description} Machine: {info.Name || `#${info.ID}`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPendingAction(null)}
+              disabled={mutationPending}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmAction} disabled={mutationPending}>
+              {mutationPending ? "Processing..." : actionMeta?.confirmLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -395,10 +585,58 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
 }
 
 const runningTaskCols: ColumnDef<MachineInfo["RunningTasks"][number]>[] = [
-  { accessorKey: "ID", header: "ID" },
-  { accessorKey: "Task", header: "Task" },
+  {
+    accessorKey: "ID",
+    header: "ID",
+    cell: ({ row }) => (
+      <Link
+        to="/tasks/history"
+        search={{
+          ...DEFAULT_TASK_SEARCH,
+          taskId: row.original.ID,
+          taskType: row.original.Task,
+        }}
+        className="font-mono text-xs text-primary hover:underline"
+      >
+        {row.original.ID}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: "Task",
+    header: "Task",
+    cell: ({ row }) => (
+      <Link
+        to="/tasks/analysis"
+        search={{ ...DEFAULT_TASK_SEARCH, taskType: row.original.Task }}
+        className="text-primary hover:underline"
+      >
+        {row.original.Task}
+      </Link>
+    ),
+  },
   { accessorKey: "Posted", header: "Posted" },
   { accessorKey: "UpdateTime", header: "Updated" },
+  {
+    id: "worker",
+    header: "Worker",
+    cell: ({ row }) => (
+      <div className="space-y-0.5 text-xs">
+        <Link
+          to="/machines/$id"
+          params={{ id: String(row.original.AddedBy) }}
+          className="font-mono text-primary hover:underline"
+        >
+          {row.original.AddedBy}
+        </Link>
+        {row.original.InitiatedBy ? (
+          <div className="text-muted-foreground">
+            Init: {row.original.InitiatedBy}
+          </div>
+        ) : null}
+      </div>
+    ),
+  },
   {
     accessorKey: "Retries",
     header: "Retries",
@@ -413,9 +651,17 @@ const runningTaskCols: ColumnDef<MachineInfo["RunningTasks"][number]>[] = [
     id: "sector",
     header: "Sector",
     cell: ({ row }) =>
-      row.original.PoRepSector
-        ? `${row.original.PoRepSectorMiner}:${row.original.PoRepSector}`
-        : "—",
+      row.original.PoRepSector ? (
+        <Link
+          to="/sectors"
+          className="font-mono text-primary hover:underline"
+          title="Open sectors page"
+        >
+          {row.original.PoRepSectorMiner}:{row.original.PoRepSector}
+        </Link>
+      ) : (
+        "—"
+      ),
   },
 ];
 
@@ -439,8 +685,36 @@ function RunningTasksPanel({ tasks }: { tasks: MachineInfo["RunningTasks"] }) {
 }
 
 const finishedTaskCols: ColumnDef<MachineInfo["FinishedTasks"][number]>[] = [
-  { accessorKey: "ID", header: "ID" },
-  { accessorKey: "Task", header: "Task" },
+  {
+    accessorKey: "ID",
+    header: "ID",
+    cell: ({ row }) => (
+      <Link
+        to="/tasks/history"
+        search={{
+          ...DEFAULT_TASK_SEARCH,
+          taskId: row.original.TaskID ?? row.original.ID,
+          taskType: row.original.Task,
+        }}
+        className="font-mono text-xs text-primary hover:underline"
+      >
+        {row.original.TaskID ?? row.original.ID}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: "Task",
+    header: "Task",
+    cell: ({ row }) => (
+      <Link
+        to="/tasks/analysis"
+        search={{ ...DEFAULT_TASK_SEARCH, taskType: row.original.Task }}
+        className="text-primary hover:underline"
+      >
+        {row.original.Task}
+      </Link>
+    ),
+  },
   { accessorKey: "Posted", header: "Posted" },
   { accessorKey: "Start", header: "Start" },
   { accessorKey: "End", header: "End" },
@@ -449,12 +723,17 @@ const finishedTaskCols: ColumnDef<MachineInfo["FinishedTasks"][number]>[] = [
   {
     id: "outcome",
     header: "Outcome",
-    cell: ({ row }) => (
-      <StatusBadge
-        status={row.original.Outcome === "success" ? "done" : "failed"}
-        label={row.original.Outcome}
-      />
-    ),
+    cell: ({ row }) => {
+      const success =
+        row.original.Outcome?.toLowerCase() === "success" ||
+        row.original.Result;
+      return (
+        <StatusBadge
+          status={success ? "done" : "failed"}
+          label={row.original.Outcome || (success ? "Success" : "Failed")}
+        />
+      );
+    },
   },
   {
     accessorKey: "Message",

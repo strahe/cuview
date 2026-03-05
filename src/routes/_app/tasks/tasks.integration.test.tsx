@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TasksLayoutControlsProvider } from "./-components/tasks-layout-controls";
 import type { TaskSearchState } from "./-module/types";
 
 let currentSearch: TaskSearchState = {
@@ -26,11 +25,7 @@ const overlayRenderSpy = vi.fn();
 const navigateElementSpy = vi.fn();
 
 function renderWithLayoutControls(ui: ReactNode) {
-  return render(
-    <TasksLayoutControlsProvider render={(controls) => <>{controls}</>}>
-      {ui}
-    </TasksLayoutControlsProvider>,
-  );
+  return render(ui);
 }
 
 vi.mock("@tanstack/react-router", () => ({
@@ -73,6 +68,63 @@ vi.mock("@/components/table/data-table", () => ({
     </div>
   ),
 }));
+
+vi.mock("@/components/ui/select", async () => {
+  const React = await import("react");
+  const SelectContext = React.createContext<{
+    value?: string;
+    onValueChange?: (value: string) => void;
+  } | null>(null);
+
+  return {
+    Select: ({
+      value,
+      onValueChange,
+      children,
+    }: {
+      value?: string;
+      onValueChange?: (value: string) => void;
+      children: ReactNode;
+    }) => (
+      <SelectContext.Provider value={{ value, onValueChange }}>
+        <div>{children}</div>
+      </SelectContext.Provider>
+    ),
+    SelectTrigger: ({
+      children,
+      ...props
+    }: ComponentProps<"button"> & { children: ReactNode }) => (
+      <button type="button" role="combobox" aria-expanded="false" {...props}>
+        {children}
+      </button>
+    ),
+    SelectValue: () => {
+      const context = React.useContext(SelectContext);
+      return <span>{context?.value ?? ""}</span>;
+    },
+    SelectContent: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
+    SelectItem: ({
+      value,
+      children,
+    }: {
+      value: string;
+      children: ReactNode;
+    }) => {
+      const context = React.useContext(SelectContext);
+      return (
+        <button
+          type="button"
+          role="option"
+          onClick={() => context?.onValueChange?.(value)}
+        >
+          {children}
+        </button>
+      );
+    },
+  };
+});
 
 vi.mock("@/components/composed/section-card", () => ({
   SectionCard: ({
@@ -225,6 +277,9 @@ describe("tasks integration", () => {
   it("opens task detail flow by writing taskId/taskType into route search on row click", async () => {
     const { ActiveTasksPage } = await import("./active");
     renderWithLayoutControls(<ActiveTasksPage />);
+    expect(
+      screen.queryByText("Execution queue for active tasks."),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "row-0" }));
 
@@ -261,6 +316,9 @@ describe("tasks integration", () => {
   it("preserves search when switching tabs", async () => {
     const { TasksLayout } = await import("./route");
     render(<TasksLayout />);
+    expect(
+      screen.queryByText("Monitor and manage Harmony tasks"),
+    ).not.toBeInTheDocument();
 
     const links = screen.getAllByTestId("tab-link");
     expect(links.length).toBeGreaterThan(0);
@@ -327,6 +385,9 @@ describe("tasks integration", () => {
 
     const { TaskAnalysisPage } = await import("./analysis");
     renderWithLayoutControls(<TaskAnalysisPage />);
+    expect(
+      screen.queryByText("24h success and failure distribution by task type."),
+    ).not.toBeInTheDocument();
 
     expect(screen.getAllByRole("button", { name: /row-/ })).toHaveLength(1);
 
@@ -422,6 +483,50 @@ describe("tasks integration", () => {
     expect(next.coalesce).toBe(true);
     expect(next.taskType).toBe("");
     expect(next.taskId).toBeNull();
+  });
+
+  it("toggles show background tasks via toolbar checkbox", async () => {
+    currentSearch = {
+      ...currentSearch,
+      showBg: false,
+    };
+
+    const { ActiveTasksPage } = await import("./active");
+    renderWithLayoutControls(<ActiveTasksPage />);
+
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Show background tasks" }),
+    );
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    const payload = navigateMock.mock.calls[0]?.[0] as {
+      search: (prev: typeof currentSearch) => typeof currentSearch;
+    };
+    const next = payload.search(currentSearch);
+    expect(next.showBg).toBe(true);
+  });
+
+  it("updates history result filter via toolbar select", async () => {
+    currentSearch = {
+      ...currentSearch,
+      result: "all",
+    };
+
+    const { TaskHistoryPage } = await import("./history");
+    renderWithLayoutControls(<TaskHistoryPage />);
+    expect(
+      screen.queryByText("Completed and failed task records."),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Result" }));
+    fireEvent.click(screen.getByRole("option", { name: "Failed" }));
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    const payload = navigateMock.mock.calls[0]?.[0] as {
+      search: (prev: typeof currentSearch) => typeof currentSearch;
+    };
+    const next = payload.search(currentSearch);
+    expect(next.result).toBe("failed");
   });
 
   it("shows history page range in the unified toolbar", async () => {
