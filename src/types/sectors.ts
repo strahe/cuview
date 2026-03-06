@@ -160,3 +160,32 @@ export interface SectorFileTypeStatsEntry {
   file_type: string;
   count: number;
 }
+
+export interface FaultyStoragePathEntry {
+  storage_id: string;
+  path_type: string;
+  urls: string[];
+  count: number;
+}
+
+export interface PartitionSectorInfo {
+  sector_number: number;
+  is_faulty: boolean;
+  is_recovering: boolean;
+  is_live: boolean;
+  is_active: boolean;
+}
+
+export interface PartitionDetailData {
+  sp_id: number;
+  sp_address: string;
+  deadline: number;
+  partition: number;
+  all_sectors_count: number;
+  faulty_sectors_count: number;
+  recovering_sectors_count: number;
+  live_sectors_count: number;
+  active_sectors_count: number;
+  sectors: PartitionSectorInfo[] | null;
+  faulty_storage_paths?: FaultyStoragePathEntry[] | null;
+}

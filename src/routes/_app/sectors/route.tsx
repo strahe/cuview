@@ -2,6 +2,7 @@ import {
   createFileRoute,
   Link,
   Outlet,
+  useMatchRoute,
   useRouterState,
 } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,37 +21,46 @@ const tabs = [
 
 function SectorsLayout() {
   usePageTitle("Sectors");
+  const matchRoute = useMatchRoute();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
+  const activeTab =
+    tabs.find((tab) => {
+      if (tab.to === "/sectors") {
+        return currentPath === "/sectors" || currentPath === "/sectors/";
+      }
+
+      return (
+        !!matchRoute({ to: tab.to, fuzzy: true }) ||
+        currentPath.startsWith(tab.to)
+      );
+    })?.to ?? tabs[0]?.to;
+
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Sectors</h1>
-        <p className="text-sm text-muted-foreground">
-          Sector management, scheduling, and expiration
-        </p>
+    <>
+      <div className="sticky top-0 z-20 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
+          <h1 className="text-xl font-semibold tracking-tight">Sectors</h1>
+          <Tabs value={activeTab}>
+            <TabsList className="h-8">
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.to}
+                  value={tab.to}
+                  render={<Link to={tab.to} search={true} />}
+                  className="h-7 px-2.5 text-xs"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
-
-      <Tabs
-        value={
-          tabs.find((t) =>
-            t.to === "/sectors"
-              ? currentPath === "/sectors" || currentPath === "/sectors/"
-              : currentPath.startsWith(t.to),
-          )?.to ?? tabs[0]?.to
-        }
-      >
-        <TabsList>
-          {tabs.map((tab) => (
-            <Link key={tab.to} to={tab.to}>
-              <TabsTrigger value={tab.to}>{tab.label}</TabsTrigger>
-            </Link>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      <Outlet />
-    </div>
+      <div className="space-y-4 px-4 py-4 sm:px-5">
+        <Outlet />
+      </div>
+    </>
   );
 }

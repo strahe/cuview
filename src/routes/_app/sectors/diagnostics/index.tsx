@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  BookOpen,
   HardDrive,
   Play,
   RefreshCw,
@@ -9,17 +10,49 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
-export const Route = createFileRoute("/_app/sectors/diagnostics/")({
-  component: DiagnosticsPage,
-});
-
 // --- Types ---
+
+type DiagnosticsTab = "commr" | "unsealed" | "vanilla" | "wdpost";
+
+interface DiagnosticsSearch {
+  tab?: DiagnosticsTab;
+  sp?: string;
+  sector?: number;
+  deadline?: number;
+  partition?: number;
+}
 
 interface CommRCheckResult {
   check_id: number;
@@ -85,48 +118,257 @@ interface WdPostTaskResult {
   error?: string;
 }
 
+function parsePositiveInt(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return Math.floor(value);
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeDiagnosticsSearch(
+  search: Record<string, unknown>,
+): DiagnosticsSearch {
+  const tab = search.tab;
+  const normalizedTab: DiagnosticsTab | undefined =
+    tab === "commr" ||
+    tab === "unsealed" ||
+    tab === "vanilla" ||
+    tab === "wdpost"
+      ? tab
+      : undefined;
+
+  const sp =
+    typeof search.sp === "string" && search.sp.trim()
+      ? search.sp.trim()
+      : undefined;
+
+  return {
+    tab: normalizedTab,
+    sp,
+    sector: parsePositiveInt(search.sector),
+    deadline: parsePositiveInt(search.deadline),
+    partition: parsePositiveInt(search.partition),
+  };
+}
+
+export const Route = createFileRoute("/_app/sectors/diagnostics/")({
+  validateSearch: (search) => normalizeDiagnosticsSearch(search),
+  component: DiagnosticsPage,
+});
+
 // --- Main Page ---
 
 function DiagnosticsPage() {
-  const [activeTab, setActiveTab] = useState("commr");
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const activeTab = search.tab ?? "commr";
+
+  const switchTab = useCallback(
+    (tab: DiagnosticsTab) => {
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          tab,
+        }),
+      });
+    },
+    [navigate],
+  );
 
   return (
-    <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v)}>
-        <TabsList>
-          <TabsTrigger value="commr">
-            <ShieldCheck className="mr-1 size-3.5" /> CommR Check
-          </TabsTrigger>
-          <TabsTrigger value="unsealed">
-            <HardDrive className="mr-1 size-3.5" /> Unsealed Check
-          </TabsTrigger>
-          <TabsTrigger value="vanilla">
-            <Zap className="mr-1 size-3.5" /> Vanilla Test
-          </TabsTrigger>
-          <TabsTrigger value="wdpost">
-            <Play className="mr-1 size-3.5" /> WdPost Test
-          </TabsTrigger>
-        </TabsList>
+    <TooltipProvider>
+      <div className="space-y-4">
+        <DiagnosticsContextCard search={search} onSwitchTab={switchTab} />
 
-        <div className="mt-4">
-          {activeTab === "commr" && <CommRCheckPanel />}
-          {activeTab === "unsealed" && <UnsealedCheckPanel />}
-          {activeTab === "vanilla" && <VanillaTestPanel />}
-          {activeTab === "wdpost" && <WdPostTestPanel />}
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => switchTab(value as DiagnosticsTab)}
+        >
+          <TabsList>
+            <TabsTrigger value="commr">
+              <ShieldCheck className="mr-1 size-4" /> CommR Check
+            </TabsTrigger>
+            <TabsTrigger value="unsealed">
+              <HardDrive className="mr-1 size-4" /> Unsealed Check
+            </TabsTrigger>
+            <TabsTrigger value="vanilla">
+              <Zap className="mr-1 size-4" /> Vanilla Test
+            </TabsTrigger>
+            <TabsTrigger value="wdpost">
+              <Play className="mr-1 size-4" /> WdPost Test
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="mt-4">
+            {activeTab === "commr" && (
+              <CommRCheckPanel
+                key={`commr-${search.sp}-${search.sector}`}
+                defaultSp={search.sp}
+                defaultSector={search.sector}
+              />
+            )}
+            {activeTab === "unsealed" && (
+              <UnsealedCheckPanel
+                key={`unsealed-${search.sp}-${search.sector}`}
+                defaultSp={search.sp}
+                defaultSector={search.sector}
+              />
+            )}
+            {activeTab === "vanilla" && (
+              <VanillaTestPanel
+                key={`vanilla-${search.sp}-${search.sector}`}
+                defaultSp={search.sp}
+                defaultSector={search.sector}
+              />
+            )}
+            {activeTab === "wdpost" && (
+              <WdPostTestPanel
+                key={`wdpost-${search.sp}-${search.deadline}-${search.partition}`}
+                defaultSp={search.sp}
+                defaultDeadline={search.deadline}
+                defaultPartition={search.partition}
+              />
+            )}
+          </div>
+        </Tabs>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+function DiagnosticsContextCard({
+  search,
+  onSwitchTab,
+}: {
+  search: DiagnosticsSearch;
+  onSwitchTab: (tab: DiagnosticsTab) => void;
+}) {
+  if (
+    !search.sp &&
+    search.sector == null &&
+    search.deadline == null &&
+    search.partition == null
+  ) {
+    return null;
+  }
+
+  return (
+    <Card className="border-dashed">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <BookOpen className="size-4" /> Diagnostics Context
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          {search.sp && (
+            <HoverCard>
+              <HoverCardTrigger
+                render={
+                  <span className="rounded-md border border-border px-2 py-1 font-mono" />
+                }
+              >
+                {search.sp}
+              </HoverCardTrigger>
+              <HoverCardContent>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Miner Context</p>
+                  <p className="text-xs text-muted-foreground">
+                    This miner value is prefilled for CommR / Unsealed / Vanilla
+                    / WdPost forms.
+                  </p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+          {search.sector != null && (
+            <Badge variant="outline">Sector #{search.sector}</Badge>
+          )}
+          {search.deadline != null && (
+            <Badge variant="outline">Deadline {search.deadline}</Badge>
+          )}
+          {search.partition != null && (
+            <Badge variant="outline">Partition {search.partition}</Badge>
+          )}
         </div>
-      </Tabs>
-    </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button size="sm" variant="outline" />}
+              onClick={() => onSwitchTab("commr")}
+            >
+              CommR
+            </TooltipTrigger>
+            <TooltipContent>
+              Jump to CommR check with current context.
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button size="sm" variant="outline" />}
+              onClick={() => onSwitchTab("unsealed")}
+            >
+              Unsealed
+            </TooltipTrigger>
+            <TooltipContent>
+              Jump to Unsealed check with current context.
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button size="sm" variant="outline" />}
+              onClick={() => onSwitchTab("vanilla")}
+            >
+              Vanilla
+            </TooltipTrigger>
+            <TooltipContent>Jump to Vanilla proof test.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={<Button size="sm" variant="outline" />}
+              onClick={() => onSwitchTab("wdpost")}
+            >
+              WdPost
+            </TooltipTrigger>
+            <TooltipContent>
+              Jump to WdPost test for the selected partition.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 // --- CommR Check ---
 
-function CommRCheckPanel() {
-  const [sp, setSp] = useState("");
-  const [sector, setSector] = useState("");
+function CommRCheckPanel({
+  defaultSp,
+  defaultSector,
+}: {
+  defaultSp?: string;
+  defaultSector?: number;
+}) {
+  const [sp, setSp] = useState(defaultSp ?? "");
+  const [sector, setSector] = useState(
+    defaultSector != null ? String(defaultSector) : "",
+  );
   const [fileType, setFileType] = useState("sealed");
-  const [searchSp, setSearchSp] = useState<string | null>(null);
-  const [searchSector, setSearchSector] = useState<number | null>(null);
+  const [searchSp, setSearchSp] = useState<string | null>(defaultSp ?? null);
+  const [searchSector, setSearchSector] = useState<number | null>(
+    defaultSector ?? null,
+  );
+  const [selectedHistory, setSelectedHistory] =
+    useState<CommRCheckResult | null>(null);
 
   const { data: results, isLoading: listLoading } = useCurioRpc<
     CommRCheckResult[]
@@ -205,14 +447,18 @@ function CommRCheckPanel() {
             <label className="mb-1 block text-xs text-muted-foreground">
               File Type
             </label>
-            <select
+            <Select
               value={fileType}
-              onChange={(e) => setFileType(e.target.value)}
-              className="h-9 rounded-md border border-border bg-transparent px-2 text-xs"
+              onValueChange={(value) => setFileType(value ?? "sealed")}
             >
-              <option value="sealed">Sealed</option>
-              <option value="update">Update</option>
-            </select>
+              <SelectTrigger size="sm" className="h-9 w-32 text-xs">
+                <SelectValue placeholder="Select file type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sealed">Sealed</SelectItem>
+                <SelectItem value="update">Update</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button
             size="sm"
@@ -252,9 +498,23 @@ function CommRCheckPanel() {
             {results.map((r) => (
               <div
                 key={r.check_id}
-                className="flex items-center justify-between rounded border border-border p-2 text-xs"
+                className="flex items-center justify-between gap-2 rounded border border-border p-2 text-xs"
               >
-                <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="flex flex-1 cursor-pointer items-center gap-3 text-left outline-none"
+                  onClick={() => setSelectedHistory(r)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" ||
+                      event.key === " " ||
+                      event.key === "Spacebar"
+                    ) {
+                      event.preventDefault();
+                      setSelectedHistory(r);
+                    }
+                  }}
+                >
                   <span className="font-mono text-muted-foreground">
                     #{r.check_id}
                   </span>
@@ -265,20 +525,50 @@ function CommRCheckPanel() {
                       {r.create_time}
                     </span>
                   )}
-                </div>
+                </button>
                 {!r.complete && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleCheckStatus(r.check_id)}
-                  >
-                    <RefreshCw className="size-3" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label="Refresh status"
+                        />
+                      }
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleCheckStatus(r.check_id);
+                      }}
+                    >
+                      <RefreshCw className="size-3" />
+                    </TooltipTrigger>
+                    <TooltipContent>Refresh status</TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             ))}
           </div>
         )}
+
+        <Sheet
+          open={selectedHistory !== null}
+          onOpenChange={(open) => !open && setSelectedHistory(null)}
+        >
+          <SheetContent side="right" className="sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>CommR Check Detail</SheetTitle>
+              <SheetDescription>
+                Detailed result payload for selected CommR check.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              {selectedHistory ? (
+                <CheckResultCard result={selectedHistory} type="commr" />
+              ) : null}
+            </div>
+          </SheetContent>
+        </Sheet>
       </CardContent>
     </Card>
   );
@@ -286,11 +576,23 @@ function CommRCheckPanel() {
 
 // --- Unsealed Check ---
 
-function UnsealedCheckPanel() {
-  const [sp, setSp] = useState("");
-  const [sector, setSector] = useState("");
-  const [searchSp, setSearchSp] = useState<string | null>(null);
-  const [searchSector, setSearchSector] = useState<number | null>(null);
+function UnsealedCheckPanel({
+  defaultSp,
+  defaultSector,
+}: {
+  defaultSp?: string;
+  defaultSector?: number;
+}) {
+  const [sp, setSp] = useState(defaultSp ?? "");
+  const [sector, setSector] = useState(
+    defaultSector != null ? String(defaultSector) : "",
+  );
+  const [searchSp, setSearchSp] = useState<string | null>(defaultSp ?? null);
+  const [searchSector, setSearchSector] = useState<number | null>(
+    defaultSector ?? null,
+  );
+  const [selectedHistory, setSelectedHistory] =
+    useState<UnsealedCheckResult | null>(null);
 
   const { data: results, isLoading: listLoading } = useCurioRpc<
     UnsealedCheckResult[]
@@ -394,9 +696,23 @@ function UnsealedCheckPanel() {
             {results.map((r) => (
               <div
                 key={r.check_id}
-                className="flex items-center justify-between rounded border border-border p-2 text-xs"
+                className="flex items-center justify-between gap-2 rounded border border-border p-2 text-xs"
               >
-                <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="flex flex-1 cursor-pointer items-center gap-3 text-left outline-none"
+                  onClick={() => setSelectedHistory(r)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" ||
+                      event.key === " " ||
+                      event.key === "Spacebar"
+                    ) {
+                      event.preventDefault();
+                      setSelectedHistory(r);
+                    }
+                  }}
+                >
                   <span className="font-mono text-muted-foreground">
                     #{r.check_id}
                   </span>
@@ -406,24 +722,52 @@ function UnsealedCheckPanel() {
                       {r.create_time}
                     </span>
                   )}
-                </div>
+                </button>
                 {!r.complete && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() =>
-                      checkStatus.mutate([r.check_id], {
-                        onSuccess: (d) => setStatusResult(d),
-                      })
-                    }
-                  >
-                    <RefreshCw className="size-3" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label="Refresh status"
+                        />
+                      }
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        checkStatus.mutate([r.check_id], {
+                          onSuccess: (d) => setStatusResult(d),
+                        });
+                      }}
+                    >
+                      <RefreshCw className="size-3" />
+                    </TooltipTrigger>
+                    <TooltipContent>Refresh status</TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             ))}
           </div>
         )}
+
+        <Sheet
+          open={selectedHistory !== null}
+          onOpenChange={(open) => !open && setSelectedHistory(null)}
+        >
+          <SheetContent side="right" className="sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>Unsealed Check Detail</SheetTitle>
+              <SheetDescription>
+                Detailed result payload for selected unsealed check.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              {selectedHistory ? (
+                <CheckResultCard result={selectedHistory} type="unsealed" />
+              ) : null}
+            </div>
+          </SheetContent>
+        </Sheet>
       </CardContent>
     </Card>
   );
@@ -431,9 +775,17 @@ function UnsealedCheckPanel() {
 
 // --- Vanilla Test ---
 
-function VanillaTestPanel() {
-  const [sp, setSp] = useState("");
-  const [sector, setSector] = useState("");
+function VanillaTestPanel({
+  defaultSp,
+  defaultSector,
+}: {
+  defaultSp?: string;
+  defaultSector?: number;
+}) {
+  const [sp, setSp] = useState(defaultSp ?? "");
+  const [sector, setSector] = useState(
+    defaultSector != null ? String(defaultSector) : "",
+  );
 
   const runTest = useCurioRpcMutation<VanillaTestReport>("SectorVanillaTest");
 
@@ -488,12 +840,22 @@ function VanillaTestPanel() {
   );
 }
 
-// --- WdPost Test ---
-
-function WdPostTestPanel() {
-  const [sp, setSp] = useState("");
-  const [deadline, setDeadline] = useState("");
-  const [partition, setPartition] = useState("");
+function WdPostTestPanel({
+  defaultSp,
+  defaultDeadline,
+  defaultPartition,
+}: {
+  defaultSp?: string;
+  defaultDeadline?: number;
+  defaultPartition?: number;
+}) {
+  const [sp, setSp] = useState(defaultSp ?? "");
+  const [deadline, setDeadline] = useState(
+    defaultDeadline != null ? String(defaultDeadline) : "",
+  );
+  const [partition, setPartition] = useState(
+    defaultPartition != null ? String(defaultPartition) : "",
+  );
   const [taskId, setTaskId] = useState("");
 
   const startTask = useCurioRpcMutation<WdPostTaskResult>("WdPostTaskStart");

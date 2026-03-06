@@ -14,6 +14,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
@@ -55,6 +62,71 @@ interface ExpBucketCount {
   total_count: number;
   cc_count: number;
   deal_count: number;
+}
+
+type ExpActionType = "extend" | "top_up";
+
+function isSupportedActionType(
+  actionType: string,
+): actionType is ExpActionType {
+  return actionType === "extend" || actionType === "top_up";
+}
+
+function normalizeActionType(actionType: string): ExpActionType {
+  return actionType === "top_up" ? "top_up" : "extend";
+}
+
+function parseOptionalInt(value: string): number | null {
+  if (!value.trim()) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function isTopUpPresetValid(preset: ExpPreset) {
+  if (normalizeActionType(preset.action_type) !== "top_up") {
+    return true;
+  }
+
+  const low = preset.top_up_count_low_water_mark;
+  const high = preset.top_up_count_high_water_mark;
+  return low != null && high != null && high >= low;
+}
+
+function toPresetPayload(preset: ExpPreset): ExpPreset {
+  const actionType = normalizeActionType(preset.action_type);
+  const isTopUp = actionType === "top_up";
+
+  return {
+    ...preset,
+    action_type: actionType,
+    target_expiration_days: isTopUp ? null : preset.target_expiration_days,
+    max_candidate_days: isTopUp ? null : preset.max_candidate_days,
+    top_up_count_low_water_mark: isTopUp
+      ? preset.top_up_count_low_water_mark
+      : null,
+    top_up_count_high_water_mark: isTopUp
+      ? preset.top_up_count_high_water_mark
+      : null,
+  };
+}
+
+function getAssignmentStatus(assignment: ExpSPAssignment) {
+  if (!assignment.enabled) {
+    return { status: "warning" as const, label: "Disabled" };
+  }
+  if (!assignment.last_run_at) {
+    return { status: "warning" as const, label: "Needs Action" };
+  }
+  if (assignment.last_message_cid && assignment.last_message_landed_at) {
+    return { status: "done" as const, label: "OK" };
+  }
+  if (assignment.last_message_cid && !assignment.last_message_landed_at) {
+    return { status: "pending" as const, label: "Pending" };
+  }
+  if (assignment.last_run_at && !assignment.last_message_cid) {
+    return { status: "done" as const, label: "Idle" };
+  }
+  return { status: "error" as const, label: "Error" };
 }
 
 const bucketInvalidate = [["curio", "SectorExpBuckets"]];
@@ -163,8 +235,9 @@ function ExpirationPage() {
   }, [newBucketDays, addBucketMutation]);
 
   const handleAddPreset = useCallback(() => {
-    if (!presetForm.name.trim()) return;
-    addPresetMutation.mutate([presetForm]);
+    const payload = toPresetPayload(presetForm);
+    if (!payload.name.trim() || !isTopUpPresetValid(payload)) return;
+    addPresetMutation.mutate([payload]);
     setShowAddPreset(false);
   }, [presetForm, addPresetMutation]);
 
@@ -222,14 +295,68 @@ function ExpirationPage() {
   // Preset columns
   const presetColumns: ColumnDef<ExpPreset>[] = [
     { accessorKey: "name", header: "Name" },
-    { accessorKey: "action_type", header: "Action" },
+    {
+      id: "action_type",
+      header: "Action",
+      cell: ({ row }) => {
+        const rawActionType = row.original.action_type;
+        const actionType = normalizeActionType(rawActionType);
+        const hasLegacyAction = !isSupportedActionType(rawActionType);
+
+        if (hasLegacyAction) {
+          return (
+            <div className="space-y-1">
+              <StatusBadge
+                status="warning"
+                label={`Legacy: ${rawActionType}`}
+              />
+              <div className="text-xs text-muted-foreground">
+                Unsupported by Curio expmgr runtime.
+              </div>
+            </div>
+          );
+        }
+
+        if (actionType === "top_up") {
+          return (
+            <div className="space-y-1">
+              <StatusBadge status="info" label="Top-up" />
+              <div className="text-xs text-muted-foreground">
+                Low {row.original.top_up_count_low_water_mark ?? "—"} / High{" "}
+                {row.original.top_up_count_high_water_mark ?? "—"}
+              </div>
+            </div>
+          );
+        }
+
+        return <StatusBadge status="done" label="Extend" />;
+      },
+    },
     { accessorKey: "info_bucket_above_days", header: "Above (days)" },
     { accessorKey: "info_bucket_below_days", header: "Below (days)" },
     {
+      id: "target_candidate",
+      header: "Target / Max",
+      cell: ({ row }) => {
+        if (!isSupportedActionType(row.original.action_type)) {
+          return "Legacy";
+        }
+
+        const actionType = normalizeActionType(row.original.action_type);
+        if (actionType === "top_up") return "—";
+
+        return `${row.original.target_expiration_days ?? "—"} / ${row.original.max_candidate_days ?? "—"}`;
+      },
+    },
+    {
       id: "cc",
-      header: "CC Only",
+      header: "CC Filter",
       cell: ({ row }) =>
-        row.original.cc == null ? "—" : row.original.cc ? "Yes" : "No",
+        row.original.cc == null
+          ? "All"
+          : row.original.cc
+            ? "CC only"
+            : "Deal only",
     },
     {
       accessorKey: "drop_claims",
@@ -299,17 +426,35 @@ function ExpirationPage() {
     {
       id: "enabled",
       header: "Status",
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.enabled ? "done" : "warning"}
-          label={row.original.enabled ? "Enabled" : "Disabled"}
-        />
-      ),
+      cell: ({ row }) => {
+        const status = getAssignmentStatus(row.original);
+        return <StatusBadge status={status.status} label={status.label} />;
+      },
     },
     {
       accessorKey: "last_run_at",
       header: "Last Run",
       cell: ({ row }) => row.original.last_run_at || "—",
+    },
+    {
+      id: "last_message",
+      header: "Message",
+      cell: ({ row }) => (
+        <div className="max-w-[260px] space-y-0.5 text-xs">
+          {row.original.last_message_cid ? (
+            <div className="truncate font-mono">
+              {row.original.last_message_cid}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          {row.original.last_message_landed_at && (
+            <div className="text-muted-foreground">
+              Landed: {row.original.last_message_landed_at}
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -566,19 +711,23 @@ function ExpirationPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">Action Type</label>
-                <select
-                  className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
-                  value={presetForm.action_type}
-                  onChange={(e) =>
+                <Select
+                  value={normalizeActionType(presetForm.action_type)}
+                  onValueChange={(value) =>
                     setPresetForm((f) => ({
                       ...f,
-                      action_type: e.target.value,
+                      action_type: value ?? "extend",
                     }))
                   }
                 >
-                  <option value="extend">Extend</option>
-                  <option value="terminate">Terminate</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select action type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="extend">Extend</SelectItem>
+                    <SelectItem value="top_up">Top-up</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -590,7 +739,7 @@ function ExpirationPage() {
                       setPresetForm((f) => ({
                         ...f,
                         info_bucket_above_days:
-                          parseInt(e.target.value, 10) || 0,
+                          Number.parseInt(e.target.value, 10) || 0,
                       }))
                     }
                   />
@@ -604,12 +753,117 @@ function ExpirationPage() {
                       setPresetForm((f) => ({
                         ...f,
                         info_bucket_below_days:
-                          parseInt(e.target.value, 10) || 0,
+                          Number.parseInt(e.target.value, 10) || 0,
                       }))
                     }
                   />
                 </div>
               </div>
+
+              {normalizeActionType(presetForm.action_type) === "top_up" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Low Water Mark
+                    </label>
+                    <Input
+                      type="number"
+                      value={presetForm.top_up_count_low_water_mark ?? ""}
+                      onChange={(e) =>
+                        setPresetForm((f) => ({
+                          ...f,
+                          top_up_count_low_water_mark: parseOptionalInt(
+                            e.target.value,
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">
+                      High Water Mark
+                    </label>
+                    <Input
+                      type="number"
+                      value={presetForm.top_up_count_high_water_mark ?? ""}
+                      onChange={(e) =>
+                        setPresetForm((f) => ({
+                          ...f,
+                          top_up_count_high_water_mark: parseOptionalInt(
+                            e.target.value,
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {normalizeActionType(presetForm.action_type) !== "top_up" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Target Exp (days)
+                    </label>
+                    <Input
+                      type="number"
+                      value={presetForm.target_expiration_days ?? ""}
+                      onChange={(e) =>
+                        setPresetForm((f) => ({
+                          ...f,
+                          target_expiration_days: parseOptionalInt(
+                            e.target.value,
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">
+                      Max Candidate (days)
+                    </label>
+                    <Input
+                      type="number"
+                      value={presetForm.max_candidate_days ?? ""}
+                      onChange={(e) =>
+                        setPresetForm((f) => ({
+                          ...f,
+                          max_candidate_days: parseOptionalInt(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium">CC Filter</label>
+                <Select
+                  value={
+                    presetForm.cc == null
+                      ? "all"
+                      : presetForm.cc
+                        ? "cc"
+                        : "deal"
+                  }
+                  onValueChange={(value) =>
+                    setPresetForm((f) => ({
+                      ...f,
+                      cc: value === "all" ? null : value === "cc",
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="cc">CC only</SelectItem>
+                    <SelectItem value="deal">Deal only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -634,7 +888,9 @@ function ExpirationPage() {
               <Button
                 onClick={handleAddPreset}
                 disabled={
-                  addPresetMutation.isPending || !presetForm.name.trim()
+                  addPresetMutation.isPending ||
+                  !presetForm.name.trim() ||
+                  !isTopUpPresetValid(presetForm)
                 }
               >
                 Add Preset
@@ -665,20 +921,23 @@ function ExpirationPage() {
               <div>
                 <label className="text-sm font-medium">Preset Name *</label>
                 {presets && presets.length > 0 ? (
-                  <select
-                    className="w-full rounded border border-border bg-transparent px-3 py-2 text-sm"
-                    value={spForm.preset}
-                    onChange={(e) =>
-                      setSPForm((f) => ({ ...f, preset: e.target.value }))
+                  <Select
+                    value={spForm.preset || undefined}
+                    onValueChange={(value) =>
+                      setSPForm((f) => ({ ...f, preset: value ?? "" }))
                     }
                   >
-                    <option value="">Select preset...</option>
-                    {presets.map((p) => (
-                      <option key={p.name} value={p.name}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select preset..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {presets.map((p) => (
+                        <SelectItem key={p.name} value={p.name}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
                   <Input
                     value={spForm.preset}
@@ -715,7 +974,7 @@ function ExpirationPage() {
           preset={editPreset}
           onClose={() => setEditPreset(null)}
           onSave={(updated) => {
-            updatePresetMutation.mutate([updated]);
+            updatePresetMutation.mutate([toPresetPayload(updated)]);
             setEditPreset(null);
           }}
         />
@@ -734,6 +993,8 @@ function EditPresetDialog({
   onSave: (p: ExpPreset) => void;
 }) {
   const [form, setForm] = useState<ExpPreset>({ ...preset });
+  const actionType = normalizeActionType(form.action_type);
+  const hasLegacyAction = !isSupportedActionType(preset.action_type);
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -741,101 +1002,180 @@ function EditPresetDialog({
         <DialogHeader>
           <DialogTitle>Edit Preset: {preset.name}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium">Action Type</label>
-            <Input
-              value={form.action_type}
-              onChange={(e) =>
-                setForm({ ...form, action_type: e.target.value })
-              }
-              className="text-xs"
-            />
+        <div className="space-y-3">
+          {hasLegacyAction && (
+            <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+              This preset uses legacy action "{preset.action_type}" which Curio
+              expmgr no longer executes. Save will migrate it to a supported
+              action.
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium">Action Type</label>
+              <Select
+                value={actionType}
+                onValueChange={(value) =>
+                  setForm({ ...form, action_type: value ?? "extend" })
+                }
+              >
+                <SelectTrigger className="w-full text-xs">
+                  <SelectValue placeholder="Select action type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="extend">Extend</SelectItem>
+                  <SelectItem value="top_up">Top-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Above (days)</label>
+              <Input
+                type="number"
+                value={form.info_bucket_above_days}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    info_bucket_above_days:
+                      Number.parseInt(e.target.value, 10) || 0,
+                  })
+                }
+                className="text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Below (days)</label>
+              <Input
+                type="number"
+                value={form.info_bucket_below_days}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    info_bucket_below_days:
+                      Number.parseInt(e.target.value, 10) || 0,
+                  })
+                }
+                className="text-xs"
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-xs font-medium">Above (days)</label>
-            <Input
-              type="number"
-              value={form.info_bucket_above_days}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  info_bucket_above_days: parseInt(e.target.value, 10) || 0,
-                })
-              }
-              className="text-xs"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium">Below (days)</label>
-            <Input
-              type="number"
-              value={form.info_bucket_below_days}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  info_bucket_below_days: parseInt(e.target.value, 10) || 0,
-                })
-              }
-              className="text-xs"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium">Target Exp (days)</label>
-            <Input
-              type="number"
-              value={form.target_expiration_days ?? ""}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  target_expiration_days: e.target.value
-                    ? parseInt(e.target.value, 10)
-                    : null,
-                })
-              }
-              className="text-xs"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium">Max Candidate (days)</label>
-            <Input
-              type="number"
-              value={form.max_candidate_days ?? ""}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  max_candidate_days: e.target.value
-                    ? parseInt(e.target.value, 10)
-                    : null,
-                })
-              }
-              className="text-xs"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.cc ?? false}
-              onChange={(e) => setForm({ ...form, cc: e.target.checked })}
-            />
-            <label className="text-xs">CC Only</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.drop_claims}
-              onChange={(e) =>
-                setForm({ ...form, drop_claims: e.target.checked })
-              }
-            />
-            <label className="text-xs">Drop Claims</label>
+
+          {actionType === "top_up" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Low Water Mark</label>
+                <Input
+                  type="number"
+                  value={form.top_up_count_low_water_mark ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      top_up_count_low_water_mark: parseOptionalInt(
+                        e.target.value,
+                      ),
+                    })
+                  }
+                  className="text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium">High Water Mark</label>
+                <Input
+                  type="number"
+                  value={form.top_up_count_high_water_mark ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      top_up_count_high_water_mark: parseOptionalInt(
+                        e.target.value,
+                      ),
+                    })
+                  }
+                  className="text-xs"
+                />
+              </div>
+            </div>
+          )}
+
+          {actionType !== "top_up" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Target Exp (days)</label>
+                <Input
+                  type="number"
+                  value={form.target_expiration_days ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      target_expiration_days: parseOptionalInt(e.target.value),
+                    })
+                  }
+                  className="text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium">
+                  Max Candidate (days)
+                </label>
+                <Input
+                  type="number"
+                  value={form.max_candidate_days ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      max_candidate_days: parseOptionalInt(e.target.value),
+                    })
+                  }
+                  className="text-xs"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium">CC Filter</label>
+              <Select
+                value={form.cc == null ? "all" : form.cc ? "cc" : "deal"}
+                onValueChange={(value) =>
+                  setForm({
+                    ...form,
+                    cc: value === "all" ? null : value === "cc",
+                  })
+                }
+              >
+                <SelectTrigger className="w-full text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="cc">CC only</SelectItem>
+                  <SelectItem value="deal">Deal only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                checked={form.drop_claims}
+                onChange={(e) =>
+                  setForm({ ...form, drop_claims: e.target.checked })
+                }
+              />
+              <label className="text-xs">Drop Claims</label>
+            </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => onSave(form)}>Save</Button>
+          <Button
+            onClick={() => onSave(form)}
+            disabled={!isTopUpPresetValid(form)}
+          >
+            Save
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

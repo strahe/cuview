@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowRightLeft,
@@ -30,16 +30,21 @@ import {
 } from "@/hooks/use-curio-query";
 import type {
   DeadlineStats,
+  PartitionDetailData,
   SectorDetail,
   SectorFileTypeStatsEntry,
   SectorListItem,
   SectorPipelineStatsEntry,
   SPSectorStats,
 } from "@/types/sectors";
+import type { StorageGCStatsEntry } from "@/types/storage";
 
 export const Route = createFileRoute("/_app/sectors/")({
   component: SectorsPage,
 });
+
+const quickLinkClass =
+  "inline-flex h-7 items-center rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
 // Deadline/Partition detail types
 interface DeadlinePartitionInfo {
@@ -58,27 +63,6 @@ interface DeadlineDetailData {
   post_submissions: string;
   disputable_proof_count: number;
   partitions: DeadlinePartitionInfo[];
-}
-
-interface PartitionSectorInfo {
-  sector_number: number;
-  is_faulty: boolean;
-  is_recovering: boolean;
-  is_live: boolean;
-  is_active: boolean;
-}
-
-interface PartitionDetailData {
-  sp_id: number;
-  sp_address: string;
-  deadline: number;
-  partition: number;
-  all_sectors_count: number;
-  faulty_sectors_count: number;
-  recovering_sectors_count: number;
-  live_sectors_count: number;
-  active_sectors_count: number;
-  sectors: PartitionSectorInfo[] | null;
 }
 
 const columns: ColumnDef<SectorListItem>[] = [
@@ -162,6 +146,11 @@ function SectorsPage() {
     [],
     { refetchInterval: 60_000 },
   );
+  const { data: gcStats } = useCurioRpc<StorageGCStatsEntry[]>(
+    "StorageGCStats",
+    [],
+    { refetchInterval: 60_000 },
+  );
 
   const [selectedSector, setSelectedSector] = useState<{
     sp: string;
@@ -190,6 +179,16 @@ function SectorsPage() {
 
   const pct = (count: number) =>
     stats.total ? `${((count / stats.total) * 100).toFixed(1)}%` : "—";
+
+  const gcTotalMarked = useMemo(
+    () => gcStats?.reduce((sum, item) => sum + item.Count, 0) ?? 0,
+    [gcStats],
+  );
+
+  const gcTopMiners = useMemo(
+    () => [...(gcStats ?? [])].sort((a, b) => b.Count - a.Count).slice(0, 6),
+    [gcStats],
+  );
 
   const handleRowClick = useCallback((row: SectorListItem) => {
     setSelectedSector({ sp: row.MinerAddress, num: row.SectorNum });
@@ -355,6 +354,38 @@ function SectorsPage() {
         </SectionCard>
       )}
 
+      {gcStats && gcStats.length > 0 && (
+        <SectionCard
+          title="Storage GC Snapshot"
+          icon={HardDrive}
+          action={
+            <Link to="/storage" className={quickLinkClass}>
+              Open Storage Page
+            </Link>
+          }
+        >
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <KPICard label="Marked Sectors" value={gcTotalMarked} />
+            <KPICard label="Miners" value={gcStats.length} />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {gcTopMiners.map((item) => (
+              <Card key={item.Actor}>
+                <CardContent className="py-3">
+                  <div className="text-xs text-muted-foreground">Miner</div>
+                  <div className="font-mono text-sm">{item.Miner}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Marked sectors
+                  </div>
+                  <div className="text-lg font-semibold">{item.Count}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
       <SectionCard title="Sector Inventory" icon={Database}>
         <DataTable
           columns={columns}
@@ -438,6 +469,27 @@ function SectorDetailDialog({
           </DialogTitle>
           <DialogDescription>Sector details and operations</DialogDescription>
         </DialogHeader>
+
+        <div className="mb-3 flex flex-wrap gap-2">
+          {data?.HasSealed && (
+            <Link
+              to="/sectors/diagnostics"
+              search={{ tab: "commr", sp, sector: sectorNum }}
+              className={quickLinkClass}
+            >
+              CommR Check
+            </Link>
+          )}
+          {data?.HasUnsealed && (
+            <Link
+              to="/sectors/diagnostics"
+              search={{ tab: "unsealed", sp, sector: sectorNum }}
+              className={quickLinkClass}
+            >
+              Unsealed Check
+            </Link>
+          )}
+        </div>
 
         {isLoading && !data ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
@@ -891,6 +943,23 @@ function PartitionDetailDialog({
                 <div className="font-bold">{data.recovering_sectors_count}</div>
               </div>
             </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to="/sectors/diagnostics"
+                search={{ tab: "wdpost", sp, deadline, partition }}
+                className={quickLinkClass}
+              >
+                WdPost Test
+              </Link>
+              <Link
+                to="/sectors/diagnostics"
+                search={{ tab: "vanilla", sp, deadline, partition }}
+                className={quickLinkClass}
+              >
+                Partition Vanilla Test
+              </Link>
+            </div>
+
             {data.sectors && data.sectors.length > 0 && (
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-xs">
@@ -932,6 +1001,46 @@ function PartitionDetailDialog({
                 </table>
               </div>
             )}
+
+            {data.faulty_storage_paths &&
+              data.faulty_storage_paths.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-sm font-medium">
+                    Faulty Storage Paths ({data.faulty_storage_paths.length})
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="py-1 text-left">Storage ID</th>
+                          <th className="py-1 text-left">Path Role</th>
+                          <th className="py-1 text-left">Hosts</th>
+                          <th className="py-1 text-right">Faulty Sectors</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.faulty_storage_paths.map((path) => (
+                          <tr
+                            key={`${path.storage_id}-${path.path_type}`}
+                            className="border-b border-border last:border-0"
+                          >
+                            <td className="py-1 font-mono">
+                              {path.storage_id}
+                            </td>
+                            <td className="py-1">{path.path_type || "—"}</td>
+                            <td className="py-1 text-muted-foreground">
+                              {path.urls?.length ? path.urls.join(", ") : "—"}
+                            </td>
+                            <td className="py-1 text-right font-medium">
+                              {path.count}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
           </div>
         ) : (
           <div className="py-4 text-center text-sm">Not found</div>
