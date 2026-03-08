@@ -1,224 +1,59 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
-import { RotateCcw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
-import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
-import type { PorepPipelineSummary, SectorListEntry } from "@/types/pipeline";
+import { ActorSummaryTable } from "./-components/actor-summary-table";
+import {
+  createPorepColumns,
+  type PorepColumnMeta,
+} from "./-components/porep-columns";
+import { RestartConfirmButton } from "./-components/restart-confirm-button";
+import { SectorSubRow } from "./-components/sector-sub-row";
+import {
+  usePorepRestartAll,
+  usePorepSectorAction,
+  usePorepSectors,
+  usePorepSummary,
+} from "./-module/queries";
+import type { PorepSectorActionType } from "./-module/types";
 
 export const Route = createFileRoute("/_app/pipeline/porep")({
   component: PoRepPage,
 });
 
-const sectorColumns: ColumnDef<SectorListEntry>[] = [
-  {
-    id: "expand",
-    header: "",
-    cell: ({ row }) => (
-      <button onClick={() => row.toggleExpanded()} className="p-1">
-        {row.getIsExpanded() ? "▼" : "▶"}
-      </button>
-    ),
-    size: 30,
-  },
-  { accessorKey: "SectorNumber", header: "Sector" },
-  { accessorKey: "Address", header: "Miner" },
-  { accessorKey: "CreateTime", header: "Created" },
-  {
-    id: "stage",
-    header: "Stage",
-    cell: ({ row }) => {
-      const s = row.original;
-      const isRunning =
-        s.StartedSDR ||
-        s.StartedTreeRC ||
-        s.StartedPrecommitMsg ||
-        s.StartedPoRep ||
-        s.StartedCommitMsg;
-      if (s.Failed) return <StatusBadge status="failed" label="Failed" />;
-      if (s.AfterCommitMsgSuccess)
-        return <StatusBadge status="done" label="Done" />;
-      const label = s.AfterCommitMsg
-        ? "CommitMsg"
-        : s.AfterPoRep
-          ? "PoRep"
-          : s.AfterPrecommitMsgSuccess
-            ? "WaitSeed"
-            : s.AfterPrecommitMsg
-              ? "PreCommit"
-              : s.AfterTreeR
-                ? "Trees"
-                : s.AfterSDR
-                  ? "SDR"
-                  : "Pending";
-      return (
-        <span className="inline-flex items-center">
-          <StatusBadge
-            status={label === "Pending" ? "pending" : "running"}
-            label={label}
-          />
-          {isRunning && !s.Failed && !s.AfterCommitMsgSuccess && (
-            <span className="ml-1 inline-block size-1.5 animate-pulse rounded-full bg-success" />
-          )}
-        </span>
-      );
-    },
-  },
-  {
-    id: "taskId",
-    header: "Task",
-    cell: ({ row }) => {
-      const s = row.original;
-      const tid =
-        s.TaskSDR ??
-        s.TaskTreeD ??
-        s.TaskTreeC ??
-        s.TaskTreeR ??
-        s.TaskSynthetic ??
-        s.TaskPrecommitMsg ??
-        s.TaskPoRep ??
-        s.TaskFinalize ??
-        s.TaskMoveStorage ??
-        s.TaskCommitMsg;
-      return tid ? <span className="font-mono text-xs">#{tid}</span> : "—";
-    },
-  },
-  {
-    id: "chain",
-    header: "Chain",
-    cell: ({ row }) => {
-      const s = row.original;
-      if (!s.ChainAlloc && !s.ChainSector) return "—";
-      return (
-        <div className="flex gap-1">
-          {s.ChainActive && (
-            <Badge variant="default" className="text-[10px]">
-              Active
-            </Badge>
-          )}
-          {s.ChainUnproven && (
-            <Badge variant="outline" className="text-[10px]">
-              Unproven
-            </Badge>
-          )}
-          {s.ChainFaulty && (
-            <Badge variant="destructive" className="text-[10px]">
-              Faulty
-            </Badge>
-          )}
-          {s.ChainSector &&
-            !s.ChainActive &&
-            !s.ChainUnproven &&
-            !s.ChainFaulty && (
-              <Badge variant="secondary" className="text-[10px]">
-                Allocated
-              </Badge>
-            )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "FailedReason",
-    header: "Error",
-    cell: ({ row }) =>
-      row.original.Failed ? (
-        <span
-          className="max-w-xs truncate text-xs text-destructive"
-          title={row.original.FailedReason}
-        >
-          {row.original.FailedReason}
-        </span>
-      ) : (
-        "—"
-      ),
-  },
-];
-
-function SectorSubRow({ row }: { row: any }) {
-  const s = row.original;
-  const started = [
-    s.StartedSDR && "SDR",
-    s.StartedTreeRC && "TreeRC",
-    s.StartedPrecommitMsg && "PreCommit",
-    s.StartedPoRep && "PoRep",
-    s.StartedCommitMsg && "Commit",
-  ].filter(Boolean);
-  return (
-    <div className="grid grid-cols-2 gap-x-8 gap-y-1 px-8 py-3 text-xs sm:grid-cols-3">
-      <div>
-        <span className="text-muted-foreground">PreCommit Msg:</span>{" "}
-        <span className="font-mono">
-          {s.PreCommitMsgCid?.slice(0, 16) || "—"}
-        </span>
-      </div>
-      <div>
-        <span className="text-muted-foreground">Commit Msg:</span>{" "}
-        <span className="font-mono">{s.CommitMsgCid?.slice(0, 16) || "—"}</span>
-      </div>
-      <div>
-        <span className="text-muted-foreground">Seed Epoch:</span>{" "}
-        {s.SeedEpoch || "—"}
-      </div>
-      {started.length > 0 && (
-        <div>
-          <span className="text-muted-foreground">Running:</span>{" "}
-          {started.join(", ")}
-        </div>
-      )}
-    </div>
-  );
-}
+const sectorColumns = createPorepColumns({ expandable: true });
 
 function PoRepPage() {
-  const { data: summaryData, isLoading: summaryLoading } = useCurioRpc<
-    PorepPipelineSummary[]
-  >("PipelinePorepSectors", [], { refetchInterval: 30_000 });
+  const { data: sectors, isLoading: sectorsLoading } = usePorepSectors();
+  const {
+    isLoading: summaryLoading,
+    data: summaryData,
+    totals,
+    actorRows,
+  } = usePorepSummary();
+  const restartAllMutation = usePorepRestartAll();
 
-  const { data: sectorsData, isLoading: sectorsLoading } = useCurioRpc<
-    SectorListEntry[]
-  >("PipelineStatsSDR", [], { refetchInterval: 30_000 });
+  const resumeMutation = usePorepSectorAction("SectorResume");
+  const removeMutation = usePorepSectorAction("SectorRemove");
+  const restartMutation = usePorepSectorAction("SectorRestart");
 
-  const restartAllMutation = useCurioRpcMutation("PipelinePorepRestartAll", {
-    invalidateKeys: [
-      ["curio", "PipelinePorepSectors"],
-      ["curio", "PipelineStatsSDR"],
-    ],
-  });
+  const handleSectorAction = useMemo(() => {
+    const mutations = {
+      resume: resumeMutation,
+      remove: removeMutation,
+      restart: restartMutation,
+    };
+    return (spId: number, sectorNum: number, type: PorepSectorActionType) => {
+      mutations[type].mutate([spId, sectorNum]);
+    };
+  }, [resumeMutation, removeMutation, restartMutation]);
 
-  const [confirmRestart, setConfirmRestart] = useState(false);
-
-  const totals = useMemo(() => {
-    if (!summaryData) return null;
-    return summaryData.reduce(
-      (acc, s) => ({
-        sdr: acc.sdr + s.CountSDR,
-        trees: acc.trees + s.CountTrees,
-        precommit: acc.precommit + s.CountPrecommitMsg,
-        waitSeed: acc.waitSeed + s.CountWaitSeed,
-        porep: acc.porep + s.CountPoRep,
-        commit: acc.commit + s.CountCommitMsg,
-        done: acc.done + s.CountDone,
-        failed: acc.failed + s.CountFailed,
-      }),
-      {
-        sdr: 0,
-        trees: 0,
-        precommit: 0,
-        waitSeed: 0,
-        porep: 0,
-        commit: 0,
-        done: 0,
-        failed: 0,
-      },
-    );
-  }, [summaryData]);
+  const tableMeta: PorepColumnMeta = useMemo(
+    () => ({ onAction: handleSectorAction }),
+    [handleSectorAction],
+  );
 
   if (summaryLoading && !summaryData) {
     return (
@@ -231,45 +66,19 @@ function PoRepPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">PoRep Pipeline</h2>
-        {confirmRestart ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-destructive">
-              Restart all failed PoRep tasks?
-            </span>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => {
-                restartAllMutation.mutate([]);
-                setConfirmRestart(false);
-              }}
-              disabled={restartAllMutation.isPending}
-            >
-              Yes
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setConfirmRestart(false)}
-            >
-              No
-            </Button>
-          </div>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setConfirmRestart(true)}
-          >
-            <RotateCcw className="mr-1 size-3" /> Restart All Failed
-          </Button>
-        )}
+        <h2 className="text-base font-medium">PoRep Pipeline</h2>
+        <RestartConfirmButton
+          label="Restart All Failed"
+          confirmMessage="Restart all failed PoRep tasks?"
+          onConfirm={() => restartAllMutation.mutate([])}
+          isPending={restartAllMutation.isPending}
+        />
       </div>
+
       {totals && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           <KPICard label="SDR" value={totals.sdr} />
           <KPICard label="Trees" value={totals.trees} />
           <KPICard label="PreCommit" value={totals.precommit} />
@@ -281,50 +90,11 @@ function PoRepPage() {
         </div>
       )}
 
-      {summaryData && summaryData.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline by Actor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="px-3 py-2">Actor</th>
-                    <th className="px-3 py-2">SDR</th>
-                    <th className="px-3 py-2">Trees</th>
-                    <th className="px-3 py-2">PreCommit</th>
-                    <th className="px-3 py-2">WaitSeed</th>
-                    <th className="px-3 py-2">PoRep</th>
-                    <th className="px-3 py-2">Commit</th>
-                    <th className="px-3 py-2">Done</th>
-                    <th className="px-3 py-2">Failed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summaryData.map((s) => (
-                    <tr
-                      key={s.Actor}
-                      className="border-b border-border last:border-0"
-                    >
-                      <td className="px-3 py-2 font-mono">{s.Actor}</td>
-                      <td className="px-3 py-2">{s.CountSDR}</td>
-                      <td className="px-3 py-2">{s.CountTrees}</td>
-                      <td className="px-3 py-2">{s.CountPrecommitMsg}</td>
-                      <td className="px-3 py-2">{s.CountWaitSeed}</td>
-                      <td className="px-3 py-2">{s.CountPoRep}</td>
-                      <td className="px-3 py-2">{s.CountCommitMsg}</td>
-                      <td className="px-3 py-2">{s.CountDone}</td>
-                      <td className="px-3 py-2">{s.CountFailed || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ActorSummaryTable
+        title="Pipeline by Actor"
+        data={actorRows}
+        variant="porep"
+      />
 
       <Card>
         <CardHeader>
@@ -333,14 +103,17 @@ function PoRepPage() {
         <CardContent>
           <DataTable
             columns={sectorColumns}
-            data={sectorsData ?? []}
+            data={sectors}
             loading={sectorsLoading}
             searchable
             searchPlaceholder="Search sectors..."
-            searchColumn="Address"
+            searchColumn="address"
             emptyMessage="No active pipeline sectors"
             getRowCanExpand={() => true}
-            renderSubComponent={SectorSubRow}
+            renderSubComponent={({ row }) => (
+              <SectorSubRow row={row.original} />
+            )}
+            meta={tableMeta}
           />
         </CardContent>
       </Card>

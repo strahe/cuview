@@ -12,8 +12,8 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurioRpc } from "@/hooks/use-curio-query";
-import type { PipelineWaterfallStats } from "@/types/pipeline";
+import { usePipelineStats } from "./-module/queries";
+import type { PipelineWaterfallStats } from "./-module/types";
 
 export const Route = createFileRoute("/_app/pipeline/stats")({
   component: PipelineStatsPage,
@@ -115,23 +115,19 @@ function WaterfallChart({
 }
 
 function PipelineStatsPage() {
-  const { data: sdrStats, isLoading: sdrLoading } =
-    useCurioRpc<PipelineWaterfallStats>("PipelineStatsSDR", [], {
-      refetchInterval: 30_000,
-    });
-  const { data: snapStats, isLoading: snapLoading } =
-    useCurioRpc<PipelineWaterfallStats>("PipelineStatsSnap", [], {
-      refetchInterval: 30_000,
-    });
-  const { data: marketStats, isLoading: marketLoading } =
-    useCurioRpc<PipelineWaterfallStats>("PipelineStatsMarket", [], {
-      refetchInterval: 30_000,
-    });
+  const {
+    sdrStats,
+    sdrLoading,
+    snapStats,
+    snapLoading,
+    marketStats,
+    marketLoading,
+  } = usePipelineStats();
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Pipeline Stats</h2>
-      <div className="grid gap-6 xl:grid-cols-2">
+    <div className="space-y-4">
+      <h2 className="text-base font-medium">Pipeline Stats</h2>
+      <div className="grid gap-4 xl:grid-cols-2">
         <WaterfallChart
           title="SDR Pipeline"
           data={sdrStats}
