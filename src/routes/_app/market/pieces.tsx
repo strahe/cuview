@@ -12,95 +12,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurioRpc } from "@/hooks/use-curio-query";
 import { formatBytes } from "@/utils/format";
+import {
+  useChunkUploadStatus,
+  useFindContentByCID,
+  useFindEntriesByDataURL,
+  usePieceDealDetail,
+  usePieceInfo,
+  usePieceParkStates,
+  useStorageDealInfo,
+} from "./-module/queries";
 
 export const Route = createFileRoute("/_app/market/pieces")({
   component: PiecesPage,
 });
-
-interface PieceDeal {
-  id: string;
-  sp_id: number;
-  miner: string;
-  chain_deal_id: number;
-  sector: number;
-  length: number;
-  raw_size: number;
-  offset?: { Valid: boolean; Int64: number } | null;
-  mk20: boolean;
-  boost_deal: boolean;
-  legacy_deal: boolean;
-}
-
-interface PieceInfoResult {
-  piece_cid_v2: string;
-  piece_cid: string;
-  size: number;
-  ipni_ads: string[] | null;
-  created_at: string;
-  indexed_at: string;
-  indexed: boolean;
-  deals: PieceDeal[] | null;
-}
-
-interface PieceDealDetailItem {
-  deal_id: number;
-  piece_cid: string;
-  is_ddo: boolean;
-  sp_id: number;
-  miner: string;
-  sector_num: number;
-  start_epoch: number;
-  end_epoch: number;
-  piece_size: number;
-}
-
-interface PieceParkState {
-  piece_cid: string;
-  state: string;
-  complete: boolean;
-  created_at: string;
-  url?: string;
-}
-
-interface StorageDealSummary {
-  id: string;
-  sp_id: number;
-  sector?: { Valid: boolean; Int64: number } | null;
-  created_at: string;
-  signed_proposal_cid: string;
-  offline: boolean;
-  verified: boolean;
-  start_epoch: number;
-  end_epoch: number;
-  client_peer_id: string;
-  chain_deal_id?: { Valid: boolean; Int64: number } | null;
-  publish_cid?: { Valid: boolean; String: string } | null;
-  piece_cid: string;
-  piece_size: number;
-  fast_retrieval: boolean;
-  announce_to_ipni: boolean;
-  url?: string;
-  url_headers?: Record<string, string[]>;
-  error?: string;
-  miner: string;
-  indexed?: { Valid: boolean; Bool: boolean } | null;
-  is_ddo: boolean;
-  piece_cid_v2: string;
-}
-
-interface ContentEntry {
-  piece_cid: string;
-  data_url: string;
-  sp_id: number;
-  sector_num: number;
-}
-
-interface UploadStatus {
-  id: string;
-  status: string;
-}
 
 function PiecesPage() {
   const [tab, setTab] = useState("piece");
@@ -116,49 +41,19 @@ function PiecesPage() {
   const [uploadIdSearch, setUploadIdSearch] = useState<string | null>(null);
   const [showDealDetail, setShowDealDetail] = useState<string | null>(null);
 
-  const {
-    data: pieceInfo,
-    isLoading,
-    isError,
-  } = useCurioRpc<PieceInfoResult>("PieceInfo", [searchCid!], {
-    enabled: !!searchCid,
-  });
+  const { data: pieceInfo, isLoading, isError } = usePieceInfo(searchCid);
 
-  const { data: dealDetail } = useCurioRpc<PieceDealDetailItem[]>(
-    "PieceDealDetail",
-    [searchCid!],
-    { enabled: !!searchCid && !!pieceInfo },
-  );
+  const { data: dealDetail } = usePieceDealDetail(searchCid, !!pieceInfo);
 
-  const { data: parkStates } = useCurioRpc<PieceParkState[]>(
-    "PieceParkStates",
-    [searchCid!],
-    { enabled: !!searchCid && !!pieceInfo },
-  );
+  const { data: parkStates } = usePieceParkStates(searchCid, !!pieceInfo);
 
-  const { data: contentResults } = useCurioRpc<ContentEntry[]>(
-    "FindContentByCID",
-    [contentSearch!],
-    { enabled: !!contentSearch },
-  );
+  const { data: contentResults } = useFindContentByCID(contentSearch);
 
-  const { data: dataUrlResults } = useCurioRpc<ContentEntry[]>(
-    "FindEntriesByDataURL",
-    [dataUrlSearch!],
-    { enabled: !!dataUrlSearch },
-  );
+  const { data: dataUrlResults } = useFindEntriesByDataURL(dataUrlSearch);
 
-  const { data: dealInfo } = useCurioRpc<StorageDealSummary>(
-    "StorageDealInfo",
-    [dealInfoSearch!],
-    { enabled: !!dealInfoSearch },
-  );
+  const { data: dealInfo } = useStorageDealInfo(dealInfoSearch ?? undefined);
 
-  const { data: uploadStatus } = useCurioRpc<UploadStatus>(
-    "ChunkUploadStatus",
-    [uploadIdSearch!],
-    { enabled: !!uploadIdSearch },
-  );
+  const { data: uploadStatus } = useChunkUploadStatus(uploadIdSearch);
 
   const handleSearch = useCallback(() => {
     const cid = query.trim();

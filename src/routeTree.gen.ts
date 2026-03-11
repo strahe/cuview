@@ -50,6 +50,8 @@ import { Route as AppSectorsCcSchedulerIndexRouteImport } from "./routes/_app/se
 import { Route as AppMarketSettingsIndexRouteImport } from "./routes/_app/market/settings/index"
 import { Route as AppMarketMk20DealsRouteImport } from "./routes/_app/market/mk20/deals"
 import { Route as AppMarketMk12DealsRouteImport } from "./routes/_app/market/mk12/deals"
+import { Route as AppMarketMk20DealIdRouteImport } from "./routes/_app/market/mk20/deal.$id"
+import { Route as AppMarketMk12DealIdRouteImport } from "./routes/_app/market/mk12/deal.$id"
 
 const SetupRoute = SetupRouteImport.update({
   id: "/setup",
@@ -258,6 +260,16 @@ const AppMarketMk12DealsRoute = AppMarketMk12DealsRouteImport.update({
   path: "/mk12/deals",
   getParentRoute: () => AppMarketRouteRoute,
 } as any)
+const AppMarketMk20DealIdRoute = AppMarketMk20DealIdRouteImport.update({
+  id: "/mk20/deal/$id",
+  path: "/mk20/deal/$id",
+  getParentRoute: () => AppMarketRouteRoute,
+} as any)
+const AppMarketMk12DealIdRoute = AppMarketMk12DealIdRouteImport.update({
+  id: "/mk12/deal/$id",
+  path: "/mk12/deal/$id",
+  getParentRoute: () => AppMarketRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
@@ -300,6 +312,8 @@ export interface FileRoutesByFullPath {
   "/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
   "/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
+  "/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
+  "/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -337,6 +351,8 @@ export interface FileRoutesByTo {
   "/sectors/cc-scheduler": typeof AppSectorsCcSchedulerIndexRoute
   "/sectors/diagnostics": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration": typeof AppSectorsExpirationIndexRoute
+  "/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
+  "/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -381,6 +397,8 @@ export interface FileRoutesById {
   "/_app/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
   "/_app/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/_app/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
+  "/_app/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
+  "/_app/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -425,6 +443,8 @@ export interface FileRouteTypes {
     | "/sectors/cc-scheduler/"
     | "/sectors/diagnostics/"
     | "/sectors/expiration/"
+    | "/market/mk12/deal/$id"
+    | "/market/mk20/deal/$id"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -462,6 +482,8 @@ export interface FileRouteTypes {
     | "/sectors/cc-scheduler"
     | "/sectors/diagnostics"
     | "/sectors/expiration"
+    | "/market/mk12/deal/$id"
+    | "/market/mk20/deal/$id"
   id:
     | "__root__"
     | "/"
@@ -505,6 +527,8 @@ export interface FileRouteTypes {
     | "/_app/sectors/cc-scheduler/"
     | "/_app/sectors/diagnostics/"
     | "/_app/sectors/expiration/"
+    | "/_app/market/mk12/deal/$id"
+    | "/_app/market/mk20/deal/$id"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -802,6 +826,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppMarketMk12DealsRouteImport
       parentRoute: typeof AppMarketRouteRoute
     }
+    "/_app/market/mk20/deal/$id": {
+      id: "/_app/market/mk20/deal/$id"
+      path: "/mk20/deal/$id"
+      fullPath: "/market/mk20/deal/$id"
+      preLoaderRoute: typeof AppMarketMk20DealIdRouteImport
+      parentRoute: typeof AppMarketRouteRoute
+    }
+    "/_app/market/mk12/deal/$id": {
+      id: "/_app/market/mk12/deal/$id"
+      path: "/mk12/deal/$id"
+      fullPath: "/market/mk12/deal/$id"
+      preLoaderRoute: typeof AppMarketMk12DealIdRouteImport
+      parentRoute: typeof AppMarketRouteRoute
+    }
   }
 }
 
@@ -827,6 +865,8 @@ interface AppMarketRouteRouteChildren {
   AppMarketMk12DealsRoute: typeof AppMarketMk12DealsRoute
   AppMarketMk20DealsRoute: typeof AppMarketMk20DealsRoute
   AppMarketSettingsIndexRoute: typeof AppMarketSettingsIndexRoute
+  AppMarketMk12DealIdRoute: typeof AppMarketMk12DealIdRoute
+  AppMarketMk20DealIdRoute: typeof AppMarketMk20DealIdRoute
 }
 
 const AppMarketRouteRouteChildren: AppMarketRouteRouteChildren = {
@@ -838,6 +878,8 @@ const AppMarketRouteRouteChildren: AppMarketRouteRouteChildren = {
   AppMarketMk12DealsRoute: AppMarketMk12DealsRoute,
   AppMarketMk20DealsRoute: AppMarketMk20DealsRoute,
   AppMarketSettingsIndexRoute: AppMarketSettingsIndexRoute,
+  AppMarketMk12DealIdRoute: AppMarketMk12DealIdRoute,
+  AppMarketMk20DealIdRoute: AppMarketMk20DealIdRoute,
 }
 
 const AppMarketRouteRouteWithChildren = AppMarketRouteRoute._addFileChildren(
