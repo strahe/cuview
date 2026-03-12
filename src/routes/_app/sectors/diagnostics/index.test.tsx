@@ -46,6 +46,7 @@ const unsealedHistoryFixture = [
 ];
 
 vi.mock("@tanstack/react-router", () => ({
+  stripSearchParams: (defaults: unknown) => defaults,
   createFileRoute: () => (options: Record<string, unknown>) => ({
     ...options,
     useSearch: () => currentSearch,

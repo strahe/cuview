@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { DEFAULT_STORAGE_PATH_DETAIL_SEARCH } from "@/routes/_app/storage/-module/search-state";
 import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { MachineInfo } from "@/types/machine";
 import { formatBytes } from "@/utils/format";
@@ -454,7 +455,14 @@ function MachineDetailPage() {
                   {data.StorageURLs.map((u, i) => (
                     <tr key={i} className="border-b last:border-0">
                       <td className="py-1.5 pr-4 font-mono">
-                        {u.StorageID.slice(0, 8)}…
+                        <Link
+                          to="/storage/paths/$storageId"
+                          params={{ storageId: u.StorageID }}
+                          search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
+                          className="text-primary hover:underline"
+                        >
+                          {u.StorageID.slice(0, 8)}…
+                        </Link>
                       </td>
                       <td className="py-1.5 pr-4 font-mono">{u.URL}</td>
                       <td className="py-1.5 pr-4">
@@ -555,7 +563,14 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                 className="space-y-1.5 border-b pb-3 last:border-0"
               >
                 <div className="flex justify-between text-sm">
-                  <span className="font-mono text-xs">{s.ID}</span>
+                  <Link
+                    to="/storage/paths/$storageId"
+                    params={{ storageId: s.ID }}
+                    search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
+                    className="font-mono text-xs text-primary hover:underline"
+                  >
+                    {s.ID}
+                  </Link>
                   <span>{usedPercent.toFixed(1)}%</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted">

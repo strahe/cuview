@@ -7,6 +7,7 @@ const navigateMock = vi.fn();
 const testAndSwitchEndpointMock = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
+  stripSearchParams: (defaults: unknown) => defaults,
   createFileRoute: () => () => ({}),
   useNavigate: () => navigateMock,
 }));

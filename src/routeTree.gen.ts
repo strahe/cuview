@@ -13,6 +13,7 @@ import { Route as SetupRouteImport } from "./routes/setup"
 import { Route as AppRouteImport } from "./routes/_app"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
+import { Route as AppStorageRouteRouteImport } from "./routes/_app/storage/route"
 import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
@@ -35,6 +36,8 @@ import { Route as AppTasksOverviewRouteImport } from "./routes/_app/tasks/overvi
 import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history"
 import { Route as AppTasksAnalysisRouteImport } from "./routes/_app/tasks/analysis"
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
+import { Route as AppStorageUsageRouteImport } from "./routes/_app/storage/usage"
+import { Route as AppStorageGcRouteImport } from "./routes/_app/storage/gc"
 import { Route as AppPipelineStatsRouteImport } from "./routes/_app/pipeline/stats"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
@@ -44,10 +47,13 @@ import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balan
 import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
 import { Route as AppActorIdRouteImport } from "./routes/_app/actor/$id"
+import { Route as AppStoragePathsRouteRouteImport } from "./routes/_app/storage/paths/route"
+import { Route as AppStoragePathsIndexRouteImport } from "./routes/_app/storage/paths/index"
 import { Route as AppSectorsExpirationIndexRouteImport } from "./routes/_app/sectors/expiration/index"
 import { Route as AppSectorsDiagnosticsIndexRouteImport } from "./routes/_app/sectors/diagnostics/index"
 import { Route as AppSectorsCcSchedulerIndexRouteImport } from "./routes/_app/sectors/cc-scheduler/index"
 import { Route as AppMarketSettingsIndexRouteImport } from "./routes/_app/market/settings/index"
+import { Route as AppStoragePathsStorageIdRouteImport } from "./routes/_app/storage/paths/$storageId"
 import { Route as AppMarketMk20DealsRouteImport } from "./routes/_app/market/mk20/deals"
 import { Route as AppMarketMk12DealsRouteImport } from "./routes/_app/market/mk12/deals"
 import { Route as AppMarketMk20DealIdRouteImport } from "./routes/_app/market/mk20/deal.$id"
@@ -70,6 +76,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppTasksRouteRoute = AppTasksRouteRouteImport.update({
   id: "/tasks",
   path: "/tasks",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStorageRouteRoute = AppStorageRouteRouteImport.update({
+  id: "/storage",
+  path: "/storage",
   getParentRoute: () => AppRoute,
 } as any)
 const AppSectorsRouteRoute = AppSectorsRouteRouteImport.update({
@@ -103,9 +114,9 @@ const AppTasksIndexRoute = AppTasksIndexRouteImport.update({
   getParentRoute: () => AppTasksRouteRoute,
 } as any)
 const AppStorageIndexRoute = AppStorageIndexRouteImport.update({
-  id: "/storage/",
-  path: "/storage/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppStorageRouteRoute,
 } as any)
 const AppSectorsIndexRoute = AppSectorsIndexRouteImport.update({
   id: "/",
@@ -182,6 +193,16 @@ const AppTasksActiveRoute = AppTasksActiveRouteImport.update({
   path: "/active",
   getParentRoute: () => AppTasksRouteRoute,
 } as any)
+const AppStorageUsageRoute = AppStorageUsageRouteImport.update({
+  id: "/usage",
+  path: "/usage",
+  getParentRoute: () => AppStorageRouteRoute,
+} as any)
+const AppStorageGcRoute = AppStorageGcRouteImport.update({
+  id: "/gc",
+  path: "/gc",
+  getParentRoute: () => AppStorageRouteRoute,
+} as any)
 const AppPipelineStatsRoute = AppPipelineStatsRouteImport.update({
   id: "/stats",
   path: "/stats",
@@ -227,6 +248,16 @@ const AppActorIdRoute = AppActorIdRouteImport.update({
   path: "/actor/$id",
   getParentRoute: () => AppRoute,
 } as any)
+const AppStoragePathsRouteRoute = AppStoragePathsRouteRouteImport.update({
+  id: "/paths",
+  path: "/paths",
+  getParentRoute: () => AppStorageRouteRoute,
+} as any)
+const AppStoragePathsIndexRoute = AppStoragePathsIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppStoragePathsRouteRoute,
+} as any)
 const AppSectorsExpirationIndexRoute =
   AppSectorsExpirationIndexRouteImport.update({
     id: "/expiration/",
@@ -250,6 +281,12 @@ const AppMarketSettingsIndexRoute = AppMarketSettingsIndexRouteImport.update({
   path: "/settings/",
   getParentRoute: () => AppMarketRouteRoute,
 } as any)
+const AppStoragePathsStorageIdRoute =
+  AppStoragePathsStorageIdRouteImport.update({
+    id: "/$storageId",
+    path: "/$storageId",
+    getParentRoute: () => AppStoragePathsRouteRoute,
+  } as any)
 const AppMarketMk20DealsRoute = AppMarketMk20DealsRouteImport.update({
   id: "/mk20/deals",
   path: "/mk20/deals",
@@ -278,7 +315,9 @@ export interface FileRoutesByFullPath {
   "/market": typeof AppMarketRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/sectors": typeof AppSectorsRouteRouteWithChildren
+  "/storage": typeof AppStorageRouteRouteWithChildren
   "/tasks": typeof AppTasksRouteRouteWithChildren
+  "/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/actor/$id": typeof AppActorIdRoute
   "/machines/$id": typeof AppMachinesIdRoute
   "/market/asks": typeof AppMarketAsksRoute
@@ -288,6 +327,8 @@ export interface FileRoutesByFullPath {
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
+  "/storage/gc": typeof AppStorageGcRoute
+  "/storage/usage": typeof AppStorageUsageRoute
   "/tasks/active": typeof AppTasksActiveRoute
   "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
@@ -308,10 +349,12 @@ export interface FileRoutesByFullPath {
   "/wallets/": typeof AppWalletsIndexRoute
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
+  "/storage/paths/$storageId": typeof AppStoragePathsStorageIdRoute
   "/market/settings/": typeof AppMarketSettingsIndexRoute
   "/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
   "/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
+  "/storage/paths/": typeof AppStoragePathsIndexRoute
   "/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
   "/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
@@ -327,6 +370,8 @@ export interface FileRoutesByTo {
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
+  "/storage/gc": typeof AppStorageGcRoute
+  "/storage/usage": typeof AppStorageUsageRoute
   "/tasks/active": typeof AppTasksActiveRoute
   "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
@@ -347,10 +392,12 @@ export interface FileRoutesByTo {
   "/wallets": typeof AppWalletsIndexRoute
   "/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/market/mk20/deals": typeof AppMarketMk20DealsRoute
+  "/storage/paths/$storageId": typeof AppStoragePathsStorageIdRoute
   "/market/settings": typeof AppMarketSettingsIndexRoute
   "/sectors/cc-scheduler": typeof AppSectorsCcSchedulerIndexRoute
   "/sectors/diagnostics": typeof AppSectorsDiagnosticsIndexRoute
   "/sectors/expiration": typeof AppSectorsExpirationIndexRoute
+  "/storage/paths": typeof AppStoragePathsIndexRoute
   "/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
   "/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
@@ -363,7 +410,9 @@ export interface FileRoutesById {
   "/_app/market": typeof AppMarketRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
+  "/_app/storage": typeof AppStorageRouteRouteWithChildren
   "/_app/tasks": typeof AppTasksRouteRouteWithChildren
+  "/_app/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/_app/actor/$id": typeof AppActorIdRoute
   "/_app/machines/$id": typeof AppMachinesIdRoute
   "/_app/market/asks": typeof AppMarketAsksRoute
@@ -373,6 +422,8 @@ export interface FileRoutesById {
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/pipeline/stats": typeof AppPipelineStatsRoute
+  "/_app/storage/gc": typeof AppStorageGcRoute
+  "/_app/storage/usage": typeof AppStorageUsageRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
   "/_app/tasks/analysis": typeof AppTasksAnalysisRoute
   "/_app/tasks/history": typeof AppTasksHistoryRoute
@@ -393,10 +444,12 @@ export interface FileRoutesById {
   "/_app/wallets/": typeof AppWalletsIndexRoute
   "/_app/market/mk12/deals": typeof AppMarketMk12DealsRoute
   "/_app/market/mk20/deals": typeof AppMarketMk20DealsRoute
+  "/_app/storage/paths/$storageId": typeof AppStoragePathsStorageIdRoute
   "/_app/market/settings/": typeof AppMarketSettingsIndexRoute
   "/_app/sectors/cc-scheduler/": typeof AppSectorsCcSchedulerIndexRoute
   "/_app/sectors/diagnostics/": typeof AppSectorsDiagnosticsIndexRoute
   "/_app/sectors/expiration/": typeof AppSectorsExpirationIndexRoute
+  "/_app/storage/paths/": typeof AppStoragePathsIndexRoute
   "/_app/market/mk12/deal/$id": typeof AppMarketMk12DealIdRoute
   "/_app/market/mk20/deal/$id": typeof AppMarketMk20DealIdRoute
 }
@@ -409,7 +462,9 @@ export interface FileRouteTypes {
     | "/market"
     | "/pipeline"
     | "/sectors"
+    | "/storage"
     | "/tasks"
+    | "/storage/paths"
     | "/actor/$id"
     | "/machines/$id"
     | "/market/asks"
@@ -419,6 +474,8 @@ export interface FileRouteTypes {
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
+    | "/storage/gc"
+    | "/storage/usage"
     | "/tasks/active"
     | "/tasks/analysis"
     | "/tasks/history"
@@ -439,10 +496,12 @@ export interface FileRouteTypes {
     | "/wallets/"
     | "/market/mk12/deals"
     | "/market/mk20/deals"
+    | "/storage/paths/$storageId"
     | "/market/settings/"
     | "/sectors/cc-scheduler/"
     | "/sectors/diagnostics/"
     | "/sectors/expiration/"
+    | "/storage/paths/"
     | "/market/mk12/deal/$id"
     | "/market/mk20/deal/$id"
   fileRoutesByTo: FileRoutesByTo
@@ -458,6 +517,8 @@ export interface FileRouteTypes {
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
+    | "/storage/gc"
+    | "/storage/usage"
     | "/tasks/active"
     | "/tasks/analysis"
     | "/tasks/history"
@@ -478,10 +539,12 @@ export interface FileRouteTypes {
     | "/wallets"
     | "/market/mk12/deals"
     | "/market/mk20/deals"
+    | "/storage/paths/$storageId"
     | "/market/settings"
     | "/sectors/cc-scheduler"
     | "/sectors/diagnostics"
     | "/sectors/expiration"
+    | "/storage/paths"
     | "/market/mk12/deal/$id"
     | "/market/mk20/deal/$id"
   id:
@@ -493,7 +556,9 @@ export interface FileRouteTypes {
     | "/_app/market"
     | "/_app/pipeline"
     | "/_app/sectors"
+    | "/_app/storage"
     | "/_app/tasks"
+    | "/_app/storage/paths"
     | "/_app/actor/$id"
     | "/_app/machines/$id"
     | "/_app/market/asks"
@@ -503,6 +568,8 @@ export interface FileRouteTypes {
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
     | "/_app/pipeline/stats"
+    | "/_app/storage/gc"
+    | "/_app/storage/usage"
     | "/_app/tasks/active"
     | "/_app/tasks/analysis"
     | "/_app/tasks/history"
@@ -523,10 +590,12 @@ export interface FileRouteTypes {
     | "/_app/wallets/"
     | "/_app/market/mk12/deals"
     | "/_app/market/mk20/deals"
+    | "/_app/storage/paths/$storageId"
     | "/_app/market/settings/"
     | "/_app/sectors/cc-scheduler/"
     | "/_app/sectors/diagnostics/"
     | "/_app/sectors/expiration/"
+    | "/_app/storage/paths/"
     | "/_app/market/mk12/deal/$id"
     | "/_app/market/mk20/deal/$id"
   fileRoutesById: FileRoutesById
@@ -565,6 +634,13 @@ declare module "@tanstack/react-router" {
       path: "/tasks"
       fullPath: "/tasks"
       preLoaderRoute: typeof AppTasksRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/storage": {
+      id: "/_app/storage"
+      path: "/storage"
+      fullPath: "/storage"
+      preLoaderRoute: typeof AppStorageRouteRouteImport
       parentRoute: typeof AppRoute
     }
     "/_app/sectors": {
@@ -611,10 +687,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/storage/": {
       id: "/_app/storage/"
-      path: "/storage"
+      path: "/"
       fullPath: "/storage/"
       preLoaderRoute: typeof AppStorageIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppStorageRouteRoute
     }
     "/_app/sectors/": {
       id: "/_app/sectors/"
@@ -721,6 +797,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppTasksActiveRouteImport
       parentRoute: typeof AppTasksRouteRoute
     }
+    "/_app/storage/usage": {
+      id: "/_app/storage/usage"
+      path: "/usage"
+      fullPath: "/storage/usage"
+      preLoaderRoute: typeof AppStorageUsageRouteImport
+      parentRoute: typeof AppStorageRouteRoute
+    }
+    "/_app/storage/gc": {
+      id: "/_app/storage/gc"
+      path: "/gc"
+      fullPath: "/storage/gc"
+      preLoaderRoute: typeof AppStorageGcRouteImport
+      parentRoute: typeof AppStorageRouteRoute
+    }
     "/_app/pipeline/stats": {
       id: "/_app/pipeline/stats"
       path: "/stats"
@@ -784,6 +874,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppActorIdRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/storage/paths": {
+      id: "/_app/storage/paths"
+      path: "/paths"
+      fullPath: "/storage/paths"
+      preLoaderRoute: typeof AppStoragePathsRouteRouteImport
+      parentRoute: typeof AppStorageRouteRoute
+    }
+    "/_app/storage/paths/": {
+      id: "/_app/storage/paths/"
+      path: "/"
+      fullPath: "/storage/paths/"
+      preLoaderRoute: typeof AppStoragePathsIndexRouteImport
+      parentRoute: typeof AppStoragePathsRouteRoute
+    }
     "/_app/sectors/expiration/": {
       id: "/_app/sectors/expiration/"
       path: "/expiration"
@@ -811,6 +915,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/market/settings/"
       preLoaderRoute: typeof AppMarketSettingsIndexRouteImport
       parentRoute: typeof AppMarketRouteRoute
+    }
+    "/_app/storage/paths/$storageId": {
+      id: "/_app/storage/paths/$storageId"
+      path: "/$storageId"
+      fullPath: "/storage/paths/$storageId"
+      preLoaderRoute: typeof AppStoragePathsStorageIdRouteImport
+      parentRoute: typeof AppStoragePathsRouteRoute
     }
     "/_app/market/mk20/deals": {
       id: "/_app/market/mk20/deals"
@@ -921,6 +1032,37 @@ const AppSectorsRouteRouteWithChildren = AppSectorsRouteRoute._addFileChildren(
   AppSectorsRouteRouteChildren,
 )
 
+interface AppStoragePathsRouteRouteChildren {
+  AppStoragePathsStorageIdRoute: typeof AppStoragePathsStorageIdRoute
+  AppStoragePathsIndexRoute: typeof AppStoragePathsIndexRoute
+}
+
+const AppStoragePathsRouteRouteChildren: AppStoragePathsRouteRouteChildren = {
+  AppStoragePathsStorageIdRoute: AppStoragePathsStorageIdRoute,
+  AppStoragePathsIndexRoute: AppStoragePathsIndexRoute,
+}
+
+const AppStoragePathsRouteRouteWithChildren =
+  AppStoragePathsRouteRoute._addFileChildren(AppStoragePathsRouteRouteChildren)
+
+interface AppStorageRouteRouteChildren {
+  AppStoragePathsRouteRoute: typeof AppStoragePathsRouteRouteWithChildren
+  AppStorageGcRoute: typeof AppStorageGcRoute
+  AppStorageUsageRoute: typeof AppStorageUsageRoute
+  AppStorageIndexRoute: typeof AppStorageIndexRoute
+}
+
+const AppStorageRouteRouteChildren: AppStorageRouteRouteChildren = {
+  AppStoragePathsRouteRoute: AppStoragePathsRouteRouteWithChildren,
+  AppStorageGcRoute: AppStorageGcRoute,
+  AppStorageUsageRoute: AppStorageUsageRoute,
+  AppStorageIndexRoute: AppStorageIndexRoute,
+}
+
+const AppStorageRouteRouteWithChildren = AppStorageRouteRoute._addFileChildren(
+  AppStorageRouteRouteChildren,
+)
+
 interface AppTasksRouteRouteChildren {
   AppTasksActiveRoute: typeof AppTasksActiveRoute
   AppTasksAnalysisRoute: typeof AppTasksAnalysisRoute
@@ -946,6 +1088,7 @@ interface AppRouteChildren {
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
   AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
+  AppStorageRouteRoute: typeof AppStorageRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppActorIdRoute: typeof AppActorIdRoute
   AppActorIndexRoute: typeof AppActorIndexRoute
@@ -955,7 +1098,6 @@ interface AppRouteChildren {
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppProofShareIndexRoute: typeof AppProofShareIndexRoute
-  AppStorageIndexRoute: typeof AppStorageIndexRoute
   AppWalletsIndexRoute: typeof AppWalletsIndexRoute
 }
 
@@ -964,6 +1106,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
   AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
+  AppStorageRouteRoute: AppStorageRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppActorIdRoute: AppActorIdRoute,
   AppActorIndexRoute: AppActorIndexRoute,
@@ -973,7 +1116,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
   AppProofShareIndexRoute: AppProofShareIndexRoute,
-  AppStorageIndexRoute: AppStorageIndexRoute,
   AppWalletsIndexRoute: AppWalletsIndexRoute,
 }
 

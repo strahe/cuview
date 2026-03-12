@@ -28,6 +28,7 @@ import {
   useCurioRpc,
   useCurioRpcMutation,
 } from "@/hooks/use-curio-query";
+import { DEFAULT_STORAGE_PATH_DETAIL_SEARCH } from "@/routes/_app/storage/-module/search-state";
 import type {
   DeadlineStats,
   PartitionDetailData,
@@ -649,7 +650,19 @@ function SectorDetailDialog({
                         </Badge>
                       )}
                       <span className="truncate font-mono text-muted-foreground">
-                        {l.Locations?.map((loc) => loc.StorageID).join(", ")}
+                        {l.Locations?.map((loc, index) => (
+                          <span key={`${loc.StorageID}-${index}`}>
+                            {index > 0 ? ", " : null}
+                            <Link
+                              to="/storage/paths/$storageId"
+                              params={{ storageId: loc.StorageID }}
+                              search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
+                              className="text-primary hover:underline"
+                            >
+                              {loc.StorageID}
+                            </Link>
+                          </span>
+                        ))}
                       </span>
                     </div>
                   ))}
@@ -1025,7 +1038,14 @@ function PartitionDetailDialog({
                             className="border-b border-border last:border-0"
                           >
                             <td className="py-1 font-mono">
-                              {path.storage_id}
+                              <Link
+                                to="/storage/paths/$storageId"
+                                params={{ storageId: path.storage_id }}
+                                search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
+                                className="text-primary hover:underline"
+                              >
+                                {path.storage_id}
+                              </Link>
                             </td>
                             <td className="py-1">{path.path_type || "—"}</td>
                             <td className="py-1 text-muted-foreground">
