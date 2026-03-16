@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { useWalletList } from "@/routes/_app/wallets/-module/queries";
 import type { NetSummaryResponse } from "@/types/network";
 import { ActorOverview } from "./-components/actor-overview";
 import { ChainConnectivity } from "./-components/chain-connectivity";
@@ -38,10 +39,10 @@ function OverviewPage() {
     pipelinePorepStats,
     pipelineSnapStats,
     pipelineLoading,
-    wallets,
-    walletsLoading,
     refresh,
   } = useDashboardSummary();
+
+  const { data: wallets, isLoading: walletsLoading } = useWalletList();
 
   const { data: blockDelay } = useCurioRpc<number>("BlockDelaySecs", [], {
     refetchInterval: 300_000,

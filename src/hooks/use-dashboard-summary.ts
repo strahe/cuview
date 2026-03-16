@@ -1,12 +1,13 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useCurioRpc } from "@/hooks/use-curio-query";
+import type { WalletNamesMap } from "@/routes/_app/wallets/-module/types";
 import type { ActorSummaryData } from "@/types/actor";
 import type { ClusterMachine, HarmonyTaskStat } from "@/types/cluster";
 import type { PipelineWaterfallStats } from "@/types/pipeline";
 import type { StorageUseStat } from "@/types/storage";
 import type { SyncerStateItem } from "@/types/sync";
 import type { TaskHistorySummary, TaskSummary } from "@/types/task";
-import type { WalletInfo } from "@/types/wallet";
 import { formatBytes, formatNumber, formatPercentage } from "@/utils/format";
 
 export interface DashboardMetrics {
@@ -41,6 +42,7 @@ export interface HeroCard {
 }
 
 export function useDashboardSummary() {
+  const queryClient = useQueryClient();
   const machines = useCurioRpc<ClusterMachine[]>("ClusterMachines", [], {
     refetchInterval: 30_000,
   });
@@ -77,7 +79,7 @@ export function useDashboardSummary() {
     [],
     { refetchInterval: 30_000 },
   );
-  const wallets = useCurioRpc<WalletInfo[]>("Wallets", [], {
+  const walletNames = useCurioRpc<WalletNamesMap>("WalletNames", [], {
     refetchInterval: 60_000,
   });
 
@@ -258,8 +260,13 @@ export function useDashboardSummary() {
       alertPending.refetch(),
       pipelinePorepStats.refetch(),
       pipelineSnapStats.refetch(),
-      wallets.refetch(),
+      walletNames.refetch(),
     ]);
+
+    await queryClient.refetchQueries({
+      queryKey: ["curio", "WalletInfoShort"],
+      type: "active",
+    });
   };
 
   return {
@@ -284,8 +291,7 @@ export function useDashboardSummary() {
     pipelineSnapStats: pipelineSnapStats.data ?? null,
     pipelineLoading:
       pipelinePorepStats.isLoading || pipelineSnapStats.isLoading,
-    wallets: wallets.data ?? [],
-    walletsLoading: wallets.isLoading,
+    walletNames: walletNames.data ?? {},
     refresh,
   };
 }

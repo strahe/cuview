@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from "./routes/__root"
 import { Route as SetupRouteImport } from "./routes/setup"
 import { Route as AppRouteImport } from "./routes/_app"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as AppWalletsRouteRouteImport } from "./routes/_app/wallets/route"
 import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
 import { Route as AppStorageRouteRouteImport } from "./routes/_app/storage/route"
 import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
@@ -32,6 +33,9 @@ import { Route as AppIpniIndexRouteImport } from "./routes/_app/ipni/index"
 import { Route as AppConfigIndexRouteImport } from "./routes/_app/config/index"
 import { Route as AppAlertsIndexRouteImport } from "./routes/_app/alerts/index"
 import { Route as AppActorIndexRouteImport } from "./routes/_app/actor/index"
+import { Route as AppWalletsMessagesRouteImport } from "./routes/_app/wallets/messages"
+import { Route as AppWalletsListRouteImport } from "./routes/_app/wallets/list"
+import { Route as AppWalletsBalanceManagerRouteImport } from "./routes/_app/wallets/balance-manager"
 import { Route as AppTasksOverviewRouteImport } from "./routes/_app/tasks/overview"
 import { Route as AppTasksHistoryRouteImport } from "./routes/_app/tasks/history"
 import { Route as AppTasksAnalysisRouteImport } from "./routes/_app/tasks/analysis"
@@ -73,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWalletsRouteRoute = AppWalletsRouteRouteImport.update({
+  id: "/wallets",
+  path: "/wallets",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTasksRouteRoute = AppTasksRouteRouteImport.update({
   id: "/tasks",
   path: "/tasks",
@@ -104,9 +113,9 @@ const AppMachinesRouteRoute = AppMachinesRouteRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppWalletsIndexRoute = AppWalletsIndexRouteImport.update({
-  id: "/wallets/",
-  path: "/wallets/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppWalletsRouteRoute,
 } as any)
 const AppTasksIndexRoute = AppTasksIndexRouteImport.update({
   id: "/",
@@ -173,6 +182,22 @@ const AppActorIndexRoute = AppActorIndexRouteImport.update({
   path: "/actor/",
   getParentRoute: () => AppRoute,
 } as any)
+const AppWalletsMessagesRoute = AppWalletsMessagesRouteImport.update({
+  id: "/messages",
+  path: "/messages",
+  getParentRoute: () => AppWalletsRouteRoute,
+} as any)
+const AppWalletsListRoute = AppWalletsListRouteImport.update({
+  id: "/list",
+  path: "/list",
+  getParentRoute: () => AppWalletsRouteRoute,
+} as any)
+const AppWalletsBalanceManagerRoute =
+  AppWalletsBalanceManagerRouteImport.update({
+    id: "/balance-manager",
+    path: "/balance-manager",
+    getParentRoute: () => AppWalletsRouteRoute,
+  } as any)
 const AppTasksOverviewRoute = AppTasksOverviewRouteImport.update({
   id: "/overview",
   path: "/overview",
@@ -317,6 +342,7 @@ export interface FileRoutesByFullPath {
   "/sectors": typeof AppSectorsRouteRouteWithChildren
   "/storage": typeof AppStorageRouteRouteWithChildren
   "/tasks": typeof AppTasksRouteRouteWithChildren
+  "/wallets": typeof AppWalletsRouteRouteWithChildren
   "/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/actor/$id": typeof AppActorIdRoute
   "/machines/$id": typeof AppMachinesIdRoute
@@ -333,6 +359,9 @@ export interface FileRoutesByFullPath {
   "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
+  "/wallets/balance-manager": typeof AppWalletsBalanceManagerRoute
+  "/wallets/list": typeof AppWalletsListRoute
+  "/wallets/messages": typeof AppWalletsMessagesRoute
   "/actor/": typeof AppActorIndexRoute
   "/alerts/": typeof AppAlertsIndexRoute
   "/config/": typeof AppConfigIndexRoute
@@ -376,6 +405,9 @@ export interface FileRoutesByTo {
   "/tasks/analysis": typeof AppTasksAnalysisRoute
   "/tasks/history": typeof AppTasksHistoryRoute
   "/tasks/overview": typeof AppTasksOverviewRoute
+  "/wallets/balance-manager": typeof AppWalletsBalanceManagerRoute
+  "/wallets/list": typeof AppWalletsListRoute
+  "/wallets/messages": typeof AppWalletsMessagesRoute
   "/actor": typeof AppActorIndexRoute
   "/alerts": typeof AppAlertsIndexRoute
   "/config": typeof AppConfigIndexRoute
@@ -412,6 +444,7 @@ export interface FileRoutesById {
   "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
   "/_app/storage": typeof AppStorageRouteRouteWithChildren
   "/_app/tasks": typeof AppTasksRouteRouteWithChildren
+  "/_app/wallets": typeof AppWalletsRouteRouteWithChildren
   "/_app/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/_app/actor/$id": typeof AppActorIdRoute
   "/_app/machines/$id": typeof AppMachinesIdRoute
@@ -428,6 +461,9 @@ export interface FileRoutesById {
   "/_app/tasks/analysis": typeof AppTasksAnalysisRoute
   "/_app/tasks/history": typeof AppTasksHistoryRoute
   "/_app/tasks/overview": typeof AppTasksOverviewRoute
+  "/_app/wallets/balance-manager": typeof AppWalletsBalanceManagerRoute
+  "/_app/wallets/list": typeof AppWalletsListRoute
+  "/_app/wallets/messages": typeof AppWalletsMessagesRoute
   "/_app/actor/": typeof AppActorIndexRoute
   "/_app/alerts/": typeof AppAlertsIndexRoute
   "/_app/config/": typeof AppConfigIndexRoute
@@ -464,6 +500,7 @@ export interface FileRouteTypes {
     | "/sectors"
     | "/storage"
     | "/tasks"
+    | "/wallets"
     | "/storage/paths"
     | "/actor/$id"
     | "/machines/$id"
@@ -480,6 +517,9 @@ export interface FileRouteTypes {
     | "/tasks/analysis"
     | "/tasks/history"
     | "/tasks/overview"
+    | "/wallets/balance-manager"
+    | "/wallets/list"
+    | "/wallets/messages"
     | "/actor/"
     | "/alerts/"
     | "/config/"
@@ -523,6 +563,9 @@ export interface FileRouteTypes {
     | "/tasks/analysis"
     | "/tasks/history"
     | "/tasks/overview"
+    | "/wallets/balance-manager"
+    | "/wallets/list"
+    | "/wallets/messages"
     | "/actor"
     | "/alerts"
     | "/config"
@@ -558,6 +601,7 @@ export interface FileRouteTypes {
     | "/_app/sectors"
     | "/_app/storage"
     | "/_app/tasks"
+    | "/_app/wallets"
     | "/_app/storage/paths"
     | "/_app/actor/$id"
     | "/_app/machines/$id"
@@ -574,6 +618,9 @@ export interface FileRouteTypes {
     | "/_app/tasks/analysis"
     | "/_app/tasks/history"
     | "/_app/tasks/overview"
+    | "/_app/wallets/balance-manager"
+    | "/_app/wallets/list"
+    | "/_app/wallets/messages"
     | "/_app/actor/"
     | "/_app/alerts/"
     | "/_app/config/"
@@ -629,6 +676,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_app/wallets": {
+      id: "/_app/wallets"
+      path: "/wallets"
+      fullPath: "/wallets"
+      preLoaderRoute: typeof AppWalletsRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/tasks": {
       id: "/_app/tasks"
       path: "/tasks"
@@ -673,10 +727,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/wallets/": {
       id: "/_app/wallets/"
-      path: "/wallets"
+      path: "/"
       fullPath: "/wallets/"
       preLoaderRoute: typeof AppWalletsIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppWalletsRouteRoute
     }
     "/_app/tasks/": {
       id: "/_app/tasks/"
@@ -768,6 +822,27 @@ declare module "@tanstack/react-router" {
       fullPath: "/actor/"
       preLoaderRoute: typeof AppActorIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    "/_app/wallets/messages": {
+      id: "/_app/wallets/messages"
+      path: "/messages"
+      fullPath: "/wallets/messages"
+      preLoaderRoute: typeof AppWalletsMessagesRouteImport
+      parentRoute: typeof AppWalletsRouteRoute
+    }
+    "/_app/wallets/list": {
+      id: "/_app/wallets/list"
+      path: "/list"
+      fullPath: "/wallets/list"
+      preLoaderRoute: typeof AppWalletsListRouteImport
+      parentRoute: typeof AppWalletsRouteRoute
+    }
+    "/_app/wallets/balance-manager": {
+      id: "/_app/wallets/balance-manager"
+      path: "/balance-manager"
+      fullPath: "/wallets/balance-manager"
+      preLoaderRoute: typeof AppWalletsBalanceManagerRouteImport
+      parentRoute: typeof AppWalletsRouteRoute
     }
     "/_app/tasks/overview": {
       id: "/_app/tasks/overview"
@@ -1083,6 +1158,24 @@ const AppTasksRouteRouteWithChildren = AppTasksRouteRoute._addFileChildren(
   AppTasksRouteRouteChildren,
 )
 
+interface AppWalletsRouteRouteChildren {
+  AppWalletsBalanceManagerRoute: typeof AppWalletsBalanceManagerRoute
+  AppWalletsListRoute: typeof AppWalletsListRoute
+  AppWalletsMessagesRoute: typeof AppWalletsMessagesRoute
+  AppWalletsIndexRoute: typeof AppWalletsIndexRoute
+}
+
+const AppWalletsRouteRouteChildren: AppWalletsRouteRouteChildren = {
+  AppWalletsBalanceManagerRoute: AppWalletsBalanceManagerRoute,
+  AppWalletsListRoute: AppWalletsListRoute,
+  AppWalletsMessagesRoute: AppWalletsMessagesRoute,
+  AppWalletsIndexRoute: AppWalletsIndexRoute,
+}
+
+const AppWalletsRouteRouteWithChildren = AppWalletsRouteRoute._addFileChildren(
+  AppWalletsRouteRouteChildren,
+)
+
 interface AppRouteChildren {
   AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
@@ -1090,6 +1183,7 @@ interface AppRouteChildren {
   AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
   AppStorageRouteRoute: typeof AppStorageRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
+  AppWalletsRouteRoute: typeof AppWalletsRouteRouteWithChildren
   AppActorIdRoute: typeof AppActorIdRoute
   AppActorIndexRoute: typeof AppActorIndexRoute
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
@@ -1098,7 +1192,6 @@ interface AppRouteChildren {
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppProofShareIndexRoute: typeof AppProofShareIndexRoute
-  AppWalletsIndexRoute: typeof AppWalletsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1108,6 +1201,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
   AppStorageRouteRoute: AppStorageRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
+  AppWalletsRouteRoute: AppWalletsRouteRouteWithChildren,
   AppActorIdRoute: AppActorIdRoute,
   AppActorIndexRoute: AppActorIndexRoute,
   AppAlertsIndexRoute: AppAlertsIndexRoute,
@@ -1116,7 +1210,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
   AppProofShareIndexRoute: AppProofShareIndexRoute,
-  AppWalletsIndexRoute: AppWalletsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -4,15 +4,15 @@ import { useEffect, useState } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { WalletInfo } from "@/types/wallet";
+import type { WalletView } from "@/routes/_app/wallets/-module/types";
 
 interface WalletSummaryProps {
-  data: WalletInfo[];
+  data: WalletView[];
   loading: boolean;
 }
 
 export function WalletSummary({ data, loading }: WalletSummaryProps) {
-  const [stableData, setStableData] = useState<WalletInfo[]>(data);
+  const [stableData, setStableData] = useState<WalletView[]>(data);
 
   useEffect(() => {
     if (data.length > 0 || !loading) {
@@ -44,8 +44,11 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
 
   // Sort by balance descending
   const sorted = [...displayData].sort((a, b) => {
-    const balA = Number.parseFloat(a.Balance || "0");
-    const balB = Number.parseFloat(b.Balance || "0");
+    const balA = getWalletBalanceValue(a);
+    const balB = getWalletBalanceValue(b);
+    if (balA == null && balB == null) return 0;
+    if (balA == null) return 1;
+    if (balB == null) return -1;
     return balB - balA;
   });
 
@@ -64,12 +67,13 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
     >
       <div className="space-y-1.5">
         {sorted.slice(0, 6).map((wallet) => {
-          const balance = Number.parseFloat(wallet.Balance || "0");
-          const isLow = balance < 1 && balance >= 0;
+          const balance = getWalletBalanceValue(wallet);
+          const isPendingBalance = balance == null;
+          const isLow = balance != null && balance < 1 && balance >= 0;
 
           return (
             <div
-              key={wallet.Address}
+              key={wallet.address}
               className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -80,11 +84,11 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
                   />
                 )}
                 <span className="truncate font-mono text-xs">
-                  {wallet.Name || truncateAddress(wallet.Address)}
+                  {wallet.name || truncateAddress(wallet.address)}
                 </span>
-                {wallet.Name && (
+                {wallet.name && (
                   <span className="hidden truncate text-xs text-muted-foreground sm:inline">
-                    {truncateAddress(wallet.Address)}
+                    {truncateAddress(wallet.address)}
                   </span>
                 )}
               </div>
@@ -94,7 +98,7 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
                   isLow ? "text-warning" : "text-foreground",
                 )}
               >
-                {formatFILCompact(balance)}
+                {isPendingBalance ? "—" : formatFILCompact(balance)}
               </span>
             </div>
           );
@@ -107,6 +111,15 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
       </div>
     </SectionCard>
   );
+}
+
+function getWalletBalanceValue(wallet: WalletView): number | null {
+  if (wallet.isLoadingBalance || wallet.balance == null) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(wallet.balance);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 function truncateAddress(addr: string): string {
