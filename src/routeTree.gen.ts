@@ -19,6 +19,7 @@ import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppMachinesRouteRouteImport } from "./routes/_app/machines/route"
+import { Route as AppIpniRouteRouteImport } from "./routes/_app/ipni/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
 import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
@@ -50,6 +51,8 @@ import { Route as AppMarketPendingRouteImport } from "./routes/_app/market/pendi
 import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balance"
 import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
+import { Route as AppIpniSearchRouteImport } from "./routes/_app/ipni/search"
+import { Route as AppIpniProvidersRouteImport } from "./routes/_app/ipni/providers"
 import { Route as AppActorIdRouteImport } from "./routes/_app/actor/$id"
 import { Route as AppStoragePathsRouteRouteImport } from "./routes/_app/storage/paths/route"
 import { Route as AppStoragePathsIndexRouteImport } from "./routes/_app/storage/paths/index"
@@ -112,6 +115,11 @@ const AppMachinesRouteRoute = AppMachinesRouteRouteImport.update({
   path: "/machines",
   getParentRoute: () => AppRoute,
 } as any)
+const AppIpniRouteRoute = AppIpniRouteRouteImport.update({
+  id: "/ipni",
+  path: "/ipni",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWalletsIndexRoute = AppWalletsIndexRouteImport.update({
   id: "/",
   path: "/",
@@ -163,9 +171,9 @@ const AppMachinesIndexRoute = AppMachinesIndexRouteImport.update({
   getParentRoute: () => AppMachinesRouteRoute,
 } as any)
 const AppIpniIndexRoute = AppIpniIndexRouteImport.update({
-  id: "/ipni/",
-  path: "/ipni/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppIpniRouteRoute,
 } as any)
 const AppConfigIndexRoute = AppConfigIndexRouteImport.update({
   id: "/config/",
@@ -268,6 +276,16 @@ const AppMachinesIdRoute = AppMachinesIdRouteImport.update({
   path: "/$id",
   getParentRoute: () => AppMachinesRouteRoute,
 } as any)
+const AppIpniSearchRoute = AppIpniSearchRouteImport.update({
+  id: "/search",
+  path: "/search",
+  getParentRoute: () => AppIpniRouteRoute,
+} as any)
+const AppIpniProvidersRoute = AppIpniProvidersRouteImport.update({
+  id: "/providers",
+  path: "/providers",
+  getParentRoute: () => AppIpniRouteRoute,
+} as any)
 const AppActorIdRoute = AppActorIdRouteImport.update({
   id: "/actor/$id",
   path: "/actor/$id",
@@ -336,6 +354,7 @@ const AppMarketMk12DealIdRoute = AppMarketMk12DealIdRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
+  "/ipni": typeof AppIpniRouteRouteWithChildren
   "/machines": typeof AppMachinesRouteRouteWithChildren
   "/market": typeof AppMarketRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
@@ -345,6 +364,8 @@ export interface FileRoutesByFullPath {
   "/wallets": typeof AppWalletsRouteRouteWithChildren
   "/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/actor/$id": typeof AppActorIdRoute
+  "/ipni/providers": typeof AppIpniProvidersRoute
+  "/ipni/search": typeof AppIpniSearchRoute
   "/machines/$id": typeof AppMachinesIdRoute
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
@@ -391,6 +412,8 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
   "/actor/$id": typeof AppActorIdRoute
+  "/ipni/providers": typeof AppIpniProvidersRoute
+  "/ipni/search": typeof AppIpniSearchRoute
   "/machines/$id": typeof AppMachinesIdRoute
   "/market/asks": typeof AppMarketAsksRoute
   "/market/balance": typeof AppMarketBalanceRoute
@@ -438,6 +461,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_app": typeof AppRouteWithChildren
   "/setup": typeof SetupRoute
+  "/_app/ipni": typeof AppIpniRouteRouteWithChildren
   "/_app/machines": typeof AppMachinesRouteRouteWithChildren
   "/_app/market": typeof AppMarketRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
@@ -447,6 +471,8 @@ export interface FileRoutesById {
   "/_app/wallets": typeof AppWalletsRouteRouteWithChildren
   "/_app/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/_app/actor/$id": typeof AppActorIdRoute
+  "/_app/ipni/providers": typeof AppIpniProvidersRoute
+  "/_app/ipni/search": typeof AppIpniSearchRoute
   "/_app/machines/$id": typeof AppMachinesIdRoute
   "/_app/market/asks": typeof AppMarketAsksRoute
   "/_app/market/balance": typeof AppMarketBalanceRoute
@@ -494,6 +520,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/setup"
+    | "/ipni"
     | "/machines"
     | "/market"
     | "/pipeline"
@@ -503,6 +530,8 @@ export interface FileRouteTypes {
     | "/wallets"
     | "/storage/paths"
     | "/actor/$id"
+    | "/ipni/providers"
+    | "/ipni/search"
     | "/machines/$id"
     | "/market/asks"
     | "/market/balance"
@@ -549,6 +578,8 @@ export interface FileRouteTypes {
     | "/"
     | "/setup"
     | "/actor/$id"
+    | "/ipni/providers"
+    | "/ipni/search"
     | "/machines/$id"
     | "/market/asks"
     | "/market/balance"
@@ -595,6 +626,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_app"
     | "/setup"
+    | "/_app/ipni"
     | "/_app/machines"
     | "/_app/market"
     | "/_app/pipeline"
@@ -604,6 +636,8 @@ export interface FileRouteTypes {
     | "/_app/wallets"
     | "/_app/storage/paths"
     | "/_app/actor/$id"
+    | "/_app/ipni/providers"
+    | "/_app/ipni/search"
     | "/_app/machines/$id"
     | "/_app/market/asks"
     | "/_app/market/balance"
@@ -725,6 +759,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppMachinesRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/ipni": {
+      id: "/_app/ipni"
+      path: "/ipni"
+      fullPath: "/ipni"
+      preLoaderRoute: typeof AppIpniRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/wallets/": {
       id: "/_app/wallets/"
       path: "/"
@@ -797,10 +838,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/ipni/": {
       id: "/_app/ipni/"
-      path: "/ipni"
+      path: "/"
       fullPath: "/ipni/"
       preLoaderRoute: typeof AppIpniIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppIpniRouteRoute
     }
     "/_app/config/": {
       id: "/_app/config/"
@@ -942,6 +983,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppMachinesIdRouteImport
       parentRoute: typeof AppMachinesRouteRoute
     }
+    "/_app/ipni/search": {
+      id: "/_app/ipni/search"
+      path: "/search"
+      fullPath: "/ipni/search"
+      preLoaderRoute: typeof AppIpniSearchRouteImport
+      parentRoute: typeof AppIpniRouteRoute
+    }
+    "/_app/ipni/providers": {
+      id: "/_app/ipni/providers"
+      path: "/providers"
+      fullPath: "/ipni/providers"
+      preLoaderRoute: typeof AppIpniProvidersRouteImport
+      parentRoute: typeof AppIpniRouteRoute
+    }
     "/_app/actor/$id": {
       id: "/_app/actor/$id"
       path: "/actor/$id"
@@ -1028,6 +1083,22 @@ declare module "@tanstack/react-router" {
     }
   }
 }
+
+interface AppIpniRouteRouteChildren {
+  AppIpniProvidersRoute: typeof AppIpniProvidersRoute
+  AppIpniSearchRoute: typeof AppIpniSearchRoute
+  AppIpniIndexRoute: typeof AppIpniIndexRoute
+}
+
+const AppIpniRouteRouteChildren: AppIpniRouteRouteChildren = {
+  AppIpniProvidersRoute: AppIpniProvidersRoute,
+  AppIpniSearchRoute: AppIpniSearchRoute,
+  AppIpniIndexRoute: AppIpniIndexRoute,
+}
+
+const AppIpniRouteRouteWithChildren = AppIpniRouteRoute._addFileChildren(
+  AppIpniRouteRouteChildren,
+)
 
 interface AppMachinesRouteRouteChildren {
   AppMachinesIdRoute: typeof AppMachinesIdRoute
@@ -1177,6 +1248,7 @@ const AppWalletsRouteRouteWithChildren = AppWalletsRouteRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppIpniRouteRoute: typeof AppIpniRouteRouteWithChildren
   AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
@@ -1188,13 +1260,13 @@ interface AppRouteChildren {
   AppActorIndexRoute: typeof AppActorIndexRoute
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppConfigIndexRoute: typeof AppConfigIndexRoute
-  AppIpniIndexRoute: typeof AppIpniIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
   AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppProofShareIndexRoute: typeof AppProofShareIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppIpniRouteRoute: AppIpniRouteRouteWithChildren,
   AppMachinesRouteRoute: AppMachinesRouteRouteWithChildren,
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
@@ -1206,7 +1278,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppActorIndexRoute: AppActorIndexRoute,
   AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppConfigIndexRoute: AppConfigIndexRoute,
-  AppIpniIndexRoute: AppIpniIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
   AppPdpIndexRoute: AppPdpIndexRoute,
   AppProofShareIndexRoute: AppProofShareIndexRoute,

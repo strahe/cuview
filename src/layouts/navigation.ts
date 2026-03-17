@@ -104,7 +104,8 @@ export const navigationGroups: NavigationGroup[] = [
       {
         label: "IPNI",
         icon: Globe,
-        to: "/ipni",
+        to: "/ipni/providers",
+        activePattern: "^/ipni",
         keywords: ["ipni", "indexer", "retrieval"],
       },
       {
