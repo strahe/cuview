@@ -17,6 +17,7 @@ import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
 import { Route as AppStorageRouteRouteImport } from "./routes/_app/storage/route"
 import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
+import { Route as AppPdpRouteRouteImport } from "./routes/_app/pdp/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppMachinesRouteRouteImport } from "./routes/_app/machines/route"
 import { Route as AppIpniRouteRouteImport } from "./routes/_app/ipni/route"
@@ -46,6 +47,9 @@ import { Route as AppStorageGcRouteImport } from "./routes/_app/storage/gc"
 import { Route as AppPipelineStatsRouteImport } from "./routes/_app/pipeline/stats"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
+import { Route as AppPdpPipelinesRouteImport } from "./routes/_app/pdp/pipelines"
+import { Route as AppPdpOverviewRouteImport } from "./routes/_app/pdp/overview"
+import { Route as AppPdpDealsRouteImport } from "./routes/_app/pdp/deals"
 import { Route as AppMarketPiecesRouteImport } from "./routes/_app/market/pieces"
 import { Route as AppMarketPendingRouteImport } from "./routes/_app/market/pending"
 import { Route as AppMarketBalanceRouteImport } from "./routes/_app/market/balance"
@@ -105,6 +109,11 @@ const AppPipelineRouteRoute = AppPipelineRouteRouteImport.update({
   path: "/pipeline",
   getParentRoute: () => AppRoute,
 } as any)
+const AppPdpRouteRoute = AppPdpRouteRouteImport.update({
+  id: "/pdp",
+  path: "/pdp",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMarketRouteRoute = AppMarketRouteRouteImport.update({
   id: "/market",
   path: "/market",
@@ -151,9 +160,9 @@ const AppPipelineIndexRoute = AppPipelineIndexRouteImport.update({
   getParentRoute: () => AppPipelineRouteRoute,
 } as any)
 const AppPdpIndexRoute = AppPdpIndexRouteImport.update({
-  id: "/pdp/",
-  path: "/pdp/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppPdpRouteRoute,
 } as any)
 const AppOverviewIndexRoute = AppOverviewIndexRouteImport.update({
   id: "/overview/",
@@ -250,6 +259,21 @@ const AppPipelinePorepRoute = AppPipelinePorepRouteImport.update({
   id: "/porep",
   path: "/porep",
   getParentRoute: () => AppPipelineRouteRoute,
+} as any)
+const AppPdpPipelinesRoute = AppPdpPipelinesRouteImport.update({
+  id: "/pipelines",
+  path: "/pipelines",
+  getParentRoute: () => AppPdpRouteRoute,
+} as any)
+const AppPdpOverviewRoute = AppPdpOverviewRouteImport.update({
+  id: "/overview",
+  path: "/overview",
+  getParentRoute: () => AppPdpRouteRoute,
+} as any)
+const AppPdpDealsRoute = AppPdpDealsRouteImport.update({
+  id: "/deals",
+  path: "/deals",
+  getParentRoute: () => AppPdpRouteRoute,
 } as any)
 const AppMarketPiecesRoute = AppMarketPiecesRouteImport.update({
   id: "/pieces",
@@ -357,6 +381,7 @@ export interface FileRoutesByFullPath {
   "/ipni": typeof AppIpniRouteRouteWithChildren
   "/machines": typeof AppMachinesRouteRouteWithChildren
   "/market": typeof AppMarketRouteRouteWithChildren
+  "/pdp": typeof AppPdpRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/sectors": typeof AppSectorsRouteRouteWithChildren
   "/storage": typeof AppStorageRouteRouteWithChildren
@@ -371,6 +396,9 @@ export interface FileRoutesByFullPath {
   "/market/balance": typeof AppMarketBalanceRoute
   "/market/pending": typeof AppMarketPendingRoute
   "/market/pieces": typeof AppMarketPiecesRoute
+  "/pdp/deals": typeof AppPdpDealsRoute
+  "/pdp/overview": typeof AppPdpOverviewRoute
+  "/pdp/pipelines": typeof AppPdpPipelinesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
@@ -419,6 +447,9 @@ export interface FileRoutesByTo {
   "/market/balance": typeof AppMarketBalanceRoute
   "/market/pending": typeof AppMarketPendingRoute
   "/market/pieces": typeof AppMarketPiecesRoute
+  "/pdp/deals": typeof AppPdpDealsRoute
+  "/pdp/overview": typeof AppPdpOverviewRoute
+  "/pdp/pipelines": typeof AppPdpPipelinesRoute
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
@@ -464,6 +495,7 @@ export interface FileRoutesById {
   "/_app/ipni": typeof AppIpniRouteRouteWithChildren
   "/_app/machines": typeof AppMachinesRouteRouteWithChildren
   "/_app/market": typeof AppMarketRouteRouteWithChildren
+  "/_app/pdp": typeof AppPdpRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
   "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
   "/_app/storage": typeof AppStorageRouteRouteWithChildren
@@ -478,6 +510,9 @@ export interface FileRoutesById {
   "/_app/market/balance": typeof AppMarketBalanceRoute
   "/_app/market/pending": typeof AppMarketPendingRoute
   "/_app/market/pieces": typeof AppMarketPiecesRoute
+  "/_app/pdp/deals": typeof AppPdpDealsRoute
+  "/_app/pdp/overview": typeof AppPdpOverviewRoute
+  "/_app/pdp/pipelines": typeof AppPdpPipelinesRoute
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/pipeline/stats": typeof AppPipelineStatsRoute
@@ -523,6 +558,7 @@ export interface FileRouteTypes {
     | "/ipni"
     | "/machines"
     | "/market"
+    | "/pdp"
     | "/pipeline"
     | "/sectors"
     | "/storage"
@@ -537,6 +573,9 @@ export interface FileRouteTypes {
     | "/market/balance"
     | "/market/pending"
     | "/market/pieces"
+    | "/pdp/deals"
+    | "/pdp/overview"
+    | "/pdp/pipelines"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
@@ -585,6 +624,9 @@ export interface FileRouteTypes {
     | "/market/balance"
     | "/market/pending"
     | "/market/pieces"
+    | "/pdp/deals"
+    | "/pdp/overview"
+    | "/pdp/pipelines"
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
@@ -629,6 +671,7 @@ export interface FileRouteTypes {
     | "/_app/ipni"
     | "/_app/machines"
     | "/_app/market"
+    | "/_app/pdp"
     | "/_app/pipeline"
     | "/_app/sectors"
     | "/_app/storage"
@@ -643,6 +686,9 @@ export interface FileRouteTypes {
     | "/_app/market/balance"
     | "/_app/market/pending"
     | "/_app/market/pieces"
+    | "/_app/pdp/deals"
+    | "/_app/pdp/overview"
+    | "/_app/pdp/pipelines"
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
     | "/_app/pipeline/stats"
@@ -745,6 +791,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppPipelineRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/pdp": {
+      id: "/_app/pdp"
+      path: "/pdp"
+      fullPath: "/pdp"
+      preLoaderRoute: typeof AppPdpRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/market": {
       id: "/_app/market"
       path: "/market"
@@ -810,10 +863,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/pdp/": {
       id: "/_app/pdp/"
-      path: "/pdp"
+      path: "/"
       fullPath: "/pdp/"
       preLoaderRoute: typeof AppPdpIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppPdpRouteRoute
     }
     "/_app/overview/": {
       id: "/_app/overview/"
@@ -947,6 +1000,27 @@ declare module "@tanstack/react-router" {
       fullPath: "/pipeline/porep"
       preLoaderRoute: typeof AppPipelinePorepRouteImport
       parentRoute: typeof AppPipelineRouteRoute
+    }
+    "/_app/pdp/pipelines": {
+      id: "/_app/pdp/pipelines"
+      path: "/pipelines"
+      fullPath: "/pdp/pipelines"
+      preLoaderRoute: typeof AppPdpPipelinesRouteImport
+      parentRoute: typeof AppPdpRouteRoute
+    }
+    "/_app/pdp/overview": {
+      id: "/_app/pdp/overview"
+      path: "/overview"
+      fullPath: "/pdp/overview"
+      preLoaderRoute: typeof AppPdpOverviewRouteImport
+      parentRoute: typeof AppPdpRouteRoute
+    }
+    "/_app/pdp/deals": {
+      id: "/_app/pdp/deals"
+      path: "/deals"
+      fullPath: "/pdp/deals"
+      preLoaderRoute: typeof AppPdpDealsRouteImport
+      parentRoute: typeof AppPdpRouteRoute
     }
     "/_app/market/pieces": {
       id: "/_app/market/pieces"
@@ -1143,6 +1217,24 @@ const AppMarketRouteRouteWithChildren = AppMarketRouteRoute._addFileChildren(
   AppMarketRouteRouteChildren,
 )
 
+interface AppPdpRouteRouteChildren {
+  AppPdpDealsRoute: typeof AppPdpDealsRoute
+  AppPdpOverviewRoute: typeof AppPdpOverviewRoute
+  AppPdpPipelinesRoute: typeof AppPdpPipelinesRoute
+  AppPdpIndexRoute: typeof AppPdpIndexRoute
+}
+
+const AppPdpRouteRouteChildren: AppPdpRouteRouteChildren = {
+  AppPdpDealsRoute: AppPdpDealsRoute,
+  AppPdpOverviewRoute: AppPdpOverviewRoute,
+  AppPdpPipelinesRoute: AppPdpPipelinesRoute,
+  AppPdpIndexRoute: AppPdpIndexRoute,
+}
+
+const AppPdpRouteRouteWithChildren = AppPdpRouteRoute._addFileChildren(
+  AppPdpRouteRouteChildren,
+)
+
 interface AppPipelineRouteRouteChildren {
   AppPipelinePorepRoute: typeof AppPipelinePorepRoute
   AppPipelineSnapRoute: typeof AppPipelineSnapRoute
@@ -1251,6 +1343,7 @@ interface AppRouteChildren {
   AppIpniRouteRoute: typeof AppIpniRouteRouteWithChildren
   AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
+  AppPdpRouteRoute: typeof AppPdpRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
   AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
   AppStorageRouteRoute: typeof AppStorageRouteRouteWithChildren
@@ -1261,7 +1354,6 @@ interface AppRouteChildren {
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppConfigIndexRoute: typeof AppConfigIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
-  AppPdpIndexRoute: typeof AppPdpIndexRoute
   AppProofShareIndexRoute: typeof AppProofShareIndexRoute
 }
 
@@ -1269,6 +1361,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIpniRouteRoute: AppIpniRouteRouteWithChildren,
   AppMachinesRouteRoute: AppMachinesRouteRouteWithChildren,
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
+  AppPdpRouteRoute: AppPdpRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
   AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
   AppStorageRouteRoute: AppStorageRouteRouteWithChildren,
@@ -1279,7 +1372,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppConfigIndexRoute: AppConfigIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
-  AppPdpIndexRoute: AppPdpIndexRoute,
   AppProofShareIndexRoute: AppProofShareIndexRoute,
 }
 

@@ -1,46 +1,7 @@
-import type {
-  SqlNullableBool,
-  SqlNullableNumber,
-  SqlNullableString,
-  SqlNullableTime,
-} from "@/types/sql";
+import type { SqlNullableNumber, SqlNullableString } from "@/types/sql";
 
-// ---------------------------------------------------------------------------
-// Shared nullable extraction helpers for Curio RPC types
-// ---------------------------------------------------------------------------
-
-type SqlNullable =
-  | SqlNullableString
-  | SqlNullableNumber
-  | SqlNullableBool
-  | SqlNullableTime;
-
-/**
- * Extract the underlying value from a Go `sql.Null*`-shaped JSON object.
- * Returns `null` when the wrapper is absent, `Valid` is false, or the value
- * itself is nullish.  Primitives pass through as-is.
- */
-export function extractNullable(
-  val:
-    | SqlNullable
-    | { Valid: boolean; [key: string]: unknown }
-    | string
-    | number
-    | boolean
-    | null
-    | undefined,
-): string | null {
-  if (val == null) return null;
-  if (typeof val !== "object") return String(val);
-  if (!val.Valid) return null;
-  if ("String" in val) return (val as SqlNullableString).String;
-  if ("Int64" in val) return String((val as SqlNullableNumber).Int64);
-  if ("Bool" in val) return String((val as SqlNullableBool).Bool);
-  if ("Time" in val) return (val as SqlNullableTime).Time;
-  // Fallback for unknown SqlNullable-shaped objects
-  const keys = Object.keys(val).filter((k) => k !== "Valid");
-  return keys.length > 0 ? String(val[keys[0]!]) : null;
-}
+// Re-export shared nullable extraction helper from canonical location
+export { extractNullable } from "@/utils/sql";
 
 // Types for inline data that comes from RPC but isn't in src/types/market.ts
 

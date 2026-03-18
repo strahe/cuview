@@ -19,6 +19,7 @@ export function useCurioRpc<T>(
     refetchInterval?: number | false;
     enabled?: boolean;
     staleTime?: number;
+    placeholderData?: UseQueryOptions<T>["placeholderData"];
   },
 ) {
   const api = useCurioApi();
@@ -30,6 +31,7 @@ export function useCurioRpc<T>(
     refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
     enabled: options?.enabled,
     staleTime: options?.staleTime,
+    placeholderData: options?.placeholderData,
   });
 }
 

@@ -1,26 +1,3 @@
-export interface PdpService {
-  id: number;
-  name: string;
-  pubkey: string;
-}
-
-export interface PdpServicePayload {
-  name: string;
-  publicKey: string;
-}
-
-export interface PdpKeyPayload {
-  privateKey: string;
-}
-
-export type PdpFailedTaskType =
-  | "downloading"
-  | "commp"
-  | "aggregate"
-  | "add_piece"
-  | "save_cache"
-  | "index";
-
 export interface PdpPipeline {
   id: string;
   client: string;
@@ -48,11 +25,10 @@ export interface PdpPipeline {
   miner: string;
 }
 
-export interface PdpPipelineFailedStats {
-  DownloadingFailed: number;
-  CommPFailed: number;
-  AggFailed: number;
-  AddPieceFailed: number;
-  SaveCacheFailed: number;
-  IndexFailed: number;
-}
+export type PdpFailedTaskType =
+  | "downloading"
+  | "commp"
+  | "aggregate"
+  | "add_piece"
+  | "save_cache"
+  | "index";
