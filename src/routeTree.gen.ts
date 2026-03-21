@@ -16,6 +16,7 @@ import { Route as AppWalletsRouteRouteImport } from "./routes/_app/wallets/route
 import { Route as AppTasksRouteRouteImport } from "./routes/_app/tasks/route"
 import { Route as AppStorageRouteRouteImport } from "./routes/_app/storage/route"
 import { Route as AppSectorsRouteRouteImport } from "./routes/_app/sectors/route"
+import { Route as AppProofShareRouteRouteImport } from "./routes/_app/proof-share/route"
 import { Route as AppPipelineRouteRouteImport } from "./routes/_app/pipeline/route"
 import { Route as AppPdpRouteRouteImport } from "./routes/_app/pdp/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
@@ -44,6 +45,8 @@ import { Route as AppTasksAnalysisRouteImport } from "./routes/_app/tasks/analys
 import { Route as AppTasksActiveRouteImport } from "./routes/_app/tasks/active"
 import { Route as AppStorageUsageRouteImport } from "./routes/_app/storage/usage"
 import { Route as AppStorageGcRouteImport } from "./routes/_app/storage/gc"
+import { Route as AppProofShareProviderRouteImport } from "./routes/_app/proof-share/provider"
+import { Route as AppProofShareClientRouteImport } from "./routes/_app/proof-share/client"
 import { Route as AppPipelineStatsRouteImport } from "./routes/_app/pipeline/stats"
 import { Route as AppPipelineSnapRouteImport } from "./routes/_app/pipeline/snap"
 import { Route as AppPipelinePorepRouteImport } from "./routes/_app/pipeline/porep"
@@ -104,6 +107,11 @@ const AppSectorsRouteRoute = AppSectorsRouteRouteImport.update({
   path: "/sectors",
   getParentRoute: () => AppRoute,
 } as any)
+const AppProofShareRouteRoute = AppProofShareRouteRouteImport.update({
+  id: "/proof-share",
+  path: "/proof-share",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPipelineRouteRoute = AppPipelineRouteRouteImport.update({
   id: "/pipeline",
   path: "/pipeline",
@@ -150,9 +158,9 @@ const AppSectorsIndexRoute = AppSectorsIndexRouteImport.update({
   getParentRoute: () => AppSectorsRouteRoute,
 } as any)
 const AppProofShareIndexRoute = AppProofShareIndexRouteImport.update({
-  id: "/proof-share/",
-  path: "/proof-share/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppProofShareRouteRoute,
 } as any)
 const AppPipelineIndexRoute = AppPipelineIndexRouteImport.update({
   id: "/",
@@ -244,6 +252,16 @@ const AppStorageGcRoute = AppStorageGcRouteImport.update({
   id: "/gc",
   path: "/gc",
   getParentRoute: () => AppStorageRouteRoute,
+} as any)
+const AppProofShareProviderRoute = AppProofShareProviderRouteImport.update({
+  id: "/provider",
+  path: "/provider",
+  getParentRoute: () => AppProofShareRouteRoute,
+} as any)
+const AppProofShareClientRoute = AppProofShareClientRouteImport.update({
+  id: "/client",
+  path: "/client",
+  getParentRoute: () => AppProofShareRouteRoute,
 } as any)
 const AppPipelineStatsRoute = AppPipelineStatsRouteImport.update({
   id: "/stats",
@@ -383,6 +401,7 @@ export interface FileRoutesByFullPath {
   "/market": typeof AppMarketRouteRouteWithChildren
   "/pdp": typeof AppPdpRouteRouteWithChildren
   "/pipeline": typeof AppPipelineRouteRouteWithChildren
+  "/proof-share": typeof AppProofShareRouteRouteWithChildren
   "/sectors": typeof AppSectorsRouteRouteWithChildren
   "/storage": typeof AppStorageRouteRouteWithChildren
   "/tasks": typeof AppTasksRouteRouteWithChildren
@@ -402,6 +421,8 @@ export interface FileRoutesByFullPath {
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
+  "/proof-share/client": typeof AppProofShareClientRoute
+  "/proof-share/provider": typeof AppProofShareProviderRoute
   "/storage/gc": typeof AppStorageGcRoute
   "/storage/usage": typeof AppStorageUsageRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -453,6 +474,8 @@ export interface FileRoutesByTo {
   "/pipeline/porep": typeof AppPipelinePorepRoute
   "/pipeline/snap": typeof AppPipelineSnapRoute
   "/pipeline/stats": typeof AppPipelineStatsRoute
+  "/proof-share/client": typeof AppProofShareClientRoute
+  "/proof-share/provider": typeof AppProofShareProviderRoute
   "/storage/gc": typeof AppStorageGcRoute
   "/storage/usage": typeof AppStorageUsageRoute
   "/tasks/active": typeof AppTasksActiveRoute
@@ -497,6 +520,7 @@ export interface FileRoutesById {
   "/_app/market": typeof AppMarketRouteRouteWithChildren
   "/_app/pdp": typeof AppPdpRouteRouteWithChildren
   "/_app/pipeline": typeof AppPipelineRouteRouteWithChildren
+  "/_app/proof-share": typeof AppProofShareRouteRouteWithChildren
   "/_app/sectors": typeof AppSectorsRouteRouteWithChildren
   "/_app/storage": typeof AppStorageRouteRouteWithChildren
   "/_app/tasks": typeof AppTasksRouteRouteWithChildren
@@ -516,6 +540,8 @@ export interface FileRoutesById {
   "/_app/pipeline/porep": typeof AppPipelinePorepRoute
   "/_app/pipeline/snap": typeof AppPipelineSnapRoute
   "/_app/pipeline/stats": typeof AppPipelineStatsRoute
+  "/_app/proof-share/client": typeof AppProofShareClientRoute
+  "/_app/proof-share/provider": typeof AppProofShareProviderRoute
   "/_app/storage/gc": typeof AppStorageGcRoute
   "/_app/storage/usage": typeof AppStorageUsageRoute
   "/_app/tasks/active": typeof AppTasksActiveRoute
@@ -560,6 +586,7 @@ export interface FileRouteTypes {
     | "/market"
     | "/pdp"
     | "/pipeline"
+    | "/proof-share"
     | "/sectors"
     | "/storage"
     | "/tasks"
@@ -579,6 +606,8 @@ export interface FileRouteTypes {
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
+    | "/proof-share/client"
+    | "/proof-share/provider"
     | "/storage/gc"
     | "/storage/usage"
     | "/tasks/active"
@@ -630,6 +659,8 @@ export interface FileRouteTypes {
     | "/pipeline/porep"
     | "/pipeline/snap"
     | "/pipeline/stats"
+    | "/proof-share/client"
+    | "/proof-share/provider"
     | "/storage/gc"
     | "/storage/usage"
     | "/tasks/active"
@@ -673,6 +704,7 @@ export interface FileRouteTypes {
     | "/_app/market"
     | "/_app/pdp"
     | "/_app/pipeline"
+    | "/_app/proof-share"
     | "/_app/sectors"
     | "/_app/storage"
     | "/_app/tasks"
@@ -692,6 +724,8 @@ export interface FileRouteTypes {
     | "/_app/pipeline/porep"
     | "/_app/pipeline/snap"
     | "/_app/pipeline/stats"
+    | "/_app/proof-share/client"
+    | "/_app/proof-share/provider"
     | "/_app/storage/gc"
     | "/_app/storage/usage"
     | "/_app/tasks/active"
@@ -784,6 +818,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppSectorsRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/proof-share": {
+      id: "/_app/proof-share"
+      path: "/proof-share"
+      fullPath: "/proof-share"
+      preLoaderRoute: typeof AppProofShareRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/pipeline": {
       id: "/_app/pipeline"
       path: "/pipeline"
@@ -849,10 +890,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/proof-share/": {
       id: "/_app/proof-share/"
-      path: "/proof-share"
+      path: "/"
       fullPath: "/proof-share/"
       preLoaderRoute: typeof AppProofShareIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppProofShareRouteRoute
     }
     "/_app/pipeline/": {
       id: "/_app/pipeline/"
@@ -979,6 +1020,20 @@ declare module "@tanstack/react-router" {
       fullPath: "/storage/gc"
       preLoaderRoute: typeof AppStorageGcRouteImport
       parentRoute: typeof AppStorageRouteRoute
+    }
+    "/_app/proof-share/provider": {
+      id: "/_app/proof-share/provider"
+      path: "/provider"
+      fullPath: "/proof-share/provider"
+      preLoaderRoute: typeof AppProofShareProviderRouteImport
+      parentRoute: typeof AppProofShareRouteRoute
+    }
+    "/_app/proof-share/client": {
+      id: "/_app/proof-share/client"
+      path: "/client"
+      fullPath: "/proof-share/client"
+      preLoaderRoute: typeof AppProofShareClientRouteImport
+      parentRoute: typeof AppProofShareRouteRoute
     }
     "/_app/pipeline/stats": {
       id: "/_app/pipeline/stats"
@@ -1252,6 +1307,21 @@ const AppPipelineRouteRouteChildren: AppPipelineRouteRouteChildren = {
 const AppPipelineRouteRouteWithChildren =
   AppPipelineRouteRoute._addFileChildren(AppPipelineRouteRouteChildren)
 
+interface AppProofShareRouteRouteChildren {
+  AppProofShareClientRoute: typeof AppProofShareClientRoute
+  AppProofShareProviderRoute: typeof AppProofShareProviderRoute
+  AppProofShareIndexRoute: typeof AppProofShareIndexRoute
+}
+
+const AppProofShareRouteRouteChildren: AppProofShareRouteRouteChildren = {
+  AppProofShareClientRoute: AppProofShareClientRoute,
+  AppProofShareProviderRoute: AppProofShareProviderRoute,
+  AppProofShareIndexRoute: AppProofShareIndexRoute,
+}
+
+const AppProofShareRouteRouteWithChildren =
+  AppProofShareRouteRoute._addFileChildren(AppProofShareRouteRouteChildren)
+
 interface AppSectorsRouteRouteChildren {
   AppSectorsIndexRoute: typeof AppSectorsIndexRoute
   AppSectorsCcSchedulerIndexRoute: typeof AppSectorsCcSchedulerIndexRoute
@@ -1345,6 +1415,7 @@ interface AppRouteChildren {
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
   AppPdpRouteRoute: typeof AppPdpRouteRouteWithChildren
   AppPipelineRouteRoute: typeof AppPipelineRouteRouteWithChildren
+  AppProofShareRouteRoute: typeof AppProofShareRouteRouteWithChildren
   AppSectorsRouteRoute: typeof AppSectorsRouteRouteWithChildren
   AppStorageRouteRoute: typeof AppStorageRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
@@ -1354,7 +1425,6 @@ interface AppRouteChildren {
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppConfigIndexRoute: typeof AppConfigIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
-  AppProofShareIndexRoute: typeof AppProofShareIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1363,6 +1433,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
   AppPdpRouteRoute: AppPdpRouteRouteWithChildren,
   AppPipelineRouteRoute: AppPipelineRouteRouteWithChildren,
+  AppProofShareRouteRoute: AppProofShareRouteRouteWithChildren,
   AppSectorsRouteRoute: AppSectorsRouteRouteWithChildren,
   AppStorageRouteRoute: AppStorageRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
@@ -1372,7 +1443,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppConfigIndexRoute: AppConfigIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
-  AppProofShareIndexRoute: AppProofShareIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
