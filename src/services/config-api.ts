@@ -48,7 +48,9 @@ export async function fetchConfigSchema(
   const response = await api.restGet<unknown>("/api/config/schema", {
     signal,
   });
-  return normalizeConfigSchemaResponse(response);
+  const schema = normalizeConfigSchemaResponse(response);
+  if (!schema) return null;
+  return sanitizeSchemaPatterns(schema) as ConfigSchemaDocument;
 }
 
 export async function fetchConfigLayer(
@@ -85,6 +87,15 @@ export interface ConfigHistoryEntry {
   content: string;
 }
 
+/** Detail response from GET /api/config/history/{layer}/{id} */
+export interface ConfigHistoryEntryDetail {
+  id: number;
+  title: string;
+  old_config: string;
+  new_config: string;
+  changed_at: string;
+}
+
 export async function fetchConfigHistory(
   api: CurioApiService,
   layer: string,
@@ -102,8 +113,8 @@ export async function fetchConfigHistoryEntry(
   layer: string,
   id: number,
   signal?: AbortSignal,
-): Promise<ConfigHistoryEntry | null> {
-  const response = await api.restGet<ConfigHistoryEntry>(
+): Promise<ConfigHistoryEntryDetail | null> {
+  const response = await api.restGet<ConfigHistoryEntryDetail>(
     `/api/config/history/${encodeURIComponent(layer)}/${id}`,
     { signal },
   );
@@ -148,4 +159,76 @@ function isConfigSchemaDocument(value: unknown): value is ConfigSchemaDocument {
     "$ref" in candidate ||
     "type" in candidate
   );
+}
+
+/**
+ * Curio's backend schema uses the `pattern` field for example values
+ * (e.g. "0h0m0s", "1 fil/0.03 fil") rather than real regex patterns.
+ * AJV strictly validates these as regex, causing false validation failures.
+ *
+ * This function recursively detects non-regex pattern values, moves them
+ * into the description as format hints, and removes them from `pattern`.
+ */
+export function sanitizeSchemaPatterns(
+  schema: unknown,
+): Record<string, unknown> | unknown {
+  if (typeof schema !== "object" || schema === null) return schema;
+  if (Array.isArray(schema)) {
+    return schema.map(sanitizeSchemaPatterns);
+  }
+
+  const obj = schema as Record<string, unknown>;
+  const result = { ...obj };
+
+  if (typeof result.pattern === "string" && !isLikelyRegex(result.pattern)) {
+    const hint = `Format: ${result.pattern}`;
+    if (typeof result.description === "string" && result.description.trim()) {
+      result.description = `${result.description} (${hint})`;
+    } else {
+      result.description = hint;
+    }
+    delete result.pattern;
+  }
+
+  // Recurse into properties and definitions
+  for (const key of ["properties", "$defs", "definitions"]) {
+    const sub = result[key];
+    if (sub && typeof sub === "object" && !Array.isArray(sub)) {
+      result[key] = Object.fromEntries(
+        Object.entries(sub as Record<string, unknown>).map(([k, v]) => [
+          k,
+          sanitizeSchemaPatterns(v),
+        ]),
+      );
+    }
+  }
+
+  if (result.items && typeof result.items === "object") {
+    result.items = sanitizeSchemaPatterns(result.items);
+  }
+
+  if (
+    result.additionalProperties &&
+    typeof result.additionalProperties === "object"
+  ) {
+    result.additionalProperties = sanitizeSchemaPatterns(
+      result.additionalProperties,
+    );
+  }
+
+  for (const key of ["allOf", "anyOf", "oneOf"]) {
+    if (Array.isArray(result[key])) {
+      result[key] = (result[key] as unknown[]).map(sanitizeSchemaPatterns);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Returns true if the string contains regex-specific constructs,
+ * indicating it is intentionally a regex pattern rather than an example value.
+ */
+function isLikelyRegex(pattern: string): boolean {
+  return /[[\](){}^$|\\+*?]/.test(pattern);
 }

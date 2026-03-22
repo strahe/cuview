@@ -22,6 +22,7 @@ import { Route as AppPdpRouteRouteImport } from "./routes/_app/pdp/route"
 import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppMachinesRouteRouteImport } from "./routes/_app/machines/route"
 import { Route as AppIpniRouteRouteImport } from "./routes/_app/ipni/route"
+import { Route as AppConfigRouteRouteImport } from "./routes/_app/config/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
 import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
@@ -60,6 +61,8 @@ import { Route as AppMarketAsksRouteImport } from "./routes/_app/market/asks"
 import { Route as AppMachinesIdRouteImport } from "./routes/_app/machines/$id"
 import { Route as AppIpniSearchRouteImport } from "./routes/_app/ipni/search"
 import { Route as AppIpniProvidersRouteImport } from "./routes/_app/ipni/providers"
+import { Route as AppConfigTopologyRouteImport } from "./routes/_app/config/topology"
+import { Route as AppConfigEditorRouteImport } from "./routes/_app/config/editor"
 import { Route as AppActorIdRouteImport } from "./routes/_app/actor/$id"
 import { Route as AppStoragePathsRouteRouteImport } from "./routes/_app/storage/paths/route"
 import { Route as AppStoragePathsIndexRouteImport } from "./routes/_app/storage/paths/index"
@@ -137,6 +140,11 @@ const AppIpniRouteRoute = AppIpniRouteRouteImport.update({
   path: "/ipni",
   getParentRoute: () => AppRoute,
 } as any)
+const AppConfigRouteRoute = AppConfigRouteRouteImport.update({
+  id: "/config",
+  path: "/config",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWalletsIndexRoute = AppWalletsIndexRouteImport.update({
   id: "/",
   path: "/",
@@ -193,9 +201,9 @@ const AppIpniIndexRoute = AppIpniIndexRouteImport.update({
   getParentRoute: () => AppIpniRouteRoute,
 } as any)
 const AppConfigIndexRoute = AppConfigIndexRouteImport.update({
-  id: "/config/",
-  path: "/config/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppConfigRouteRoute,
 } as any)
 const AppAlertsIndexRoute = AppAlertsIndexRouteImport.update({
   id: "/alerts/",
@@ -328,6 +336,16 @@ const AppIpniProvidersRoute = AppIpniProvidersRouteImport.update({
   path: "/providers",
   getParentRoute: () => AppIpniRouteRoute,
 } as any)
+const AppConfigTopologyRoute = AppConfigTopologyRouteImport.update({
+  id: "/topology",
+  path: "/topology",
+  getParentRoute: () => AppConfigRouteRoute,
+} as any)
+const AppConfigEditorRoute = AppConfigEditorRouteImport.update({
+  id: "/editor",
+  path: "/editor",
+  getParentRoute: () => AppConfigRouteRoute,
+} as any)
 const AppActorIdRoute = AppActorIdRouteImport.update({
   id: "/actor/$id",
   path: "/actor/$id",
@@ -396,6 +414,7 @@ const AppMarketMk12DealIdRoute = AppMarketMk12DealIdRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
+  "/config": typeof AppConfigRouteRouteWithChildren
   "/ipni": typeof AppIpniRouteRouteWithChildren
   "/machines": typeof AppMachinesRouteRouteWithChildren
   "/market": typeof AppMarketRouteRouteWithChildren
@@ -408,6 +427,8 @@ export interface FileRoutesByFullPath {
   "/wallets": typeof AppWalletsRouteRouteWithChildren
   "/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/actor/$id": typeof AppActorIdRoute
+  "/config/editor": typeof AppConfigEditorRoute
+  "/config/topology": typeof AppConfigTopologyRoute
   "/ipni/providers": typeof AppIpniProvidersRoute
   "/ipni/search": typeof AppIpniSearchRoute
   "/machines/$id": typeof AppMachinesIdRoute
@@ -461,6 +482,8 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
   "/actor/$id": typeof AppActorIdRoute
+  "/config/editor": typeof AppConfigEditorRoute
+  "/config/topology": typeof AppConfigTopologyRoute
   "/ipni/providers": typeof AppIpniProvidersRoute
   "/ipni/search": typeof AppIpniSearchRoute
   "/machines/$id": typeof AppMachinesIdRoute
@@ -515,6 +538,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_app": typeof AppRouteWithChildren
   "/setup": typeof SetupRoute
+  "/_app/config": typeof AppConfigRouteRouteWithChildren
   "/_app/ipni": typeof AppIpniRouteRouteWithChildren
   "/_app/machines": typeof AppMachinesRouteRouteWithChildren
   "/_app/market": typeof AppMarketRouteRouteWithChildren
@@ -527,6 +551,8 @@ export interface FileRoutesById {
   "/_app/wallets": typeof AppWalletsRouteRouteWithChildren
   "/_app/storage/paths": typeof AppStoragePathsRouteRouteWithChildren
   "/_app/actor/$id": typeof AppActorIdRoute
+  "/_app/config/editor": typeof AppConfigEditorRoute
+  "/_app/config/topology": typeof AppConfigTopologyRoute
   "/_app/ipni/providers": typeof AppIpniProvidersRoute
   "/_app/ipni/search": typeof AppIpniSearchRoute
   "/_app/machines/$id": typeof AppMachinesIdRoute
@@ -581,6 +607,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/setup"
+    | "/config"
     | "/ipni"
     | "/machines"
     | "/market"
@@ -593,6 +620,8 @@ export interface FileRouteTypes {
     | "/wallets"
     | "/storage/paths"
     | "/actor/$id"
+    | "/config/editor"
+    | "/config/topology"
     | "/ipni/providers"
     | "/ipni/search"
     | "/machines/$id"
@@ -646,6 +675,8 @@ export interface FileRouteTypes {
     | "/"
     | "/setup"
     | "/actor/$id"
+    | "/config/editor"
+    | "/config/topology"
     | "/ipni/providers"
     | "/ipni/search"
     | "/machines/$id"
@@ -699,6 +730,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_app"
     | "/setup"
+    | "/_app/config"
     | "/_app/ipni"
     | "/_app/machines"
     | "/_app/market"
@@ -711,6 +743,8 @@ export interface FileRouteTypes {
     | "/_app/wallets"
     | "/_app/storage/paths"
     | "/_app/actor/$id"
+    | "/_app/config/editor"
+    | "/_app/config/topology"
     | "/_app/ipni/providers"
     | "/_app/ipni/search"
     | "/_app/machines/$id"
@@ -860,6 +894,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppIpniRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/config": {
+      id: "/_app/config"
+      path: "/config"
+      fullPath: "/config"
+      preLoaderRoute: typeof AppConfigRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/wallets/": {
       id: "/_app/wallets/"
       path: "/"
@@ -939,10 +980,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/config/": {
       id: "/_app/config/"
-      path: "/config"
+      path: "/"
       fullPath: "/config/"
       preLoaderRoute: typeof AppConfigIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppConfigRouteRoute
     }
     "/_app/alerts/": {
       id: "/_app/alerts/"
@@ -1126,6 +1167,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppIpniProvidersRouteImport
       parentRoute: typeof AppIpniRouteRoute
     }
+    "/_app/config/topology": {
+      id: "/_app/config/topology"
+      path: "/topology"
+      fullPath: "/config/topology"
+      preLoaderRoute: typeof AppConfigTopologyRouteImport
+      parentRoute: typeof AppConfigRouteRoute
+    }
+    "/_app/config/editor": {
+      id: "/_app/config/editor"
+      path: "/editor"
+      fullPath: "/config/editor"
+      preLoaderRoute: typeof AppConfigEditorRouteImport
+      parentRoute: typeof AppConfigRouteRoute
+    }
     "/_app/actor/$id": {
       id: "/_app/actor/$id"
       path: "/actor/$id"
@@ -1212,6 +1267,22 @@ declare module "@tanstack/react-router" {
     }
   }
 }
+
+interface AppConfigRouteRouteChildren {
+  AppConfigEditorRoute: typeof AppConfigEditorRoute
+  AppConfigTopologyRoute: typeof AppConfigTopologyRoute
+  AppConfigIndexRoute: typeof AppConfigIndexRoute
+}
+
+const AppConfigRouteRouteChildren: AppConfigRouteRouteChildren = {
+  AppConfigEditorRoute: AppConfigEditorRoute,
+  AppConfigTopologyRoute: AppConfigTopologyRoute,
+  AppConfigIndexRoute: AppConfigIndexRoute,
+}
+
+const AppConfigRouteRouteWithChildren = AppConfigRouteRoute._addFileChildren(
+  AppConfigRouteRouteChildren,
+)
 
 interface AppIpniRouteRouteChildren {
   AppIpniProvidersRoute: typeof AppIpniProvidersRoute
@@ -1410,6 +1481,7 @@ const AppWalletsRouteRouteWithChildren = AppWalletsRouteRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppConfigRouteRoute: typeof AppConfigRouteRouteWithChildren
   AppIpniRouteRoute: typeof AppIpniRouteRouteWithChildren
   AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
   AppMarketRouteRoute: typeof AppMarketRouteRouteWithChildren
@@ -1423,11 +1495,11 @@ interface AppRouteChildren {
   AppActorIdRoute: typeof AppActorIdRoute
   AppActorIndexRoute: typeof AppActorIndexRoute
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
-  AppConfigIndexRoute: typeof AppConfigIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppConfigRouteRoute: AppConfigRouteRouteWithChildren,
   AppIpniRouteRoute: AppIpniRouteRouteWithChildren,
   AppMachinesRouteRoute: AppMachinesRouteRouteWithChildren,
   AppMarketRouteRoute: AppMarketRouteRouteWithChildren,
@@ -1441,7 +1513,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppActorIdRoute: AppActorIdRoute,
   AppActorIndexRoute: AppActorIndexRoute,
   AppAlertsIndexRoute: AppAlertsIndexRoute,
-  AppConfigIndexRoute: AppConfigIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
 }
 

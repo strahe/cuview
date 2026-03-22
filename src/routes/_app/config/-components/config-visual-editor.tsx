@@ -34,18 +34,16 @@ import {
   fetchConfigDefaults,
   fetchConfigLayer,
   fetchConfigSchema,
-  saveConfigLayer,
 } from "@/services/config-api";
 import { mergeDeep } from "@/utils/object";
 
 interface ConfigVisualEditorProps {
   layerName: string;
-  onStatusMessage: (msg: string) => void;
   infoDisplayMode: "icon" | "inline";
 }
 
 export interface ConfigVisualEditorHandle {
-  save: () => Promise<void>;
+  save: () => Promise<Record<string, unknown>>;
 }
 
 interface ConfigFormContext extends FormContextType {
@@ -61,10 +59,7 @@ const formUiSchema = {
 export const ConfigVisualEditor = forwardRef<
   ConfigVisualEditorHandle,
   ConfigVisualEditorProps
->(function ConfigVisualEditor(
-  { layerName, onStatusMessage, infoDisplayMode },
-  ref,
-) {
+>(function ConfigVisualEditor({ layerName, infoDisplayMode }, ref) {
   const api = useCurioApi();
   const isDefault = layerName === "default";
 
@@ -75,7 +70,6 @@ export const ConfigVisualEditor = forwardRef<
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Load schema, defaults, and layer data
   useEffect(() => {
@@ -123,29 +117,11 @@ export const ConfigVisualEditor = forwardRef<
   }, []);
 
   const save = useCallback(async () => {
-    if (isDefault || isSaving) return;
-    setIsSaving(true);
-    onStatusMessage("");
+    if (isDefault) return {};
 
-    try {
-      // Compute the diff: only save fields that differ from defaults
-      const overrides = computeOverrides(defaults ?? {}, formData);
-      await saveConfigLayer(api, layerName, overrides);
-      onStatusMessage("Saved successfully");
-    } catch (err) {
-      onStatusMessage(`Error saving: ${err}`);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    api,
-    layerName,
-    formData,
-    defaults,
-    isDefault,
-    isSaving,
-    onStatusMessage,
-  ]);
+    // Compute the diff: only save fields that differ from defaults
+    return computeOverrides(defaults ?? {}, formData);
+  }, [defaults, formData, isDefault]);
   useImperativeHandle(
     ref,
     () => ({

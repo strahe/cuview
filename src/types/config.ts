@@ -4,8 +4,25 @@ export interface ConfigLayerResponse {
 
 export interface ConfigTopologyEntry {
   ID?: string | number;
+  id?: string | number;
   Name?: string;
-  LayersCSV: string;
+  name?: string;
+  Server?: string;
+  server?: string;
+  LayersCSV?: string;
+  layersCSV?: string;
+  layers_csv?: string;
+  CPU?: string | number;
+  Cpu?: string | number;
+  cpu?: string | number;
+  GPU?: string | number;
+  Gpu?: string | number;
+  gpu?: string | number;
+  RAM?: string | number;
+  Ram?: string | number;
+  ram?: string | number;
+  TasksCSV?: string;
+  tasks_csv?: string;
   [key: string]: unknown;
 }
 
@@ -36,73 +53,9 @@ export interface ConfigSchemaNode {
   };
 }
 
-export interface ConfigLayerSummary {
-  name: string;
-  isDefault: boolean;
-  nodeCount: number;
-}
-
-export type ConfigLayerMap = Record<string, ConfigLayerResponse>;
-
 export interface ConfigSchemaDocument extends ConfigSchemaNode {
   properties?: Record<string, ConfigSchemaNode>;
   definitions?: Record<string, ConfigSchemaNode>;
   $defs?: Record<string, ConfigSchemaNode>;
   $ref?: string;
-}
-
-export type ConfigFieldType =
-  | "string"
-  | "number"
-  | "integer"
-  | "boolean"
-  | "array"
-  | "object"
-  | "unknown";
-
-export interface ConfigFieldOption<T = string | number | boolean> {
-  label: string;
-  value: T;
-}
-
-export interface ConfigArrayItemProperty {
-  key: string;
-  label: string;
-  description?: string;
-  helpText?: string;
-  type: ConfigFieldType;
-  required?: boolean;
-  options?: ConfigFieldOption[];
-  defaultValue?: unknown;
-  arrayItemType?: ConfigFieldType;
-  arrayItemLabel?: string;
-  arrayItemOptions?: ConfigFieldOption[];
-  arrayItemProperties?: ConfigArrayItemProperty[];
-  minItems?: number;
-  maxItems?: number;
-}
-
-export interface ConfigFieldRow {
-  id: string;
-  path: string[];
-  groupKey: string;
-  groupLabel: string;
-  breadcrumbs: string[];
-  label: string;
-  description?: string;
-  helpText?: string;
-  type: ConfigFieldType;
-  defaultValue: unknown;
-  effectiveValue: unknown;
-  overrideValue: unknown;
-  isOverride: boolean;
-  isArray: boolean;
-  isEditable: boolean;
-  options?: ConfigFieldOption[];
-  arrayItemType?: ConfigFieldType;
-  arrayItemLabel?: string;
-  arrayItemOptions?: ConfigFieldOption[];
-  arrayItemProperties?: ConfigArrayItemProperty[];
-  minItems?: number;
-  maxItems?: number;
 }
