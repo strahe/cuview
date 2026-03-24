@@ -3,6 +3,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
+import { getRouterBasePath } from "./utils/router-base-path";
 import "./style.css";
 
 const queryClient = new QueryClient({
@@ -19,6 +20,7 @@ const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreload: "intent",
+  basepath: getRouterBasePath(import.meta.env.BASE_URL),
 });
 
 declare module "@tanstack/react-router" {

@@ -3,6 +3,9 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "packageManager": "pnpm@10.28.1",
   "scripts": {
     "dev": "vite",

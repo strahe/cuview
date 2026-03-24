@@ -14,6 +14,7 @@ A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-projec
 ## Usage
 
 - Hosted build (GitHub Pages): [cuview.strahe.com](http://cuview.strahe.com)
+- Deployment is automated via GitHub Actions on pushes to `main`.
 - Match protocols to avoid mixed-content issues: use `http://` RPC endpoints with `http://` pages, and `https://` RPC endpoints with `https://` pages.
 - Self-hosting is supported by deploying the static build output (`dist/`) to any static host with access to Curio RPC.
 
@@ -21,7 +22,7 @@ A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-projec
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - pnpm (recommended)
 
 ### Installation

@@ -3,8 +3,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import { getViteBasePath } from "./src/utils/router-base-path";
 
 export default defineConfig({
+  base: getViteBasePath(process.env.VITE_BASE_PATH),
   plugins: [
     TanStackRouterVite({
       routesDirectory: "./src/routes",
