@@ -1,5 +1,12 @@
 # Cuview
 
+[![CI](https://github.com/strahe/cuview/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/strahe/cuview/actions/workflows/ci.yml)
+[![Deploy](https://github.com/strahe/cuview/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/strahe/cuview/actions/workflows/deploy-pages.yml)
+[![CodeFactor](https://www.codefactor.io/repository/github/strahe/cuview/badge/main)](https://www.codefactor.io/repository/github/strahe/cuview/overview/main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-10-F69220?logo=pnpm&logoColor=white)
+
 A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-project/curio) nodes.
 
 ## Features
@@ -13,10 +20,13 @@ A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-projec
 
 ## Usage
 
-- Hosted build (GitHub Pages): [cuview.strahe.com](http://cuview.strahe.com)
-- Deployment is automated via GitHub Actions on pushes to `main`.
-- Match protocols to avoid mixed-content issues: use `http://` RPC endpoints with `http://` pages, and `https://` RPC endpoints with `https://` pages.
-- Self-hosting is supported by deploying the static build output (`dist/`) to any static host with access to Curio RPC.
+- Online dashboard: [https://cuview.strahe.com](https://cuview.strahe.com) / [http://cuview.strahe.com](http://cuview.strahe.com)
+- Match protocols to avoid mixed-content issues: use `http` endpoints with `http` pages, and `https` endpoints with `https` pages.
+- Self-hosting: run `pnpm build` and serve `dist/` on any static host with Curio RPC access.
+
+## Deployment
+
+- GitHub Pages deployment is automated on pushes to `main`.
 
 ## Development
 
@@ -25,21 +35,16 @@ A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-projec
 - Node.js 22+
 - pnpm (recommended)
 
-### Installation
+### Quick Start
 
 ```bash
 pnpm install
+pnpm dev
 ```
 
 ### Setup
 
 Before running the dashboard, ensure you have a Curio node running with the WebRPC API enabled. Configure the connection on the initial setup page.
-
-### Start Development Server
-
-```bash
-pnpm dev
-```
 
 ## Build
 
