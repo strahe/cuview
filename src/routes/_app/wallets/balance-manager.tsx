@@ -43,6 +43,7 @@ export function WalletBalanceManagerPage() {
               size="icon"
               className="size-7"
               title="Edit rule"
+              aria-label="Edit rule"
               onClick={() => setEditingRule(row.original)}
             >
               <Pencil className="size-3.5" />
@@ -52,6 +53,7 @@ export function WalletBalanceManagerPage() {
               size="icon"
               className="size-7 text-destructive hover:text-destructive"
               title="Remove rule"
+              aria-label="Remove rule"
               disabled={removeRule.isPending}
               onClick={() => removeRule.mutate([row.original.id])}
             >

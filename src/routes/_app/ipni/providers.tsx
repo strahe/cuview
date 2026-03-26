@@ -27,6 +27,7 @@ const providerColumns: ColumnDef<IpniProviderSummary>[] = [
           size="icon"
           className="h-6 w-6"
           onClick={() => row.toggleExpanded()}
+          aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
         >
           {row.getIsExpanded() ? (
             <ChevronDown className="size-3.5" />

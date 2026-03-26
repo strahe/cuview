@@ -169,6 +169,7 @@ function MK20DealsPage() {
             size="icon"
             className="h-6 w-6"
             onClick={() => row.toggleExpanded()}
+            aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
           >
             {row.getIsExpanded() ? (
               <ChevronDown className="size-3.5" />
@@ -270,6 +271,7 @@ function MK20DealsPage() {
             onClick={() => removePipelineMutation.mutate([row.original.id])}
             disabled={removePipelineMutation.isPending}
             title="Remove pipeline"
+            aria-label="Remove pipeline"
           >
             <Trash2 className="size-3" />
           </Button>

@@ -83,6 +83,7 @@ function MachineActions({
           size="icon"
           className="size-7"
           title="Uncordon"
+          aria-label="Uncordon"
           onClick={() => onAction("uncordon", machine)}
           disabled={disabled}
         >
@@ -94,6 +95,7 @@ function MachineActions({
           size="icon"
           className="size-7"
           title="Cordon"
+          aria-label="Cordon"
           onClick={() => onAction("cordon", machine)}
           disabled={disabled}
         >
@@ -106,6 +108,7 @@ function MachineActions({
           size="icon"
           className="size-7"
           title="Restart"
+          aria-label="Restart"
           onClick={() => onAction("restart", machine)}
           disabled={disabled}
         >

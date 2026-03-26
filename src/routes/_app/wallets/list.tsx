@@ -49,6 +49,7 @@ export function WalletListPage() {
               size="icon"
               className="size-7"
               title="Rename wallet"
+              aria-label="Rename wallet"
               onClick={() =>
                 setRenamingWallet({
                   address: row.original.address,
@@ -63,6 +64,7 @@ export function WalletListPage() {
               size="icon"
               className="size-7 text-destructive hover:text-destructive"
               title="Remove wallet"
+              aria-label="Remove wallet"
               disabled={removeWallet.isPending}
               onClick={() => removeWallet.mutate([row.original.address])}
             >
