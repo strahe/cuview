@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useCurioConnection } from "@/contexts/curio-api-context";
-import { cn } from "@/lib/utils";
 import { formatEndpointForDisplay } from "@/utils/endpoint";
 
 export const Route = createFileRoute("/setup")({
@@ -84,7 +85,7 @@ export function SetupPage() {
               >
                 Curio Endpoint
               </label>
-              <input
+              <Input
                 id="endpoint"
                 type="text"
                 value={endpoint}
@@ -94,19 +95,16 @@ export function SetupPage() {
                   setErrorMessage("");
                 }}
                 placeholder="http://localhost:4701"
-                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
 
             <div className="flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleTestConnection}
                 disabled={!endpoint.trim() || testStatus === "testing"}
-                className={cn(
-                  "flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium transition",
-                  "hover:bg-accent disabled:opacity-50",
-                )}
+                className="flex items-center gap-2"
               >
                 {testStatus === "testing" && (
                   <Loader2 className="size-4 animate-spin" />
@@ -118,16 +116,16 @@ export function SetupPage() {
                   <XCircle className="size-4 text-destructive" />
                 )}
                 {testStatus === "testing" ? "Testing..." : "Test Connection"}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="submit"
                 disabled={!endpoint.trim() || testStatus === "testing"}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2"
               >
                 Connect
                 <ArrowRight className="size-4" />
-              </button>
+              </Button>
             </div>
 
             {testStatus === "error" && errorMessage && (

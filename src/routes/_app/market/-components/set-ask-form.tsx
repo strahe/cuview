@@ -1,5 +1,5 @@
 import { Edit2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,15 @@ interface SetAskFormProps {
 
 export function SetAskForm({ currentAsk }: SetAskFormProps) {
   const [miner, setMiner] = useState(currentAsk?.Miner ?? "");
+  const [prevMinerProp, setPrevMinerProp] = useState(currentAsk?.Miner);
 
-  useEffect(() => {
-    if (currentAsk?.Miner) setMiner(currentAsk.Miner);
-  }, [currentAsk?.Miner]);
+  if (currentAsk?.Miner !== prevMinerProp) {
+    setPrevMinerProp(currentAsk?.Miner);
+    if (currentAsk?.Miner) {
+      setMiner(currentAsk.Miner);
+    }
+  }
+
   const [price, setPrice] = useState("");
   const [verifiedPrice, setVerifiedPrice] = useState("");
   const [minSize, setMinSize] = useState("");

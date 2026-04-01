@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type NavigationEntry, navigationGroups } from "./navigation";
 
@@ -86,17 +87,20 @@ export function CollapsibleSidebar({
       {/* Collapse toggle */}
       {onToggle && (
         <div className="border-t border-sidebar-border p-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onToggle}
-            className="text-sidebar-foreground hover:bg-sidebar-accent flex w-full items-center justify-center rounded-md p-2 transition-colors"
+            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground w-full transition-colors"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
               <ChevronRight className="size-4" />
             ) : (
               <ChevronLeft className="size-4" />
             )}
-          </button>
+          </Button>
         </div>
       )}
     </aside>

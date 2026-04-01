@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { Button } from "@/components/ui/button";
 import {
   type ConnectionStatus,
   useConnectionStatus,
@@ -91,12 +92,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="w-full lg:hidden">
         <div className="border-b border-border bg-card px-4 py-3">
           <div className="flex items-center justify-between">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-md p-2 hover:bg-accent"
+              aria-label="Open mobile menu"
             >
               <Menu className="size-5" />
-            </button>
+            </Button>
             <div className="flex items-center gap-2">
               <div className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-lg text-xs font-bold">
                 C
@@ -120,10 +123,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur-sm">
           <div className="flex items-center justify-between px-6 py-3">
             <div className="flex items-center gap-3">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={layout.toggleSidebar}
-                className="rounded-md p-1.5 hover:bg-accent"
                 title={
+                  layout.sidebarCollapsed
+                    ? "Expand sidebar"
+                    : "Collapse sidebar"
+                }
+                aria-label={
                   layout.sidebarCollapsed
                     ? "Expand sidebar"
                     : "Collapse sidebar"
@@ -134,7 +143,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 ) : (
                   <ChevronLeft className="size-5" />
                 )}
-              </button>
+              </Button>
               <ConnectionStatusBadge status={connectionStatus} />
               {version && (
                 <span className="text-xs text-muted-foreground">
@@ -161,9 +170,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
             {/* Search */}
             <div className="mx-8 max-w-md flex-1">
-              <button
+              <Button
+                variant="outline"
                 onClick={openSearch}
-                className="border-input bg-muted text-muted-foreground flex h-9 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition hover:border-ring"
+                className="bg-muted text-muted-foreground h-9 w-full justify-between rounded-lg text-left font-normal shadow-none transition hover:border-ring hover:text-muted-foreground"
               >
                 <span className="flex items-center gap-2">
                   <Search className="size-4 opacity-50" />
@@ -174,15 +184,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <kbd className="border-border bg-card pointer-events-none hidden rounded border px-1.5 py-0.5 text-xs sm:inline-flex">
                   ⌘K
                 </kbd>
-              </button>
+              </Button>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={layout.toggleTheme}
-                className="rounded-md p-2 hover:bg-accent"
                 title={
+                  layout.isDark ? "Switch to light mode" : "Switch to dark mode"
+                }
+                aria-label={
                   layout.isDark ? "Switch to light mode" : "Switch to dark mode"
                 }
               >
@@ -191,14 +205,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 ) : (
                   <Moon className="size-5" />
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setSettingsOpen(true)}
-                className="rounded-md p-2 hover:bg-accent"
                 title="Settings"
+                aria-label="Settings"
               >
                 <Settings className="size-5" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

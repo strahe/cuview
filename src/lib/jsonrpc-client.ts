@@ -94,8 +94,8 @@ export class JsonRpcClient {
           resolve();
         };
 
-        const onError = (event: Event) => {
-          console.error("JSON-RPC WebSocket connection failed:", event);
+        const onError = () => {
+          console.error("JSON-RPC WebSocket connection failed.");
           const error = new Error("WebSocket connection failed");
           this.events.error?.(error);
           reject(error);
@@ -190,7 +190,10 @@ export class JsonRpcClient {
     try {
       this.ws!.send(JSON.stringify(notification));
     } catch (error) {
-      console.error("Failed to send notification:", error);
+      console.error(
+        "Failed to send notification:",
+        error instanceof Error ? error.stack || error.message : "Unknown error",
+      );
     }
   }
 
@@ -246,7 +249,10 @@ export class JsonRpcClient {
         }
       }
     } catch (error) {
-      console.error("Failed to parse JSON-RPC message:", error);
+      console.error(
+        "Failed to parse JSON-RPC message:",
+        error instanceof Error ? error.stack || error.message : "Unknown error",
+      );
     }
   }
 
@@ -271,8 +277,13 @@ export class JsonRpcClient {
       this.events.reconnecting?.(this.reconnectAttempts);
 
       this.connect().catch((error) => {
-        console.error("Reconnection failed:", error);
-        this.events.error?.(error);
+        const normalizedError =
+          error instanceof Error ? error : new Error(String(error));
+        console.error(
+          "Reconnection failed:",
+          normalizedError.stack || normalizedError.message,
+        );
+        this.events.error?.(normalizedError);
       });
     }, delay);
   }

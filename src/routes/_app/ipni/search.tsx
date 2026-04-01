@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle, Search } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,20 @@ function SearchPage() {
   const [showScanGrid, setShowScanGrid] = useState(false);
   const [entryCid, setEntryCid] = useState(search.entryCid ?? "");
 
+  const [prevSearchCid, setPrevSearchCid] = useState(search.cid);
+  const [prevSearchEntryCid, setPrevSearchEntryCid] = useState(search.entryCid);
+
+  if (search.cid !== prevSearchCid) {
+    setPrevSearchCid(search.cid);
+    setInputCid(search.cid ?? "");
+    setShowScanGrid(false);
+  }
+
+  if (search.entryCid !== prevSearchEntryCid) {
+    setPrevSearchEntryCid(search.entryCid);
+    setEntryCid(search.entryCid ?? "");
+  }
+
   const activeCid = search.cid ?? null;
   const activeEntryCid = search.entryCid ?? null;
 
@@ -59,15 +73,6 @@ function SearchPage() {
     isLoading: entryLoading,
   } = useIpniEntry(activeEntryCid);
   const setSkipMutation = useIpniSetSkip();
-
-  useEffect(() => {
-    setInputCid(search.cid ?? "");
-    setShowScanGrid(false);
-  }, [search.cid]);
-
-  useEffect(() => {
-    setEntryCid(search.entryCid ?? "");
-  }, [search.entryCid]);
 
   const doSearch = useCallback(
     (cid: string) => {

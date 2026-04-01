@@ -19,7 +19,10 @@ export const testEndpointConnection = async (
     await client.call("Version");
     return true;
   } catch (err) {
-    console.error("Connection test failed:", err);
+    console.error(
+      "Connection test failed:",
+      err instanceof Error ? err.stack || err.message : "Unknown error",
+    );
     return false;
   } finally {
     if (client) {

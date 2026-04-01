@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,12 +12,12 @@ const MESSAGES_PAGE_SIZE = 20;
 
 export function ClientMessagesCard({ messages }: ClientMessagesCardProps) {
   const [page, setPage] = useState(1);
+  const [prevMessagesLength, setPrevMessagesLength] = useState(messages.length);
 
-  useEffect(() => {
-    if (messages.length >= 0) {
-      setPage(1);
-    }
-  }, [messages.length]);
+  if (messages.length !== prevMessagesLength) {
+    setPrevMessagesLength(messages.length);
+    setPage(1);
+  }
 
   const totalPages = Math.max(
     1,

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -12,13 +12,11 @@ interface WalletSummaryProps {
 }
 
 export function WalletSummary({ data, loading }: WalletSummaryProps) {
-  const [stableData, setStableData] = useState<WalletView[]>(data);
+  const [stableData, setStableData] = useState(data);
 
-  useEffect(() => {
-    if (data.length > 0 || !loading) {
-      setStableData(data);
-    }
-  }, [data, loading]);
+  if ((data.length > 0 || !loading) && data !== stableData) {
+    setStableData(data);
+  }
 
   const displayData = loading && stableData.length > 0 ? stableData : data;
 

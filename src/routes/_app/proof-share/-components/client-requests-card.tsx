@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,11 +18,14 @@ export function ClientRequestsCard() {
     activeSpId !== null,
   );
 
-  useEffect(() => {
-    if ((requests?.length ?? 0) >= 0) {
-      setPage(1);
-    }
-  }, [requests?.length]);
+  const [prevRequestsLength, setPrevRequestsLength] = useState<
+    number | undefined
+  >(requests?.length);
+
+  if (requests?.length !== prevRequestsLength) {
+    setPrevRequestsLength(requests?.length);
+    setPage(1);
+  }
 
   const totalPages = Math.max(
     1,

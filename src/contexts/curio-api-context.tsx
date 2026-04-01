@@ -210,7 +210,7 @@ export function CurioApiProvider({ children }: { children: ReactNode }) {
     };
 
     const handleError = (err: Error) => {
-      console.error("Curio API error:", err);
+      console.error("Curio API error:", err.message);
     };
 
     api.on("connected", handleConnected);
