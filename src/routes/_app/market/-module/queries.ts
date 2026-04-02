@@ -1,3 +1,6 @@
+import { useQueries } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useCurioApi, useCurioConnection } from "@/contexts/curio-api-context";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import type {
   AllowDenyEntry,
@@ -64,10 +67,53 @@ export function usePieceSummary() {
 // Asks
 // ---------------------------------------------------------------------------
 
-export function useStorageAsks() {
-  return useCurioRpc<StorageAsk[]>("GetStorageAsk", [], {
+export function useActorList() {
+  return useCurioRpc<string[]>("ActorList", [], {
     refetchInterval: 60_000,
   });
+}
+
+/**
+ * Fetches storage asks for all known SPs.
+ * Go's GetStorageAsk requires a per-SP call with spID, so we first fetch
+ * ActorList, derive spIDs, then query each SP in parallel.
+ */
+export function useStorageAsks() {
+  const api = useCurioApi();
+  const { endpoint } = useCurioConnection();
+  const actorList = useActorList();
+
+  const spIDs = useMemo(
+    () => actorList.data?.map((addr) => parseInt(addr.substring(2), 10)) ?? [],
+    [actorList.data],
+  );
+
+  const askQueries = useQueries({
+    queries: spIDs.map((spID) => ({
+      queryKey: ["curio", "GetStorageAsk", endpoint, spID],
+      queryFn: () => api.call<StorageAsk>("GetStorageAsk", [spID]),
+      refetchInterval: 60_000,
+      enabled: actorList.isSuccess,
+      retry: false,
+    })),
+  });
+
+  const data = useMemo(
+    () =>
+      askQueries
+        .filter(
+          (q): q is (typeof askQueries)[number] & { data: StorageAsk } =>
+            q.isSuccess && q.data != null,
+        )
+        .map((q) => q.data),
+    [askQueries],
+  );
+
+  const isLoading =
+    actorList.isLoading ||
+    (actorList.isSuccess && askQueries.some((q) => q.isLoading));
+
+  return { data, isLoading };
 }
 
 export function useSetStorageAsk() {

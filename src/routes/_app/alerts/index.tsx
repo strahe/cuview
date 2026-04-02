@@ -255,8 +255,8 @@ function AlertsPage() {
   const [showMuteForm, setShowMuteForm] = useState(false);
   const [muteForm, setMuteForm] = useState({
     category: "",
-    machinePattern: "",
-    messagePattern: "",
+    pattern: "",
+    reason: "",
     durationHours: 24,
   });
 
@@ -266,7 +266,7 @@ function AlertsPage() {
   const handleAckAll = useCallback(() => {
     const ids = unackedAlerts.map((a) => a.ID);
     if (ids.length > 0) {
-      ackMultipleMutation.mutate([ids]);
+      ackMultipleMutation.mutate([ids, "cuview"]);
     }
   }, [unackedAlerts, ackMultipleMutation]);
 
@@ -274,14 +274,15 @@ function AlertsPage() {
     if (!muteForm.category.trim()) return;
     muteAddMutation.mutate([
       muteForm.category.trim(),
-      muteForm.machinePattern.trim() || "*",
-      muteForm.messagePattern.trim() || "*",
-      muteForm.durationHours,
+      muteForm.pattern.trim() || null,
+      muteForm.reason.trim(),
+      "cuview",
+      muteForm.durationHours > 0 ? muteForm.durationHours : null,
     ]);
     setMuteForm({
       category: "",
-      machinePattern: "",
-      messagePattern: "",
+      pattern: "",
+      reason: "",
       durationHours: 24,
     });
     setShowMuteForm(false);
@@ -398,29 +399,29 @@ function AlertsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Machine Pattern</label>
+                <label className="text-sm font-medium">Pattern</label>
                 <Input
-                  value={muteForm.machinePattern}
+                  value={muteForm.pattern}
                   onChange={(e) =>
                     setMuteForm((f) => ({
                       ...f,
-                      machinePattern: e.target.value,
+                      pattern: e.target.value,
                     }))
                   }
-                  placeholder="* for all"
+                  placeholder="Optional match pattern"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Message Pattern</label>
+                <label className="text-sm font-medium">Reason</label>
                 <Input
-                  value={muteForm.messagePattern}
+                  value={muteForm.reason}
                   onChange={(e) =>
                     setMuteForm((f) => ({
                       ...f,
-                      messagePattern: e.target.value,
+                      reason: e.target.value,
                     }))
                   }
-                  placeholder="* for all"
+                  placeholder="Reason for muting"
                 />
               </div>
               <div>
@@ -461,7 +462,7 @@ function AlertsPage() {
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
           onAck={() => {
-            ackMutation.mutate([selectedAlert.ID]);
+            ackMutation.mutate([selectedAlert.ID, "cuview"]);
             setSelectedAlert(null);
           }}
           acking={ackMutation.isPending}
@@ -494,7 +495,7 @@ function AlertDetailDialog({
 
   const handleAddComment = useCallback(() => {
     if (!newComment.trim()) return;
-    addCommentMutation.mutate([alert.ID, newComment.trim()]);
+    addCommentMutation.mutate([alert.ID, newComment.trim(), "cuview"]);
     setNewComment("");
   }, [alert.ID, newComment, addCommentMutation]);
 

@@ -2,6 +2,9 @@ export const marketQueryKeys = {
   // Balance
   balance: ["curio", "MarketBalance"],
 
+  // Actors
+  actorList: ["curio", "ActorList"],
+
   // Asks
   asks: ["curio", "GetStorageAsk"],
 
@@ -48,7 +51,10 @@ export const marketQueryKeys = {
 // Invalidation key groups
 export const balanceInvalidateKeys: unknown[][] = [marketQueryKeys.balance];
 
-export const asksInvalidateKeys: unknown[][] = [marketQueryKeys.asks];
+export const asksInvalidateKeys: unknown[][] = [
+  marketQueryKeys.asks,
+  marketQueryKeys.actorList,
+];
 
 export const pendingInvalidateKeys: unknown[][] = [marketQueryKeys.pending];
 

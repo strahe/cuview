@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import type { StorageAsk } from "@/types/market";
 import { useSetStorageAsk } from "../-module/queries";
 
+const DEFAULT_MIN_SIZE = 4 * 1024 ** 3; // 4 GiB
+const DEFAULT_MAX_SIZE = 32 * 1024 ** 3; // 32 GiB
+
 interface SetAskFormProps {
   currentAsk?: StorageAsk;
 }
@@ -21,16 +24,53 @@ export function SetAskForm({ currentAsk }: SetAskFormProps) {
     }
   }
 
-  const [price, setPrice] = useState("");
-  const [verifiedPrice, setVerifiedPrice] = useState("");
-  const [minSize, setMinSize] = useState("");
-  const [maxSize, setMaxSize] = useState("");
+  const [price, setPrice] = useState(
+    currentAsk?.Price != null ? String(currentAsk.Price) : "0",
+  );
+  const [verifiedPrice, setVerifiedPrice] = useState(
+    currentAsk?.VerifiedPrice != null ? String(currentAsk.VerifiedPrice) : "0",
+  );
+  const [minSize, setMinSize] = useState(
+    currentAsk?.MinSize != null
+      ? String(currentAsk.MinSize)
+      : String(DEFAULT_MIN_SIZE),
+  );
+  const [maxSize, setMaxSize] = useState(
+    currentAsk?.MaxSize != null
+      ? String(currentAsk.MaxSize)
+      : String(DEFAULT_MAX_SIZE),
+  );
+
+  // Sync form values when currentAsk changes
+  const [prevAsk, setPrevAsk] = useState(currentAsk);
+  if (currentAsk !== prevAsk) {
+    setPrevAsk(currentAsk);
+    if (currentAsk) {
+      setPrice(String(currentAsk.Price));
+      setVerifiedPrice(String(currentAsk.VerifiedPrice));
+      setMinSize(String(currentAsk.MinSize));
+      setMaxSize(String(currentAsk.MaxSize));
+    }
+  }
 
   const mutation = useSetStorageAsk();
 
   const handleSubmit = () => {
     if (!miner) return;
-    mutation.mutate([miner, price, verifiedPrice, minSize, maxSize]);
+    const spID = Number.parseInt(miner.replace(/^[ftFT]0*/, ""), 10);
+    if (Number.isNaN(spID)) return;
+    const now = Math.floor(Date.now() / 1000);
+    mutation.mutate([
+      {
+        SpID: spID,
+        Price: Number(price) || 0,
+        VerifiedPrice: Number(verifiedPrice) || 0,
+        MinSize: Number(minSize) || DEFAULT_MIN_SIZE,
+        MaxSize: Number(maxSize) || DEFAULT_MAX_SIZE,
+        CreatedAt: now,
+        Expiry: now + 365 * 24 * 60 * 60,
+      },
+    ]);
   };
 
   return (
@@ -52,7 +92,9 @@ export function SetAskForm({ currentAsk }: SetAskFormProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Price</label>
+            <label className="text-xs text-muted-foreground">
+              Price (attoFIL/GiB/Epoch)
+            </label>
             <Input
               placeholder="0"
               value={price}
@@ -62,7 +104,7 @@ export function SetAskForm({ currentAsk }: SetAskFormProps) {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">
-              Verified Price
+              Verified Price (attoFIL/GiB/Epoch)
             </label>
             <Input
               placeholder="0"
@@ -72,21 +114,25 @@ export function SetAskForm({ currentAsk }: SetAskFormProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Min Size</label>
+            <label className="text-xs text-muted-foreground">
+              Min Size (bytes)
+            </label>
             <Input
-              placeholder="256B"
+              placeholder={String(DEFAULT_MIN_SIZE)}
               value={minSize}
               onChange={(e) => setMinSize(e.target.value)}
-              className="w-24"
+              className="w-32"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Max Size</label>
+            <label className="text-xs text-muted-foreground">
+              Max Size (bytes)
+            </label>
             <Input
-              placeholder="32GiB"
+              placeholder={String(DEFAULT_MAX_SIZE)}
               value={maxSize}
               onChange={(e) => setMaxSize(e.target.value)}
-              className="w-24"
+              className="w-32"
             />
           </div>
           <Button
