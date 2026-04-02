@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/composed/status-badge";
+import { Button } from "@/components/ui/button";
 import type { IpniSyncStatus } from "@/types/ipni";
 import {
   getServiceHost,
@@ -32,13 +33,14 @@ export function ProviderDetail({
         <div className="text-sm">
           <span className="text-muted-foreground">Head: </span>
           {onSearchAd ? (
-            <button
+            <Button
               type="button"
-              className="font-mono text-xs text-primary hover:underline"
+              className="h-auto justify-start p-0 font-mono text-xs"
               onClick={() => onSearchAd(head)}
+              variant="link"
             >
               {head}
-            </button>
+            </Button>
           ) : (
             <span className="font-mono text-xs">{head}</span>
           )}

@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useAddContract,
@@ -210,9 +211,9 @@ export function ProductsSection() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   Contract Address *
-                </label>
+                </Label>
                 <Input
                   value={contractForm.address}
                   onChange={(e) =>
@@ -226,7 +227,7 @@ export function ProductsSection() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">ABI JSON</label>
+                <Label className="text-sm font-medium">ABI JSON</Label>
                 <Textarea
                   className="min-h-[80px] font-mono text-xs"
                   value={contractForm.abi}
@@ -269,13 +270,13 @@ export function ProductsSection() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Contract Address</label>
+                <Label className="text-sm font-medium">Contract Address</Label>
                 <p className="truncate font-mono text-xs text-muted-foreground">
                   {editAbi.address}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium">ABI JSON</label>
+                <Label className="text-sm font-medium">ABI JSON</Label>
                 <Textarea
                   className="min-h-[120px] font-mono text-xs"
                   value={editAbi.abi}

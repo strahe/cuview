@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { SizeSelect } from "@/components/composed/size-select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -9,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useFsUpdatePdp } from "../-module/queries";
 import type { FSPDPOffering } from "../-module/types";
 
@@ -69,7 +71,7 @@ export function FsUpdatePdpDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Service URL *</label>
+            <Label className="text-sm font-medium">Service URL *</Label>
             <Input
               value={form.service_url}
               onChange={(e) => updateField("service_url", e.target.value)}
@@ -79,40 +81,24 @@ export function FsUpdatePdpDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium">
-                Min Piece Size (bytes)
-              </label>
-              <Input
-                type="number"
+              <Label className="text-sm font-medium">Min Piece Size</Label>
+              <SizeSelect
                 value={form.min_size}
-                onChange={(e) =>
-                  updateField("min_size", Number(e.target.value))
-                }
-                min={127}
+                onChange={(v) => updateField("min_size", v)}
               />
-              <p className="mt-0.5 text-xs text-muted-foreground">Min: 127</p>
             </div>
             <div>
-              <label className="text-sm font-medium">
-                Max Piece Size (bytes)
-              </label>
-              <Input
-                type="number"
+              <Label className="text-sm font-medium">Max Piece Size</Label>
+              <SizeSelect
                 value={form.max_size}
-                onChange={(e) =>
-                  updateField("max_size", Number(e.target.value))
-                }
-                min={127}
+                onChange={(v) => updateField("max_size", v)}
               />
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Default: 32 GiB
-              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium">Price (per TiB/day)</label>
+              <Label className="text-sm font-medium">Price (per TiB/day)</Label>
               <Input
                 type="number"
                 value={form.price}
@@ -121,9 +107,9 @@ export function FsUpdatePdpDialog({
               />
             </div>
             <div>
-              <label className="text-sm font-medium">
+              <Label className="text-sm font-medium">
                 Min Proving Period (epochs)
-              </label>
+              </Label>
               <Input
                 type="number"
                 value={form.min_proving_period}
@@ -136,7 +122,7 @@ export function FsUpdatePdpDialog({
           </div>
 
           <div>
-            <label className="text-sm font-medium">Location</label>
+            <Label className="text-sm font-medium">Location</Label>
             <Input
               value={form.location}
               onChange={(e) => updateField("location", e.target.value)}
@@ -146,24 +132,24 @@ export function FsUpdatePdpDialog({
           </div>
 
           <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm">
+            <Label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={form.ipni_piece}
                 onCheckedChange={(v) => updateField("ipni_piece", !!v)}
               />
               IPNI Piece
-            </label>
-            <label className="flex items-center gap-2 text-sm">
+            </Label>
+            <Label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={form.ipni_ipfs}
                 onCheckedChange={(v) => updateField("ipni_ipfs", !!v)}
               />
               IPNI IPFS
-            </label>
+            </Label>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Payment Token Address</label>
+            <Label className="text-sm font-medium">Payment Token Address</Label>
             <Input
               value={form.payment_token_address}
               onChange={(e) =>

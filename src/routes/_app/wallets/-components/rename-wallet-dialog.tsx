@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useRef } from "react";
+import { AppFormActions, TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useRenameWallet } from "../-module/queries";
 
 interface RenameWalletDialogProps {
@@ -17,31 +17,96 @@ interface RenameWalletDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface RenameWalletDialogFormProps {
+  address: string;
+  currentName: string;
+  mutationPending: boolean;
+  onCancel: () => void;
+  onSubmit: (name: string) => void;
+}
+
+function RenameWalletDialogForm({
+  address,
+  currentName,
+  mutationPending,
+  onCancel,
+  onSubmit,
+}: RenameWalletDialogFormProps) {
+  const form = useForm({
+    defaultValues: {
+      name: currentName,
+    },
+    onSubmit: ({ value }) => {
+      onSubmit(value.name.trim());
+    },
+  });
+
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <div className="font-mono text-xs text-muted-foreground">{address}</div>
+      <form.Field
+        name="name"
+        validators={{
+          onChange: ({ value }) =>
+            value.trim() ? undefined : "New name is required.",
+        }}
+      >
+        {(field) => (
+          <TextField
+            field={field}
+            label="New Name"
+            placeholder="Wallet name"
+            required
+          />
+        )}
+      </form.Field>
+      <AppFormActions>
+        <Button variant="ghost" size="sm" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <form.Subscribe selector={(state) => state.values.name}>
+          {(name) => (
+            <Button
+              size="sm"
+              type="submit"
+              disabled={mutationPending || !name.trim()}
+            >
+              {mutationPending ? "Saving..." : "Save"}
+            </Button>
+          )}
+        </form.Subscribe>
+      </AppFormActions>
+    </form>
+  );
+}
+
 export function RenameWalletDialog({
   open,
   address,
   currentName,
   onOpenChange,
 }: RenameWalletDialogProps) {
-  const [name, setName] = useState(currentName);
+  const formSignature = `${address}\u0000${currentName}`;
+  const activeSignatureRef = useRef<string | null>(null);
+  const wasOpenRef = useRef(false);
+  const sessionKeyRef = useRef(0);
   const mutation = useRenameWallet();
-  const walletSnapshot = useMemo(
-    () => ({ address, name: currentName }),
-    [address, currentName],
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    setName(walletSnapshot.name);
-  }, [open, walletSnapshot]);
-
-  const handleSubmit = () => {
-    const n = name.trim();
-    if (!n) return;
-    mutation.mutate([address, n], {
-      onSuccess: () => onOpenChange(false),
-    });
-  };
+  if (open) {
+    if (!wasOpenRef.current || activeSignatureRef.current !== formSignature) {
+      wasOpenRef.current = true;
+      activeSignatureRef.current = formSignature;
+      sessionKeyRef.current += 1;
+    }
+  } else if (wasOpenRef.current) {
+    wasOpenRef.current = false;
+    activeSignatureRef.current = null;
+  }
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -56,41 +121,25 @@ export function RenameWalletDialog({
         <DialogHeader>
           <DialogTitle>Rename Wallet</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="font-mono text-xs text-muted-foreground">
-            {address}
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              New Name
-            </label>
-            <Input
-              placeholder="Wallet name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
-              }}
-            />
-          </div>
-          {mutation.isError && (
-            <p className="text-xs text-destructive">
-              {(mutation.error as Error)?.message ?? "Failed to rename"}
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" size="sm" onClick={() => handleClose(false)}>
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={mutation.isPending || !name.trim()}
-          >
-            {mutation.isPending ? "Saving..." : "Save"}
-          </Button>
-        </DialogFooter>
+        {open ? (
+          <RenameWalletDialogForm
+            key={sessionKeyRef.current}
+            address={address}
+            currentName={currentName}
+            mutationPending={mutation.isPending}
+            onCancel={() => handleClose(false)}
+            onSubmit={(name) => {
+              mutation.mutate([address, name], {
+                onSuccess: () => onOpenChange(false),
+              });
+            }}
+          />
+        ) : null}
+        {mutation.isError && (
+          <p className="text-xs text-destructive">
+            {(mutation.error as Error)?.message ?? "Failed to rename"}
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );

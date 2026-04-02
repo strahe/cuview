@@ -25,6 +25,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -389,17 +397,37 @@ function AlertsPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Category *</label>
-                <Input
-                  value={muteForm.category}
-                  onChange={(e) =>
-                    setMuteForm((f) => ({ ...f, category: e.target.value }))
-                  }
-                  placeholder="e.g. storage"
-                />
+                <Label className="text-sm font-medium">Category *</Label>
+                {categories && categories.length > 0 ? (
+                  <Select
+                    value={muteForm.category}
+                    onValueChange={(v) =>
+                      setMuteForm((f) => ({ ...f, category: v ?? "" }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={muteForm.category}
+                    onChange={(e) =>
+                      setMuteForm((f) => ({ ...f, category: e.target.value }))
+                    }
+                    placeholder="e.g. storage"
+                  />
+                )}
               </div>
               <div>
-                <label className="text-sm font-medium">Pattern</label>
+                <Label className="text-sm font-medium">Pattern</Label>
                 <Input
                   value={muteForm.pattern}
                   onChange={(e) =>
@@ -412,7 +440,7 @@ function AlertsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Reason</label>
+                <Label className="text-sm font-medium">Reason</Label>
                 <Input
                   value={muteForm.reason}
                   onChange={(e) =>
@@ -425,18 +453,21 @@ function AlertsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Duration (hours)</label>
+                <Label className="text-sm font-medium">Duration (hours)</Label>
                 <Input
                   type="number"
                   value={muteForm.durationHours}
                   onChange={(e) =>
                     setMuteForm((f) => ({
                       ...f,
-                      durationHours: parseInt(e.target.value, 10) || 24,
+                      durationHours: parseInt(e.target.value, 10) || 0,
                     }))
                   }
-                  min={1}
+                  min={0}
                 />
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Set to 0 for a permanent mute (never expires)
+                </p>
               </div>
             </div>
             <DialogFooter>

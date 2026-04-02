@@ -3,6 +3,7 @@ import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { usePsClientRequests } from "../-module/queries";
 
 const REQUESTS_PAGE_SIZE = 20;
@@ -57,9 +58,9 @@ export function ClientRequestsCard() {
       <CardContent className="space-y-3">
         <div className="flex items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               SP ID
-            </label>
+            </Label>
             <Input
               type="number"
               inputMode="numeric"

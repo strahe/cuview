@@ -28,6 +28,8 @@ import {
   useState,
 } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import {
@@ -253,7 +255,7 @@ function ConfigFieldTemplate<
       <div className="flex flex-col gap-2">
         {displayLabel && !isCheckbox && (
           <div className="flex items-center gap-1.5">
-            <label
+            <Label
               className={`text-sm font-medium leading-none ${
                 hasErrors ? "text-destructive" : ""
               }`}
@@ -261,16 +263,18 @@ function ConfigFieldTemplate<
             >
               {label}
               {required ? "*" : null}
-            </label>
+            </Label>
             {descriptionText && resolvedInfoDisplayMode === "icon" && (
-              <button
+              <Button
                 type="button"
                 title={descriptionText.trim()}
                 aria-label={descriptionText.trim()}
-                className="inline-flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="size-5 text-muted-foreground hover:text-foreground"
+                size="icon-xs"
+                variant="ghost"
               >
                 <CircleHelp className="size-3.5" />
-              </button>
+              </Button>
             )}
           </div>
         )}

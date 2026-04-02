@@ -58,7 +58,7 @@ export function LayerSidebar({
               const nodeCount = nodeCountByLayer.get(name) ?? 0;
               const isSelected = selectedLayer === name;
               return (
-                <button
+                <Button
                   key={name}
                   type="button"
                   onClick={() => onSelectLayer(name)}
@@ -67,6 +67,7 @@ export function LayerSidebar({
                       ? "bg-accent text-accent-foreground font-medium"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
+                  variant="ghost"
                 >
                   {isSelected && (
                     <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-primary" />
@@ -91,7 +92,7 @@ export function LayerSidebar({
                       </Badge>
                     )}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </nav>

@@ -1,6 +1,12 @@
+import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
+import {
+  AppField,
+  getFormFieldErrors,
+  isFormFieldInvalid,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurioConnection } from "@/contexts/curio-api-context";
@@ -16,47 +22,44 @@ export function SetupPage() {
   const navigate = useNavigate();
   const { endpoint: activeEndpoint, testAndSwitchEndpoint } =
     useCurioConnection();
+  const activeEndpointValue =
+    formatEndpointForDisplay(activeEndpoint) || "http://localhost:4701";
 
-  const [endpoint, setEndpoint] = useState(
-    formatEndpointForDisplay(activeEndpoint) || "http://localhost:4701",
-  );
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const form = useForm({
+    defaultValues: {
+      endpoint: activeEndpointValue,
+    },
+    onSubmit: ({ value }) => {
+      void runConnectionFlow(value.endpoint, true);
+    },
+  });
 
-  const runConnectionFlow = useCallback(
-    async (navigateOnSuccess: boolean) => {
-      setTestStatus("testing");
-      setErrorMessage("");
+  const runConnectionFlow = async (
+    rawEndpoint: string,
+    navigateOnSuccess: boolean,
+  ) => {
+    setTestStatus("testing");
+    setErrorMessage("");
 
-      const result = await testAndSwitchEndpoint(endpoint);
+    const result = await testAndSwitchEndpoint(rawEndpoint);
 
-      if (result.ok) {
-        setTestStatus("success");
-        setEndpoint(formatEndpointForDisplay(result.endpoint));
+    if (result.ok) {
+      setTestStatus("success");
+      form.reset({
+        endpoint: formatEndpointForDisplay(result.endpoint),
+      });
 
-        if (navigateOnSuccess) {
-          navigate({ to: "/overview" });
-        }
-        return;
+      if (navigateOnSuccess) {
+        navigate({ to: "/overview" });
       }
+      return;
+    }
 
-      setTestStatus("error");
-      setErrorMessage(result.error);
-    },
-    [endpoint, navigate, testAndSwitchEndpoint],
-  );
-
-  const handleTestConnection = useCallback(() => {
-    void runConnectionFlow(false);
-  }, [runConnectionFlow]);
-
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      void runConnectionFlow(true);
-    },
-    [runConnectionFlow],
-  );
+    setTestStatus("error");
+    setErrorMessage(result.error);
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -74,58 +77,90 @@ export function SetupPage() {
         </div>
 
         <form
-          onSubmit={handleSubmit}
           className="rounded-lg border border-border bg-card p-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
         >
           <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="endpoint"
-                className="mb-1.5 block text-sm font-medium"
-              >
-                Curio Endpoint
-              </label>
-              <Input
-                id="endpoint"
-                type="text"
-                value={endpoint}
-                onChange={(e) => {
-                  setEndpoint(e.target.value);
-                  setTestStatus("idle");
-                  setErrorMessage("");
-                }}
-                placeholder="http://localhost:4701"
-              />
-            </div>
+            <form.Field
+              name="endpoint"
+              validators={{
+                onChange: ({ value }) =>
+                  value.trim() ? undefined : "Curio endpoint is required.",
+              }}
+            >
+              {(field) => (
+                <AppField
+                  errors={
+                    isFormFieldInvalid(field)
+                      ? getFormFieldErrors(field)
+                      : undefined
+                  }
+                  htmlFor="endpoint"
+                  label="Curio Endpoint"
+                  required
+                >
+                  <Input
+                    id="endpoint"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                      setTestStatus("idle");
+                      setErrorMessage("");
+                    }}
+                    placeholder="http://localhost:4701"
+                    type="text"
+                    value={field.state.value}
+                  />
+                </AppField>
+              )}
+            </form.Field>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleTestConnection}
-                disabled={!endpoint.trim() || testStatus === "testing"}
-                className="flex items-center gap-2"
-              >
-                {testStatus === "testing" && (
-                  <Loader2 className="size-4 animate-spin" />
-                )}
-                {testStatus === "success" && (
-                  <CheckCircle2 className="size-4 text-success" />
-                )}
-                {testStatus === "error" && (
-                  <XCircle className="size-4 text-destructive" />
-                )}
-                {testStatus === "testing" ? "Testing..." : "Test Connection"}
-              </Button>
+              <form.Subscribe selector={(state) => state.values.endpoint}>
+                {(endpointValue) => (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        void runConnectionFlow(endpointValue, false);
+                      }}
+                      disabled={
+                        !endpointValue.trim() || testStatus === "testing"
+                      }
+                      className="flex items-center gap-2"
+                    >
+                      {testStatus === "testing" && (
+                        <Loader2 className="size-4 animate-spin" />
+                      )}
+                      {testStatus === "success" && (
+                        <CheckCircle2 className="size-4 text-success" />
+                      )}
+                      {testStatus === "error" && (
+                        <XCircle className="size-4 text-destructive" />
+                      )}
+                      {testStatus === "testing"
+                        ? "Testing..."
+                        : "Test Connection"}
+                    </Button>
 
-              <Button
-                type="submit"
-                disabled={!endpoint.trim() || testStatus === "testing"}
-                className="flex flex-1 items-center justify-center gap-2"
-              >
-                Connect
-                <ArrowRight className="size-4" />
-              </Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        !endpointValue.trim() || testStatus === "testing"
+                      }
+                      className="flex flex-1 items-center justify-center gap-2"
+                    >
+                      Connect
+                      <ArrowRight className="size-4" />
+                    </Button>
+                  </>
+                )}
+              </form.Subscribe>
             </div>
 
             {testStatus === "error" && errorMessage && (

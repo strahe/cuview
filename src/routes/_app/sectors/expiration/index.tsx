@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -669,7 +671,7 @@ function ExpirationPage() {
               <DialogTitle>Add Expiration Bucket</DialogTitle>
             </DialogHeader>
             <div>
-              <label className="text-sm font-medium">Less Than (days) *</label>
+              <Label className="text-sm font-medium">Less Than (days) *</Label>
               <Input
                 type="number"
                 value={newBucketDays}
@@ -700,7 +702,7 @@ function ExpirationPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Name *</label>
+                <Label className="text-sm font-medium">Name *</Label>
                 <Input
                   value={presetForm.name}
                   onChange={(e) =>
@@ -710,7 +712,7 @@ function ExpirationPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Action Type</label>
+                <Label className="text-sm font-medium">Action Type</Label>
                 <Select
                   value={normalizeActionType(presetForm.action_type)}
                   onValueChange={(value) =>
@@ -731,7 +733,7 @@ function ExpirationPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium">Above Days</label>
+                  <Label className="text-sm font-medium">Above Days</Label>
                   <Input
                     type="number"
                     value={presetForm.info_bucket_above_days}
@@ -745,7 +747,7 @@ function ExpirationPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Below Days</label>
+                  <Label className="text-sm font-medium">Below Days</Label>
                   <Input
                     type="number"
                     value={presetForm.info_bucket_below_days}
@@ -763,9 +765,9 @@ function ExpirationPage() {
               {normalizeActionType(presetForm.action_type) === "top_up" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium">
+                    <Label className="text-sm font-medium">
                       Low Water Mark
-                    </label>
+                    </Label>
                     <Input
                       type="number"
                       value={presetForm.top_up_count_low_water_mark ?? ""}
@@ -780,9 +782,9 @@ function ExpirationPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">
+                    <Label className="text-sm font-medium">
                       High Water Mark
-                    </label>
+                    </Label>
                     <Input
                       type="number"
                       value={presetForm.top_up_count_high_water_mark ?? ""}
@@ -802,9 +804,9 @@ function ExpirationPage() {
               {normalizeActionType(presetForm.action_type) !== "top_up" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium">
+                    <Label className="text-sm font-medium">
                       Target Exp (days)
-                    </label>
+                    </Label>
                     <Input
                       type="number"
                       value={presetForm.target_expiration_days ?? ""}
@@ -819,9 +821,9 @@ function ExpirationPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">
+                    <Label className="text-sm font-medium">
                       Max Candidate (days)
-                    </label>
+                    </Label>
                     <Input
                       type="number"
                       value={presetForm.max_candidate_days ?? ""}
@@ -837,7 +839,7 @@ function ExpirationPage() {
               )}
 
               <div>
-                <label className="text-sm font-medium">CC Filter</label>
+                <Label className="text-sm font-medium">CC Filter</Label>
                 <Select
                   value={
                     presetForm.cc == null
@@ -865,20 +867,19 @@ function ExpirationPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="preset-drop"
                   checked={presetForm.drop_claims}
-                  onChange={(e) =>
+                  onCheckedChange={(checked) =>
                     setPresetForm((f) => ({
                       ...f,
-                      drop_claims: e.target.checked,
+                      drop_claims: !!checked,
                     }))
                   }
                 />
-                <label htmlFor="preset-drop" className="text-sm">
+                <Label htmlFor="preset-drop" className="text-sm">
                   Drop Claims
-                </label>
+                </Label>
               </div>
             </div>
             <DialogFooter>
@@ -909,7 +910,7 @@ function ExpirationPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">SP Address *</label>
+                <Label className="text-sm font-medium">SP Address *</Label>
                 <Input
                   value={spForm.sp}
                   onChange={(e) =>
@@ -919,7 +920,7 @@ function ExpirationPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Preset Name *</label>
+                <Label className="text-sm font-medium">Preset Name *</Label>
                 {presets && presets.length > 0 ? (
                   <Select
                     value={spForm.preset || undefined}
@@ -1012,7 +1013,7 @@ function EditPresetDialog({
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium">Action Type</label>
+              <Label className="text-xs font-medium">Action Type</Label>
               <Select
                 value={actionType}
                 onValueChange={(value) =>
@@ -1029,7 +1030,7 @@ function EditPresetDialog({
               </Select>
             </div>
             <div>
-              <label className="text-xs font-medium">Above (days)</label>
+              <Label className="text-xs font-medium">Above (days)</Label>
               <Input
                 type="number"
                 value={form.info_bucket_above_days}
@@ -1044,7 +1045,7 @@ function EditPresetDialog({
               />
             </div>
             <div>
-              <label className="text-xs font-medium">Below (days)</label>
+              <Label className="text-xs font-medium">Below (days)</Label>
               <Input
                 type="number"
                 value={form.info_bucket_below_days}
@@ -1063,7 +1064,7 @@ function EditPresetDialog({
           {actionType === "top_up" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium">Low Water Mark</label>
+                <Label className="text-xs font-medium">Low Water Mark</Label>
                 <Input
                   type="number"
                   value={form.top_up_count_low_water_mark ?? ""}
@@ -1079,7 +1080,7 @@ function EditPresetDialog({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium">High Water Mark</label>
+                <Label className="text-xs font-medium">High Water Mark</Label>
                 <Input
                   type="number"
                   value={form.top_up_count_high_water_mark ?? ""}
@@ -1100,7 +1101,7 @@ function EditPresetDialog({
           {actionType !== "top_up" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium">Target Exp (days)</label>
+                <Label className="text-xs font-medium">Target Exp (days)</Label>
                 <Input
                   type="number"
                   value={form.target_expiration_days ?? ""}
@@ -1114,9 +1115,9 @@ function EditPresetDialog({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium">
+                <Label className="text-xs font-medium">
                   Max Candidate (days)
-                </label>
+                </Label>
                 <Input
                   type="number"
                   value={form.max_candidate_days ?? ""}
@@ -1134,7 +1135,7 @@ function EditPresetDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium">CC Filter</label>
+              <Label className="text-xs font-medium">CC Filter</Label>
               <Select
                 value={form.cc == null ? "all" : form.cc ? "cc" : "deal"}
                 onValueChange={(value) =>
@@ -1155,14 +1156,16 @@ function EditPresetDialog({
               </Select>
             </div>
             <div className="flex items-center gap-2 pt-6">
-              <input
-                type="checkbox"
+              <Checkbox
+                id="edit-preset-drop-claims"
                 checked={form.drop_claims}
-                onChange={(e) =>
-                  setForm({ ...form, drop_claims: e.target.checked })
+                onCheckedChange={(checked) =>
+                  setForm({ ...form, drop_claims: !!checked })
                 }
               />
-              <label className="text-xs">Drop Claims</label>
+              <Label htmlFor="edit-preset-drop-claims" className="text-xs">
+                Drop Claims
+              </Label>
             </div>
           </div>
         </div>

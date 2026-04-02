@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useRef } from "react";
+import { AppFormActions, TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useUpdateBalanceRule } from "../-module/queries";
 
 interface EditRuleDialogProps {
@@ -18,6 +18,59 @@ interface EditRuleDialogProps {
   currentHigh: string;
 }
 
+interface EditRuleDialogFormProps {
+  currentHigh: string;
+  currentLow: string;
+  mutationPending: boolean;
+  onCancel: () => void;
+  onSubmit: (values: { highWatermark: string; lowWatermark: string }) => void;
+}
+
+function EditRuleDialogForm({
+  currentHigh,
+  currentLow,
+  mutationPending,
+  onCancel,
+  onSubmit,
+}: EditRuleDialogFormProps) {
+  const form = useForm({
+    defaultValues: {
+      lowWatermark: currentLow,
+      highWatermark: currentHigh,
+    },
+    onSubmit: ({ value }) => {
+      onSubmit(value);
+    },
+  });
+
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <form.Field name="lowWatermark">
+          {(field) => <TextField field={field} label="Low Watermark (FIL)" />}
+        </form.Field>
+        <form.Field name="highWatermark">
+          {(field) => <TextField field={field} label="High Watermark (FIL)" />}
+        </form.Field>
+      </div>
+      <AppFormActions>
+        <Button variant="ghost" size="sm" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button size="sm" type="submit" disabled={mutationPending}>
+          {mutationPending ? "Saving..." : "Save"}
+        </Button>
+      </AppFormActions>
+    </form>
+  );
+}
+
 export function EditRuleDialog({
   open,
   onOpenChange,
@@ -25,25 +78,21 @@ export function EditRuleDialog({
   currentLow,
   currentHigh,
 }: EditRuleDialogProps) {
-  const [lowWatermark, setLowWatermark] = useState(currentLow);
-  const [highWatermark, setHighWatermark] = useState(currentHigh);
+  const formSignature = `${ruleId}\u0000${currentLow}\u0000${currentHigh}`;
+  const activeSignatureRef = useRef<string | null>(null);
+  const wasOpenRef = useRef(false);
+  const sessionKeyRef = useRef(0);
   const mutation = useUpdateBalanceRule();
-  const ruleSnapshot = useMemo(
-    () => ({ ruleId, low: currentLow, high: currentHigh }),
-    [ruleId, currentLow, currentHigh],
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    setLowWatermark(ruleSnapshot.low);
-    setHighWatermark(ruleSnapshot.high);
-  }, [open, ruleSnapshot]);
-
-  const handleSubmit = () => {
-    mutation.mutate([ruleId, lowWatermark.trim(), highWatermark.trim()], {
-      onSuccess: () => onOpenChange(false),
-    });
-  };
+  if (open) {
+    if (!wasOpenRef.current || activeSignatureRef.current !== formSignature) {
+      wasOpenRef.current = true;
+      activeSignatureRef.current = formSignature;
+      sessionKeyRef.current += 1;
+    }
+  } else if (wasOpenRef.current) {
+    wasOpenRef.current = false;
+    activeSignatureRef.current = null;
+  }
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -58,45 +107,28 @@ export function EditRuleDialog({
         <DialogHeader>
           <DialogTitle>Edit Rule #{ruleId}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                Low Watermark (FIL)
-              </label>
-              <Input
-                value={lowWatermark}
-                onChange={(e) => setLowWatermark(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                High Watermark (FIL)
-              </label>
-              <Input
-                value={highWatermark}
-                onChange={(e) => setHighWatermark(e.target.value)}
-              />
-            </div>
-          </div>
-          {mutation.isError && (
-            <p className="text-xs text-destructive">
-              {(mutation.error as Error)?.message ?? "Failed to update"}
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" size="sm" onClick={() => handleClose(false)}>
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Saving..." : "Save"}
-          </Button>
-        </DialogFooter>
+        {open ? (
+          <EditRuleDialogForm
+            key={sessionKeyRef.current}
+            currentHigh={currentHigh}
+            currentLow={currentLow}
+            mutationPending={mutation.isPending}
+            onCancel={() => handleClose(false)}
+            onSubmit={(value) => {
+              mutation.mutate(
+                [ruleId, value.lowWatermark.trim(), value.highWatermark.trim()],
+                {
+                  onSuccess: () => onOpenChange(false),
+                },
+              );
+            }}
+          />
+        ) : null}
+        {mutation.isError && (
+          <p className="text-xs text-destructive">
+            {(mutation.error as Error)?.message ?? "Failed to update"}
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );

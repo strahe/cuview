@@ -19,6 +19,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -422,9 +423,9 @@ function CommRCheckPanel({
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               SP Address
-            </label>
+            </Label>
             <Input
               placeholder="f0..."
               value={sp}
@@ -433,9 +434,9 @@ function CommRCheckPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Sector #
-            </label>
+            </Label>
             <Input
               placeholder="0"
               value={sector}
@@ -444,9 +445,9 @@ function CommRCheckPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               File Type
-            </label>
+            </Label>
             <Select
               value={fileType}
               onValueChange={(value) => setFileType(value ?? "sealed")}
@@ -500,9 +501,9 @@ function CommRCheckPanel({
                 key={r.check_id}
                 className="flex items-center justify-between gap-2 rounded border border-border p-2 text-xs"
               >
-                <button
+                <Button
                   type="button"
-                  className="flex flex-1 cursor-pointer items-center gap-3 text-left outline-none"
+                  className="h-auto flex-1 justify-start gap-3 px-0 py-0 text-left text-xs font-normal"
                   onClick={() => setSelectedHistory(r)}
                   onKeyDown={(event) => {
                     if (
@@ -514,6 +515,7 @@ function CommRCheckPanel({
                       setSelectedHistory(r);
                     }
                   }}
+                  variant="ghost"
                 >
                   <span className="font-mono text-muted-foreground">
                     #{r.check_id}
@@ -525,7 +527,7 @@ function CommRCheckPanel({
                       {r.create_time}
                     </span>
                   )}
-                </button>
+                </Button>
                 {!r.complete && (
                   <Tooltip>
                     <TooltipTrigger
@@ -636,9 +638,9 @@ function UnsealedCheckPanel({
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               SP Address
-            </label>
+            </Label>
             <Input
               placeholder="f0..."
               value={sp}
@@ -647,9 +649,9 @@ function UnsealedCheckPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Sector #
-            </label>
+            </Label>
             <Input
               placeholder="0"
               value={sector}
@@ -698,9 +700,9 @@ function UnsealedCheckPanel({
                 key={r.check_id}
                 className="flex items-center justify-between gap-2 rounded border border-border p-2 text-xs"
               >
-                <button
+                <Button
                   type="button"
-                  className="flex flex-1 cursor-pointer items-center gap-3 text-left outline-none"
+                  className="h-auto flex-1 justify-start gap-3 px-0 py-0 text-left text-xs font-normal"
                   onClick={() => setSelectedHistory(r)}
                   onKeyDown={(event) => {
                     if (
@@ -712,6 +714,7 @@ function UnsealedCheckPanel({
                       setSelectedHistory(r);
                     }
                   }}
+                  variant="ghost"
                 >
                   <span className="font-mono text-muted-foreground">
                     #{r.check_id}
@@ -722,7 +725,7 @@ function UnsealedCheckPanel({
                       {r.create_time}
                     </span>
                   )}
-                </button>
+                </Button>
                 {!r.complete && (
                   <Tooltip>
                     <TooltipTrigger
@@ -803,9 +806,9 @@ function VanillaTestPanel({
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               SP Address
-            </label>
+            </Label>
             <Input
               placeholder="f0..."
               value={sp}
@@ -814,9 +817,9 @@ function VanillaTestPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Sector #
-            </label>
+            </Label>
             <Input
               placeholder="0"
               value={sector}
@@ -898,9 +901,9 @@ function WdPostTestPanel({
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               SP Address
-            </label>
+            </Label>
             <Input
               placeholder="f0..."
               value={sp}
@@ -909,9 +912,9 @@ function WdPostTestPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Deadline
-            </label>
+            </Label>
             <Input
               placeholder="0"
               value={deadline}
@@ -920,9 +923,9 @@ function WdPostTestPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Partition
-            </label>
+            </Label>
             <Input
               placeholder="0"
               value={partition}
@@ -961,9 +964,9 @@ function WdPostTestPanel({
 
         <div className="flex items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <Label className="mb-1 block text-xs text-muted-foreground">
               Task ID (to check)
-            </label>
+            </Label>
             <Input
               placeholder="123"
               value={taskId}

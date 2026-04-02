@@ -1,26 +1,32 @@
-import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useMoveToEscrow } from "../-module/queries";
 
 export function MoveToEscrowForm() {
-  const [miner, setMiner] = useState("");
-  const [amount, setAmount] = useState("");
-  const [wallet, setWallet] = useState("");
-
   const mutation = useMoveToEscrow();
-
-  const handleSubmit = () => {
-    if (!miner || !amount) return;
-    mutation.mutate([miner, amount, wallet || undefined], {
-      onSuccess: () => {
-        setMiner("");
-        setAmount("");
-        setWallet("");
-      },
-    });
-  };
+  const form = useForm({
+    defaultValues: {
+      amount: "",
+      miner: "",
+      wallet: "",
+    },
+    onSubmit: ({ value }) => {
+      mutation.mutate(
+        [
+          value.miner.trim(),
+          value.amount.trim(),
+          value.wallet.trim() || undefined,
+        ],
+        {
+          onSuccess: () => {
+            form.reset();
+          },
+        },
+      );
+    },
+  });
 
   return (
     <Card>
@@ -28,46 +34,74 @@ export function MoveToEscrowForm() {
         <CardTitle className="text-sm">Move Balance to Escrow</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Miner</label>
-            <Input
-              placeholder="f0..."
-              value={miner}
-              onChange={(e) => setMiner(e.target.value)}
-              className="w-40 font-mono text-xs"
-            />
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <form.Field
+              name="miner"
+              validators={{
+                onChange: ({ value }) =>
+                  value.trim() ? undefined : "Miner is required.",
+              }}
+            >
+              {(field) => (
+                <TextField
+                  field={field}
+                  inputClassName="font-mono text-xs"
+                  label="Miner"
+                  placeholder="f0..."
+                  required
+                />
+              )}
+            </form.Field>
+            <form.Field
+              name="amount"
+              validators={{
+                onChange: ({ value }) =>
+                  value.trim() ? undefined : "Amount is required.",
+              }}
+            >
+              {(field) => (
+                <TextField
+                  field={field}
+                  label="Amount (FIL)"
+                  placeholder="0.1"
+                  required
+                />
+              )}
+            </form.Field>
+            <form.Field name="wallet">
+              {(field) => (
+                <TextField
+                  field={field}
+                  inputClassName="font-mono text-xs"
+                  label="Wallet (optional)"
+                  placeholder="f1... or f3..."
+                />
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">
-              Amount (FIL)
-            </label>
-            <Input
-              placeholder="0.1"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-32"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">
-              Wallet (optional)
-            </label>
-            <Input
-              placeholder="f1... or f3..."
-              value={wallet}
-              onChange={(e) => setWallet(e.target.value)}
-              className="w-48 font-mono text-xs"
-            />
-          </div>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Sending..." : "Transfer"}
-          </Button>
-        </div>
+          <form.Subscribe selector={(state) => state.values}>
+            {(values) => (
+              <Button
+                size="sm"
+                type="submit"
+                disabled={
+                  mutation.isPending ||
+                  !values.miner.trim() ||
+                  !values.amount.trim()
+                }
+              >
+                {mutation.isPending ? "Sending..." : "Transfer"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </form>
         {mutation.isError && (
           <p className="mt-2 text-xs text-destructive">
             {(mutation.error as Error)?.message ?? "Transfer failed"}

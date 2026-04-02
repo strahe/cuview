@@ -72,13 +72,14 @@ export function AdDetailCard({
             <div className="text-muted-foreground">Previous</div>
             {ad.previous ? (
               onSearchAd ? (
-                <button
+                <Button
                   type="button"
-                  className="font-mono text-xs text-primary break-all hover:underline"
+                  className="h-auto justify-start p-0 font-mono text-xs break-all"
                   onClick={() => onSearchAd(ad.previous)}
+                  variant="link"
                 >
                   {ad.previous}
-                </button>
+                </Button>
               ) : (
                 <div className="font-mono text-xs break-all">{ad.previous}</div>
               )

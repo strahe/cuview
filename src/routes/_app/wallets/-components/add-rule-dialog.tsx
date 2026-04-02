@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import {
+  AppField,
+  AppFormActions,
+  SelectField,
+  TextField,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
 import { useAddBalanceRule } from "../-module/queries";
 
 type SubjectType = "wallet" | "proofshare" | "f05";
@@ -37,59 +36,50 @@ export function AddRuleDialog({
   onOpenChange,
   initialSubjectType = "wallet",
 }: AddRuleDialogProps) {
-  const [subject, setSubject] = useState("");
-  const [second, setSecond] = useState("");
-  const [actionType, setActionType] = useState("requester");
-  const [lowWatermark, setLowWatermark] = useState("");
-  const [highWatermark, setHighWatermark] = useState("");
   const subjectType = initialSubjectType;
-
   const mutation = useAddBalanceRule();
+  const form = useForm({
+    defaultValues: {
+      actionType: "requester",
+      highWatermark: "",
+      lowWatermark: "",
+      second: "",
+      subject: "",
+    },
+    onSubmit: ({ value }) => {
+      const subject = value.subject.trim();
+      const effectiveActionType =
+        subjectType === "wallet" ? value.actionType : "requester";
+      const effectiveSecond =
+        subjectType === "proofshare" ? subject : value.second.trim();
 
-  // For proofshare and f05, action is always "requester"
-  const effectiveActionType =
-    subjectType === "wallet" ? actionType : "requester";
-
-  // For proofshare, second is same as subject
-  const effectiveSecond = subjectType === "proofshare" ? subject : second;
+      mutation.mutate(
+        [
+          subject,
+          effectiveSecond,
+          effectiveActionType,
+          value.lowWatermark.trim(),
+          value.highWatermark.trim(),
+          subjectType,
+        ],
+        {
+          onSuccess: () => {
+            form.reset();
+            onOpenChange(false);
+          },
+        },
+      );
+    },
+  });
 
   const showSecondField = subjectType === "wallet" || subjectType === "f05";
   const showActionSelect = subjectType === "wallet";
 
-  const handleSubmit = () => {
-    const s = subject.trim();
-    const sec = effectiveSecond.trim();
-    if (!s || (!sec && showSecondField)) return;
-
-    mutation.mutate(
-      [
-        s,
-        sec,
-        effectiveActionType,
-        lowWatermark.trim(),
-        highWatermark.trim(),
-        subjectType,
-      ],
-      {
-        onSuccess: () => {
-          resetForm();
-          onOpenChange(false);
-        },
-      },
-    );
-  };
-
-  const resetForm = () => {
-    setSubject("");
-    setSecond("");
-    setActionType("requester");
-    setLowWatermark("");
-    setHighWatermark("");
-    mutation.reset();
-  };
-
   const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) resetForm();
+    if (!nextOpen) {
+      form.reset();
+      mutation.reset();
+    }
     onOpenChange(nextOpen);
   };
 
@@ -99,84 +89,99 @@ export function AddRuleDialog({
         <DialogHeader>
           <DialogTitle>Add {SUBJECT_TYPE_LABELS[subjectType]}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Subject Address *
-            </label>
-            <Input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="f0... or f1... or f3..."
-              className="font-mono text-xs"
-            />
-          </div>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <form.Field
+            name="subject"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Subject address is required.",
+            }}
+          >
+            {(field) => (
+              <TextField
+                field={field}
+                inputClassName="font-mono text-xs"
+                label="Subject Address"
+                placeholder="f0... or f1... or f3..."
+                required
+              />
+            )}
+          </form.Field>
 
           {showSecondField && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                Second Address *
-              </label>
-              <Input
-                value={second}
-                onChange={(e) => setSecond(e.target.value)}
-                placeholder="f0... or f1... or f3..."
-                className="font-mono text-xs"
-              />
-            </div>
+            <form.Field
+              name="second"
+              validators={{
+                onChange: ({ value }) =>
+                  value.trim() ? undefined : "Second address is required.",
+              }}
+            >
+              {(field) => (
+                <TextField
+                  field={field}
+                  inputClassName="font-mono text-xs"
+                  label="Second Address"
+                  placeholder="f0... or f1... or f3..."
+                  required
+                />
+              )}
+            </form.Field>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Action
-            </label>
-            {showActionSelect ? (
-              <Select
-                value={actionType}
-                onValueChange={(value) => setActionType(value ?? "requester")}
-              >
-                <SelectTrigger size="sm" className="text-xs">
-                  <SelectValue placeholder="Select action" />
-                </SelectTrigger>
-                <SelectContent>
+          {showActionSelect ? (
+            <form.Field name="actionType">
+              {(field) => (
+                <SelectField
+                  contentClassName="min-w-56"
+                  field={field}
+                  label="Action"
+                  placeholder="Select action"
+                  triggerClassName="text-xs"
+                >
                   <SelectItem value="requester">
                     Keep Subject Above Low
                   </SelectItem>
                   <SelectItem value="active-provider">
                     Keep Subject Below High
                   </SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
+                </SelectField>
+              )}
+            </form.Field>
+          ) : (
+            <AppField label="Action">
               <Input
                 value="Keep Subject Above Low"
                 readOnly
                 className="bg-muted text-muted-foreground"
               />
-            )}
-          </div>
+            </AppField>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                Low Watermark (FIL)
-              </label>
-              <Input
-                value={lowWatermark}
-                onChange={(e) => setLowWatermark(e.target.value)}
-                placeholder="e.g. 5"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                High Watermark (FIL)
-              </label>
-              <Input
-                value={highWatermark}
-                onChange={(e) => setHighWatermark(e.target.value)}
-                placeholder="e.g. 10"
-              />
-            </div>
+            <form.Field name="lowWatermark">
+              {(field) => (
+                <TextField
+                  field={field}
+                  label="Low Watermark (FIL)"
+                  placeholder="e.g. 5"
+                />
+              )}
+            </form.Field>
+            <form.Field name="highWatermark">
+              {(field) => (
+                <TextField
+                  field={field}
+                  label="High Watermark (FIL)"
+                  placeholder="e.g. 10"
+                />
+              )}
+            </form.Field>
           </div>
 
           {mutation.isError && (
@@ -184,27 +189,32 @@ export function AddRuleDialog({
               {(mutation.error as Error)?.message ?? "Failed to add rule"}
             </p>
           )}
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleClose(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={
-              mutation.isPending ||
-              !subject.trim() ||
-              (showSecondField && !second.trim())
-            }
-          >
-            {mutation.isPending ? "Adding..." : "Add Rule"}
-          </Button>
-        </DialogFooter>
+          <AppFormActions>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => handleClose(false)}
+            >
+              Cancel
+            </Button>
+            <form.Subscribe selector={(state) => state.values}>
+              {(values) => (
+                <Button
+                  size="sm"
+                  type="submit"
+                  disabled={
+                    mutation.isPending ||
+                    !values.subject.trim() ||
+                    (showSecondField && !values.second.trim())
+                  }
+                >
+                  {mutation.isPending ? "Adding..." : "Add Rule"}
+                </Button>
+              )}
+            </form.Subscribe>
+          </AppFormActions>
+        </form>
       </DialogContent>
     </Dialog>
   );

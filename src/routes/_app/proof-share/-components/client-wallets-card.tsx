@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { formatFilecoin } from "@/utils/filecoin";
 import { usePsClientAddWallet } from "../-module/queries";
 import type { PsClientWallet } from "../-module/types";
@@ -98,7 +99,7 @@ export function ClientWalletsCard({
             <DialogTitle>Add Wallet</DialogTitle>
           </DialogHeader>
           <div>
-            <label className="text-sm font-medium">Wallet Address *</label>
+            <Label className="text-sm font-medium">Wallet Address *</Label>
             <Input
               value={newWallet}
               onChange={(e) => setNewWallet(e.target.value)}

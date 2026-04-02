@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useRef } from "react";
+import {
+  AppFormActions,
+  TextareaField,
+  TextField,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useFsUpdateProvider } from "../-module/queries";
 
 interface FsUpdateProviderDialogProps {
@@ -18,32 +21,100 @@ interface FsUpdateProviderDialogProps {
   currentDescription: string;
 }
 
+interface FsUpdateProviderDialogFormProps {
+  currentDescription: string;
+  currentName: string;
+  mutationPending: boolean;
+  onCancel: () => void;
+  onSubmit: (values: { description: string; name: string }) => void;
+}
+
+function FsUpdateProviderDialogForm({
+  currentDescription,
+  currentName,
+  mutationPending,
+  onCancel,
+  onSubmit,
+}: FsUpdateProviderDialogFormProps) {
+  const form = useForm({
+    defaultValues: {
+      description: currentDescription,
+      name: currentName,
+    },
+    onSubmit: ({ value }) => {
+      onSubmit(value);
+    },
+  });
+
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void form.handleSubmit();
+      }}
+    >
+      <form.Field
+        name="name"
+        validators={{
+          onChange: ({ value }) =>
+            value.trim() ? undefined : "Name is required.",
+        }}
+      >
+        {(field) => (
+          <TextField
+            field={field}
+            label="Name"
+            placeholder="Provider name"
+            required
+          />
+        )}
+      </form.Field>
+      <form.Field
+        name="description"
+        validators={{
+          onChange: ({ value }) =>
+            value.trim() ? undefined : "Description is required.",
+        }}
+      >
+        {(field) => (
+          <TextareaField
+            field={field}
+            label="Description"
+            placeholder="Provider description"
+            required
+            rows={3}
+          />
+        )}
+      </form.Field>
+      <AppFormActions>
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={mutationPending}>
+          {mutationPending ? "Updating..." : "Update"}
+        </Button>
+      </AppFormActions>
+    </form>
+  );
+}
+
 export function FsUpdateProviderDialog({
   open,
   onOpenChange,
   currentName,
   currentDescription,
 }: FsUpdateProviderDialogProps) {
-  const [form, setForm] = useState({
-    name: currentName,
-    description: currentDescription,
-  });
+  const wasOpenRef = useRef(false);
+  const sessionKeyRef = useRef(0);
   const mutation = useFsUpdateProvider();
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only reset form when dialog opens, not on polled data changes
-  useEffect(() => {
-    if (open) {
-      setForm({ name: currentName, description: currentDescription });
-      mutation.reset();
-    }
-  }, [open]);
-
-  const handleSubmit = useCallback(() => {
-    if (!form.name.trim() || !form.description.trim()) return;
-    mutation.mutate([form.name.trim(), form.description.trim()], {
-      onSuccess: () => onOpenChange(false),
-    });
-  }, [form, mutation, onOpenChange]);
+  if (open && !wasOpenRef.current) {
+    wasOpenRef.current = true;
+    sessionKeyRef.current += 1;
+    mutation.reset();
+  } else if (!open && wasOpenRef.current) {
+    wasOpenRef.current = false;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,47 +122,25 @@ export function FsUpdateProviderDialog({
         <DialogHeader>
           <DialogTitle>Update Provider Info</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm font-medium">Name *</label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="Provider name"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Description *</label>
-            <Textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              placeholder="Provider description"
-              rows={3}
-            />
-          </div>
-        </div>
+        {open ? (
+          <FsUpdateProviderDialogForm
+            key={sessionKeyRef.current}
+            currentDescription={currentDescription}
+            currentName={currentName}
+            mutationPending={mutation.isPending}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={(value) => {
+              mutation.mutate([value.name.trim(), value.description.trim()], {
+                onSuccess: () => onOpenChange(false),
+              });
+            }}
+          />
+        ) : null}
         {mutation.isError && (
           <p className="text-sm text-destructive">
             {(mutation.error as Error)?.message ?? "Failed to update provider"}
           </p>
         )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              mutation.isPending ||
-              !form.name.trim() ||
-              !form.description.trim()
-            }
-          >
-            {mutation.isPending ? "Updating..." : "Update"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

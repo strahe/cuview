@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { taskTypeColumns } from "@/routes/_app/tasks/-components/task-columns";
@@ -66,36 +67,39 @@ export function TaskAnalysisPage() {
     <>
       <div className="space-y-4">
         <div className="grid gap-3 md:grid-cols-3">
-          <button
+          <Button
             type="button"
             className={clickableCardClass(search.result === "all")}
             onClick={() => updateSearch({ result: "all" })}
+            variant="ghost"
           >
             <p className="text-sm text-muted-foreground">24h Runs</p>
             <p className="text-xl font-semibold leading-tight">
               {metrics.total}
             </p>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             className={clickableCardClass(search.result === "success")}
             onClick={() => updateSearch({ result: "success" })}
+            variant="ghost"
           >
             <p className="text-sm text-muted-foreground">Succeeded</p>
             <p className="text-xl font-semibold leading-tight text-success">
               {metrics.success}
             </p>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             className={clickableCardClass(search.result === "failed")}
             onClick={() => updateSearch({ result: "failed" })}
+            variant="ghost"
           >
             <p className="text-sm text-muted-foreground">Failed</p>
             <p className="text-xl font-semibold leading-tight text-destructive">
               {metrics.failed}
             </p>
-          </button>
+          </Button>
         </div>
 
         <Card>

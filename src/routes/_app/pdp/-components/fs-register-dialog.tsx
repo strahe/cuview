@@ -1,14 +1,16 @@
-import { useCallback, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import {
+  AppFormActions,
+  TextareaField,
+  TextField,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useFsRegister } from "../-module/queries";
 
 interface FsRegisterDialogProps {
@@ -20,32 +22,31 @@ export function FsRegisterDialog({
   open,
   onOpenChange,
 }: FsRegisterDialogProps) {
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    location: "",
-  });
   const mutation = useFsRegister();
-
-  const handleSubmit = useCallback(() => {
-    if (!form.name.trim() || !form.description.trim() || !form.location.trim())
-      return;
-    mutation.mutate(
-      [form.name.trim(), form.description.trim(), form.location.trim()],
-      {
-        onSuccess: () => {
-          setForm({ name: "", description: "", location: "" });
-          onOpenChange(false);
+  const form = useForm({
+    defaultValues: {
+      description: "",
+      location: "",
+      name: "",
+    },
+    onSubmit: ({ value }) => {
+      mutation.mutate(
+        [value.name.trim(), value.description.trim(), value.location.trim()],
+        {
+          onSuccess: () => {
+            form.reset();
+            onOpenChange(false);
+          },
         },
-      },
-    );
-  }, [form, mutation, onOpenChange]);
+      );
+    },
+  });
 
-  const handleClose = useCallback(() => {
-    setForm({ name: "", description: "", location: "" });
+  const handleClose = () => {
+    form.reset();
     mutation.reset();
     onOpenChange(false);
-  }, [onOpenChange, mutation]);
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -53,58 +54,88 @@ export function FsRegisterDialog({
         <DialogHeader>
           <DialogTitle>Register Storage Provider</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm font-medium">Name *</label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="Provider name"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Description *</label>
-            <Textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              placeholder="Provider description"
-              rows={3}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Location *</label>
-            <Input
-              value={form.location}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, location: e.target.value }))
-              }
-              placeholder="Geographic location"
-            />
-          </div>
-        </div>
-        {mutation.isError && (
-          <p className="text-sm text-destructive">
-            {(mutation.error as Error)?.message ?? "Failed to register"}
-          </p>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              mutation.isPending ||
-              !form.name.trim() ||
-              !form.description.trim() ||
-              !form.location.trim()
-            }
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <form.Field
+            name="name"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Name is required.",
+            }}
           >
-            {mutation.isPending ? "Registering..." : "Register"}
-          </Button>
-        </DialogFooter>
+            {(field) => (
+              <TextField
+                field={field}
+                label="Name"
+                placeholder="Provider name"
+                required
+              />
+            )}
+          </form.Field>
+          <form.Field
+            name="description"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Description is required.",
+            }}
+          >
+            {(field) => (
+              <TextareaField
+                field={field}
+                label="Description"
+                placeholder="Provider description"
+                required
+                rows={3}
+              />
+            )}
+          </form.Field>
+          <form.Field
+            name="location"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Location is required.",
+            }}
+          >
+            {(field) => (
+              <TextField
+                field={field}
+                label="Location"
+                placeholder="Geographic location"
+                required
+              />
+            )}
+          </form.Field>
+          {mutation.isError && (
+            <p className="text-sm text-destructive">
+              {(mutation.error as Error)?.message ?? "Failed to register"}
+            </p>
+          )}
+          <AppFormActions>
+            <Button variant="outline" type="button" onClick={handleClose}>
+              Cancel
+            </Button>
+            <form.Subscribe selector={(state) => state.values}>
+              {(values) => (
+                <Button
+                  type="submit"
+                  disabled={
+                    mutation.isPending ||
+                    !values.name.trim() ||
+                    !values.description.trim() ||
+                    !values.location.trim()
+                  }
+                >
+                  {mutation.isPending ? "Registering..." : "Register"}
+                </Button>
+              )}
+            </form.Subscribe>
+          </AppFormActions>
+        </form>
       </DialogContent>
     </Dialog>
   );

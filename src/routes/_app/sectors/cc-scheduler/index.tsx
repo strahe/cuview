@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/cc-scheduler/")({
@@ -220,7 +222,7 @@ function CCSchedulerPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">SP Address *</label>
+                <Label className="text-sm font-medium">SP Address *</Label>
                 <Input
                   value={form.sp}
                   onChange={(e) =>
@@ -230,7 +232,7 @@ function CCSchedulerPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Sectors to Seal</label>
+                <Label className="text-sm font-medium">Sectors to Seal</Label>
                 <Input
                   type="number"
                   value={form.toSeal}
@@ -240,7 +242,7 @@ function CCSchedulerPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Weight</label>
+                <Label className="text-sm font-medium">Weight</Label>
                 <Input
                   type="number"
                   value={form.weight}
@@ -250,7 +252,7 @@ function CCSchedulerPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Duration (days)</label>
+                <Label className="text-sm font-medium">Duration (days)</Label>
                 <Input
                   type="number"
                   value={form.durationDays}
@@ -260,17 +262,16 @@ function CCSchedulerPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="add-enabled"
                   checked={form.enabled}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, enabled: e.target.checked }))
+                  onCheckedChange={(checked) =>
+                    setForm((f) => ({ ...f, enabled: !!checked }))
                   }
                 />
-                <label htmlFor="add-enabled" className="text-sm">
+                <Label htmlFor="add-enabled" className="text-sm">
                   Enabled
-                </label>
+                </Label>
               </div>
             </div>
             <DialogFooter>
@@ -299,7 +300,7 @@ function CCSchedulerPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Sectors to Seal</label>
+                <Label className="text-sm font-medium">Sectors to Seal</Label>
                 <Input
                   type="number"
                   value={form.toSeal}
@@ -309,7 +310,7 @@ function CCSchedulerPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Weight</label>
+                <Label className="text-sm font-medium">Weight</Label>
                 <Input
                   type="number"
                   value={form.weight}
@@ -319,7 +320,7 @@ function CCSchedulerPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Duration (days)</label>
+                <Label className="text-sm font-medium">Duration (days)</Label>
                 <Input
                   type="number"
                   value={form.durationDays}
@@ -329,17 +330,16 @@ function CCSchedulerPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="edit-enabled"
                   checked={form.enabled}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, enabled: e.target.checked }))
+                  onCheckedChange={(checked) =>
+                    setForm((f) => ({ ...f, enabled: !!checked }))
                   }
                 />
-                <label htmlFor="edit-enabled" className="text-sm">
+                <Label htmlFor="edit-enabled" className="text-sm">
                   Enabled
-                </label>
+                </Label>
               </div>
             </div>
             <DialogFooter>

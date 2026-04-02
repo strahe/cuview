@@ -102,14 +102,15 @@ function HistoryEntryItem({
 
   return (
     <div className="rounded-md border border-border">
-      <button
+      <Button
         type="button"
-        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-muted"
+        className="h-auto w-full justify-between px-3 py-2.5 text-left text-sm font-normal"
         onClick={onToggle}
+        variant="ghost"
       >
         <span className="font-medium">Version #{entry.id}</span>
         <span className="text-xs text-muted-foreground">{entry.createdAt}</span>
-      </button>
+      </Button>
 
       {expanded && (
         <div className="border-t border-border px-3 py-3">

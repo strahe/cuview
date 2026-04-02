@@ -119,17 +119,18 @@ function StorageGcPage() {
         accessorKey: "Miner",
         header: "Miner",
         cell: ({ row }) => (
-          <button
+          <Button
             type="button"
-            className="font-mono text-xs text-primary hover:underline"
+            className="h-auto p-0 font-mono text-xs"
             onClick={() =>
               updateSearch({
                 miner: row.original.Miner,
               })
             }
+            variant="link"
           >
             {row.original.Miner}
-          </button>
+          </Button>
         ),
       },
       {

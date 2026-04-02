@@ -1,4 +1,5 @@
 import { Check, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -19,10 +20,12 @@ export function CopyButton({
     <Tooltip>
       <TooltipTrigger
         render={
-          <button
+          <Button
             type="button"
             aria-label={copied ? "Copied value" : "Copy value"}
-            className={`inline-flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground ${className ?? ""}`}
+            className={className}
+            size="icon-xs"
+            variant="ghost"
           />
         }
         onClick={(event) => {

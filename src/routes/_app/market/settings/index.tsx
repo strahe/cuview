@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { FilPriceInput } from "@/components/composed/fil-price-input";
+import { SizeSelect } from "@/components/composed/size-select";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,6 +35,8 @@ import type {
   ClientFilter,
   PricingFilter,
 } from "@/types/market";
+import { formatBytes } from "@/utils/format";
+import { attoFilToFilPerTiBPerMonth } from "@/utils/market";
 import {
   useAddAllowDeny,
   useAddClientFilter,
@@ -53,9 +58,24 @@ const pricingColumns: ColumnDef<PricingFilter>[] = [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "min_dur", header: "Min Duration" },
   { accessorKey: "max_dur", header: "Max Duration" },
-  { accessorKey: "min_size", header: "Min Size" },
-  { accessorKey: "max_size", header: "Max Size" },
-  { accessorKey: "price", header: "Price" },
+  {
+    accessorKey: "min_size",
+    header: "Min Size",
+    cell: ({ row }) => formatBytes(row.original.min_size),
+  },
+  {
+    accessorKey: "max_size",
+    header: "Max Size",
+    cell: ({ row }) => formatBytes(row.original.max_size),
+  },
+  {
+    accessorKey: "price",
+    header: "Price",
+    cell: ({ row }) => {
+      const fil = attoFilToFilPerTiBPerMonth(row.original.price);
+      return `${fil} FIL/TiB/Mo`;
+    },
+  },
   {
     id: "verified",
     header: "Verified",
@@ -414,7 +434,7 @@ function MarketSettingsPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Name *</label>
+                <Label className="text-sm font-medium">Name *</Label>
                 <Input
                   value={pricingForm.name}
                   onChange={(e) =>
@@ -428,9 +448,9 @@ function MarketSettingsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium">
+                  <Label className="text-sm font-medium">
                     Min Duration (days)
-                  </label>
+                  </Label>
                   <Input
                     type="number"
                     value={pricingForm.minDur}
@@ -443,9 +463,9 @@ function MarketSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">
+                  <Label className="text-sm font-medium">
                     Max Duration (days)
-                  </label>
+                  </Label>
                   <Input
                     type="number"
                     value={pricingForm.maxDur}
@@ -460,49 +480,29 @@ function MarketSettingsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium">
-                    Min Size (bytes)
-                  </label>
-                  <Input
-                    type="number"
+                  <Label className="text-sm font-medium">Min Size</Label>
+                  <SizeSelect
                     value={pricingForm.minSize}
-                    onChange={(e) =>
-                      setPricingForm((f) => ({
-                        ...f,
-                        minSize: parseInt(e.target.value, 10) || 0,
-                      }))
+                    onChange={(v) =>
+                      setPricingForm((f) => ({ ...f, minSize: v }))
                     }
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">
-                    Max Size (bytes)
-                  </label>
-                  <Input
-                    type="number"
+                  <Label className="text-sm font-medium">Max Size</Label>
+                  <SizeSelect
                     value={pricingForm.maxSize}
-                    onChange={(e) =>
-                      setPricingForm((f) => ({
-                        ...f,
-                        maxSize: parseInt(e.target.value, 10) || 0,
-                      }))
+                    onChange={(v) =>
+                      setPricingForm((f) => ({ ...f, maxSize: v }))
                     }
                   />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">
-                  Price (attoFIL/GiB/Epoch)
-                </label>
-                <Input
-                  type="number"
+                <Label className="text-sm font-medium">Price</Label>
+                <FilPriceInput
                   value={pricingForm.price}
-                  onChange={(e) =>
-                    setPricingForm((f) => ({
-                      ...f,
-                      price: parseInt(e.target.value, 10) || 0,
-                    }))
-                  }
+                  onChange={(v) => setPricingForm((f) => ({ ...f, price: v }))}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -516,9 +516,9 @@ function MarketSettingsPage() {
                   }
                   id="verified"
                 />
-                <label htmlFor="verified" className="text-sm font-medium">
+                <Label htmlFor="verified" className="text-sm font-medium">
                   Verified deals only
-                </label>
+                </Label>
               </div>
             </div>
             <DialogFooter>
@@ -550,7 +550,7 @@ function MarketSettingsPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Name *</label>
+                <Label className="text-sm font-medium">Name *</Label>
                 <Input
                   value={clientForm.name}
                   onChange={(e) =>
@@ -573,14 +573,14 @@ function MarketSettingsPage() {
                   }
                   id="clientActive"
                 />
-                <label htmlFor="clientActive" className="text-sm font-medium">
+                <Label htmlFor="clientActive" className="text-sm font-medium">
                   Active
-                </label>
+                </Label>
               </div>
               <div>
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   Wallets (comma-separated)
-                </label>
+                </Label>
                 <Input
                   value={clientForm.wallets}
                   onChange={(e) =>
@@ -593,9 +593,9 @@ function MarketSettingsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   Peer IDs (comma-separated)
-                </label>
+                </Label>
                 <Input
                   value={clientForm.peers}
                   onChange={(e) =>
@@ -607,9 +607,9 @@ function MarketSettingsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   Pricing Filters (comma-separated)
-                </label>
+                </Label>
                 <Input
                   value={clientForm.filters}
                   onChange={(e) =>
@@ -622,7 +622,7 @@ function MarketSettingsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium">Max Deals/Hour</label>
+                  <Label className="text-sm font-medium">Max Deals/Hour</Label>
                   <Input
                     type="number"
                     value={clientForm.maxDealsPerHour}
@@ -635,9 +635,9 @@ function MarketSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">
-                    Max Deal Size/Hour
-                  </label>
+                  <Label className="text-sm font-medium">
+                    Max Deal Size/Hour (bytes)
+                  </Label>
                   <Input
                     type="number"
                     value={clientForm.maxDealSizePerHour}
@@ -648,10 +648,15 @@ function MarketSettingsPage() {
                       }))
                     }
                   />
+                  {clientForm.maxDealSizePerHour > 0 && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatBytes(clientForm.maxDealSizePerHour)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Additional Info</label>
+                <Label className="text-sm font-medium">Additional Info</Label>
                 <Input
                   value={clientForm.info}
                   onChange={(e) =>
@@ -689,7 +694,7 @@ function MarketSettingsPage() {
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium">Wallet Address *</label>
+                <Label className="text-sm font-medium">Wallet Address *</Label>
                 <Input
                   value={allowDenyForm.wallet}
                   onChange={(e) =>
@@ -703,7 +708,7 @@ function MarketSettingsPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Action</label>
+                <Label className="text-sm font-medium">Action</Label>
                 <Select
                   value={allowDenyForm.status ? "allow" : "deny"}
                   onValueChange={(value) =>

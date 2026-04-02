@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import type { IpniEntryInfo } from "@/types/ipni";
@@ -210,16 +211,17 @@ export function EntryScanGrid({ entriesHead, entryCount }: EntryScanGridProps) {
               else if (entry.status === "error") bg = "bg-destructive";
 
               return (
-                <button
+                <Button
                   key={index}
                   type="button"
                   aria-label={getEntryAriaLabel(index, entry, isScanning)}
                   aria-pressed={isSelected}
                   disabled={!isInteractive}
-                  className={`h-2.5 w-2.5 rounded-[1px] transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${bg} ${
+                  className={`h-2.5 w-2.5 rounded-[1px] p-0 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${bg} ${
                     isSelected ? "ring-1 ring-primary ring-offset-1" : ""
                   } ${isInteractive ? "cursor-pointer" : "cursor-default"}`}
                   title={`Entry ${index + 1}${entry.cid ? ` — ${entry.cid.slice(0, 16)}…` : ""}`}
+                  variant="ghost"
                   onClick={() => {
                     if (isInteractive) {
                       setSelectedIndex(index);

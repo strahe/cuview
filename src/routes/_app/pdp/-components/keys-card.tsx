@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useImportPdpKey, useRemovePdpKey } from "../-module/queries";
 
 interface KeysCardProps {
@@ -118,7 +119,7 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
             <DialogTitle>Import PDP Key</DialogTitle>
           </DialogHeader>
           <div>
-            <label className="text-sm font-medium">Private Key (hex) *</label>
+            <Label className="text-sm font-medium">Private Key (hex) *</Label>
             <Input
               type="password"
               value={keyHex}

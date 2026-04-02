@@ -6,6 +6,7 @@
         "src/**",
         "!src/style.css",
         "!src/routeTree.gen.ts",
+        "!src/components/ui/**",
         "*.json",
         "*.ts"
       ],
@@ -41,7 +42,12 @@
         "noNonNullAssertion": "off"
       }
     },
-    "includes": ["src/**", "!src/style.css", "!src/routeTree.gen.ts"]
+    "includes": [
+      "src/**",
+      "!src/style.css",
+      "!src/routeTree.gen.ts",
+      "!src/components/ui/**"
+    ]
   },
   "javascript": {
     "formatter": {
