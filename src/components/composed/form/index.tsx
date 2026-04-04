@@ -42,7 +42,7 @@ interface AppCheckboxFieldProps {
   labelId?: string;
 }
 
-interface FormFieldBinding {
+export interface FormFieldBinding {
   form: {
     state: {
       submissionAttempts: number;

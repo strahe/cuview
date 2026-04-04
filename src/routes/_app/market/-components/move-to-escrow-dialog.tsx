@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { AppFormActions, TextField } from "@/components/composed/form";
+import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
 import { useMoveToEscrow } from "../-module/queries";
 
 function getAmountValidationError(value: string) {
@@ -34,6 +36,7 @@ export function MoveToEscrowDialog({
   onOpenChange,
   miner,
 }: MoveToEscrowDialogProps) {
+  const { data: walletNames } = useWalletNames();
   const mutation = useMoveToEscrow();
   const form = useForm({
     defaultValues: {
@@ -98,11 +101,11 @@ export function MoveToEscrowDialog({
           </form.Field>
           <form.Field name="wallet">
             {(field) => (
-              <TextField
+              <WalletComboboxField
                 field={field}
-                inputClassName="font-mono text-xs"
                 label="Wallet (optional)"
-                placeholder="f1... or f3..."
+                placeholder="Select or enter wallet…"
+                wallets={walletNames}
               />
             )}
           </form.Field>

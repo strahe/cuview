@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { WalletCombobox } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
 import {
   usePsRouterAddBalance,
   usePsRouterCancelWithdrawal,
@@ -11,6 +13,7 @@ import {
 } from "../-module/queries";
 
 export function RouterBalanceCard() {
+  const { data: walletNames } = useWalletNames();
   const [wallet, setWallet] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -37,14 +40,19 @@ export function RouterBalanceCard() {
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+            <Label
+              htmlFor="router-wallet"
+              className="mb-1 block text-xs text-muted-foreground"
+            >
               Wallet
             </Label>
-            <Input
-              placeholder="Wallet address"
+            <WalletCombobox
+              id="router-wallet"
+              placeholder="Select or enter wallet…"
               value={wallet}
-              onChange={(e) => setWallet(e.target.value)}
-              className="w-40 font-mono text-xs"
+              onChange={setWallet}
+              className="w-56"
+              wallets={walletNames}
             />
           </div>
           <div>

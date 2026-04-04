@@ -4,6 +4,7 @@ import {
   CheckboxField,
   TextField,
 } from "@/components/composed/form";
+import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
 import { usePsClientSet } from "../-module/queries";
 
 interface AddClientDialogProps {
@@ -19,6 +21,7 @@ interface AddClientDialogProps {
 }
 
 export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
+  const { data: walletNames } = useWalletNames();
   const clientSetMutation = usePsClientSet();
   const form = useForm({
     defaultValues: {
@@ -98,10 +101,11 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
           <form.Field name="wallet">
             {(field) => (
-              <TextField
+              <WalletComboboxField
                 field={field}
                 label="Wallet"
-                placeholder="Payment wallet"
+                placeholder="Select or enter wallet…"
+                wallets={walletNames}
               />
             )}
           </form.Field>

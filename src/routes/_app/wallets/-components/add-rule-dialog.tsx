@@ -5,6 +5,7 @@ import {
   SelectField,
   TextField,
 } from "@/components/composed/form";
+import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SelectItem } from "@/components/ui/select";
-import { useAddBalanceRule } from "../-module/queries";
+import { useAddBalanceRule, useWalletNames } from "../-module/queries";
 
 type SubjectType = "wallet" | "proofshare" | "f05";
 
@@ -37,6 +38,7 @@ export function AddRuleDialog({
   initialSubjectType = "wallet",
 }: AddRuleDialogProps) {
   const subjectType = initialSubjectType;
+  const { data: walletNames } = useWalletNames();
   const mutation = useAddBalanceRule();
   const form = useForm({
     defaultValues: {
@@ -103,15 +105,25 @@ export function AddRuleDialog({
                 value.trim() ? undefined : "Subject address is required.",
             }}
           >
-            {(field) => (
-              <TextField
-                field={field}
-                inputClassName="font-mono text-xs"
-                label="Subject Address"
-                placeholder="f0... or f1... or f3..."
-                required
-              />
-            )}
+            {(field) =>
+              subjectType === "wallet" ? (
+                <WalletComboboxField
+                  field={field}
+                  label="Subject Address"
+                  placeholder="Select or enter wallet…"
+                  required
+                  wallets={walletNames}
+                />
+              ) : (
+                <TextField
+                  field={field}
+                  inputClassName="font-mono text-xs"
+                  label="Subject Address"
+                  placeholder="f0... or f1... or f3..."
+                  required
+                />
+              )
+            }
           </form.Field>
 
           {showSecondField && (
@@ -123,12 +135,12 @@ export function AddRuleDialog({
               }}
             >
               {(field) => (
-                <TextField
+                <WalletComboboxField
                   field={field}
-                  inputClassName="font-mono text-xs"
                   label="Second Address"
-                  placeholder="f0... or f1... or f3..."
+                  placeholder="Select or enter wallet…"
                   required
+                  wallets={walletNames}
                 />
               )}
             </form.Field>

@@ -53,6 +53,52 @@ const {
   setMetaMutateMock: vi.fn(),
 }));
 
+vi.mock("@/components/composed/form/wallet-combobox-field", () => ({
+  WalletCombobox: ({
+    value,
+    onChange,
+    placeholder,
+    ...props
+  }: ComponentProps<"input"> & {
+    wallets?: Record<string, string>;
+    onChange: (v: string) => void;
+  }) => (
+    <input
+      {...props}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+  WalletComboboxField: ({
+    field,
+    label,
+    placeholder,
+  }: {
+    field: {
+      name: string;
+      state: { value: unknown };
+      handleChange: (v: string) => void;
+      handleBlur: () => void;
+    };
+    label?: string;
+    placeholder?: string;
+    wallets?: Record<string, string>;
+    [key: string]: unknown;
+  }) => (
+    <div>
+      {label && <label>{label}</label>}
+      <input
+        name={field.name}
+        value={String(field.state.value ?? "")}
+        placeholder={placeholder}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
+      />
+    </div>
+  ),
+}));
+
 vi.mock("@/components/composed/status-badge", () => ({
   StatusBadge: ({ label, status }: { label: string; status: string }) => (
     <span data-status={status}>{label}</span>
@@ -202,6 +248,10 @@ vi.mock("@/components/ui/input", () => ({
   Input: (props: ComponentProps<"input">) => <input {...props} />,
 }));
 
+vi.mock("@/routes/_app/wallets/-module/queries", () => ({
+  useWalletNames: () => ({ data: {}, isLoading: false, error: null }),
+}));
+
 vi.mock("../-module/queries", () => ({
   usePsClientAddWallet: () => ({
     mutate: addWalletMutateMock,
@@ -305,7 +355,7 @@ describe("proof-share component regressions", () => {
       />,
     );
 
-    const walletInput = screen.getByPlaceholderText("Wallet address");
+    const walletInput = screen.getByPlaceholderText("Select or enter wallet…");
     await user.clear(walletInput);
     await user.type(walletInput, "draft-wallet");
 
@@ -408,7 +458,7 @@ describe("proof-share component regressions", () => {
     render(<RouterBalanceCard />);
 
     await user.type(
-      screen.getByPlaceholderText("Wallet address"),
+      screen.getByPlaceholderText("Select or enter wallet…"),
       "f1trimmed   ",
     );
     await user.type(screen.getByPlaceholderText("0"), " 42 ");
@@ -423,7 +473,10 @@ describe("proof-share component regressions", () => {
 
     render(<RouterBalanceCard />);
 
-    await user.type(screen.getByPlaceholderText("Wallet address"), "f1wallet");
+    await user.type(
+      screen.getByPlaceholderText("Select or enter wallet…"),
+      "f1wallet",
+    );
     await user.type(screen.getByPlaceholderText("0"), "1");
 
     expect(screen.getByRole("button", { name: "Add Balance" })).toBeDisabled();

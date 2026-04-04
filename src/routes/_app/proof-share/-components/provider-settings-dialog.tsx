@@ -5,6 +5,7 @@ import {
   CheckboxField,
   TextField,
 } from "@/components/composed/form";
+import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
 import { unwrapSqlNullableString } from "@/utils/sql";
 import { usePsSetMeta } from "../-module/queries";
 import type { PsMeta } from "../-module/types";
@@ -39,6 +41,7 @@ function ProviderSettingsDialogForm({
   onCancel,
   onSubmit,
 }: ProviderSettingsDialogFormProps) {
+  const { data: walletNames } = useWalletNames();
   const form = useForm({
     defaultValues: {
       enabled: meta?.enabled ?? false,
@@ -66,10 +69,11 @@ function ProviderSettingsDialogForm({
 
       <form.Field name="wallet">
         {(field) => (
-          <TextField
+          <WalletComboboxField
             field={field}
             label="Wallet"
-            placeholder="Wallet address"
+            placeholder="Select or enter wallet…"
+            wallets={walletNames}
           />
         )}
       </form.Field>

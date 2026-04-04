@@ -22,6 +22,36 @@ const {
   updateBalanceRuleResetMock: vi.fn(),
 }));
 
+vi.mock("@/components/composed/form/wallet-combobox-field", () => ({
+  WalletComboboxField: ({
+    field,
+    label,
+    placeholder,
+  }: {
+    field: {
+      name: string;
+      state: { value: unknown };
+      handleChange: (v: string) => void;
+      handleBlur: () => void;
+    };
+    label?: string;
+    placeholder?: string;
+    wallets?: Record<string, string>;
+    [key: string]: unknown;
+  }) => (
+    <div>
+      {label && <label>{label}</label>}
+      <input
+        name={field.name}
+        value={String(field.state.value ?? "")}
+        placeholder={placeholder}
+        onChange={(e) => field.handleChange(e.target.value)}
+        onBlur={field.handleBlur}
+      />
+    </div>
+  ),
+}));
+
 vi.mock("@/components/ui/button", () => ({
   Button: ({
     children,
@@ -121,6 +151,7 @@ vi.mock("../-module/queries", () => ({
     isError: false,
     error: null,
   }),
+  useWalletNames: () => ({ data: {}, isLoading: false, error: null }),
 }));
 
 describe("wallet dialog prop synchronization", () => {
