@@ -102,7 +102,6 @@ export function TasksToolbar({
         <div className="flex items-center gap-2">
           <Checkbox
             id={showBgId}
-            aria-label="Show background tasks"
             checked={showBg}
             onCheckedChange={(checked) => onShowBgChange(Boolean(checked))}
           />
@@ -116,7 +115,6 @@ export function TasksToolbar({
         <div className="flex items-center gap-2">
           <Checkbox
             id={coalesceId}
-            aria-label="Coalesce similar tasks"
             checked={coalesce}
             onCheckedChange={(checked) => onCoalesceChange(Boolean(checked))}
           />

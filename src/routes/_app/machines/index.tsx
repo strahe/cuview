@@ -547,7 +547,6 @@ function MachinesPage() {
           size="sm"
           pressed={showDetailed}
           onPressedChange={setShowDetailed}
-          aria-label="Toggle detailed view"
           className="h-8"
         >
           Detailed View

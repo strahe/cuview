@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,20 +26,22 @@ export function HistoryDialog({
 }: HistoryDialogProps) {
   const { data: entries, isLoading } = useConfigHistory(open ? layer : null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const previousLayer = useRef(layer);
+  const [prevLayer, setPrevLayer] = useState(layer);
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  if (layer !== prevLayer) {
+    setPrevLayer(layer);
+    if (expandedId !== null) {
+      setExpandedId(null);
+    }
+  }
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open && expandedId !== null) {
       setExpandedId(null);
     }
-  }, [expandedId, open]);
-
-  useEffect(() => {
-    if (previousLayer.current !== layer) {
-      previousLayer.current = layer;
-      setExpandedId(null);
-    }
-  }, [layer]);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -33,6 +33,7 @@ import { usePageTitle } from "@/hooks/use-page-title";
 import { DEFAULT_STORAGE_PATH_DETAIL_SEARCH } from "@/routes/_app/storage/-module/search-state";
 import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { MachineInfo } from "@/types/machine";
+import { isValidHost } from "@/utils/endpoint";
 import { formatBytes } from "@/utils/format";
 import {
   OFFLINE_THRESHOLD_SECONDS,
@@ -402,7 +403,7 @@ function MachineDetailPage() {
                   />
                 </dd>
               </div>
-              {info.Host && (
+              {info.Host && isValidHost(info.Host) && (
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Debug</dt>
                   <dd className="flex gap-2">

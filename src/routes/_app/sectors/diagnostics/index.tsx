@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
   HardDrive,
+  Loader2,
   Play,
   RefreshCw,
   Search,
@@ -466,7 +467,11 @@ function CommRCheckPanel({
             onClick={handleStart}
             disabled={!sp.trim() || !sector.trim() || startCheck.isPending}
           >
-            <Play className="mr-1 size-3" />
+            {startCheck.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Play className="mr-1 size-3" />
+            )}
             {startCheck.isPending ? "Starting..." : "Start Check"}
           </Button>
           <Button
@@ -664,7 +669,11 @@ function UnsealedCheckPanel({
             onClick={handleStart}
             disabled={!sp.trim() || !sector.trim() || startCheck.isPending}
           >
-            <Play className="mr-1 size-3" />
+            {startCheck.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Play className="mr-1 size-3" />
+            )}
             {startCheck.isPending ? "Starting..." : "Start Check"}
           </Button>
           <Button
@@ -832,7 +841,11 @@ function VanillaTestPanel({
             onClick={handleTest}
             disabled={!sp.trim() || !sector.trim() || runTest.isPending}
           >
-            <Zap className="mr-1 size-3" />
+            {runTest.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Zap className="mr-1 size-3" />
+            )}
             {runTest.isPending ? "Testing..." : "Run Test"}
           </Button>
         </div>
@@ -943,7 +956,11 @@ function WdPostTestPanel({
               startTask.isPending
             }
           >
-            <Play className="mr-1 size-3" />
+            {startTask.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Play className="mr-1 size-3" />
+            )}
             {startTask.isPending ? "Starting..." : "Start WdPost"}
           </Button>
           <Button
@@ -957,7 +974,11 @@ function WdPostTestPanel({
               runPartitionTest.isPending
             }
           >
-            <Zap className="mr-1 size-3" />
+            {runPartitionTest.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Zap className="mr-1 size-3" />
+            )}
             {runPartitionTest.isPending ? "Testing..." : "Vanilla Test"}
           </Button>
         </div>
@@ -980,7 +1001,12 @@ function WdPostTestPanel({
             onClick={handleCheck}
             disabled={!taskId.trim() || checkTask.isPending}
           >
-            <Search className="mr-1 size-3" /> Check Result
+            {checkTask.isPending ? (
+              <Loader2 className="mr-1 size-3 animate-spin" />
+            ) : (
+              <Search className="mr-1 size-3" />
+            )}
+            {checkTask.isPending ? "Checking..." : "Check Result"}
           </Button>
         </div>
 

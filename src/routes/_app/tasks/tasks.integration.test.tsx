@@ -495,9 +495,7 @@ describe("tasks integration", () => {
     const { ActiveTasksPage } = await import("./active");
     renderWithLayoutControls(<ActiveTasksPage />);
 
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: "Show background tasks" }),
-    );
+    fireEvent.click(screen.getByLabelText("Show background tasks"));
 
     expect(navigateMock).toHaveBeenCalledTimes(1);
     const payload = navigateMock.mock.calls[0]?.[0] as {

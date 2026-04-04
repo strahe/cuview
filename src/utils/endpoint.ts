@@ -1,6 +1,15 @@
 const DEFAULT_HOST = "localhost:4701";
 export const DEFAULT_RPC_PATH = "/api/webrpc/v0";
 
+export const isValidHost = (host: string): boolean => {
+  if (!host) return false;
+  const m = /^([a-zA-Z0-9._-]+|\[[a-fA-F0-9:]+\])(?::(\d{1,5}))?$/.exec(host);
+  if (!m) return false;
+  if (m[2] !== undefined && (Number(m[2]) < 1 || Number(m[2]) > 65535))
+    return false;
+  return true;
+};
+
 const normalizePath = (path: string): string => {
   return path.replace(/\/+$/, "").replace(/^$/, "/");
 };
