@@ -4,12 +4,7 @@ import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBytes } from "@/utils/format";
@@ -39,7 +34,6 @@ function PiecesPage() {
   const [dealInfoSearch, setDealInfoSearch] = useState<string | null>(null);
   const [uploadIdQuery, setUploadIdQuery] = useState("");
   const [uploadIdSearch, setUploadIdSearch] = useState<string | null>(null);
-  const [showDealDetail, setShowDealDetail] = useState<string | null>(null);
 
   const { data: pieceInfo, isLoading, isError } = usePieceInfo(searchCid);
 
@@ -175,7 +169,11 @@ function PiecesPage() {
                             <div
                               key={d.id}
                               className="cursor-pointer rounded border border-border p-2 text-xs hover:bg-muted"
-                              onClick={() => setShowDealDetail(d.id)}
+                              onClick={() => {
+                                setDealInfoQuery(d.id);
+                                setDealInfoSearch(d.id);
+                                setTab("deal");
+                              }}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-mono">{d.miner}</span>
@@ -459,19 +457,6 @@ function PiecesPage() {
           )}
         </div>
       </Tabs>
-
-      {showDealDetail && (
-        <Dialog open onOpenChange={() => setShowDealDetail(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Deal {showDealDetail.slice(0, 12)}…</DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-muted-foreground">
-              Use the Deal Info tab to look up full deal details.
-            </p>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

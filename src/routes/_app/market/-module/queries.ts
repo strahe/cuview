@@ -14,6 +14,7 @@ import type {
   PipelineFailedStats,
   PricingFilter,
   StorageAsk,
+  StorageAskTableEntry,
 } from "@/types/market";
 import {
   asksInvalidateKeys,
@@ -27,6 +28,7 @@ import {
 import type {
   ContentEntry,
   MarketBalanceEntry,
+  MarketBalanceStatus,
   MK12DealListItem,
   MK20DealDetailResponse,
   MK20DealListItem,
@@ -41,10 +43,35 @@ import type {
 // Balance
 // ---------------------------------------------------------------------------
 
+function adaptMarketBalance(raw: MarketBalanceStatus[]): MarketBalanceEntry[] {
+  return raw.map((s) => ({
+    miner: s.miner,
+    marketBalance: s.market_balance,
+    wallets: s.balances ?? [],
+  }));
+}
+
+function parseStorageProviderId(addr: string) {
+  const match = addr.trim().match(/^[ftFT]0*(\d+)$/);
+  if (!match) {
+    return null;
+  }
+
+  const spID = Number.parseInt(match[1]!, 10);
+  return Number.isNaN(spID) ? null : spID;
+}
+
 export function useMarketBalance() {
-  return useCurioRpc<MarketBalanceEntry[]>("MarketBalance", [], {
+  const query = useCurioRpc<MarketBalanceStatus[]>("MarketBalance", [], {
     refetchInterval: 60_000,
   });
+
+  const data = useMemo(
+    () => (query.data ? adaptMarketBalance(query.data) : undefined),
+    [query.data],
+  );
+
+  return { ...query, data };
 }
 
 export function useMoveToEscrow() {
@@ -77,36 +104,59 @@ export function useActorList() {
  * Fetches storage asks for all known SPs.
  * Go's GetStorageAsk requires a per-SP call with spID, so we first fetch
  * ActorList, derive spIDs, then query each SP in parallel.
+ * Returns all actors — those without asks have `hasAsk: false`.
  */
 export function useStorageAsks() {
   const api = useCurioApi();
   const { endpoint } = useCurioConnection();
   const actorList = useActorList();
 
-  const spIDs = useMemo(
-    () => actorList.data?.map((addr) => parseInt(addr.substring(2), 10)) ?? [],
+  const actors = useMemo(
+    () =>
+      actorList.data?.map((addr) => ({
+        addr,
+        spID: parseStorageProviderId(addr),
+      })) ?? [],
     [actorList.data],
   );
 
   const askQueries = useQueries({
-    queries: spIDs.map((spID) => ({
-      queryKey: ["curio", "GetStorageAsk", endpoint, spID],
-      queryFn: () => api.call<StorageAsk>("GetStorageAsk", [spID]),
+    queries: actors.map(({ addr, spID }) => ({
+      queryKey: ["curio", "GetStorageAsk", endpoint, addr],
+      queryFn: () => {
+        if (spID === null) {
+          throw new Error(`Invalid storage provider address: ${addr}`);
+        }
+        return api.call<StorageAsk>("GetStorageAsk", [spID]);
+      },
       refetchInterval: 60_000,
-      enabled: actorList.isSuccess,
+      enabled: actorList.isSuccess && spID !== null,
       retry: false,
     })),
   });
 
   const data = useMemo(
-    () =>
-      askQueries
-        .filter(
-          (q): q is (typeof askQueries)[number] & { data: StorageAsk } =>
-            q.isSuccess && q.data != null,
-        )
-        .map((q) => q.data),
-    [askQueries],
+    (): StorageAskTableEntry[] =>
+      actors.map(({ addr, spID }, i) => {
+        const q = askQueries[i];
+        if (q?.isSuccess && q.data != null) {
+          return {
+            id: addr,
+            SpID: spID,
+            Miner: addr,
+            hasAsk: true,
+            Price: q.data.Price,
+            VerifiedPrice: q.data.VerifiedPrice,
+            MinSize: q.data.MinSize,
+            MaxSize: q.data.MaxSize,
+            CreatedAt: q.data.CreatedAt,
+            Expiry: q.data.Expiry,
+            Sequence: q.data.Sequence,
+          };
+        }
+        return { id: addr, SpID: spID, Miner: addr, hasAsk: false };
+      }),
+    [actors, askQueries],
   );
 
   const isLoading =

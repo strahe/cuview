@@ -27,7 +27,7 @@ export interface PieceSummary {
 
 // Combined type for table display (includes actors without asks)
 export interface StorageAskWithActor {
-  SpID: number;
+  SpID: number | null;
   Miner: string;
   hasAsk: boolean; // Whether this SP has a storage ask
   // Optional ask fields (present only if hasAsk is true)

@@ -122,10 +122,21 @@ export interface StorageDealDetail {
   piece_cid_v2: string;
 }
 
-// Market balance entry (flat row for table)
+// Curio API response for MarketBalance RPC
+export interface WalletBalance {
+  address: string;
+  balance: string;
+}
+
+export interface MarketBalanceStatus {
+  miner: string;
+  market_balance: string;
+  balances: WalletBalance[] | null;
+}
+
+// Adapted display type for the balance table
 export interface MarketBalanceEntry {
-  Miner: string;
-  Balance: string;
-  Available: string;
-  Locked: string;
+  miner: string;
+  marketBalance: string;
+  wallets: WalletBalance[];
 }
