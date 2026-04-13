@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -75,20 +76,28 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
     setThemeState(newTheme);
   }, []);
 
+  const value = useMemo(
+    () => ({
+      sidebarCollapsed,
+      theme,
+      isDark: theme === "dark",
+      toggleSidebar,
+      setSidebarCollapsed,
+      toggleTheme,
+      setTheme,
+    }),
+    [
+      sidebarCollapsed,
+      theme,
+      toggleSidebar,
+      setSidebarCollapsed,
+      toggleTheme,
+      setTheme,
+    ],
+  );
+
   return (
-    <LayoutContext.Provider
-      value={{
-        sidebarCollapsed,
-        theme,
-        isDark: theme === "dark",
-        toggleSidebar,
-        setSidebarCollapsed,
-        toggleTheme,
-        setTheme,
-      }}
-    >
-      {children}
-    </LayoutContext.Provider>
+    <LayoutContext.Provider value={value}>{children}</LayoutContext.Provider>
   );
 }
 

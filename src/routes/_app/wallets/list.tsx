@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
@@ -68,7 +68,12 @@ export function WalletListPage() {
               disabled={removeWallet.isPending}
               onClick={() => removeWallet.mutate([row.original.address])}
             >
-              <Trash2 className="size-3.5" />
+              {removeWallet.isPending &&
+              removeWallet.variables?.[0] === row.original.address ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
             </Button>
           </div>
         ),

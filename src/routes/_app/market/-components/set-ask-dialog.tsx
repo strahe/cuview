@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 import { FilPriceInput } from "@/components/composed/fil-price-input";
 import {
   AppField,
@@ -194,6 +195,9 @@ export function SetAskDialog({ open, onOpenChange, entry }: SetAskDialogProps) {
               Cancel
             </Button>
             <Button size="sm" type="submit" disabled={mutation.isPending}>
+              {mutation.isPending && (
+                <Loader2 className="mr-1 size-3 animate-spin" />
+              )}
               {mutation.isPending ? "Saving..." : "Save"}
             </Button>
           </AppFormActions>

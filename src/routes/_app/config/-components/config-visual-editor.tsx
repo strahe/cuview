@@ -23,21 +23,17 @@ import {
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
+  useMemo,
   useState,
 } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurioApi } from "@/contexts/curio-api-context";
-import {
-  fetchConfigDefaults,
-  fetchConfigLayer,
-  fetchConfigSchema,
-} from "@/services/config-api";
+import type { ConfigSchemaDocument } from "@/types/config";
 import { mergeDeep } from "@/utils/object";
+import { useConfigEditorBundle } from "../-module/queries";
 
 interface ConfigVisualEditorProps {
   layerName: string;
@@ -62,77 +58,15 @@ export const ConfigVisualEditor = forwardRef<
   ConfigVisualEditorHandle,
   ConfigVisualEditorProps
 >(function ConfigVisualEditor({ layerName, infoDisplayMode }, ref) {
-  const api = useCurioApi();
-  const isDefault = layerName === "default";
+  const { schema, defaults, layerData, isLoading, error } =
+    useConfigEditorBundle(layerName);
 
-  const [schema, setSchema] = useState<RJSFSchema | null>(null);
-  const [defaults, setDefaults] = useState<Record<string, unknown> | null>(
-    null,
-  );
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Load schema, defaults, and layer data
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadData() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const [schemaData, defaultsData, layerData] = await Promise.all([
-          fetchConfigSchema(api),
-          fetchConfigDefaults(api),
-          fetchConfigLayer(api, layerName),
-        ]);
-
-        if (cancelled) return;
-
-        setSchema(schemaData as RJSFSchema);
-        setDefaults(defaultsData);
-
-        // Merge defaults with layer overrides for initial form data
-        const merged = mergeDeep(defaultsData ?? {}, layerData ?? {});
-        setFormData(merged as Record<string, unknown>);
-      } catch (err) {
-        if (!cancelled) {
-          setError(`Failed to load configuration: ${err}`);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [api, layerName]);
-
-  const handleChange = useCallback((e: IChangeEvent) => {
-    setFormData(e.formData);
-  }, []);
-
-  const save = useCallback(async () => {
-    if (isDefault) return {};
-
-    // Compute the diff: only save fields that differ from defaults
-    return computeOverrides(defaults ?? {}, formData);
-  }, [defaults, formData, isDefault]);
-  useImperativeHandle(
-    ref,
-    () => ({
-      save,
-    }),
-    [save],
+  const mergedData = useMemo(
+    () => mergeDeep(defaults ?? {}, layerData ?? {}) as Record<string, unknown>,
+    [defaults, layerData],
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10" />
@@ -146,7 +80,9 @@ export const ConfigVisualEditor = forwardRef<
     return (
       <Alert variant="destructive">
         <AlertCircle className="size-4" />
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>
+          Failed to load configuration: {error.message}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -160,6 +96,54 @@ export const ConfigVisualEditor = forwardRef<
   }
 
   return (
+    <ConfigVisualEditorForm
+      ref={ref}
+      schema={schema}
+      defaults={defaults}
+      initialData={mergedData}
+      layerName={layerName}
+      infoDisplayMode={infoDisplayMode}
+    />
+  );
+});
+
+interface ConfigVisualEditorFormProps {
+  schema: ConfigSchemaDocument;
+  defaults: Record<string, unknown> | null;
+  initialData: Record<string, unknown>;
+  layerName: string;
+  infoDisplayMode: "icon" | "inline";
+}
+
+const ConfigVisualEditorForm = forwardRef<
+  ConfigVisualEditorHandle,
+  ConfigVisualEditorFormProps
+>(function ConfigVisualEditorForm(
+  { schema, defaults, initialData, layerName, infoDisplayMode },
+  ref,
+) {
+  const isDefault = layerName === "default";
+
+  // Snapshot defaults at mount for accurate diff computation.
+  // Parent keys us by layerName, so we remount on layer switch.
+  const [snapshotDefaults] = useState<Record<string, unknown> | null>(
+    () => defaults,
+  );
+  const [formData, setFormData] =
+    useState<Record<string, unknown>>(initialData);
+
+  const handleChange = useCallback((e: IChangeEvent) => {
+    setFormData(e.formData);
+  }, []);
+
+  const save = useCallback(async () => {
+    if (isDefault) return {};
+    return computeOverrides(snapshotDefaults ?? {}, formData);
+  }, [snapshotDefaults, formData, isDefault]);
+
+  useImperativeHandle(ref, () => ({ save }), [save]);
+
+  return (
     <div className="space-y-4">
       {isDefault && (
         <Alert className="border-warning/50 text-warning">
@@ -168,9 +152,8 @@ export const ConfigVisualEditor = forwardRef<
         </Alert>
       )}
 
-      {/* RJSF Form with shadcn theme */}
       <Form
-        schema={schema}
+        schema={schema as RJSFSchema}
         formData={formData}
         uiSchema={formUiSchema}
         formContext={{ infoDisplayMode }}

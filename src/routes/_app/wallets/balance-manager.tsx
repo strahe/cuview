@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
@@ -57,7 +57,12 @@ export function WalletBalanceManagerPage() {
               disabled={removeRule.isPending}
               onClick={() => removeRule.mutate([row.original.id])}
             >
-              <Trash2 className="size-3.5" />
+              {removeRule.isPending &&
+              removeRule.variables?.[0] === row.original.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
             </Button>
           </div>
         ),

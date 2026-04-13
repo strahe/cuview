@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +77,7 @@ export function CreateLayerDialog({
             Cancel
           </Button>
           <Button onClick={handleCreate} disabled={!name.trim() || isPending}>
+            {isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
             {isPending ? "Creating…" : "Create"}
           </Button>
         </DialogFooter>

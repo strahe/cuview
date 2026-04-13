@@ -63,8 +63,8 @@ const columns: ColumnDef<MarketBalanceEntry>[] = [
           variant="ghost"
           className="text-muted-foreground hover:text-primary"
           onClick={() => meta?.onMoveToEscrow?.(row.original.miner)}
-          aria-label="Move to Escrow"
           title="Move to Escrow"
+          aria-label="Move to Escrow"
         >
           <ArrowRightLeft className="size-3" />
         </Button>

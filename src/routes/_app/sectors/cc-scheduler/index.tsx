@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
@@ -72,28 +72,40 @@ function CCSchedulerPage() {
 
   const handleAdd = useCallback(() => {
     if (!form.sp.trim()) return;
-    editMutation.mutate([
-      form.sp.trim(),
-      parseInt(form.toSeal, 10),
-      parseInt(form.weight, 10),
-      parseInt(form.durationDays, 10),
-      form.enabled,
-    ]);
-    setShowAdd(false);
-    resetForm();
+    editMutation.mutate(
+      [
+        form.sp.trim(),
+        parseInt(form.toSeal, 10),
+        parseInt(form.weight, 10),
+        parseInt(form.durationDays, 10),
+        form.enabled,
+      ],
+      {
+        onSuccess: () => {
+          setShowAdd(false);
+          resetForm();
+        },
+      },
+    );
   }, [form, editMutation, resetForm]);
 
   const handleEdit = useCallback(() => {
     if (!editEntry) return;
-    editMutation.mutate([
-      editEntry.SPAddress,
-      parseInt(form.toSeal, 10),
-      parseInt(form.weight, 10),
-      parseInt(form.durationDays, 10),
-      form.enabled,
-    ]);
-    setEditEntry(null);
-    resetForm();
+    editMutation.mutate(
+      [
+        editEntry.SPAddress,
+        parseInt(form.toSeal, 10),
+        parseInt(form.weight, 10),
+        parseInt(form.durationDays, 10),
+        form.enabled,
+      ],
+      {
+        onSuccess: () => {
+          setEditEntry(null);
+          resetForm();
+        },
+      },
+    );
   }, [editEntry, form, editMutation, resetForm]);
 
   const handleDelete = useCallback(
@@ -170,6 +182,8 @@ function CCSchedulerPage() {
             <Button
               size="sm"
               variant="ghost"
+              title="Edit entry"
+              aria-label="Edit entry"
               onClick={() => openEdit(row.original)}
             >
               <Pencil className="size-3.5" />
@@ -177,6 +191,8 @@ function CCSchedulerPage() {
             <Button
               size="sm"
               variant="ghost"
+              title="Delete entry"
+              aria-label="Delete entry"
               onClick={() => setConfirmDelete(sp)}
             >
               <Trash2 className="size-3.5" />
@@ -282,6 +298,9 @@ function CCSchedulerPage() {
                 onClick={handleAdd}
                 disabled={editMutation.isPending || !form.sp.trim()}
               >
+                {editMutation.isPending && (
+                  <Loader2 className="mr-1 size-3 animate-spin" />
+                )}
                 {editMutation.isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>
@@ -347,6 +366,9 @@ function CCSchedulerPage() {
                 Cancel
               </Button>
               <Button onClick={handleEdit} disabled={editMutation.isPending}>
+                {editMutation.isPending && (
+                  <Loader2 className="mr-1 size-3 animate-spin" />
+                )}
                 {editMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>

@@ -170,12 +170,17 @@ function SectorsPage() {
   const sectors = data ?? [];
 
   const stats = useMemo(() => {
-    const total = sectors.length;
-    const filPlus = sectors.filter((s) => s.IsFilPlus).length;
-    const proving = sectors.filter((s) => s.Proving).length;
-    const flagged = sectors.filter((s) => s.Flag).length;
-    const snap = sectors.filter((s) => s.HasSnap).length;
-    return { total, filPlus, proving, flagged, snap };
+    let filPlus = 0;
+    let proving = 0;
+    let flagged = 0;
+    let snap = 0;
+    for (const s of sectors) {
+      if (s.IsFilPlus) filPlus++;
+      if (s.Proving) proving++;
+      if (s.Flag) flagged++;
+      if (s.HasSnap) snap++;
+    }
+    return { total: sectors.length, filPlus, proving, flagged, snap };
   }, [sectors]);
 
   const pct = (count: number) =>

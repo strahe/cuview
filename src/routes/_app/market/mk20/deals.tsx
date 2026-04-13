@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -138,11 +138,15 @@ function MK20DealsPage() {
   const deals = dealList ?? [];
 
   const stats = useMemo(() => {
-    const total = pipelines.length;
-    const active = pipelines.filter((p) => p.started && !p.complete).length;
-    const complete = pipelines.filter((p) => p.complete).length;
-    const pending = pipelines.filter((p) => !p.started).length;
-    return { total, active, complete, pending };
+    let active = 0;
+    let complete = 0;
+    let pending = 0;
+    for (const p of pipelines) {
+      if (p.started && !p.complete) active++;
+      if (p.complete) complete++;
+      if (!p.started) pending++;
+    }
+    return { total: pipelines.length, active, complete, pending };
   }, [pipelines]);
 
   const failedCategories = useMemo(
@@ -273,7 +277,12 @@ function MK20DealsPage() {
             title="Remove pipeline"
             aria-label="Remove pipeline"
           >
-            <Trash2 className="size-3" />
+            {removePipelineMutation.isPending &&
+            removePipelineMutation.variables?.[0] === row.original.id ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <Trash2 className="size-3" />
+            )}
           </Button>
         ),
       },

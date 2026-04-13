@@ -312,7 +312,7 @@ function cloneInternal(value: unknown, cache: WeakMap<object, unknown>) {
 
   Reflect.ownKeys(rawValue as object).forEach((key) => {
     const descriptor = Object.getOwnPropertyDescriptor(rawValue as object, key);
-    if (!descriptor || !descriptor.enumerable) {
+    if (!descriptor?.enumerable) {
       return;
     }
 

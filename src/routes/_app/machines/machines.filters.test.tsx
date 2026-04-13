@@ -156,8 +156,8 @@ describe("machines filters", () => {
     const runtimeGroup = screen.getByRole("group", { name: "Runtime filter" });
     expect(runtimeGroup).toBeInTheDocument();
 
-    const offlineButton = screen.getByRole("button", {
-      name: "Runtime: Offline",
+    const offlineButton = within(runtimeGroup).getByRole("button", {
+      name: "Offline",
     });
     fireEvent.click(offlineButton);
 
@@ -177,22 +177,36 @@ describe("machines filters", () => {
     render(<MachinesRouteComponent />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Scheduling: Cordoned" }),
+      within(
+        screen.getByRole("group", { name: "Scheduling filter" }),
+      ).getByRole("button", { name: "Cordoned" }),
     );
     expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
     expect(screen.getByTestId("visible-names")).toHaveTextContent(
       "worker-cordoned",
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Restart: Requested" }));
-    expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
-    expect(screen.getByTestId("visible-names")).toHaveTextContent(
-      "worker-cordoned",
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Scheduling: All" }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Restart: Restarting" }),
+      within(screen.getByRole("group", { name: "Restart filter" })).getByRole(
+        "button",
+        { name: "Requested" },
+      ),
+    );
+    expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
+    expect(screen.getByTestId("visible-names")).toHaveTextContent(
+      "worker-cordoned",
+    );
+
+    fireEvent.click(
+      within(
+        screen.getByRole("group", { name: "Scheduling filter" }),
+      ).getByRole("button", { name: "All" }),
+    );
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "Restart filter" })).getByRole(
+        "button",
+        { name: "Restarting" },
+      ),
     );
     expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
     expect(screen.getByTestId("visible-names")).toHaveTextContent(

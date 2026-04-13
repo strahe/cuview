@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -284,17 +285,27 @@ export function CurioApiProvider({ children }: { children: ReactNode }) {
     [endpoint, status],
   );
 
+  const value = useMemo(
+    () => ({
+      api,
+      status,
+      reconnectAttempt,
+      endpoint,
+      endpointHistory,
+      testAndSwitchEndpoint,
+    }),
+    [
+      api,
+      status,
+      reconnectAttempt,
+      endpoint,
+      endpointHistory,
+      testAndSwitchEndpoint,
+    ],
+  );
+
   return (
-    <CurioApiContext.Provider
-      value={{
-        api,
-        status,
-        reconnectAttempt,
-        endpoint,
-        endpointHistory,
-        testAndSwitchEndpoint,
-      }}
-    >
+    <CurioApiContext.Provider value={value}>
       {children}
     </CurioApiContext.Provider>
   );

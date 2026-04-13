@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 import { AppFormActions, TextField } from "@/components/composed/form";
 import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,9 @@ export function MoveToEscrowDialog({
                     getAmountValidationError(values.amount) !== undefined
                   }
                 >
+                  {mutation.isPending && (
+                    <Loader2 className="mr-1 size-3 animate-spin" />
+                  )}
                   {mutation.isPending ? "Sending..." : "Transfer"}
                 </Button>
               )}

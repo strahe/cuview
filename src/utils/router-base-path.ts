@@ -1,5 +1,5 @@
 export function getRouterBasePath(baseUrl: string | undefined): string {
-  if (!baseUrl || !baseUrl.startsWith("/")) {
+  if (!baseUrl?.startsWith("/")) {
     return "/";
   }
 

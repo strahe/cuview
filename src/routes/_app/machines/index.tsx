@@ -347,7 +347,6 @@ function CompactFilterGroup<TValue extends string>({
             <ToggleGroupItem
               key={`${label}-${option.value}`}
               value={option.value}
-              aria-label={`${label}: ${option.label}`}
               className="h-7 min-w-0 px-2 text-xs"
             >
               {option.label}
