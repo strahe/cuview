@@ -12,14 +12,19 @@ const DEFAULT_POLL_INTERVAL = 30_000;
 /**
  * Hook for JSON-RPC calls via TanStack Query with automatic polling.
  */
-export function useCurioRpc<T>(
+export function useCurioRpc<TData, TSelectData = TData>(
   method: string,
   params: unknown[] = [],
   options?: {
     refetchInterval?: number | false;
     enabled?: boolean;
     staleTime?: number;
-    placeholderData?: UseQueryOptions<T>["placeholderData"];
+    placeholderData?: UseQueryOptions<
+      TData,
+      Error,
+      TSelectData
+    >["placeholderData"];
+    select?: (data: TData) => TSelectData;
   },
 ) {
   const api = useCurioApi();
@@ -27,24 +32,26 @@ export function useCurioRpc<T>(
 
   return useQuery({
     queryKey: ["curio", method, endpoint, ...params],
-    queryFn: () => api.call<T>(method, params),
+    queryFn: () => api.call<TData>(method, params),
     refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
     enabled: options?.enabled,
     staleTime: options?.staleTime,
     placeholderData: options?.placeholderData,
+    select: options?.select,
   });
 }
 
 /**
  * Hook for REST GET calls via TanStack Query.
  */
-export function useCurioRest<T>(
+export function useCurioRest<TData, TSelectData = TData>(
   path: string,
   options?: {
     refetchInterval?: number | false;
     enabled?: boolean;
     staleTime?: number;
     queryKey?: unknown[];
+    select?: (data: TData) => TSelectData;
   },
 ) {
   const api = useCurioApi();
@@ -55,10 +62,11 @@ export function useCurioRest<T>(
       options?.queryKey !== undefined
         ? ["curio-rest", ...options.queryKey, endpoint]
         : ["curio-rest", path, endpoint],
-    queryFn: ({ signal }) => api.restGet<T>(path, { signal }),
+    queryFn: ({ signal }) => api.restGet<TData>(path, { signal }),
     refetchInterval: options?.refetchInterval ?? DEFAULT_POLL_INTERVAL,
     enabled: options?.enabled,
     staleTime: options?.staleTime,
+    select: options?.select,
   });
 }
 

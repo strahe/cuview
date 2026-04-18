@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 import { AppFormActions, TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -112,6 +113,9 @@ export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
                     !values.name.trim()
                   }
                 >
+                  {mutation.isPending && (
+                    <Loader2 className="mr-1 size-3 animate-spin" />
+                  )}
                   {mutation.isPending ? "Adding..." : "Add"}
                 </Button>
               )}

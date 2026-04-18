@@ -407,18 +407,27 @@ function MachinesPage() {
   );
 
   const stats = useMemo(() => {
-    const total = machines.length;
-    const online = machines.filter((m) => getMachineSignals(m).online).length;
-    const unschedulable = machines.filter((m) => m.Unschedulable).length;
-    const offline = machines.filter((m) => getMachineSignals(m).offline).length;
-    const totalTasks = machines.reduce(
-      (sum, m) => sum + (m.RunningTasks || 0),
-      0,
-    );
-    const totalCpu = machines.reduce((sum, m) => sum + m.Cpu, 0);
-    const totalGpu = machines.reduce((sum, m) => sum + m.Gpu, 0);
+    let online = 0;
+    let unschedulable = 0;
+    let offline = 0;
+    let totalTasks = 0;
+    let totalCpu = 0;
+    let totalGpu = 0;
+
+    // Optimization: Single-pass iteration to prevent multiple regex evaluations
+    // of `getMachineSignals` and redundant array traversals
+    for (const m of machines) {
+      const signals = getMachineSignals(m);
+      if (signals.online) online++;
+      if (m.Unschedulable) unschedulable++;
+      if (signals.offline) offline++;
+      totalTasks += m.RunningTasks || 0;
+      totalCpu += m.Cpu;
+      totalGpu += m.Gpu;
+    }
+
     return {
-      total,
+      total: machines.length,
       online,
       offline,
       unschedulable,

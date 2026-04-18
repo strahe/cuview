@@ -79,13 +79,20 @@ export const filterStoragePaths = (
 export const summarizeStoragePathInventory = (
   paths: StoragePathInfo[],
 ): StoragePathInventorySummary => {
-  const healthyPaths = paths.filter((path) => path.HealthOK).length;
+  let healthyPaths = 0;
+  let storeCapablePaths = 0;
+  let sealCapablePaths = 0;
+  let readOnlyPaths = 0;
+
+  // Optimization: Single-pass iteration to prevent O(4N) array traversals
+  for (const path of paths) {
+    if (path.HealthOK) healthyPaths++;
+    if (path.CanStore) storeCapablePaths++;
+    if (path.CanSeal) sealCapablePaths++;
+    if (!path.CanSeal && !path.CanStore) readOnlyPaths++;
+  }
+
   const degradedPaths = paths.length - healthyPaths;
-  const storeCapablePaths = paths.filter((path) => path.CanStore).length;
-  const sealCapablePaths = paths.filter((path) => path.CanSeal).length;
-  const readOnlyPaths = paths.filter(
-    (path) => !path.CanSeal && !path.CanStore,
-  ).length;
 
   return {
     totalPathCount: paths.length,

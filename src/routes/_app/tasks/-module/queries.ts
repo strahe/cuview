@@ -20,36 +20,35 @@ import type {
   ApiTaskSummary,
 } from "./types";
 
+/** Stable empty array reference to prevent useMemo dependency churn when data is undefined. */
+const EMPTY_ARRAY: never[] = [];
+
+const selectTaskSummary = (data: ApiTaskSummary[]) =>
+  data.map((row) => normalizeTaskSummary(row));
+
 export const useTaskSummary = (options?: {
   enabled?: boolean;
   refetchInterval?: number | false;
 }) => {
-  const query = useCurioRpc<ApiTaskSummary[]>("ClusterTaskSummary", [], {
+  const query = useCurioRpc("ClusterTaskSummary", [], {
     enabled: options?.enabled,
     refetchInterval: options?.refetchInterval ?? 10_000,
+    select: selectTaskSummary,
   });
 
-  const data = useMemo(
-    () => (query.data ?? []).map((row) => normalizeTaskSummary(row)),
-    [query.data],
-  );
-
-  return { ...query, data };
+  return { ...query, data: query.data ?? EMPTY_ARRAY };
 };
 
+const selectTaskHistory = (data: ApiTaskHistorySummary[]) =>
+  data.map((row) => normalizeTaskHistorySummary(row));
+
 export const useTaskHistory = (limit: number, offset: number) => {
-  const query = useCurioRpc<ApiTaskHistorySummary[]>(
-    "ClusterTaskHistory",
-    [limit, offset],
-    { refetchInterval: 20_000 },
-  );
+  const query = useCurioRpc("ClusterTaskHistory", [limit, offset], {
+    refetchInterval: 20_000,
+    select: selectTaskHistory,
+  });
 
-  const data = useMemo(
-    () => (query.data ?? []).map((row) => normalizeTaskHistorySummary(row)),
-    [query.data],
-  );
-
-  return { ...query, data };
+  return { ...query, data: query.data ?? EMPTY_ARRAY };
 };
 
 export const useTaskStats = () => {
@@ -92,6 +91,9 @@ export const useTaskStats = () => {
   };
 };
 
+const selectTaskTypeHistory = (data: ApiTaskHistoryEntry[]) =>
+  data.map((row) => normalizeTaskHistoryEntry(row));
+
 export const useTaskTypeHistory = (
   taskType: string,
   fails: boolean,
@@ -99,22 +101,23 @@ export const useTaskTypeHistory = (
     enabled?: boolean;
   },
 ) => {
-  const query = useCurioRpc<ApiTaskHistoryEntry[]>(
-    "HarmonyTaskHistory",
-    [taskType, fails],
-    {
-      enabled: (options?.enabled ?? true) && Boolean(taskType),
-      refetchInterval: 30_000,
-    },
-  );
+  const query = useCurioRpc("HarmonyTaskHistory", [taskType, fails], {
+    enabled: (options?.enabled ?? true) && Boolean(taskType),
+    refetchInterval: 30_000,
+    select: selectTaskTypeHistory,
+  });
 
-  const data = useMemo(
-    () => (query.data ?? []).map((row) => normalizeTaskHistoryEntry(row)),
-    [query.data],
-  );
-
-  return { ...query, data };
+  return { ...query, data: query.data ?? EMPTY_ARRAY };
 };
+
+const selectTaskStatus = (data: ApiTaskStatus | null) =>
+  data ? normalizeTaskStatus(data) : null;
+const selectTaskDetail = (data: ApiTaskDetail | null) =>
+  data ? normalizeTaskDetail(data) : null;
+const selectTaskHistoryById = (data: ApiTaskHistoryEntry[]) =>
+  data.map((row) => normalizeTaskHistoryEntry(row));
+const selectTaskMachines = (data: ApiTaskMachine[]) =>
+  data.map((row) => normalizeTaskMachine(row));
 
 export const useTaskDetailBundle = (params: {
   taskId: number | null;
@@ -125,41 +128,33 @@ export const useTaskDetailBundle = (params: {
   const includeTaskTypeData = params.includeTaskTypeData ?? true;
   const hasTaskType = includeTaskTypeData && params.taskType.trim() !== "";
 
-  const statusQuery = useCurioRpc<ApiTaskStatus>(
-    "GetTaskStatus",
-    [params.taskId ?? 0],
-    {
-      enabled: hasTaskId,
-      refetchInterval: 10_000,
-    },
-  );
+  const statusQuery = useCurioRpc("GetTaskStatus", [params.taskId ?? 0], {
+    enabled: hasTaskId,
+    refetchInterval: 10_000,
+    select: selectTaskStatus,
+  });
 
-  const detailQuery = useCurioRpc<ApiTaskDetail>(
-    "HarmonyTaskDetails",
-    [params.taskId ?? 0],
-    {
-      enabled: hasTaskId,
-      refetchInterval: 10_000,
-    },
-  );
+  const detailQuery = useCurioRpc("HarmonyTaskDetails", [params.taskId ?? 0], {
+    enabled: hasTaskId,
+    refetchInterval: 10_000,
+    select: selectTaskDetail,
+  });
 
-  const historyByIdQuery = useCurioRpc<ApiTaskHistoryEntry[]>(
+  const historyByIdQuery = useCurioRpc(
     "HarmonyTaskHistoryById",
     [params.taskId ?? 0],
     {
       enabled: hasTaskId,
       refetchInterval: 20_000,
+      select: selectTaskHistoryById,
     },
   );
 
-  const machinesQuery = useCurioRpc<ApiTaskMachine[]>(
-    "HarmonyTaskMachines",
-    [params.taskType],
-    {
-      enabled: hasTaskType,
-      refetchInterval: 30_000,
-    },
-  );
+  const machinesQuery = useCurioRpc("HarmonyTaskMachines", [params.taskType], {
+    enabled: hasTaskType,
+    refetchInterval: 30_000,
+    select: selectTaskMachines,
+  });
 
   const typeHistoryQuery = useTaskTypeHistory(params.taskType, false, {
     enabled: hasTaskType,
@@ -169,20 +164,16 @@ export const useTaskDetailBundle = (params: {
   });
 
   return {
-    taskStatus: statusQuery.data ? normalizeTaskStatus(statusQuery.data) : null,
+    taskStatus: statusQuery.data ?? null,
     taskStatusLoading: statusQuery.isLoading,
     taskStatusError: statusQuery.error,
-    taskDetail: detailQuery.data ? normalizeTaskDetail(detailQuery.data) : null,
+    taskDetail: detailQuery.data ?? null,
     taskDetailLoading: detailQuery.isLoading,
     taskDetailError: detailQuery.error,
-    taskHistoryById: (historyByIdQuery.data ?? []).map((row) =>
-      normalizeTaskHistoryEntry(row),
-    ),
+    taskHistoryById: historyByIdQuery.data ?? EMPTY_ARRAY,
     taskHistoryByIdLoading: historyByIdQuery.isLoading,
     taskHistoryByIdError: historyByIdQuery.error,
-    taskMachines: (machinesQuery.data ?? []).map((row) =>
-      normalizeTaskMachine(row),
-    ),
+    taskMachines: machinesQuery.data ?? EMPTY_ARRAY,
     taskMachinesLoading: machinesQuery.isLoading,
     taskMachinesError: machinesQuery.error,
     taskTypeHistory: typeHistoryQuery.data,

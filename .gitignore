@@ -157,9 +157,3 @@ vite.config.ts.timestamp-*
 playwright-report/
 test-results/
 
-# Git worktrees
-.worktrees/
-.serena/
-tsconfig.tsbuildinfo
-/*.md
-!/README.md

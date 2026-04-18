@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { AppFormActions, TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ function EditRuleDialogForm({
           Cancel
         </Button>
         <Button size="sm" type="submit" disabled={mutationPending}>
+          {mutationPending && <Loader2 className="mr-1 size-3 animate-spin" />}
           {mutationPending ? "Saving..." : "Save"}
         </Button>
       </AppFormActions>

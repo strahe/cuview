@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(
       "ErrorBoundary caught:",
-      error.stack || error.message,
+      error.stack ?? error.message,
       errorInfo.componentStack ?? "",
     );
   }

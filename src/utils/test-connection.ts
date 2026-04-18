@@ -21,7 +21,7 @@ export const testEndpointConnection = async (
   } catch (err) {
     console.error(
       "Connection test failed:",
-      err instanceof Error ? err.stack || err.message : "Unknown error",
+      err instanceof Error ? (err.stack ?? err.message) : "Unknown error",
     );
     return false;
   } finally {

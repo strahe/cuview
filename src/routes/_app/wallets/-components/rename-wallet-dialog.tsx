@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { AppFormActions, TextField } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,9 @@ function RenameWalletDialogForm({
               type="submit"
               disabled={mutationPending || !name.trim()}
             >
+              {mutationPending && (
+                <Loader2 className="mr-1 size-3 animate-spin" />
+              )}
               {mutationPending ? "Saving..." : "Save"}
             </Button>
           )}
