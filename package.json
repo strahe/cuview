@@ -29,7 +29,7 @@
     "@rjsf/core": "^6.4.2",
     "@rjsf/shadcn": "^6.4.2",
     "@rjsf/utils": "^6.4.2",
-    "@rjsf/validator-ajv8": "^6.4.2",
+    "@rjsf/validator-ajv8": "^6.5.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-form": "^1.29.1",
     "@tanstack/react-query": "^5.99.0",
