@@ -10,6 +10,10 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      rjsf-updates:
+        dependency-type: "production"
+        patterns: ["@rjsf/*"]
+
       all-dev-updates:
         dependency-type: "development"
         patterns: ["*"]
@@ -18,3 +22,4 @@ updates:
         dependency-type: "production"
         update-types: ["patch"]
         patterns: ["*"]
+        exclude-patterns: ["@rjsf/*"]

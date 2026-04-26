@@ -18,17 +18,17 @@ importers:
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.14)(react@19.2.5)
       '@rjsf/core':
-        specifier: ^6.4.2
-        version: 6.4.2(@rjsf/utils@6.4.2(react@19.2.5))(react@19.2.5)
+        specifier: ^6.5.1
+        version: 6.5.1(@rjsf/utils@6.5.1(react@19.2.5))(react@19.2.5)
       '@rjsf/shadcn':
-        specifier: ^6.4.2
-        version: 6.4.2(@rjsf/core@6.4.2(@rjsf/utils@6.4.2(react@19.2.5))(react@19.2.5))(@rjsf/utils@6.4.2(react@19.2.5))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.4)
+        specifier: ^6.5.1
+        version: 6.5.1(@rjsf/core@6.5.1(@rjsf/utils@6.5.1(react@19.2.5))(react@19.2.5))(@rjsf/utils@6.5.1(react@19.2.5))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.4)
       '@rjsf/utils':
-        specifier: ^6.4.2
-        version: 6.4.2(react@19.2.5)
+        specifier: ^6.5.1
+        version: 6.5.1(react@19.2.5)
       '@rjsf/validator-ajv8':
-        specifier: ^6.5.0
-        version: 6.5.0(@rjsf/utils@6.4.2(react@19.2.5))
+        specifier: ^6.5.1
+        version: 6.5.1(@rjsf/utils@6.5.1(react@19.2.5))
       '@tailwindcss/vite':
         specifier: ^4.2.4
         version: 4.2.4(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
@@ -1137,32 +1137,32 @@ packages:
       react-redux:
         optional: true
 
-  '@rjsf/core@6.4.2':
-    resolution: {integrity: sha512-TsN2PNqsO92d6/Tt+Sq4XgXtpXgzNRShL/pYYrnAluwf3n87TvE1huJpHgH6c/wD7eRFOYT4e7I0GxqiVos/VQ==}
+  '@rjsf/core@6.5.1':
+    resolution: {integrity: sha512-H5GY9OU6wpLXGHaVzd8/1qGZ+zylCA86maD32tMdeOiUIJTmH6+VeheRx4Wr6OnprxbD/ybkEH48vIqS68wwxg==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@rjsf/utils': ^6.4.x
+      '@rjsf/utils': ^6.5.x
       react: '>=18'
 
-  '@rjsf/shadcn@6.4.2':
-    resolution: {integrity: sha512-f4+anJbRGX+/0caCo+K1qtlYH6rPTvNnz8ZIFQMdJjZR+fPxxx8x9dGu+iknaWKIC/cYaLsUfekaGvbB/O10RQ==}
+  '@rjsf/shadcn@6.5.1':
+    resolution: {integrity: sha512-6azuQMvMwZvHh2qvrT5vHcS4lqpjvf7quRIRdB7KQTMzElj+kZSuew451MJsOl0YPKysMTGKpCDFEUCun6io9Q==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@rjsf/core': ^6.4.x
-      '@rjsf/utils': ^6.4.x
+      '@rjsf/core': ^6.5.x
+      '@rjsf/utils': ^6.5.x
       react: '>=18'
 
-  '@rjsf/utils@6.4.2':
-    resolution: {integrity: sha512-d8Td5Ui5VjxOV7uQq4QmoJQtjESvr78TPbgzJ/WN+/rihDK/4j/i1/s43egQFyRw1fEQzYIMNr2Dk8F0WviSZw==}
+  '@rjsf/utils@6.5.1':
+    resolution: {integrity: sha512-c+x2VJNEp0BsamxX+Ryy9sEmwJ/7V9WFsVWjhADwyEU53r7DaVd7a7hmtx0bz464kJ8oJYZ6XghrmXXH2y7l8g==}
     engines: {node: '>=20'}
     peerDependencies:
       react: '>=18'
 
-  '@rjsf/validator-ajv8@6.5.0':
-    resolution: {integrity: sha512-rhwRqCEf7ByKyLVf6d9G7CxF/eQ92N9oyBlGNKAeCKATwcu77CgHMKZh1p0k5fHYI7FdvnPbqfI3PH1lXm6nmA==}
+  '@rjsf/validator-ajv8@6.5.1':
+    resolution: {integrity: sha512-0EfPRRe0ia3dvcqWt8vY1sUGB1vb4e+3GfivBXuJZmSBtw+zlHwyClAJnPW/4Qde2g21u0k344/2miP9DZJmCw==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@rjsf/utils': ^6.4.x
+      '@rjsf/utils': ^6.5.x
 
   '@rolldown/binding-android-arm64@1.0.0-rc.16':
     resolution: {integrity: sha512-rhY3k7Bsae9qQfOtph2Pm2jZEA+s8Gmjoz4hhmx70K9iMQ/ddeae+xhRQcM5IuVx5ry1+bGfkvMn7D6MJggVSA==}
@@ -4414,16 +4414,16 @@ snapshots:
       react: 19.2.5
       react-redux: 9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1)
 
-  '@rjsf/core@6.4.2(@rjsf/utils@6.4.2(react@19.2.5))(react@19.2.5)':
+  '@rjsf/core@6.5.1(@rjsf/utils@6.5.1(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rjsf/utils': 6.4.2(react@19.2.5)
+      '@rjsf/utils': 6.5.1(react@19.2.5)
       lodash: 4.18.1
       lodash-es: 4.18.1
       markdown-to-jsx: 8.0.0(react@19.2.5)
       prop-types: 15.8.1
       react: 19.2.5
 
-  '@rjsf/shadcn@6.4.2(@rjsf/core@6.4.2(@rjsf/utils@6.4.2(react@19.2.5))(react@19.2.5))(@rjsf/utils@6.4.2(react@19.2.5))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.4)':
+  '@rjsf/shadcn@6.5.1(@rjsf/core@6.5.1(@rjsf/utils@6.5.1(react@19.2.5))(react@19.2.5))(@rjsf/utils@6.5.1(react@19.2.5))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tailwindcss@4.2.4)':
     dependencies:
       '@radix-ui/react-checkbox': 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -4436,8 +4436,8 @@ snapshots:
       '@radix-ui/react-slider': 1.3.6(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.14)(react@19.2.5)
       '@react-icons/all-files': 4.1.0(react@19.2.5)
-      '@rjsf/core': 6.4.2(@rjsf/utils@6.4.2(react@19.2.5))(react@19.2.5)
-      '@rjsf/utils': 6.4.2(react@19.2.5)
+      '@rjsf/core': 6.5.1(@rjsf/utils@6.5.1(react@19.2.5))(react@19.2.5)
+      '@rjsf/utils': 6.5.1(react@19.2.5)
       class-variance-authority: 0.7.1
       clsx: 2.1.1
       cmdk: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -4454,7 +4454,7 @@ snapshots:
       - react-dom
       - tailwindcss
 
-  '@rjsf/utils@6.4.2(react@19.2.5)':
+  '@rjsf/utils@6.5.1(react@19.2.5)':
     dependencies:
       '@x0k/json-schema-merge': 1.0.3
       fast-uri: 3.1.0
@@ -4464,9 +4464,9 @@ snapshots:
       react: 19.2.5
       react-is: 18.3.1
 
-  '@rjsf/validator-ajv8@6.5.0(@rjsf/utils@6.4.2(react@19.2.5))':
+  '@rjsf/validator-ajv8@6.5.1(@rjsf/utils@6.5.1(react@19.2.5))':
     dependencies:
-      '@rjsf/utils': 6.4.2(react@19.2.5)
+      '@rjsf/utils': 6.5.1(react@19.2.5)
       ajv: 8.20.0
       ajv-formats: 2.1.1(ajv@8.20.0)
       lodash: 4.18.1
