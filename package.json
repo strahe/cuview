@@ -27,7 +27,7 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@rjsf/core": "^6.4.2",
-    "@rjsf/shadcn": "^6.4.2",
+    "@rjsf/shadcn": "^6.5.0",
     "@rjsf/utils": "^6.4.2",
     "@rjsf/validator-ajv8": "^6.5.0",
     "@tailwindcss/vite": "^4.2.4",
