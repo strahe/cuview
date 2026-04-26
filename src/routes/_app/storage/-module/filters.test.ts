@@ -159,6 +159,29 @@ describe("storage filters", () => {
     });
   });
 
+  it("aggregates only store-capable paths for the store type empty state", () => {
+    expect(
+      getStorageStoreTypeEmptyState([
+        ...samplePaths,
+        {
+          ...samplePaths[1]!,
+          AllowTypesList: ["Piece"],
+          Available: 25,
+          Capacity: 300,
+          GroupList: ["warm"],
+          StorageID: "delta-store",
+        },
+      ]),
+    ).toEqual({
+      title: "No breakdown",
+      hint: "All store paths currently collapse into one policy bucket.",
+      storeCapablePaths: 2,
+      policyBucketCount: 2,
+      totalCapacity: 500,
+      totalAvailable: 35,
+    });
+  });
+
   it("formats storage page info without impossible row ranges", () => {
     expect(formatStoragePageInfo(0, 0, 0)).toBe("Rows 0");
     expect(formatStoragePageInfo(100, 100, 0)).toBe("Rows 0 of 100");

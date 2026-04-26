@@ -91,31 +91,37 @@ export function useDashboardSummary() {
 
   const metrics = useMemo<DashboardMetrics>(() => {
     const machineList = machines.data ?? [];
-    const online = machineList.filter((m) => !m.Unschedulable).length;
+    let online = 0;
+    let machineRunning = 0;
+    for (const machine of machineList) {
+      if (!machine.Unschedulable) {
+        online++;
+      }
+      machineRunning += machine.RunningTasks || 0;
+    }
     const total = machineList.length;
     const health = total === 0 ? 0 : (online / total) * 100;
 
     const activeCount = taskSummary.data?.length ?? 0;
-    const machineRunning = machineList.reduce(
-      (sum, m) => sum + (m.RunningTasks || 0),
-      0,
-    );
     const running = activeCount > 0 ? activeCount : machineRunning;
 
     const stats = taskStats.data ?? [];
-    const totals = stats.reduce(
-      (acc, s) => ({
-        success: acc.success + s.TrueCount,
-        total: acc.total + s.TotalCount,
-      }),
-      { success: 0, total: 0 },
-    );
+    let statsSuccess = 0;
+    let statsTotal = 0;
+    for (const stat of stats) {
+      statsSuccess += stat.TrueCount;
+      statsTotal += stat.TotalCount;
+    }
     const successRate =
-      totals.total === 0 ? 0 : (totals.success / totals.total) * 100;
+      statsTotal === 0 ? 0 : (statsSuccess / statsTotal) * 100;
 
     const storageList = storageStats.data ?? [];
-    const capacity = storageList.reduce((sum, s) => sum + s.Capacity, 0);
-    const available = storageList.reduce((sum, s) => sum + s.Available, 0);
+    let capacity = 0;
+    let available = 0;
+    for (const storage of storageList) {
+      capacity += storage.Capacity;
+      available += storage.Available;
+    }
     const used = Math.max(capacity - available, 0);
     const usagePercent = capacity === 0 ? 0 : (used / capacity) * 100;
 

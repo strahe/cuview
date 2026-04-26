@@ -15,23 +15,33 @@ import {
   normalizeSnapSector,
 } from "./adapters";
 import { porepInvalidateKeys, snapInvalidateKeys } from "./query-keys";
-import type { SnapSectorView } from "./types";
+import type { PorepSectorView, SnapSectorView } from "./types";
+
+// ---------------------------------------------------------------------------
+const EMPTY_POREP_SECTORS: PorepSectorView[] = [];
+const EMPTY_SNAP_SECTORS: SnapSectorView[] = [];
+
+const selectPorepSectors = (data: SectorListEntry[]) =>
+  data.map(normalizePorepSector);
+
+const selectSnapSectors = (data: SnapSectorEntry[]) =>
+  data.map(normalizeSnapSector);
 
 // ---------------------------------------------------------------------------
 // PoRep queries
 // ---------------------------------------------------------------------------
 
 export function usePorepSectors() {
-  const query = useCurioRpc<SectorListEntry[]>("PipelinePorepSectors", [], {
-    refetchInterval: 30_000,
-  });
-
-  const data = useMemo(
-    () => (query.data ?? []).map(normalizePorepSector),
-    [query.data],
+  const query = useCurioRpc<SectorListEntry[], PorepSectorView[]>(
+    "PipelinePorepSectors",
+    [],
+    {
+      refetchInterval: 30_000,
+      select: selectPorepSectors,
+    },
   );
 
-  return { ...query, data };
+  return { ...query, data: query.data ?? EMPTY_POREP_SECTORS };
 }
 
 export function usePorepSummary() {
@@ -71,16 +81,16 @@ export function usePorepSectorAction(method: string) {
 // ---------------------------------------------------------------------------
 
 export function useSnapSectors() {
-  const query = useCurioRpc<SnapSectorEntry[]>("UpgradeSectors", [], {
-    refetchInterval: 30_000,
-  });
-
-  const data = useMemo(
-    () => (query.data ?? []).map(normalizeSnapSector),
-    [query.data],
+  const query = useCurioRpc<SnapSectorEntry[], SnapSectorView[]>(
+    "UpgradeSectors",
+    [],
+    {
+      refetchInterval: 30_000,
+      select: selectSnapSectors,
+    },
   );
 
-  return { ...query, data };
+  return { ...query, data: query.data ?? EMPTY_SNAP_SECTORS };
 }
 
 export function useSnapStats() {

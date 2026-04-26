@@ -38,13 +38,20 @@ export function FsUpdatePdpDialog({
   onOpenChange,
   current,
 }: FsUpdatePdpDialogProps) {
-  const [form, setForm] = useState<FSPDPOffering>(defaultOffering);
+  const [form, setForm] = useState<FSPDPOffering>(current ?? defaultOffering);
+  const [prevOpen, setPrevOpen] = useState(open);
   const mutation = useFsUpdatePdp();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only reset form when dialog opens, not on polled data changes
-  useEffect(() => {
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(current ?? defaultOffering);
+    }
+  }
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only reset mutation when dialog opens, not on polled data changes
+  useEffect(() => {
+    if (open) {
       mutation.reset();
     }
   }, [open]);

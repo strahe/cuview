@@ -24,16 +24,12 @@ const providerColumns: ColumnDef<IpniProviderSummary>[] = [
       return (
         <Button
           variant="ghost"
-          size="icon"
-          className="h-6 w-6"
+          size="icon-xs"
           onClick={() => row.toggleExpanded()}
           aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+          title={row.getIsExpanded() ? "Collapse row" : "Expand row"}
         >
-          {row.getIsExpanded() ? (
-            <ChevronDown className="size-3.5" />
-          ) : (
-            <ChevronRight className="size-3.5" />
-          )}
+          {row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}
         </Button>
       );
     },

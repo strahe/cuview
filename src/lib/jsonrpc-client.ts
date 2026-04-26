@@ -1,3 +1,5 @@
+import { logClientError } from "@/utils/error-log";
+
 export interface JsonRpcRequest {
   jsonrpc: "2.0";
   method: string;
@@ -190,12 +192,7 @@ export class JsonRpcClient {
     try {
       this.ws!.send(JSON.stringify(notification));
     } catch (error) {
-      console.error(
-        "Failed to send notification:",
-        error instanceof Error
-          ? (error.stack ?? error.message)
-          : "Unknown error",
-      );
+      logClientError("Failed to send notification:", error);
     }
   }
 
@@ -250,12 +247,7 @@ export class JsonRpcClient {
         }
       }
     } catch (error) {
-      console.error(
-        "Failed to parse JSON-RPC message:",
-        error instanceof Error
-          ? (error.stack ?? error.message)
-          : "Unknown error",
-      );
+      logClientError("Failed to parse JSON-RPC message:", error);
     }
   }
 
@@ -282,10 +274,7 @@ export class JsonRpcClient {
       this.connect().catch((error) => {
         const normalizedError =
           error instanceof Error ? error : new Error(String(error));
-        console.error(
-          "Reconnection failed:",
-          normalizedError.stack ?? normalizedError.message,
-        );
+        logClientError("Reconnection failed:", normalizedError);
         this.events.error?.(normalizedError);
       });
     }, delay);

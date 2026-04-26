@@ -2,6 +2,7 @@ import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getErrorMessage, logClientError } from "@/utils/error-log";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -27,10 +28,10 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(
+    logClientError(
       "ErrorBoundary caught:",
-      error.stack ?? error.message,
-      errorInfo.componentStack ?? "",
+      error,
+      errorInfo.componentStack ?? undefined,
     );
   }
 
@@ -51,9 +52,9 @@ export class ErrorBoundary extends Component<
               <p className="text-sm text-muted-foreground">
                 An unexpected error occurred. Please try refreshing the page.
               </p>
-              {this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <pre className="max-h-32 overflow-auto rounded-md bg-muted p-3 text-xs">
-                  {this.state.error.message}
+                  {getErrorMessage(this.state.error)}
                 </pre>
               )}
               <Button

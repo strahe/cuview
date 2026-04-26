@@ -170,16 +170,12 @@ function MK20DealsPage() {
         cell: ({ row }) => (
           <Button
             variant="ghost"
-            size="icon"
-            className="h-6 w-6"
+            size="icon-xs"
             onClick={() => row.toggleExpanded()}
             aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+            title={row.getIsExpanded() ? "Collapse row" : "Expand row"}
           >
-            {row.getIsExpanded() ? (
-              <ChevronDown className="size-3.5" />
-            ) : (
-              <ChevronRight className="size-3.5" />
-            )}
+            {row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}
           </Button>
         ),
         size: 30,
@@ -270,8 +266,8 @@ function MK20DealsPage() {
         cell: ({ row }) => (
           <Button
             variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+            size="icon-xs"
+            className="text-muted-foreground hover:text-destructive"
             onClick={() => removePipelineMutation.mutate([row.original.id])}
             disabled={removePipelineMutation.isPending}
             title="Remove pipeline"

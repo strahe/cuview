@@ -1,7 +1,11 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PipelineWaterfallStats, SnapSectorEntry } from "@/types/pipeline";
-import { normalizeSnapSector } from "./adapters";
+import type {
+  PipelineWaterfallStats,
+  SectorListEntry,
+  SnapSectorEntry,
+} from "@/types/pipeline";
+import { normalizePorepSector, normalizeSnapSector } from "./adapters";
 import * as queries from "./queries";
 import { snapInvalidateKeys } from "./query-keys";
 
@@ -43,6 +47,49 @@ function makeSnapSector(
     FailedReason: "",
     FailedReasonMsg: "",
     Address: "f05678",
+    ...overrides,
+  };
+}
+
+function makePorepSector(
+  overrides: Partial<SectorListEntry> = {},
+): SectorListEntry {
+  return {
+    Address: "f01234",
+    AfterCommitMsg: false,
+    AfterCommitMsgSuccess: false,
+    AfterFinalize: false,
+    AfterMoveStorage: false,
+    AfterPoRep: false,
+    AfterPrecommitMsg: false,
+    AfterPrecommitMsgSuccess: false,
+    AfterSDR: false,
+    AfterSeed: false,
+    AfterSynthetic: false,
+    AfterTreeC: false,
+    AfterTreeD: false,
+    AfterTreeR: false,
+    AllTasks: [],
+    ChainActive: false,
+    ChainAlloc: false,
+    ChainFaulty: false,
+    ChainSector: false,
+    ChainUnproven: false,
+    CreateTime: "2025-06-01T00:00:00Z",
+    Failed: false,
+    FailedReason: "",
+    MissingTasks: [],
+    SectorNumber: 42,
+    SpID: 1234,
+    StartedCommitMsg: false,
+    StartedFinalize: false,
+    StartedMoveStorage: false,
+    StartedPoRep: false,
+    StartedPrecommitMsg: false,
+    StartedSDR: false,
+    StartedSynthetic: false,
+    StartedTreeD: false,
+    StartedTreeRC: false,
     ...overrides,
   };
 }
@@ -121,6 +168,56 @@ describe("snap pipeline query helpers", () => {
         countFailed: 0,
       },
     ]);
+  });
+
+  it("normalizes PoRep sectors through a stable query selector", () => {
+    useCurioRpcMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    });
+
+    const { result, rerender } = renderHook(() => queries.usePorepSectors());
+    const firstEmpty = result.current.data;
+    const options = useCurioRpcMock.mock.calls[0]?.[2] as {
+      select?: (data: SectorListEntry[]) => unknown;
+    };
+    const raw = [makePorepSector({ AfterSDR: true })];
+
+    expect(useCurioRpcMock).toHaveBeenCalledWith(
+      "PipelinePorepSectors",
+      [],
+      expect.objectContaining({ refetchInterval: 30_000 }),
+    );
+    expect(options.select).toBeInstanceOf(Function);
+    expect(options.select?.(raw)).toEqual(raw.map(normalizePorepSector));
+
+    rerender();
+    expect(result.current.data).toBe(firstEmpty);
+  });
+
+  it("normalizes Snap sectors through a stable query selector", () => {
+    useCurioRpcMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    });
+
+    const { result, rerender } = renderHook(() => queries.useSnapSectors());
+    const firstEmpty = result.current.data;
+    const options = useCurioRpcMock.mock.calls[0]?.[2] as {
+      select?: (data: SnapSectorEntry[]) => unknown;
+    };
+    const raw = [makeSnapSector({ AfterEncode: true })];
+
+    expect(useCurioRpcMock).toHaveBeenCalledWith(
+      "UpgradeSectors",
+      [],
+      expect.objectContaining({ refetchInterval: 30_000 }),
+    );
+    expect(options.select).toBeInstanceOf(Function);
+    expect(options.select?.(raw)).toEqual(raw.map(normalizeSnapSector));
+
+    rerender();
+    expect(result.current.data).toBe(firstEmpty);
   });
 
   it("invalidates snap sectors and stats after deleting an upgrade", () => {

@@ -164,24 +164,29 @@ const getStorePolicySignature = (path: StoragePathInfo) => {
 export const getStorageStoreTypeEmptyState = (
   paths: StoragePathInfo[],
 ): StorageStoreTypeEmptyState => {
-  const storePaths = paths.filter((path) => path.CanStore);
-  const policyBucketCount = new Set(
-    storePaths.map((path) => getStorePolicySignature(path)),
-  ).size;
-  const totalCapacity = storePaths.reduce(
-    (sum, path) => sum + (path.Capacity ?? 0),
-    0,
-  );
-  const totalAvailable = storePaths.reduce(
-    (sum, path) => sum + (path.Available ?? 0),
-    0,
-  );
+  let storeCapablePaths = 0;
+  let totalCapacity = 0;
+  let totalAvailable = 0;
+  const policyBuckets = new Set<string>();
 
-  if (storePaths.length > 0) {
+  for (const path of paths) {
+    if (!path.CanStore) {
+      continue;
+    }
+
+    storeCapablePaths++;
+    policyBuckets.add(getStorePolicySignature(path));
+    totalCapacity += path.Capacity ?? 0;
+    totalAvailable += path.Available ?? 0;
+  }
+
+  const policyBucketCount = policyBuckets.size;
+
+  if (storeCapablePaths > 0) {
     return {
       title: "No breakdown",
       hint: "All store paths currently collapse into one policy bucket.",
-      storeCapablePaths: storePaths.length,
+      storeCapablePaths,
       policyBucketCount,
       totalCapacity,
       totalAvailable,

@@ -1,4 +1,5 @@
 import { createJsonRpcClient } from "@/lib/jsonrpc-client";
+import { logClientError } from "@/utils/error-log";
 
 export const testEndpointConnection = async (
   endpoint: string,
@@ -19,10 +20,7 @@ export const testEndpointConnection = async (
     await client.call("Version");
     return true;
   } catch (err) {
-    console.error(
-      "Connection test failed:",
-      err instanceof Error ? (err.stack ?? err.message) : "Unknown error",
-    );
+    logClientError("Connection test failed:", err);
     return false;
   } finally {
     if (client) {
