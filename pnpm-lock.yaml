@@ -115,8 +115,8 @@ importers:
         specifier: ^29.0.2
         version: 29.0.2(@noble/hashes@1.8.0)
       shadcn:
-        specifier: ^4.5.0
-        version: 4.5.0(@types/node@25.6.0)(typescript@6.0.3)
+        specifier: ^4.6.0
+        version: 4.6.0(@types/node@25.6.0)(typescript@6.0.3)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -2999,8 +2999,8 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  shadcn@4.5.0:
-    resolution: {integrity: sha512-ZpNOz7IMI5aezbMEWNxBvl2aJ1ek6NuAMqpL/FUnk5IuRxERl8ohYEnqqAmhPOcur8RbGuCoqTZLQ3Oi4Xkf8A==}
+  shadcn@4.6.0:
+    resolution: {integrity: sha512-4XeMwFf8ZZxmqQQp+U+Nsq2M+cY4Da8Joo/EaMdHVc4uVuWSTJoeidlZ3gDjyxXCjYB1FLcxYwR4lYQAH8emOg==}
     hasBin: true
 
   shebang-command@2.0.0:
@@ -6165,7 +6165,7 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn@4.5.0(@types/node@25.6.0)(typescript@6.0.3):
+  shadcn@4.6.0(@types/node@25.6.0)(typescript@6.0.3):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/parser': 7.29.2
