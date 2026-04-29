@@ -1,5 +1,6 @@
 import { Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { PieceSummary } from "@/types/market";
 
 interface PieceSummaryCardProps {
@@ -17,7 +18,7 @@ export function PieceSummaryCard({ data, isLoading }: PieceSummaryCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-muted-foreground">Loading...</p>
+          <Skeleton className="h-14" />
         </CardContent>
       </Card>
     );

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ComponentProps, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -9,8 +10,39 @@ import {
   AppSwitchField,
   CheckboxField,
   getFieldErrorMessages,
+  SelectField,
   TextField,
 } from "./index";
+
+vi.mock("@/components/ui/select", () => {
+  return {
+    Select: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    SelectTrigger: ({
+      children,
+      ...props
+    }: ComponentProps<"button"> & { children: ReactNode }) => (
+      <button type="button" role="combobox" aria-expanded="false" {...props}>
+        {children}
+      </button>
+    ),
+    SelectValue: ({ placeholder }: { placeholder?: string }) => (
+      <span>{placeholder}</span>
+    ),
+    SelectContent: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
+    SelectGroup: ({ children }: { children: ReactNode }) => (
+      <div data-testid="select-group">{children}</div>
+    ),
+    SelectItem: ({
+      children,
+      value,
+    }: {
+      children: ReactNode;
+      value: string;
+    }) => <div data-value={value}>{children}</div>,
+  };
+});
 
 describe("getFieldErrorMessages", () => {
   it("filters non-string errors and preserves messages", () => {
@@ -141,5 +173,30 @@ describe("CheckboxField", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Enabled" }));
     expect(handleChange).toHaveBeenCalled();
+  });
+});
+
+describe("SelectField", () => {
+  it("groups select items inside select content", () => {
+    render(
+      <SelectField
+        field={{
+          form: { state: { submissionAttempts: 0 } },
+          handleBlur: () => {},
+          handleChange: () => {},
+          name: "action",
+          state: {
+            meta: { errors: [], isBlurred: false, isTouched: false },
+            value: "allow",
+          },
+        }}
+        label="Action"
+      >
+        <div data-value="allow">Allow</div>
+        <div data-value="deny">Deny</div>
+      </SelectField>,
+    );
+
+    expect(screen.getByTestId("select-group")).toBeInTheDocument();
   });
 });

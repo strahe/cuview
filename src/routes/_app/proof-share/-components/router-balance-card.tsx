@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { WalletCombobox } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
 import {
   usePsRouterAddBalance,
@@ -39,13 +39,13 @@ export function RouterBalanceCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-end gap-2">
-          <div>
-            <Label
+          <Field className="w-auto gap-1">
+            <FieldLabel
               htmlFor="router-wallet"
-              className="mb-1 block text-xs text-muted-foreground"
+              className="text-xs text-muted-foreground"
             >
               Wallet
-            </Label>
+            </FieldLabel>
             <WalletCombobox
               id="router-wallet"
               placeholder="Select or enter wallet…"
@@ -54,18 +54,18 @@ export function RouterBalanceCard() {
               className="w-56"
               wallets={walletNames}
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Amount (FIL)
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-28 text-xs"
             />
-          </div>
+          </Field>
           <Button
             size="sm"
             onClick={() => addBalance.mutate([trimmedWallet, trimmedAmount])}

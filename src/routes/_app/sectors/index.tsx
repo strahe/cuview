@@ -24,6 +24,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   useCurioRest,
   useCurioRpc,
   useCurioRpcMutation,
@@ -256,90 +272,90 @@ function SectorsPage() {
 
       {pipelineStats && pipelineStats.length > 0 && (
         <SectionCard title="Pipeline Statistics" icon={ArrowRightLeft}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="py-2 text-left font-medium">Pipeline</th>
-                  <th className="py-2 text-left font-medium">Stage</th>
-                  <th className="py-2 text-right font-medium">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pipelineStats.map((ps, i) => (
-                  <tr key={i} className="border-b border-border last:border-0">
-                    <td className="py-2">{ps.pipeline_type}</td>
-                    <td className="py-2">
-                      <Badge variant="outline">{ps.stage}</Badge>
-                    </td>
-                    <td className="py-2 text-right font-mono">{ps.count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Pipeline</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead className="text-right">Count</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pipelineStats.map((ps, i) => (
+                <TableRow key={i}>
+                  <TableCell>{ps.pipeline_type}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{ps.stage}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ps.count}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </SectionCard>
       )}
 
       {deadlineStats && deadlineStats.length > 0 && (
         <SectionCard title="Deadline Statistics" icon={Clock}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="py-2 text-left font-medium">SP</th>
-                  <th className="py-2 text-right font-medium">Deadline</th>
-                  <th className="py-2 text-right font-medium">All</th>
-                  <th className="py-2 text-right font-medium">Live</th>
-                  <th className="py-2 text-right font-medium">Active</th>
-                  <th className="py-2 text-right font-medium">Faulty</th>
-                  <th className="py-2 text-right font-medium">Recovering</th>
-                  <th className="py-2 text-left font-medium">PoSt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deadlineStats.map((ds, i) => (
-                  <tr
-                    key={i}
-                    className="cursor-pointer border-b border-border last:border-0 hover:bg-muted/[0.5]"
-                    onClick={() =>
-                      setSelectedDeadline({
-                        sp: ds.sp_address,
-                        deadline: ds.deadline,
-                      })
-                    }
-                  >
-                    <td className="py-2 font-mono text-xs">{ds.sp_address}</td>
-                    <td className="py-2 text-right">{ds.deadline}</td>
-                    <td className="py-2 text-right font-mono">
-                      {ds.all_sectors}
-                    </td>
-                    <td className="py-2 text-right font-mono">
-                      {ds.live_sectors}
-                    </td>
-                    <td className="py-2 text-right font-mono">
-                      {ds.active_sectors}
-                    </td>
-                    <td className="py-2 text-right font-mono">
-                      {ds.faulty_sectors > 0 ? (
-                        <span className="text-destructive">
-                          {ds.faulty_sectors}
-                        </span>
-                      ) : (
-                        ds.faulty_sectors
-                      )}
-                    </td>
-                    <td className="py-2 text-right font-mono">
-                      {ds.recovering_sectors}
-                    </td>
-                    <td className="py-2 font-mono text-xs">
-                      {ds.post_submissions || "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="text-sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead>SP</TableHead>
+                <TableHead className="text-right">Deadline</TableHead>
+                <TableHead className="text-right">All</TableHead>
+                <TableHead className="text-right">Live</TableHead>
+                <TableHead className="text-right">Active</TableHead>
+                <TableHead className="text-right">Faulty</TableHead>
+                <TableHead className="text-right">Recovering</TableHead>
+                <TableHead>PoSt</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deadlineStats.map((ds, i) => (
+                <TableRow
+                  key={i}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setSelectedDeadline({
+                      sp: ds.sp_address,
+                      deadline: ds.deadline,
+                    })
+                  }
+                >
+                  <TableCell className="font-mono text-xs">
+                    {ds.sp_address}
+                  </TableCell>
+                  <TableCell className="text-right">{ds.deadline}</TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ds.all_sectors}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ds.live_sectors}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ds.active_sectors}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ds.faulty_sectors > 0 ? (
+                      <span className="text-destructive">
+                        {ds.faulty_sectors}
+                      </span>
+                    ) : (
+                      ds.faulty_sectors
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {ds.recovering_sectors}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {ds.post_submissions || "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </SectionCard>
       )}
 
@@ -727,6 +743,9 @@ function SectorDetailDialog({
                     onClick={() => resumeMutation.mutate([sp, sectorNum])}
                     disabled={resumeMutation.isPending}
                   >
+                    {resumeMutation.isPending && (
+                      <Spinner data-icon="inline-start" className="size-3" />
+                    )}
                     {resumeMutation.isPending ? "Resuming..." : "Resume"}
                   </Button>
                 )}
@@ -737,6 +756,9 @@ function SectorDetailDialog({
                     onClick={() => restartMutation.mutate([sp, sectorNum])}
                     disabled={restartMutation.isPending}
                   >
+                    {restartMutation.isPending && (
+                      <Spinner data-icon="inline-start" className="size-3" />
+                    )}
                     {restartMutation.isPending ? "Restarting..." : "Restart"}
                   </Button>
                 )}
@@ -834,8 +856,9 @@ function DeadlineDetailDialog({
           </DialogDescription>
         </DialogHeader>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-muted-foreground">
-            Loading...
+          <div className="space-y-3 py-4">
+            <Skeleton className="h-5 w-64" />
+            <Skeleton className="h-32" />
           </div>
         ) : data ? (
           <div className="space-y-3 text-sm">
@@ -854,50 +877,63 @@ function DeadlineDetailDialog({
               </span>
             </div>
             {data.partitions && data.partitions.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="py-1 text-left">Partition</th>
-                      <th className="py-1 text-right">All</th>
-                      <th className="py-1 text-right">Live</th>
-                      <th className="py-1 text-right">Active</th>
-                      <th className="py-1 text-right">Faulty</th>
-                      <th className="py-1 text-right">Recovering</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.partitions.map((p) => (
-                      <tr
-                        key={p.partition}
-                        className="cursor-pointer border-b border-border last:border-0 hover:bg-muted/[0.5]"
-                        onClick={() => onPartitionClick(p.partition)}
-                      >
-                        <td className="py-1 font-mono">#{p.partition}</td>
-                        <td className="py-1 text-right">{p.all_sectors}</td>
-                        <td className="py-1 text-right">{p.live_sectors}</td>
-                        <td className="py-1 text-right">{p.active_sectors}</td>
-                        <td className="py-1 text-right">
-                          {p.faulty_sectors > 0 ? (
-                            <span className="text-destructive">
-                              {p.faulty_sectors}
-                            </span>
-                          ) : (
-                            p.faulty_sectors
-                          )}
-                        </td>
-                        <td className="py-1 text-right">
-                          {p.recovering_sectors}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Partition</TableHead>
+                    <TableHead className="text-right">All</TableHead>
+                    <TableHead className="text-right">Live</TableHead>
+                    <TableHead className="text-right">Active</TableHead>
+                    <TableHead className="text-right">Faulty</TableHead>
+                    <TableHead className="text-right">Recovering</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.partitions.map((p) => (
+                    <TableRow
+                      key={p.partition}
+                      className="cursor-pointer"
+                      onClick={() => onPartitionClick(p.partition)}
+                    >
+                      <TableCell className="font-mono">
+                        #{p.partition}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {p.all_sectors}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {p.live_sectors}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {p.active_sectors}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {p.faulty_sectors > 0 ? (
+                          <span className="text-destructive">
+                            {p.faulty_sectors}
+                          </span>
+                        ) : (
+                          p.faulty_sectors
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {p.recovering_sectors}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </div>
         ) : (
-          <div className="py-4 text-center text-sm">Not found</div>
+          <Empty className="border-0 py-4">
+            <EmptyHeader>
+              <EmptyTitle>Deadline not found</EmptyTitle>
+              <EmptyDescription>
+                No partition data is available for this deadline.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </DialogContent>
     </Dialog>
@@ -932,8 +968,9 @@ function PartitionDetailDialog({
           <DialogDescription>{sp}</DialogDescription>
         </DialogHeader>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-muted-foreground">
-            Loading...
+          <div className="space-y-3 py-4">
+            <Skeleton className="h-5 w-64" />
+            <Skeleton className="h-32" />
           </div>
         ) : data ? (
           <div className="space-y-3 text-sm">
@@ -980,43 +1017,42 @@ function PartitionDetailDialog({
 
             {data.sectors && data.sectors.length > 0 && (
               <div className="max-h-64 overflow-y-auto">
-                <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-background">
-                    <tr className="border-b border-border">
-                      <th className="py-1 text-left">Sector</th>
-                      <th className="py-1 text-center">Live</th>
-                      <th className="py-1 text-center">Active</th>
-                      <th className="py-1 text-center">Faulty</th>
-                      <th className="py-1 text-center">Recovering</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead>Sector</TableHead>
+                      <TableHead className="text-center">Live</TableHead>
+                      <TableHead className="text-center">Active</TableHead>
+                      <TableHead className="text-center">Faulty</TableHead>
+                      <TableHead className="text-center">Recovering</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {data.sectors.map((s) => (
-                      <tr
-                        key={s.sector_number}
-                        className="border-b border-border last:border-0"
-                      >
-                        <td className="py-1 font-mono">#{s.sector_number}</td>
-                        <td className="py-1 text-center">
+                      <TableRow key={s.sector_number}>
+                        <TableCell className="font-mono">
+                          #{s.sector_number}
+                        </TableCell>
+                        <TableCell className="text-center">
                           {s.is_live ? "✓" : "—"}
-                        </td>
-                        <td className="py-1 text-center">
+                        </TableCell>
+                        <TableCell className="text-center">
                           {s.is_active ? "✓" : "—"}
-                        </td>
-                        <td className="py-1 text-center">
+                        </TableCell>
+                        <TableCell className="text-center">
                           {s.is_faulty ? (
                             <span className="text-destructive">✗</span>
                           ) : (
                             "—"
                           )}
-                        </td>
-                        <td className="py-1 text-center">
+                        </TableCell>
+                        <TableCell className="text-center">
                           {s.is_recovering ? "↻" : "—"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
 
@@ -1027,22 +1063,23 @@ function PartitionDetailDialog({
                     Faulty Storage Paths ({data.faulty_storage_paths.length})
                   </h4>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="py-1 text-left">Storage ID</th>
-                          <th className="py-1 text-left">Path Role</th>
-                          <th className="py-1 text-left">Hosts</th>
-                          <th className="py-1 text-right">Faulty Sectors</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Storage ID</TableHead>
+                          <TableHead>Path Role</TableHead>
+                          <TableHead>Hosts</TableHead>
+                          <TableHead className="text-right">
+                            Faulty Sectors
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {data.faulty_storage_paths.map((path) => (
-                          <tr
+                          <TableRow
                             key={`${path.storage_id}-${path.path_type}`}
-                            className="border-b border-border last:border-0"
                           >
-                            <td className="py-1 font-mono">
+                            <TableCell className="font-mono">
                               <Link
                                 to="/storage/paths/$storageId"
                                 params={{ storageId: path.storage_id }}
@@ -1051,24 +1088,31 @@ function PartitionDetailDialog({
                               >
                                 {path.storage_id}
                               </Link>
-                            </td>
-                            <td className="py-1">{path.path_type || "—"}</td>
-                            <td className="py-1 text-muted-foreground">
+                            </TableCell>
+                            <TableCell>{path.path_type || "—"}</TableCell>
+                            <TableCell className="text-muted-foreground">
                               {path.urls?.length ? path.urls.join(", ") : "—"}
-                            </td>
-                            <td className="py-1 text-right font-medium">
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
                               {path.count}
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               )}
           </div>
         ) : (
-          <div className="py-4 text-center text-sm">Not found</div>
+          <Empty className="border-0 py-4">
+            <EmptyHeader>
+              <EmptyTitle>Partition not found</EmptyTitle>
+              <EmptyDescription>
+                No sector data is available for this partition.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </DialogContent>
     </Dialog>

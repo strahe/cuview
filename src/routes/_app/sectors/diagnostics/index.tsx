@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
   HardDrive,
-  Loader2,
   Play,
   RefreshCw,
   Search,
@@ -10,6 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,10 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -35,6 +35,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -196,16 +198,16 @@ function DiagnosticsPage() {
         >
           <TabsList>
             <TabsTrigger value="commr">
-              <ShieldCheck className="mr-1 size-4" /> CommR Check
+              <ShieldCheck data-icon="inline-start" /> CommR Check
             </TabsTrigger>
             <TabsTrigger value="unsealed">
-              <HardDrive className="mr-1 size-4" /> Unsealed Check
+              <HardDrive data-icon="inline-start" /> Unsealed Check
             </TabsTrigger>
             <TabsTrigger value="vanilla">
-              <Zap className="mr-1 size-4" /> Vanilla Test
+              <Zap data-icon="inline-start" /> Vanilla Test
             </TabsTrigger>
             <TabsTrigger value="wdpost">
-              <Play className="mr-1 size-4" /> WdPost Test
+              <Play data-icon="inline-start" /> WdPost Test
             </TabsTrigger>
           </TabsList>
 
@@ -423,32 +425,32 @@ function CommRCheckPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               SP Address
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="f0..."
               value={sp}
               onChange={(e) => setSp(e.target.value)}
               className="w-40 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Sector #
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={sector}
               onChange={(e) => setSector(e.target.value)}
               className="w-28 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               File Type
-            </Label>
+            </FieldLabel>
             <Select
               value={fileType}
               onValueChange={(value) => setFileType(value ?? "sealed")}
@@ -457,20 +459,22 @@ function CommRCheckPanel({
                 <SelectValue placeholder="Select file type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sealed">Sealed</SelectItem>
-                <SelectItem value="update">Update</SelectItem>
+                <SelectGroup>
+                  <SelectItem value="sealed">Sealed</SelectItem>
+                  <SelectItem value="update">Update</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
           <Button
             size="sm"
             onClick={handleStart}
             disabled={!sp.trim() || !sector.trim() || startCheck.isPending}
           >
             {startCheck.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Play className="mr-1 size-3" />
+              <Play data-icon="inline-start" />
             )}
             {startCheck.isPending ? "Starting..." : "Start Check"}
           </Button>
@@ -480,7 +484,7 @@ function CommRCheckPanel({
             onClick={handleSearch}
             disabled={!sp.trim() || !sector.trim()}
           >
-            <Search className="mr-1 size-3" /> View History
+            <Search data-icon="inline-start" /> View History
           </Button>
         </div>
 
@@ -493,9 +497,7 @@ function CommRCheckPanel({
 
         {statusResult && <CheckResultCard result={statusResult} type="commr" />}
 
-        {listLoading && (
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        )}
+        {listLoading && <Skeleton className="h-10" />}
         {results && results.length > 0 && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium">
@@ -642,37 +644,37 @@ function UnsealedCheckPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               SP Address
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="f0..."
               value={sp}
               onChange={(e) => setSp(e.target.value)}
               className="w-40 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Sector #
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={sector}
               onChange={(e) => setSector(e.target.value)}
               className="w-28 font-mono text-xs"
             />
-          </div>
+          </Field>
           <Button
             size="sm"
             onClick={handleStart}
             disabled={!sp.trim() || !sector.trim() || startCheck.isPending}
           >
             {startCheck.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Play className="mr-1 size-3" />
+              <Play data-icon="inline-start" />
             )}
             {startCheck.isPending ? "Starting..." : "Start Check"}
           </Button>
@@ -682,7 +684,7 @@ function UnsealedCheckPanel({
             onClick={handleSearch}
             disabled={!sp.trim() || !sector.trim()}
           >
-            <Search className="mr-1 size-3" /> View History
+            <Search data-icon="inline-start" /> View History
           </Button>
         </div>
 
@@ -696,9 +698,7 @@ function UnsealedCheckPanel({
           <CheckResultCard result={statusResult} type="unsealed" />
         )}
 
-        {listLoading && (
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        )}
+        {listLoading && <Skeleton className="h-10" />}
         {results && results.length > 0 && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium">
@@ -814,37 +814,37 @@ function VanillaTestPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               SP Address
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="f0..."
               value={sp}
               onChange={(e) => setSp(e.target.value)}
               className="w-40 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Sector #
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={sector}
               onChange={(e) => setSector(e.target.value)}
               className="w-28 font-mono text-xs"
             />
-          </div>
+          </Field>
           <Button
             size="sm"
             onClick={handleTest}
             disabled={!sp.trim() || !sector.trim() || runTest.isPending}
           >
             {runTest.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Zap className="mr-1 size-3" />
+              <Zap data-icon="inline-start" />
             )}
             {runTest.isPending ? "Testing..." : "Run Test"}
           </Button>
@@ -913,39 +913,39 @@ function WdPostTestPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               SP Address
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="f0..."
               value={sp}
               onChange={(e) => setSp(e.target.value)}
               className="w-40 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Deadline
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               className="w-20 font-mono text-xs"
             />
-          </div>
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          </Field>
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Partition
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="0"
               value={partition}
               onChange={(e) => setPartition(e.target.value)}
               className="w-20 font-mono text-xs"
             />
-          </div>
+          </Field>
           <Button
             size="sm"
             onClick={handleStart}
@@ -957,9 +957,9 @@ function WdPostTestPanel({
             }
           >
             {startTask.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Play className="mr-1 size-3" />
+              <Play data-icon="inline-start" />
             )}
             {startTask.isPending ? "Starting..." : "Start WdPost"}
           </Button>
@@ -975,26 +975,26 @@ function WdPostTestPanel({
             }
           >
             {runPartitionTest.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Zap className="mr-1 size-3" />
+              <Zap data-icon="inline-start" />
             )}
             {runPartitionTest.isPending ? "Testing..." : "Vanilla Test"}
           </Button>
         </div>
 
         <div className="flex items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               Task ID (to check)
-            </Label>
+            </FieldLabel>
             <Input
               placeholder="123"
               value={taskId}
               onChange={(e) => setTaskId(e.target.value)}
               className="w-28 font-mono text-xs"
             />
-          </div>
+          </Field>
           <Button
             size="sm"
             variant="outline"
@@ -1002,9 +1002,9 @@ function WdPostTestPanel({
             disabled={!taskId.trim() || checkTask.isPending}
           >
             {checkTask.isPending ? (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             ) : (
-              <Search className="mr-1 size-3" />
+              <Search data-icon="inline-start" />
             )}
             {checkTask.isPending ? "Checking..." : "Check Result"}
           </Button>

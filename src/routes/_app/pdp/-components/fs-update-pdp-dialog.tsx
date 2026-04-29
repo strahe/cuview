@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
 import { SizeSelect } from "@/components/composed/size-select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { useFsUpdatePdp } from "../-module/queries";
 import type { FSPDPOffering } from "../-module/types";
 
@@ -76,47 +77,45 @@ export function FsUpdatePdpDialog({
         <DialogHeader>
           <DialogTitle>Update PDP Offering</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium">Service URL *</Label>
+        <FieldGroup>
+          <Field>
+            <FieldLabel>Service URL *</FieldLabel>
             <Input
               value={form.service_url}
               onChange={(e) => updateField("service_url", e.target.value)}
               placeholder="https://example.com/pdp"
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-sm font-medium">Min Piece Size</Label>
+            <Field>
+              <FieldLabel>Min Piece Size</FieldLabel>
               <SizeSelect
                 value={form.min_size}
                 onChange={(v) => updateField("min_size", v)}
               />
-            </div>
-            <div>
-              <Label className="text-sm font-medium">Max Piece Size</Label>
+            </Field>
+            <Field>
+              <FieldLabel>Max Piece Size</FieldLabel>
               <SizeSelect
                 value={form.max_size}
                 onChange={(v) => updateField("max_size", v)}
               />
-            </div>
+            </Field>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-sm font-medium">Price (per TiB/day)</Label>
+            <Field>
+              <FieldLabel>Price (per TiB/day)</FieldLabel>
               <Input
                 type="number"
                 value={form.price}
                 onChange={(e) => updateField("price", Number(e.target.value))}
                 min={0}
               />
-            </div>
-            <div>
-              <Label className="text-sm font-medium">
-                Min Proving Period (epochs)
-              </Label>
+            </Field>
+            <Field>
+              <FieldLabel>Min Proving Period (epochs)</FieldLabel>
               <Input
                 type="number"
                 value={form.min_proving_period}
@@ -125,38 +124,38 @@ export function FsUpdatePdpDialog({
                 }
                 min={0}
               />
-            </div>
+            </Field>
           </div>
 
-          <div>
-            <Label className="text-sm font-medium">Location</Label>
+          <Field>
+            <FieldLabel>Location</FieldLabel>
             <Input
               value={form.location}
               onChange={(e) => updateField("location", e.target.value)}
               placeholder="Geographic location"
               maxLength={128}
             />
-          </div>
+          </Field>
 
           <div className="flex items-center gap-4">
-            <Label className="flex items-center gap-2 text-sm">
+            <FieldLabel className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={form.ipni_piece}
                 onCheckedChange={(v) => updateField("ipni_piece", !!v)}
               />
               IPNI Piece
-            </Label>
-            <Label className="flex items-center gap-2 text-sm">
+            </FieldLabel>
+            <FieldLabel className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={form.ipni_ipfs}
                 onCheckedChange={(v) => updateField("ipni_ipfs", !!v)}
               />
               IPNI IPFS
-            </Label>
+            </FieldLabel>
           </div>
 
-          <div>
-            <Label className="text-sm font-medium">Payment Token Address</Label>
+          <Field>
+            <FieldLabel>Payment Token Address</FieldLabel>
             <Input
               value={form.payment_token_address}
               onChange={(e) =>
@@ -165,8 +164,8 @@ export function FsUpdatePdpDialog({
               placeholder="0x... (defaults to USDFC)"
               className="font-mono text-xs"
             />
-          </div>
-        </div>
+          </Field>
+        </FieldGroup>
         {mutation.isError && (
           <p className="text-sm text-destructive">
             {(mutation.error as Error)?.message ?? "Failed to update PDP"}
@@ -180,6 +179,9 @@ export function FsUpdatePdpDialog({
             onClick={handleSubmit}
             disabled={mutation.isPending || !form.service_url.trim()}
           >
+            {mutation.isPending && (
+              <Spinner data-icon="inline-start" className="size-3" />
+            )}
             {mutation.isPending ? "Updating..." : "Update PDP"}
           </Button>
         </DialogFooter>

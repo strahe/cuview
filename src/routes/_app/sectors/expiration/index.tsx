@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
@@ -15,14 +16,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
@@ -559,7 +568,7 @@ function ExpirationPage() {
                   variant="outline"
                   onClick={() => setShowAddBucket(true)}
                 >
-                  <Plus className="mr-1 size-4" /> Add Bucket
+                  <Plus data-icon="inline-start" /> Add Bucket
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -574,41 +583,40 @@ function ExpirationPage() {
                     <h4 className="mb-2 text-sm font-medium">
                       Bucket Sector Counts
                     </h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="py-1 text-left">SP</th>
-                            <th className="py-1 text-right">{"< Days"}</th>
-                            <th className="py-1 text-right">Total</th>
-                            <th className="py-1 text-right">CC</th>
-                            <th className="py-1 text-right">Deal</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bucketCounts.map((bc, i) => (
-                            <tr
-                              key={i}
-                              className="border-b border-border last:border-0"
-                            >
-                              <td className="py-1 font-mono">
-                                {bc.sp_address}
-                              </td>
-                              <td className="py-1 text-right">
-                                {bc.less_than_days}
-                              </td>
-                              <td className="py-1 text-right font-medium">
-                                {bc.total_count}
-                              </td>
-                              <td className="py-1 text-right">{bc.cc_count}</td>
-                              <td className="py-1 text-right">
-                                {bc.deal_count}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>SP</TableHead>
+                          <TableHead className="text-right">
+                            {"< Days"}
+                          </TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                          <TableHead className="text-right">CC</TableHead>
+                          <TableHead className="text-right">Deal</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bucketCounts.map((bc, i) => (
+                          <TableRow key={i}>
+                            <TableCell className="font-mono">
+                              {bc.sp_address}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {bc.less_than_days}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {bc.total_count}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {bc.cc_count}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {bc.deal_count}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>
@@ -624,7 +632,7 @@ function ExpirationPage() {
                   variant="outline"
                   onClick={() => setShowAddPreset(true)}
                 >
-                  <Plus className="mr-1 size-4" /> Add Preset
+                  <Plus data-icon="inline-start" /> Add Preset
                 </Button>
               </CardHeader>
               <CardContent>
@@ -647,7 +655,7 @@ function ExpirationPage() {
                   variant="outline"
                   onClick={() => setShowAddSP(true)}
                 >
-                  <Plus className="mr-1 size-4" /> Add Assignment
+                  <Plus data-icon="inline-start" /> Add Assignment
                 </Button>
               </CardHeader>
               <CardContent>
@@ -670,14 +678,14 @@ function ExpirationPage() {
             <DialogHeader>
               <DialogTitle>Add Expiration Bucket</DialogTitle>
             </DialogHeader>
-            <div>
-              <Label className="text-sm font-medium">Less Than (days) *</Label>
+            <Field>
+              <FieldLabel>Less Than (days) *</FieldLabel>
               <Input
                 type="number"
                 value={newBucketDays}
                 onChange={(e) => setNewBucketDays(e.target.value)}
               />
-            </div>
+            </Field>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddBucket(false)}>
                 Cancel
@@ -700,9 +708,9 @@ function ExpirationPage() {
             <DialogHeader>
               <DialogTitle>Add Expiration Preset</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Name *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Name *</FieldLabel>
                 <Input
                   value={presetForm.name}
                   onChange={(e) =>
@@ -710,9 +718,9 @@ function ExpirationPage() {
                   }
                   placeholder="Preset name"
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Action Type</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Action Type</FieldLabel>
                 <Select
                   value={normalizeActionType(presetForm.action_type)}
                   onValueChange={(value) =>
@@ -726,14 +734,16 @@ function ExpirationPage() {
                     <SelectValue placeholder="Select action type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="extend">Extend</SelectItem>
-                    <SelectItem value="top_up">Top-up</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="extend">Extend</SelectItem>
+                      <SelectItem value="top_up">Top-up</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
-              </div>
+              </Field>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-sm font-medium">Above Days</Label>
+                <Field>
+                  <FieldLabel>Above Days</FieldLabel>
                   <Input
                     type="number"
                     value={presetForm.info_bucket_above_days}
@@ -745,9 +755,9 @@ function ExpirationPage() {
                       }))
                     }
                   />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Below Days</Label>
+                </Field>
+                <Field>
+                  <FieldLabel>Below Days</FieldLabel>
                   <Input
                     type="number"
                     value={presetForm.info_bucket_below_days}
@@ -759,15 +769,13 @@ function ExpirationPage() {
                       }))
                     }
                   />
-                </div>
+                </Field>
               </div>
 
               {normalizeActionType(presetForm.action_type) === "top_up" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Low Water Mark
-                    </Label>
+                  <Field>
+                    <FieldLabel>Low Water Mark</FieldLabel>
                     <Input
                       type="number"
                       value={presetForm.top_up_count_low_water_mark ?? ""}
@@ -780,11 +788,9 @@ function ExpirationPage() {
                         }))
                       }
                     />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">
-                      High Water Mark
-                    </Label>
+                  </Field>
+                  <Field>
+                    <FieldLabel>High Water Mark</FieldLabel>
                     <Input
                       type="number"
                       value={presetForm.top_up_count_high_water_mark ?? ""}
@@ -797,16 +803,14 @@ function ExpirationPage() {
                         }))
                       }
                     />
-                  </div>
+                  </Field>
                 </div>
               )}
 
               {normalizeActionType(presetForm.action_type) !== "top_up" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Target Exp (days)
-                    </Label>
+                  <Field>
+                    <FieldLabel>Target Exp (days)</FieldLabel>
                     <Input
                       type="number"
                       value={presetForm.target_expiration_days ?? ""}
@@ -819,11 +823,9 @@ function ExpirationPage() {
                         }))
                       }
                     />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Max Candidate (days)
-                    </Label>
+                  </Field>
+                  <Field>
+                    <FieldLabel>Max Candidate (days)</FieldLabel>
                     <Input
                       type="number"
                       value={presetForm.max_candidate_days ?? ""}
@@ -834,12 +836,12 @@ function ExpirationPage() {
                         }))
                       }
                     />
-                  </div>
+                  </Field>
                 </div>
               )}
 
-              <div>
-                <Label className="text-sm font-medium">CC Filter</Label>
+              <Field>
+                <FieldLabel>CC Filter</FieldLabel>
                 <Select
                   value={
                     presetForm.cc == null
@@ -859,14 +861,16 @@ function ExpirationPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="cc">CC only</SelectItem>
-                    <SelectItem value="deal">Deal only</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="cc">CC only</SelectItem>
+                      <SelectItem value="deal">Deal only</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
-              </div>
+              </Field>
 
-              <div className="flex items-center gap-2">
+              <Field orientation="horizontal">
                 <Checkbox
                   id="preset-drop"
                   checked={presetForm.drop_claims}
@@ -877,11 +881,11 @@ function ExpirationPage() {
                     }))
                   }
                 />
-                <Label htmlFor="preset-drop" className="text-sm">
+                <FieldLabel htmlFor="preset-drop" className="text-sm">
                   Drop Claims
-                </Label>
-              </div>
-            </div>
+                </FieldLabel>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddPreset(false)}>
                 Cancel
@@ -908,9 +912,9 @@ function ExpirationPage() {
             <DialogHeader>
               <DialogTitle>Add SP Assignment</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">SP Address *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>SP Address *</FieldLabel>
                 <Input
                   value={spForm.sp}
                   onChange={(e) =>
@@ -918,9 +922,9 @@ function ExpirationPage() {
                   }
                   placeholder="f01234..."
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Preset Name *</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Preset Name *</FieldLabel>
                 {presets && presets.length > 0 ? (
                   <Select
                     value={spForm.preset || undefined}
@@ -932,11 +936,13 @@ function ExpirationPage() {
                       <SelectValue placeholder="Select preset..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {presets.map((p) => (
-                        <SelectItem key={p.name} value={p.name}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {presets.map((p) => (
+                          <SelectItem key={p.name} value={p.name}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -948,8 +954,8 @@ function ExpirationPage() {
                     placeholder="Preset name"
                   />
                 )}
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddSP(false)}>
                 Cancel
@@ -1003,7 +1009,7 @@ function EditPresetDialog({
         <DialogHeader>
           <DialogTitle>Edit Preset: {preset.name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <FieldGroup className="gap-3">
           {hasLegacyAction && (
             <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
               This preset uses legacy action "{preset.action_type}" which Curio
@@ -1012,8 +1018,8 @@ function EditPresetDialog({
             </div>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs font-medium">Action Type</Label>
+            <Field>
+              <FieldLabel className="text-xs">Action Type</FieldLabel>
               <Select
                 value={actionType}
                 onValueChange={(value) =>
@@ -1024,13 +1030,15 @@ function EditPresetDialog({
                   <SelectValue placeholder="Select action type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="extend">Extend</SelectItem>
-                  <SelectItem value="top_up">Top-up</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="extend">Extend</SelectItem>
+                    <SelectItem value="top_up">Top-up</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label className="text-xs font-medium">Above (days)</Label>
+            </Field>
+            <Field>
+              <FieldLabel className="text-xs">Above (days)</FieldLabel>
               <Input
                 type="number"
                 value={form.info_bucket_above_days}
@@ -1043,9 +1051,9 @@ function EditPresetDialog({
                 }
                 className="text-xs"
               />
-            </div>
-            <div>
-              <Label className="text-xs font-medium">Below (days)</Label>
+            </Field>
+            <Field>
+              <FieldLabel className="text-xs">Below (days)</FieldLabel>
               <Input
                 type="number"
                 value={form.info_bucket_below_days}
@@ -1058,13 +1066,13 @@ function EditPresetDialog({
                 }
                 className="text-xs"
               />
-            </div>
+            </Field>
           </div>
 
           {actionType === "top_up" && (
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-medium">Low Water Mark</Label>
+              <Field>
+                <FieldLabel className="text-xs">Low Water Mark</FieldLabel>
                 <Input
                   type="number"
                   value={form.top_up_count_low_water_mark ?? ""}
@@ -1078,9 +1086,9 @@ function EditPresetDialog({
                   }
                   className="text-xs"
                 />
-              </div>
-              <div>
-                <Label className="text-xs font-medium">High Water Mark</Label>
+              </Field>
+              <Field>
+                <FieldLabel className="text-xs">High Water Mark</FieldLabel>
                 <Input
                   type="number"
                   value={form.top_up_count_high_water_mark ?? ""}
@@ -1094,14 +1102,14 @@ function EditPresetDialog({
                   }
                   className="text-xs"
                 />
-              </div>
+              </Field>
             </div>
           )}
 
           {actionType !== "top_up" && (
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-medium">Target Exp (days)</Label>
+              <Field>
+                <FieldLabel className="text-xs">Target Exp (days)</FieldLabel>
                 <Input
                   type="number"
                   value={form.target_expiration_days ?? ""}
@@ -1113,11 +1121,11 @@ function EditPresetDialog({
                   }
                   className="text-xs"
                 />
-              </div>
-              <div>
-                <Label className="text-xs font-medium">
+              </Field>
+              <Field>
+                <FieldLabel className="text-xs">
                   Max Candidate (days)
-                </Label>
+                </FieldLabel>
                 <Input
                   type="number"
                   value={form.max_candidate_days ?? ""}
@@ -1129,13 +1137,13 @@ function EditPresetDialog({
                   }
                   className="text-xs"
                 />
-              </div>
+              </Field>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs font-medium">CC Filter</Label>
+            <Field>
+              <FieldLabel className="text-xs">CC Filter</FieldLabel>
               <Select
                 value={form.cc == null ? "all" : form.cc ? "cc" : "deal"}
                 onValueChange={(value) =>
@@ -1149,13 +1157,15 @@ function EditPresetDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="cc">CC only</SelectItem>
-                  <SelectItem value="deal">Deal only</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="cc">CC only</SelectItem>
+                    <SelectItem value="deal">Deal only</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex items-center gap-2 pt-6">
+            </Field>
+            <Field orientation="horizontal" className="pt-6">
               <Checkbox
                 id="edit-preset-drop-claims"
                 checked={form.drop_claims}
@@ -1163,12 +1173,12 @@ function EditPresetDialog({
                   setForm({ ...form, drop_claims: !!checked })
                 }
               />
-              <Label htmlFor="edit-preset-drop-claims" className="text-xs">
+              <FieldLabel htmlFor="edit-preset-drop-claims" className="text-xs">
                 Drop Claims
-              </Label>
-            </div>
+              </FieldLabel>
+            </Field>
           </div>
-        </div>
+        </FieldGroup>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel

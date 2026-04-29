@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -57,11 +58,13 @@ export function StoragePathsToolbar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="seal">Seal only</SelectItem>
-            <SelectItem value="store">Store only</SelectItem>
-            <SelectItem value="both">Seal + Store</SelectItem>
-            <SelectItem value="readonly">Read-only</SelectItem>
+            <SelectGroup>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="seal">Seal only</SelectItem>
+              <SelectItem value="store">Store only</SelectItem>
+              <SelectItem value="both">Seal + Store</SelectItem>
+              <SelectItem value="readonly">Read-only</SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
@@ -80,9 +83,11 @@ export function StoragePathsToolbar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="healthy">Healthy</SelectItem>
-            <SelectItem value="degraded">Degraded</SelectItem>
+            <SelectGroup>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="healthy">Healthy</SelectItem>
+              <SelectItem value="degraded">Degraded</SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>

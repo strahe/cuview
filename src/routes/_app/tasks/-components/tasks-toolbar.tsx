@@ -1,11 +1,12 @@
 import { useId } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -90,38 +91,40 @@ export function TasksToolbar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
+              <SelectGroup>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
       )}
 
       {typeof showBg === "boolean" && onShowBgChange && (
-        <div className="flex items-center gap-2">
+        <Field orientation="horizontal" className="w-auto">
           <Checkbox
             id={showBgId}
             checked={showBg}
             onCheckedChange={(checked) => onShowBgChange(Boolean(checked))}
           />
-          <Label htmlFor={showBgId} className="font-normal leading-none">
+          <FieldLabel htmlFor={showBgId} className="font-normal leading-none">
             Show background tasks
-          </Label>
-        </div>
+          </FieldLabel>
+        </Field>
       )}
 
       {typeof coalesce === "boolean" && onCoalesceChange && (
-        <div className="flex items-center gap-2">
+        <Field orientation="horizontal" className="w-auto">
           <Checkbox
             id={coalesceId}
             checked={coalesce}
             onCheckedChange={(checked) => onCoalesceChange(Boolean(checked))}
           />
-          <Label htmlFor={coalesceId} className="font-normal leading-none">
+          <FieldLabel htmlFor={coalesceId} className="font-normal leading-none">
             Coalesce similar tasks
-          </Label>
-        </div>
+          </FieldLabel>
+        </Field>
       )}
 
       {typeof limit === "number" && onLimitChange && (
@@ -144,10 +147,12 @@ export function TasksToolbar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-              <SelectItem value="200">200</SelectItem>
+              <SelectGroup>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="200">200</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>

@@ -9,7 +9,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import type {
   StoragePathInfo,
   StorageStoreStats,
@@ -60,18 +68,17 @@ function StorageRoleCard({ stat }: { stat: StorageUseStat }) {
           </div>
           <p className="text-sm font-semibold">{usedPercent.toFixed(1)}%</p>
         </div>
-        <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={
-              usedPercent > 90
-                ? "h-full rounded-full bg-destructive"
-                : usedPercent > 70
-                  ? "h-full rounded-full bg-warning"
-                  : "h-full rounded-full bg-primary"
-            }
-            style={{ width: `${Math.min(usedPercent, 100)}%` }}
-          />
-        </div>
+        <Progress
+          value={Math.min(usedPercent, 100)}
+          className={cn(
+            "mb-2",
+            usedPercent > 90 &&
+              "[&_[data-slot=progress-indicator]]:bg-destructive",
+            usedPercent > 70 &&
+              usedPercent <= 90 &&
+              "[&_[data-slot=progress-indicator]]:bg-warning",
+          )}
+        />
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{stat.UseStr || formatBytes(used)} used</span>
           <span>{stat.CapStr || formatBytes(stat.Capacity)} total</span>
@@ -222,9 +229,14 @@ function StorageUsagePage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No storage usage data available.
-            </p>
+            <Empty className="border-0">
+              <EmptyHeader>
+                <EmptyTitle>No storage usage data</EmptyTitle>
+                <EmptyDescription>
+                  Storage usage will appear after Curio reports path capacity.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>

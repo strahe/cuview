@@ -10,6 +10,8 @@ import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import type { StoragePathInfo } from "@/types/storage";
 import { StoragePathsToolbar } from "../-components/storage-paths-toolbar";
 import {
@@ -183,20 +185,17 @@ function StoragePathsPage() {
         header: "Usage",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
-              <div
-                className={
-                  row.original.UsedPercent > 90
-                    ? "h-full rounded-full bg-destructive"
-                    : row.original.UsedPercent > 70
-                      ? "h-full rounded-full bg-warning"
-                      : "h-full rounded-full bg-primary"
-                }
-                style={{
-                  width: `${Math.min(row.original.UsedPercent, 100)}%`,
-                }}
-              />
-            </div>
+            <Progress
+              value={Math.min(row.original.UsedPercent, 100)}
+              className={cn(
+                "w-20",
+                row.original.UsedPercent > 90 &&
+                  "[&_[data-slot=progress-indicator]]:bg-destructive",
+                row.original.UsedPercent > 70 &&
+                  row.original.UsedPercent <= 90 &&
+                  "[&_[data-slot=progress-indicator]]:bg-warning",
+              )}
+            />
             <span className="text-xs">
               {row.original.UsedPercent.toFixed(1)}%
             </span>

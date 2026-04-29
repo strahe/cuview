@@ -185,8 +185,8 @@ describe("getMessageAgeColorClass", () => {
     expect(getMessageAgeColorClass("danger")).toBe("text-destructive");
   });
 
-  it("returns yellow for warning", () => {
-    expect(getMessageAgeColorClass("warning")).toBe("text-yellow-500");
+  it("returns warning token for warning", () => {
+    expect(getMessageAgeColorClass("warning")).toBe("text-warning");
   });
 
   it("returns empty for normal", () => {

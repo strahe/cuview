@@ -27,9 +27,9 @@ import {
   useMemo,
   useState,
 } from "react";
+import { FieldLabel } from "@/components/composed/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ConfigSchemaDocument } from "@/types/config";
 import { mergeDeep } from "@/utils/object";
@@ -238,7 +238,7 @@ function ConfigFieldTemplate<
       <div className="flex flex-col gap-2">
         {displayLabel && !isCheckbox && (
           <div className="flex items-center gap-1.5">
-            <Label
+            <FieldLabel
               className={`text-sm font-medium leading-none ${
                 hasErrors ? "text-destructive" : ""
               }`}
@@ -246,7 +246,7 @@ function ConfigFieldTemplate<
             >
               {label}
               {required ? "*" : null}
-            </Label>
+            </FieldLabel>
             {descriptionText && resolvedInfoDisplayMode === "icon" && (
               <Button
                 type="button"

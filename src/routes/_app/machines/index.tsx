@@ -442,8 +442,7 @@ function MachinesPage() {
       {
         label: "Online",
         value: stats.online,
-        className:
-          "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+        className: "border-success/30 bg-success/10 text-success",
       },
       {
         label: "Offline",
@@ -453,8 +452,7 @@ function MachinesPage() {
       {
         label: "Cordoned",
         value: stats.unschedulable,
-        className:
-          "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        className: "border-warning/30 bg-warning/10 text-warning",
       },
     ],
     [stats.online, stats.offline, stats.unschedulable],

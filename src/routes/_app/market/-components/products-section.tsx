@@ -1,5 +1,6 @@
 import { Edit2, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,8 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useAddContract,
@@ -103,9 +105,11 @@ export function ProductsSection() {
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No products
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No products</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>
@@ -141,9 +145,11 @@ export function ProductsSection() {
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No data sources
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No data sources</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>
@@ -156,7 +162,7 @@ export function ProductsSection() {
             variant="outline"
             onClick={() => setShowAddContract(true)}
           >
-            <Plus className="mr-1 size-4" /> Add
+            <Plus data-icon="inline-start" /> Add
           </Button>
         </CardHeader>
         <CardContent>
@@ -195,9 +201,11 @@ export function ProductsSection() {
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No market contracts
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No market contracts</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>
@@ -209,11 +217,9 @@ export function ProductsSection() {
             <DialogHeader>
               <DialogTitle>Add Market Contract</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">
-                  Contract Address *
-                </Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Contract Address *</FieldLabel>
                 <Input
                   value={contractForm.address}
                   onChange={(e) =>
@@ -225,9 +231,9 @@ export function ProductsSection() {
                   placeholder="0x..."
                   className="font-mono text-xs"
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">ABI JSON</Label>
+              </Field>
+              <Field>
+                <FieldLabel>ABI JSON</FieldLabel>
                 <Textarea
                   className="min-h-[80px] font-mono text-xs"
                   value={contractForm.abi}
@@ -239,8 +245,8 @@ export function ProductsSection() {
                   }
                   placeholder="[{...}]"
                 />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button
                 variant="outline"
@@ -254,7 +260,10 @@ export function ProductsSection() {
                   addContractMutation.isPending || !contractForm.address.trim()
                 }
               >
-                Add
+                {addContractMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
+                {addContractMutation.isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -268,15 +277,15 @@ export function ProductsSection() {
             <DialogHeader>
               <DialogTitle>Edit Contract ABI</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Contract Address</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Contract Address</FieldLabel>
                 <p className="truncate font-mono text-xs text-muted-foreground">
                   {editAbi.address}
                 </p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">ABI JSON</Label>
+              </Field>
+              <Field>
+                <FieldLabel>ABI JSON</FieldLabel>
                 <Textarea
                   className="min-h-[120px] font-mono text-xs"
                   value={editAbi.abi}
@@ -287,8 +296,8 @@ export function ProductsSection() {
                   }
                   placeholder="[{...}]"
                 />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditAbi(null)}>
                 Cancel
@@ -297,6 +306,9 @@ export function ProductsSection() {
                 onClick={handleUpdateAbi}
                 disabled={updateContractMutation.isPending}
               >
+                {updateContractMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
                 {updateContractMutation.isPending ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>

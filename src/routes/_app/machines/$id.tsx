@@ -27,7 +27,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { DEFAULT_STORAGE_PATH_DETAIL_SEARCH } from "@/routes/_app/storage/-module/search-state";
@@ -220,7 +230,7 @@ function MachineDetailPage() {
       <div className="flex flex-wrap items-center gap-2">
         <Link to="/machines">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-1 size-4" /> Back
+            <ArrowLeft data-icon="inline-start" /> Back
           </Button>
         </Link>
         <Server className="size-5" />
@@ -238,7 +248,7 @@ function MachineDetailPage() {
             onClick={() => setPendingAction({ type: "uncordon" })}
             disabled={mutationPending}
           >
-            <Shield className="mr-1 size-4" />
+            <Shield data-icon="inline-start" />
             Uncordon
           </Button>
         ) : (
@@ -248,7 +258,7 @@ function MachineDetailPage() {
             onClick={() => setPendingAction({ type: "cordon" })}
             disabled={mutationPending}
           >
-            <ShieldOff className="mr-1 size-4" />
+            <ShieldOff data-icon="inline-start" />
             Cordon
           </Button>
         )}
@@ -258,7 +268,7 @@ function MachineDetailPage() {
           onClick={() => setPendingAction({ type: "restart" })}
           disabled={mutationPending}
         >
-          <RotateCcw className="mr-1 size-4" /> Restart
+          <RotateCcw data-icon="inline-start" /> Restart
         </Button>
         {info.RestartRequest ? (
           <Button
@@ -267,7 +277,7 @@ function MachineDetailPage() {
             onClick={() => setPendingAction({ type: "abort-restart" })}
             disabled={mutationPending}
           >
-            <XCircle className="mr-1 size-4" />
+            <XCircle data-icon="inline-start" />
             Abort Restart
           </Button>
         ) : null}
@@ -441,58 +451,54 @@ function MachineDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 pr-4">Storage ID</th>
-                    <th className="pb-2 pr-4">URL</th>
-                    <th className="pb-2 pr-4">Last Checked</th>
-                    <th className="pb-2 pr-4">Last Live</th>
-                    <th className="pb-2 pr-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.StorageURLs.map((u, i) => (
-                    <tr key={i} className="border-b last:border-0">
-                      <td className="py-1.5 pr-4 font-mono">
-                        <Link
-                          to="/storage/paths/$storageId"
-                          params={{ storageId: u.StorageID }}
-                          search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
-                          className="text-primary hover:underline"
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Storage ID</TableHead>
+                  <TableHead>URL</TableHead>
+                  <TableHead>Last Checked</TableHead>
+                  <TableHead>Last Live</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.StorageURLs.map((u, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-mono">
+                      <Link
+                        to="/storage/paths/$storageId"
+                        params={{ storageId: u.StorageID }}
+                        search={DEFAULT_STORAGE_PATH_DETAIL_SEARCH}
+                        className="text-primary hover:underline"
+                      >
+                        {u.StorageID.slice(0, 8)}…
+                      </Link>
+                    </TableCell>
+                    <TableCell className="font-mono">{u.URL}</TableCell>
+                    <TableCell>
+                      {u.LastChecked
+                        ? new Date(u.LastChecked).toLocaleString()
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {u.LastLive ? new Date(u.LastLive).toLocaleString() : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {u.LastDeadReason ? (
+                        <span
+                          className="text-destructive"
+                          title={u.LastDeadReason}
                         >
-                          {u.StorageID.slice(0, 8)}…
-                        </Link>
-                      </td>
-                      <td className="py-1.5 pr-4 font-mono">{u.URL}</td>
-                      <td className="py-1.5 pr-4">
-                        {u.LastChecked
-                          ? new Date(u.LastChecked).toLocaleString()
-                          : "—"}
-                      </td>
-                      <td className="py-1.5 pr-4">
-                        {u.LastLive
-                          ? new Date(u.LastLive).toLocaleString()
-                          : "—"}
-                      </td>
-                      <td className="py-1.5">
-                        {u.LastDeadReason ? (
-                          <span
-                            className="text-destructive"
-                            title={u.LastDeadReason}
-                          >
-                            Dead: {u.LastDeadReason.slice(0, 40)}
-                          </span>
-                        ) : (
-                          <StatusBadge status="done" label="Live" />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          Dead: {u.LastDeadReason.slice(0, 40)}
+                        </span>
+                      ) : (
+                        <StatusBadge status="done" label="Live" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -535,6 +541,9 @@ function MachineDetailPage() {
               Cancel
             </Button>
             <Button onClick={confirmAction} disabled={mutationPending}>
+              {mutationPending && (
+                <Spinner data-icon="inline-start" className="size-3" />
+              )}
               {mutationPending ? "Processing..." : actionMeta?.confirmLabel}
             </Button>
           </DialogFooter>
@@ -574,12 +583,7 @@ function StoragePanel({ storage }: { storage: MachineInfo["Storage"] }) {
                   </Link>
                   <span>{usedPercent.toFixed(1)}%</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.min(usedPercent, 100)}%` }}
-                  />
-                </div>
+                <Progress value={Math.min(usedPercent, 100)} />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>
                     {formatBytes(s.Available)} free / {formatBytes(s.Capacity)}

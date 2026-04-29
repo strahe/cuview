@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { usePsClientRequests } from "../-module/queries";
 
 const REQUESTS_PAGE_SIZE = 20;
@@ -57,10 +57,10 @@ export function ClientRequestsCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-end gap-2">
-          <div>
-            <Label className="mb-1 block text-xs text-muted-foreground">
+          <Field className="w-auto gap-1">
+            <FieldLabel className="text-xs text-muted-foreground">
               SP ID
-            </Label>
+            </FieldLabel>
             <Input
               type="number"
               inputMode="numeric"
@@ -73,7 +73,7 @@ export function ClientRequestsCard() {
               }}
               className="w-32 font-mono text-xs"
             />
-          </div>
+          </Field>
           <Button size="sm" onClick={handleLoad} disabled={!spIdInput.trim()}>
             Load Requests
           </Button>

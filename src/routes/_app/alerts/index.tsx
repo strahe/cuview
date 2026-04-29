@@ -11,6 +11,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { type MouseEvent, useCallback, useState } from "react";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/composed/form";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -25,14 +31,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -315,6 +322,9 @@ function AlertsPage() {
             onClick={() => sendTestMutation.mutate([])}
             disabled={sendTestMutation.isPending}
           >
+            {sendTestMutation.isPending && (
+              <Spinner data-icon="inline-start" className="size-3" />
+            )}
             {sendTestMutation.isPending ? "Sending..." : "Send Test Alert"}
           </Button>
           <Button
@@ -324,7 +334,11 @@ function AlertsPage() {
               ackMultipleMutation.isPending || unackedAlerts.length === 0
             }
           >
-            <CheckCheck className="mr-1 size-4" />
+            {ackMultipleMutation.isPending ? (
+              <Spinner data-icon="inline-start" className="size-3" />
+            ) : (
+              <CheckCheck data-icon="inline-start" />
+            )}
             {ackMultipleMutation.isPending
               ? "Acknowledging..."
               : `Ack All (${unackedAlerts.length})`}
@@ -374,7 +388,7 @@ function AlertsPage() {
             variant="outline"
             onClick={() => setShowMuteForm(true)}
           >
-            <Plus className="mr-1 size-4" />
+            <Plus data-icon="inline-start" />
             Add Mute Rule
           </Button>
         }
@@ -395,9 +409,9 @@ function AlertsPage() {
             <DialogHeader>
               <DialogTitle>Add Mute Rule</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Category *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Category *</FieldLabel>
                 {categories && categories.length > 0 ? (
                   <Select
                     value={muteForm.category}
@@ -409,11 +423,13 @@ function AlertsPage() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -425,9 +441,9 @@ function AlertsPage() {
                     placeholder="e.g. storage"
                   />
                 )}
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Pattern</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Pattern</FieldLabel>
                 <Input
                   value={muteForm.pattern}
                   onChange={(e) =>
@@ -438,9 +454,9 @@ function AlertsPage() {
                   }
                   placeholder="Optional match pattern"
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Reason</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Reason</FieldLabel>
                 <Input
                   value={muteForm.reason}
                   onChange={(e) =>
@@ -451,9 +467,9 @@ function AlertsPage() {
                   }
                   placeholder="Reason for muting"
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Duration (hours)</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Duration (hours)</FieldLabel>
                 <Input
                   type="number"
                   value={muteForm.durationHours}
@@ -465,11 +481,11 @@ function AlertsPage() {
                   }
                   min={0}
                 />
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <FieldDescription>
                   Set to 0 for a permanent mute (never expires)
-                </p>
-              </div>
-            </div>
+                </FieldDescription>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowMuteForm(false)}>
                 Cancel
@@ -480,6 +496,9 @@ function AlertsPage() {
                   muteAddMutation.isPending || !muteForm.category.trim()
                 }
               >
+                {muteAddMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
                 {muteAddMutation.isPending ? "Adding..." : "Add Rule"}
               </Button>
             </DialogFooter>
@@ -627,6 +646,9 @@ function AlertDetailDialog({
               onClick={handleAddComment}
               disabled={addCommentMutation.isPending || !newComment.trim()}
             >
+              {addCommentMutation.isPending && (
+                <Spinner data-icon="inline-start" className="size-3" />
+              )}
               {addCommentMutation.isPending ? "Adding..." : "Add Comment"}
             </Button>
           </div>
@@ -635,7 +657,11 @@ function AlertDetailDialog({
         <DialogFooter>
           {!alert.Acknowledged && (
             <Button size="sm" onClick={onAck} disabled={acking}>
-              <Check className="mr-1 size-4" />
+              {acking ? (
+                <Spinner data-icon="inline-start" className="size-3" />
+              ) : (
+                <Check data-icon="inline-start" />
+              )}
               {acking ? "Acknowledging..." : "Acknowledge"}
             </Button>
           )}

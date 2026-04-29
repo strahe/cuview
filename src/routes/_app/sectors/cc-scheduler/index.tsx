@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
 
 export const Route = createFileRoute("/_app/sectors/cc-scheduler/")({
@@ -216,7 +217,7 @@ function CCSchedulerPage() {
               setShowAdd(true);
             }}
           >
-            <Plus className="mr-1 size-4" /> Add Entry
+            <Plus data-icon="inline-start" /> Add Entry
           </Button>
         </CardHeader>
         <CardContent>
@@ -236,9 +237,9 @@ function CCSchedulerPage() {
             <DialogHeader>
               <DialogTitle>Add CC Scheduler Entry</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">SP Address *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>SP Address *</FieldLabel>
                 <Input
                   value={form.sp}
                   onChange={(e) =>
@@ -246,9 +247,9 @@ function CCSchedulerPage() {
                   }
                   placeholder="f01234..."
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Sectors to Seal</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Sectors to Seal</FieldLabel>
                 <Input
                   type="number"
                   value={form.toSeal}
@@ -256,9 +257,9 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, toSeal: e.target.value }))
                   }
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Weight</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Weight</FieldLabel>
                 <Input
                   type="number"
                   value={form.weight}
@@ -266,9 +267,9 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, weight: e.target.value }))
                   }
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Duration (days)</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Duration (days)</FieldLabel>
                 <Input
                   type="number"
                   value={form.durationDays}
@@ -276,8 +277,8 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, durationDays: e.target.value }))
                   }
                 />
-              </div>
-              <div className="flex items-center gap-2">
+              </Field>
+              <Field orientation="horizontal">
                 <Checkbox
                   id="add-enabled"
                   checked={form.enabled}
@@ -285,11 +286,11 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, enabled: !!checked }))
                   }
                 />
-                <Label htmlFor="add-enabled" className="text-sm">
+                <FieldLabel htmlFor="add-enabled" className="text-sm">
                   Enabled
-                </Label>
-              </div>
-            </div>
+                </FieldLabel>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAdd(false)}>
                 Cancel
@@ -299,7 +300,7 @@ function CCSchedulerPage() {
                 disabled={editMutation.isPending || !form.sp.trim()}
               >
                 {editMutation.isPending && (
-                  <Loader2 className="mr-1 size-3 animate-spin" />
+                  <Spinner data-icon="inline-start" className="size-3" />
                 )}
                 {editMutation.isPending ? "Adding..." : "Add"}
               </Button>
@@ -317,9 +318,9 @@ function CCSchedulerPage() {
                 Edit CC Scheduler: {editEntry.SPAddress}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Sectors to Seal</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Sectors to Seal</FieldLabel>
                 <Input
                   type="number"
                   value={form.toSeal}
@@ -327,9 +328,9 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, toSeal: e.target.value }))
                   }
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Weight</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Weight</FieldLabel>
                 <Input
                   type="number"
                   value={form.weight}
@@ -337,9 +338,9 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, weight: e.target.value }))
                   }
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Duration (days)</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Duration (days)</FieldLabel>
                 <Input
                   type="number"
                   value={form.durationDays}
@@ -347,8 +348,8 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, durationDays: e.target.value }))
                   }
                 />
-              </div>
-              <div className="flex items-center gap-2">
+              </Field>
+              <Field orientation="horizontal">
                 <Checkbox
                   id="edit-enabled"
                   checked={form.enabled}
@@ -356,18 +357,18 @@ function CCSchedulerPage() {
                     setForm((f) => ({ ...f, enabled: !!checked }))
                   }
                 />
-                <Label htmlFor="edit-enabled" className="text-sm">
+                <FieldLabel htmlFor="edit-enabled" className="text-sm">
                   Enabled
-                </Label>
-              </div>
-            </div>
+                </FieldLabel>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditEntry(null)}>
                 Cancel
               </Button>
               <Button onClick={handleEdit} disabled={editMutation.isPending}>
                 {editMutation.isPending && (
-                  <Loader2 className="mr-1 size-3 animate-spin" />
+                  <Spinner data-icon="inline-start" className="size-3" />
                 )}
                 {editMutation.isPending ? "Saving..." : "Save"}
               </Button>

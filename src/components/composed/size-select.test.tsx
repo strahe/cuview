@@ -46,6 +46,9 @@ vi.mock("@/components/ui/select", async () => {
     SelectContent: ({ children }: { children: ReactNode }) => (
       <div>{children}</div>
     ),
+    SelectGroup: ({ children }: { children: ReactNode }) => (
+      <div data-testid="select-group">{children}</div>
+    ),
     SelectItem: ({
       children,
       value,
@@ -73,5 +76,11 @@ describe("SizeSelect", () => {
     render(<SizeSelect value={128} onChange={vi.fn()} />);
 
     expect(screen.getByRole("combobox")).toHaveTextContent("128 B (128 bytes)");
+  });
+
+  it("groups select items inside select content", () => {
+    render(<SizeSelect value={128} onChange={vi.fn()} />);
+
+    expect(screen.getByTestId("select-group")).toBeInTheDocument();
   });
 });

@@ -97,11 +97,11 @@ export function HistoryDiffViewer({
             switch (line.kind) {
               case "added":
                 prefix = "+ ";
-                className = "text-green-500 bg-green-500/10";
+                className = "bg-success/10 text-success";
                 break;
               case "removed":
                 prefix = "- ";
-                className = "text-red-500 bg-red-500/10";
+                className = "bg-destructive/10 text-destructive";
                 break;
               default:
                 prefix = "  ";

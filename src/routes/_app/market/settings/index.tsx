@@ -3,6 +3,12 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { FilPriceInput } from "@/components/composed/fil-price-input";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/composed/form";
 import { SizeSelect } from "@/components/composed/size-select";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
@@ -22,14 +28,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import type {
   AllowDenyEntry,
   ClientFilter,
@@ -370,7 +377,7 @@ function MarketSettingsPage() {
             variant="outline"
             onClick={() => setShowAddPricing(true)}
           >
-            <Plus className="mr-1 size-4" /> Add Filter
+            <Plus data-icon="inline-start" /> Add Filter
           </Button>
         </CardHeader>
         <CardContent>
@@ -391,7 +398,7 @@ function MarketSettingsPage() {
             variant="outline"
             onClick={() => setShowAddClient(true)}
           >
-            <Plus className="mr-1 size-4" /> Add Filter
+            <Plus data-icon="inline-start" /> Add Filter
           </Button>
         </CardHeader>
         <CardContent>
@@ -412,7 +419,7 @@ function MarketSettingsPage() {
             variant="outline"
             onClick={() => setShowAddAllowDeny(true)}
           >
-            <Plus className="mr-1 size-4" /> Add Entry
+            <Plus data-icon="inline-start" /> Add Entry
           </Button>
         </CardHeader>
         <CardContent>
@@ -432,9 +439,9 @@ function MarketSettingsPage() {
             <DialogHeader>
               <DialogTitle>Add Pricing Filter</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Name *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Name *</FieldLabel>
                 <Input
                   value={pricingForm.name}
                   onChange={(e) =>
@@ -445,12 +452,10 @@ function MarketSettingsPage() {
                   }
                   placeholder="Filter name"
                 />
-              </div>
+              </Field>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-sm font-medium">
-                    Min Duration (days)
-                  </Label>
+                <Field>
+                  <FieldLabel>Min Duration (days)</FieldLabel>
                   <Input
                     type="number"
                     value={pricingForm.minDur}
@@ -461,11 +466,9 @@ function MarketSettingsPage() {
                       }))
                     }
                   />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">
-                    Max Duration (days)
-                  </Label>
+                </Field>
+                <Field>
+                  <FieldLabel>Max Duration (days)</FieldLabel>
                   <Input
                     type="number"
                     value={pricingForm.maxDur}
@@ -476,36 +479,36 @@ function MarketSettingsPage() {
                       }))
                     }
                   />
-                </div>
+                </Field>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-sm font-medium">Min Size</Label>
+                <Field>
+                  <FieldLabel>Min Size</FieldLabel>
                   <SizeSelect
                     value={pricingForm.minSize}
                     onChange={(v) =>
                       setPricingForm((f) => ({ ...f, minSize: v }))
                     }
                   />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Max Size</Label>
+                </Field>
+                <Field>
+                  <FieldLabel>Max Size</FieldLabel>
                   <SizeSelect
                     value={pricingForm.maxSize}
                     onChange={(v) =>
                       setPricingForm((f) => ({ ...f, maxSize: v }))
                     }
                   />
-                </div>
+                </Field>
               </div>
-              <div>
-                <Label className="text-sm font-medium">Price</Label>
+              <Field>
+                <FieldLabel>Price</FieldLabel>
                 <FilPriceInput
                   value={pricingForm.price}
                   onChange={(v) => setPricingForm((f) => ({ ...f, price: v }))}
                 />
-              </div>
-              <div className="flex items-center gap-2">
+              </Field>
+              <Field orientation="horizontal">
                 <Checkbox
                   checked={pricingForm.verified}
                   onCheckedChange={(checked) =>
@@ -516,11 +519,9 @@ function MarketSettingsPage() {
                   }
                   id="verified"
                 />
-                <Label htmlFor="verified" className="text-sm font-medium">
-                  Verified deals only
-                </Label>
-              </div>
-            </div>
+                <FieldLabel htmlFor="verified">Verified deals only</FieldLabel>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button
                 variant="outline"
@@ -534,6 +535,9 @@ function MarketSettingsPage() {
                   addPricingMutation.isPending || !pricingForm.name.trim()
                 }
               >
+                {addPricingMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
                 {addPricingMutation.isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>
@@ -548,9 +552,9 @@ function MarketSettingsPage() {
             <DialogHeader>
               <DialogTitle>Add Client Filter</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Name *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Name *</FieldLabel>
                 <Input
                   value={clientForm.name}
                   onChange={(e) =>
@@ -561,8 +565,8 @@ function MarketSettingsPage() {
                   }
                   placeholder="Filter name"
                 />
-              </div>
-              <div className="flex items-center gap-2">
+              </Field>
+              <Field orientation="horizontal">
                 <Checkbox
                   checked={clientForm.active}
                   onCheckedChange={(checked) =>
@@ -573,14 +577,10 @@ function MarketSettingsPage() {
                   }
                   id="clientActive"
                 />
-                <Label htmlFor="clientActive" className="text-sm font-medium">
-                  Active
-                </Label>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">
-                  Wallets (comma-separated)
-                </Label>
+                <FieldLabel htmlFor="clientActive">Active</FieldLabel>
+              </Field>
+              <Field>
+                <FieldLabel>Wallets (comma-separated)</FieldLabel>
                 <Input
                   value={clientForm.wallets}
                   onChange={(e) =>
@@ -591,11 +591,9 @@ function MarketSettingsPage() {
                   }
                   placeholder="f1..., f3..."
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">
-                  Peer IDs (comma-separated)
-                </Label>
+              </Field>
+              <Field>
+                <FieldLabel>Peer IDs (comma-separated)</FieldLabel>
                 <Input
                   value={clientForm.peers}
                   onChange={(e) =>
@@ -605,11 +603,9 @@ function MarketSettingsPage() {
                     }))
                   }
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">
-                  Pricing Filters (comma-separated)
-                </Label>
+              </Field>
+              <Field>
+                <FieldLabel>Pricing Filters (comma-separated)</FieldLabel>
                 <Input
                   value={clientForm.filters}
                   onChange={(e) =>
@@ -619,10 +615,10 @@ function MarketSettingsPage() {
                     }))
                   }
                 />
-              </div>
+              </Field>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-sm font-medium">Max Deals/Hour</Label>
+                <Field>
+                  <FieldLabel>Max Deals/Hour</FieldLabel>
                   <Input
                     type="number"
                     value={clientForm.maxDealsPerHour}
@@ -633,11 +629,9 @@ function MarketSettingsPage() {
                       }))
                     }
                   />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">
-                    Max Deal Size/Hour (bytes)
-                  </Label>
+                </Field>
+                <Field>
+                  <FieldLabel>Max Deal Size/Hour (bytes)</FieldLabel>
                   <Input
                     type="number"
                     value={clientForm.maxDealSizePerHour}
@@ -649,14 +643,14 @@ function MarketSettingsPage() {
                     }
                   />
                   {clientForm.maxDealSizePerHour > 0 && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <FieldDescription>
                       {formatBytes(clientForm.maxDealSizePerHour)}
-                    </p>
+                    </FieldDescription>
                   )}
-                </div>
+                </Field>
               </div>
-              <div>
-                <Label className="text-sm font-medium">Additional Info</Label>
+              <Field>
+                <FieldLabel>Additional Info</FieldLabel>
                 <Input
                   value={clientForm.info}
                   onChange={(e) =>
@@ -666,8 +660,8 @@ function MarketSettingsPage() {
                     }))
                   }
                 />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddClient(false)}>
                 Cancel
@@ -678,6 +672,9 @@ function MarketSettingsPage() {
                   addClientMutation.isPending || !clientForm.name.trim()
                 }
               >
+                {addClientMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
                 {addClientMutation.isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>
@@ -692,9 +689,9 @@ function MarketSettingsPage() {
             <DialogHeader>
               <DialogTitle>Add Allow/Deny Entry</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Wallet Address *</Label>
+            <FieldGroup className="gap-3">
+              <Field>
+                <FieldLabel>Wallet Address *</FieldLabel>
                 <Input
                   value={allowDenyForm.wallet}
                   onChange={(e) =>
@@ -706,9 +703,9 @@ function MarketSettingsPage() {
                   placeholder="f0... or f1..."
                   className="font-mono text-xs"
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Action</Label>
+              </Field>
+              <Field>
+                <FieldLabel>Action</FieldLabel>
                 <Select
                   value={allowDenyForm.status ? "allow" : "deny"}
                   onValueChange={(value) =>
@@ -722,12 +719,14 @@ function MarketSettingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="allow">Allow</SelectItem>
-                    <SelectItem value="deny">Deny</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="allow">Allow</SelectItem>
+                      <SelectItem value="deny">Deny</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
             <DialogFooter>
               <Button
                 variant="outline"
@@ -741,6 +740,9 @@ function MarketSettingsPage() {
                   addAllowDenyMutation.isPending || !allowDenyForm.wallet.trim()
                 }
               >
+                {addAllowDenyMutation.isPending && (
+                  <Spinner data-icon="inline-start" className="size-3" />
+                )}
                 {addAllowDenyMutation.isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>

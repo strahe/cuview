@@ -3,7 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   findRawHtmlViolations,
+  findUiStyleViolations,
   formatRawHtmlViolation,
+  formatUiStyleViolation,
 } from "./ui-guard.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -16,11 +18,20 @@ const files = collectSourceFiles(srcRoot).map((filePath) => ({
 }));
 
 const violations = findRawHtmlViolations(files);
+const styleViolations = findUiStyleViolations(files);
 
 if (violations.length > 0) {
   console.error("Raw HTML UI usage is not allowed outside the UI baseline:");
   for (const violation of violations) {
     console.error(`- ${formatRawHtmlViolation(violation)}`);
+  }
+  process.exit(1);
+}
+
+if (styleViolations.length > 0) {
+  console.error("UI style drift is not allowed outside the UI baseline:");
+  for (const violation of styleViolations) {
+    console.error(`- ${formatUiStyleViolation(violation)}`);
   }
   process.exit(1);
 }

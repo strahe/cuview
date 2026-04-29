@@ -19,9 +19,11 @@ import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -328,7 +330,7 @@ function StoragePathDetailPage() {
       <div className="flex flex-wrap items-center gap-2">
         <Link to="/storage/paths" search={pathSearch}>
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-1 size-4" />
+            <ArrowLeft data-icon="inline-start" />
             Back to Paths
           </Button>
         </Link>
@@ -409,12 +411,10 @@ function StoragePathDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.min(path.UsedPercent, 100)}%` }}
-                  />
-                </div>
+                <Progress
+                  value={Math.min(path.UsedPercent, 100)}
+                  className="mb-2"
+                />
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{path.UsedPercent.toFixed(1)}% used</span>
                   <span>
@@ -635,10 +635,12 @@ function StoragePathDetailPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-                <SelectItem value="200">200</SelectItem>
+                <SelectGroup>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="200">200</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
             <Button

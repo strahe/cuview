@@ -1,5 +1,6 @@
 import { Key, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,8 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { useImportPdpKey, useRemovePdpKey } from "../-module/queries";
 
 interface KeysCardProps {
@@ -48,12 +51,15 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
             variant="outline"
             onClick={() => setShowImportDialog(true)}
           >
-            <Plus className="mr-1 size-4" /> Import Key
+            <Plus data-icon="inline-start" /> Import Key
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-9" />
+              <Skeleton className="h-9" />
+            </div>
           ) : keys.length > 0 ? (
             <ul className="space-y-2">
               {keys.map((key) => (
@@ -96,9 +102,11 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No PDP keys configured
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No PDP keys configured</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>
@@ -118,8 +126,8 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
           <DialogHeader>
             <DialogTitle>Import PDP Key</DialogTitle>
           </DialogHeader>
-          <div>
-            <Label className="text-sm font-medium">Private Key (hex) *</Label>
+          <Field>
+            <FieldLabel>Private Key (hex) *</FieldLabel>
             <Input
               type="password"
               value={keyHex}
@@ -128,7 +136,7 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
               className="font-mono text-xs"
               autoComplete="off"
             />
-          </div>
+          </Field>
           {importMutation.isError && (
             <p className="text-sm text-destructive">
               {(importMutation.error as Error)?.message ??
@@ -150,6 +158,9 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
               onClick={handleImport}
               disabled={importMutation.isPending || !keyHex.trim()}
             >
+              {importMutation.isPending && (
+                <Spinner data-icon="inline-start" className="size-3" />
+              )}
               {importMutation.isPending ? "Importing..." : "Import Key"}
             </Button>
           </DialogFooter>

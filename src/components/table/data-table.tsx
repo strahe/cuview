@@ -13,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   onRowClick?: (row: TData) => void;
   emptyMessage?: string;
+  emptyState?: ReactNode;
   className?: string;
   meta?: object;
   getRowCanExpand?: (row: Row<TData>) => boolean;
@@ -55,6 +56,7 @@ export function DataTable<TData, TValue>({
   pageSize = 20,
   onRowClick,
   emptyMessage = "No results.",
+  emptyState,
   className,
   meta,
   getRowCanExpand,
@@ -94,7 +96,7 @@ export function DataTable<TData, TValue>({
 
   if (loading) {
     return (
-      <div className={cn("space-y-3", className)}>
+      <div className={cn("flex flex-col gap-3", className)}>
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
@@ -103,7 +105,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       {searchable && (
         <div className="relative max-w-sm">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -192,7 +194,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {emptyMessage}
+                  {emptyState ?? emptyMessage}
                 </TableCell>
               </TableRow>
             )}

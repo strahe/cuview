@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -479,14 +480,22 @@ export function SelectField({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className={contentClassName}>{children}</SelectContent>
+        <SelectContent className={contentClassName}>
+          <SelectGroup>{children}</SelectGroup>
+        </SelectContent>
       </Select>
     </AppField>
   );
 }
 
 export {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
   FieldGroup as AppFieldGroup,
+  FieldLabel,
   FieldLegend as AppFormLegend,
   FieldSeparator as AppFormSeparator,
   FieldSet as AppFormSection,

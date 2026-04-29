@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
+import { Field, FieldLabel } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,8 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { formatFilecoin } from "@/utils/filecoin";
 import { usePsClientAddWallet } from "../-module/queries";
 import type { PsClientWallet } from "../-module/types";
@@ -47,12 +50,15 @@ export function ClientWalletsCard({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Client Wallets</CardTitle>
           <Button size="sm" variant="outline" onClick={() => setShowAdd(true)}>
-            <Plus className="mr-1 size-4" /> Add Wallet
+            <Plus data-icon="inline-start" /> Add Wallet
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
           ) : wallets.length > 0 ? (
             <div className="space-y-2">
               {wallets.map((w) => (
@@ -86,9 +92,11 @@ export function ClientWalletsCard({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No wallets configured
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No wallets configured</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>
@@ -98,14 +106,14 @@ export function ClientWalletsCard({
           <DialogHeader>
             <DialogTitle>Add Wallet</DialogTitle>
           </DialogHeader>
-          <div>
-            <Label className="text-sm font-medium">Wallet Address *</Label>
+          <Field>
+            <FieldLabel>Wallet Address *</FieldLabel>
             <Input
               value={newWallet}
               onChange={(e) => setNewWallet(e.target.value)}
               placeholder="Wallet address"
             />
-          </div>
+          </Field>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)}>
               Cancel
@@ -114,7 +122,10 @@ export function ClientWalletsCard({
               onClick={handleAdd}
               disabled={addMutation.isPending || !newWallet.trim()}
             >
-              Add
+              {addMutation.isPending && (
+                <Spinner data-icon="inline-start" className="size-3" />
+              )}
+              {addMutation.isPending ? "Adding..." : "Add"}
             </Button>
           </DialogFooter>
         </DialogContent>

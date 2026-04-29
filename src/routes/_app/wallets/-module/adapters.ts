@@ -109,7 +109,7 @@ export function getMessageAgeColorClass(severity: MessageAgeSeverity): string {
     case "danger":
       return "text-destructive";
     case "warning":
-      return "text-yellow-500";
+      return "text-warning";
     default:
       return "";
   }

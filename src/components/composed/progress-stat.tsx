@@ -1,3 +1,4 @@
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 interface ProgressStatProps {
@@ -26,19 +27,16 @@ export function ProgressStat({
           {suffix}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full transition-all",
-            percentage >= 90
-              ? "bg-destructive"
-              : percentage >= 70
-                ? "bg-warning"
-                : "bg-primary",
-          )}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <Progress
+        value={percentage}
+        className={cn(
+          percentage >= 90 &&
+            "[&_[data-slot=progress-indicator]]:bg-destructive",
+          percentage >= 70 &&
+            percentage < 90 &&
+            "[&_[data-slot=progress-indicator]]:bg-warning",
+        )}
+      />
     </div>
   );
 }
