@@ -12,24 +12,6 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-vi.mock("@/components/composed/section-card", () => ({
-  SectionCard: ({
-    title,
-    action,
-    children,
-  }: {
-    title: string;
-    action?: ReactNode;
-    children: ReactNode;
-  }) => (
-    <section>
-      <h2>{title}</h2>
-      {action}
-      {children}
-    </section>
-  ),
-}));
-
 vi.mock("@/components/ui/skeleton", () => ({
   Skeleton: () => <div data-testid="wallet-skeleton" />,
 }));

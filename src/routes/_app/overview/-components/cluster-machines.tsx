@@ -1,10 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { Server } from "lucide-react";
-import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { ClusterMachine } from "@/types/cluster";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface ClusterMachinesProps {
   data: ClusterMachine[];
@@ -14,44 +19,41 @@ interface ClusterMachinesProps {
 export function ClusterMachines({ data, loading }: ClusterMachinesProps) {
   if (loading) {
     return (
-      <SectionCard title="Machines" icon={Server}>
-        <div className="space-y-2">
+      <OverviewSection title="Machines" icon={Server}>
+        <OverviewList className="gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-10 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (!data.length) {
     return (
-      <SectionCard title="Machines" icon={Server}>
-        <p className="text-sm text-muted-foreground">No machines in cluster</p>
-      </SectionCard>
+      <OverviewSection title="Machines" icon={Server}>
+        <OverviewEmpty>No machines in cluster</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard
+    <OverviewSection
       title="Machines"
       icon={Server}
       action={
-        <Link
-          to="/machines"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          View all →
+        <Link to="/machines" className={overviewActionClassName}>
+          View all
         </Link>
       }
     >
-      <div className="space-y-1.5">
+      <OverviewList>
         {data.map((machine) => (
           <Link
             key={machine.ID}
             to="/machines/$id"
             params={{ id: String(machine.ID) }}
-            className="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
+            className="flex items-center gap-3 rounded-md bg-background/40 px-2 py-1.5 text-sm transition-colors hover:bg-muted/50"
           >
             <StatusBadge
               status={machine.Unschedulable ? "warning" : "success"}
@@ -74,8 +76,8 @@ export function ClusterMachines({ data, loading }: ClusterMachinesProps) {
             </div>
           </Link>
         ))}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }
 

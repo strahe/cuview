@@ -54,19 +54,21 @@ export function ActorIdentityCard({ data }: { data: ActorDetail }) {
           {data.BeneficiaryTerm && (
             <div className="border-t border-border pt-2">
               <dt className="mb-1 text-muted-foreground">Beneficiary Term</dt>
-              <dd className="space-y-1 pl-2 text-xs">
-                <InfoRow
-                  label="Quota"
-                  value={formatFilecoin(data.BeneficiaryTerm.Quota)}
-                />
-                <InfoRow
-                  label="Used Quota"
-                  value={formatFilecoin(data.BeneficiaryTerm.UsedQuota)}
-                />
-                <InfoRow
-                  label="Expiration"
-                  value={String(data.BeneficiaryTerm.Expiration)}
-                />
+              <dd>
+                <dl className="space-y-1 pl-2 text-xs">
+                  <InfoRow
+                    label="Quota"
+                    value={formatFilecoin(data.BeneficiaryTerm.Quota)}
+                  />
+                  <InfoRow
+                    label="Used Quota"
+                    value={formatFilecoin(data.BeneficiaryTerm.UsedQuota)}
+                  />
+                  <InfoRow
+                    label="Expiration"
+                    value={String(data.BeneficiaryTerm.Expiration)}
+                  />
+                </dl>
               </dd>
             </div>
           )}
@@ -75,43 +77,48 @@ export function ActorIdentityCard({ data }: { data: ActorDetail }) {
               <dt className="mb-1 text-muted-foreground">
                 Pending Beneficiary Change
               </dt>
-              <dd className="space-y-1 pl-2 text-xs">
-                <AddressRow
-                  label="New Beneficiary"
-                  value={data.PendingBeneficiaryTerm.NewBeneficiary}
-                />
-                <InfoRow
-                  label="New Quota"
-                  value={formatFilecoin(data.PendingBeneficiaryTerm.NewQuota)}
-                />
-                <InfoRow
-                  label="New Expiration"
-                  value={String(data.PendingBeneficiaryTerm.NewExpiration)}
-                />
-                <div className="flex gap-2">
-                  <Badge
-                    variant={
-                      data.PendingBeneficiaryTerm.ApprovedByBeneficiary
-                        ? "default"
-                        : "outline"
-                    }
-                  >
-                    {data.PendingBeneficiaryTerm.ApprovedByBeneficiary
-                      ? "✓ Beneficiary Approved"
-                      : "⏳ Beneficiary Pending"}
-                  </Badge>
-                  <Badge
-                    variant={
-                      data.PendingBeneficiaryTerm.ApprovedByNominee
-                        ? "default"
-                        : "outline"
-                    }
-                  >
-                    {data.PendingBeneficiaryTerm.ApprovedByNominee
-                      ? "✓ Nominee Approved"
-                      : "⏳ Nominee Pending"}
-                  </Badge>
-                </div>
+              <dd>
+                <dl className="space-y-1 pl-2 text-xs">
+                  <AddressRow
+                    label="New Beneficiary"
+                    value={data.PendingBeneficiaryTerm.NewBeneficiary}
+                  />
+                  <InfoRow
+                    label="New Quota"
+                    value={formatFilecoin(data.PendingBeneficiaryTerm.NewQuota)}
+                  />
+                  <InfoRow
+                    label="New Expiration"
+                    value={String(data.PendingBeneficiaryTerm.NewExpiration)}
+                  />
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted-foreground">Approvals</dt>
+                    <dd className="flex flex-wrap gap-2">
+                      <Badge
+                        variant={
+                          data.PendingBeneficiaryTerm.ApprovedByBeneficiary
+                            ? "default"
+                            : "outline"
+                        }
+                      >
+                        {data.PendingBeneficiaryTerm.ApprovedByBeneficiary
+                          ? "✓ Beneficiary Approved"
+                          : "⏳ Beneficiary Pending"}
+                      </Badge>
+                      <Badge
+                        variant={
+                          data.PendingBeneficiaryTerm.ApprovedByNominee
+                            ? "default"
+                            : "outline"
+                        }
+                      >
+                        {data.PendingBeneficiaryTerm.ApprovedByNominee
+                          ? "✓ Nominee Approved"
+                          : "⏳ Nominee Pending"}
+                      </Badge>
+                    </dd>
+                  </div>
+                </dl>
               </dd>
             </div>
           )}

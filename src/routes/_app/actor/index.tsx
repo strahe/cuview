@@ -28,9 +28,7 @@ function ActorListPage() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-bold tracking-tight">Actors</h1>
-
+      <div className="space-y-4">
         {actors.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <KPICard label="Total Actors" value={stats.total} />

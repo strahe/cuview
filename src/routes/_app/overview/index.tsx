@@ -54,11 +54,9 @@ function OverviewPage() {
   );
 
   return (
-    <div className="space-y-4 p-6">
-      {/* Layer 1: Header + KPI Cards */}
+    <div className="flex w-full flex-col gap-4 p-4 sm:p-6">
       <DashboardHero cards={heroCards} loading={loading} onRefresh={refresh} />
 
-      {/* Layer 2: Network Status Strip */}
       <NetworkStatusStrip
         syncerState={syncerState}
         epoch={netSummary?.epoch}
@@ -67,10 +65,8 @@ function OverviewPage() {
         alertPending={metrics.alertPending}
       />
 
-      {/* Layer 3: Two-Column Content Grid */}
       <div className="grid gap-4 xl:grid-cols-5">
-        {/* Left Column (3/5 = 60%) */}
-        <div className="space-y-4 xl:col-span-3">
+        <div className="flex min-w-0 flex-col gap-4 xl:col-span-3">
           <ActorOverview data={actors} loading={actorsLoading} />
           <PipelineActivity
             porepStats={pipelinePorepStats}
@@ -84,8 +80,7 @@ function OverviewPage() {
           />
         </div>
 
-        {/* Right Column (2/5 = 40%) */}
-        <div className="space-y-4 xl:col-span-2">
+        <div className="flex min-w-0 flex-col gap-4 xl:col-span-2">
           <ChainConnectivity data={syncerState} loading={syncLoading} />
           <ClusterMachines data={machines} loading={machinesLoading} />
           <WalletSummary data={wallets} loading={walletsLoading} />

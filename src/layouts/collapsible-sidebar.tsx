@@ -1,20 +1,24 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { type NavigationEntry, navigationGroups } from "./navigation";
 
-interface CollapsibleSidebarProps {
-  isCollapsed?: boolean;
-  onToggle?: () => void;
-}
-
-export function CollapsibleSidebar({
-  isCollapsed = false,
-  onToggle,
-}: CollapsibleSidebarProps) {
+export function CollapsibleSidebar() {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const isActive = (entry: NavigationEntry) => {
     if (entry.activePattern) {
@@ -24,85 +28,74 @@ export function CollapsibleSidebar({
   };
 
   return (
-    <aside
-      className={cn(
-        "bg-sidebar border-r border-sidebar-border flex h-screen flex-col transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
-      )}
-    >
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary text-primary-foreground grid size-8 shrink-0 place-items-center rounded-lg text-sm font-bold">
-            C
-          </div>
-          {!isCollapsed && (
-            <span className="text-sidebar-foreground text-lg font-semibold">
-              Cuview
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2">
-        {navigationGroups.map((group, groupIdx) => (
-          <div key={group.title}>
-            {groupIdx > 0 && (
-              <div className="border-t border-sidebar-border my-2" />
-            )}
-            {!isCollapsed && (
-              <div className="text-sidebar-foreground/0.5 px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider">
-                {group.title}
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              tooltip="Cuview"
+              render={
+                <Link
+                  to="/overview"
+                  onClick={() => {
+                    if (isMobile) setOpenMobile(false);
+                  }}
+                />
+              }
+            >
+              <div className="grid aspect-square size-8 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
+                C
               </div>
-            )}
-            <ul className="space-y-1">
-              {group.entries.map((entry) => {
-                const Icon = entry.icon;
-                const active = isActive(entry);
-                return (
-                  <li key={entry.to}>
-                    <Link
-                      to={entry.to}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                        isCollapsed && "justify-center px-2",
-                      )}
-                      title={isCollapsed ? entry.label : undefined}
-                    >
-                      <Icon className="size-5 shrink-0" />
-                      {!isCollapsed && <span>{entry.label}</span>}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
+              <div className="grid min-w-0 flex-1 text-left leading-tight">
+                <span className="truncate font-semibold">Cuview</span>
+                <span className="truncate text-xs text-sidebar-foreground/70">
+                  Operations
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-      {/* Collapse toggle */}
-      {onToggle && (
-        <div className="border-t border-sidebar-border p-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground w-full transition-colors"
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronLeft className="size-4" />
-            )}
-          </Button>
-        </div>
-      )}
-    </aside>
+      <SidebarContent>
+        {navigationGroups.map((group, groupIdx) => (
+          <SidebarGroup key={group.title}>
+            {groupIdx > 0 && <SidebarSeparator />}
+            <SidebarGroupLabel className="pointer-events-none">
+              {group.title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.entries.map((entry) => {
+                  const Icon = entry.icon;
+                  const active = isActive(entry);
+                  return (
+                    <SidebarMenuItem key={entry.to}>
+                      <SidebarMenuButton
+                        isActive={active}
+                        tooltip={entry.label}
+                        render={
+                          <Link
+                            to={entry.to}
+                            onClick={() => {
+                              if (isMobile) setOpenMobile(false);
+                            }}
+                          />
+                        }
+                      >
+                        <Icon />
+                        <span>{entry.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+      <SidebarRail />
+    </Sidebar>
   );
 }

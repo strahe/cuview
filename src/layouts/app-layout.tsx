@@ -1,17 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Bell,
-  BellRing,
-  ChevronLeft,
-  Menu,
-  Moon,
-  Search,
-  Settings,
-  Sun,
-} from "lucide-react";
+import { Bell, BellRing, Moon, Search, Settings, Sun } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
 import { SettingsDialog } from "@/components/settings-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   type ConnectionStatus,
   useConnectionStatus,
@@ -44,10 +45,61 @@ function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
   );
 }
 
+function normalizeCurioVersion(version: string) {
+  const trimmed = version.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  return trimmed.startsWith("v") ? trimmed : `v${trimmed}`;
+}
+
+function getCurioVersionSummary(version: string) {
+  const normalized = normalizeCurioVersion(version);
+  const buildMetadataIndex = normalized.indexOf("+");
+
+  return buildMetadataIndex === -1
+    ? normalized
+    : normalized.slice(0, buildMetadataIndex);
+}
+
+function VersionLabel({ version }: { version: string }) {
+  const fullVersion = normalizeCurioVersion(version);
+
+  if (!fullVersion) {
+    return null;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="hidden max-w-32 cursor-help truncate px-0 text-muted-foreground hover:bg-transparent hover:text-muted-foreground sm:inline-flex"
+            aria-label={`Curio version ${fullVersion}`}
+          />
+        }
+      >
+        {getCurioVersionSummary(fullVersion)}
+      </TooltipTrigger>
+      <TooltipContent
+        side="bottom"
+        align="start"
+        className="max-w-[min(42rem,calc(100vw-2rem))] break-all font-mono"
+      >
+        {fullVersion}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function AppLayout({ children }: { children: ReactNode }) {
   const layout = useLayout();
   const connectionStatus = useConnectionStatus();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { data: version } = useCurioRpc<string>("Version", [], {
@@ -66,129 +118,67 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <div className="fixed top-0 left-0 z-30 hidden lg:block">
-        <CollapsibleSidebar
-          isCollapsed={layout.sidebarCollapsed}
-          onToggle={layout.toggleSidebar}
-        />
-      </div>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="relative z-50 w-64">
-            <CollapsibleSidebar />
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Top Bar */}
-      <div className="w-full lg:hidden">
-        <div className="border-b border-border bg-card px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open mobile menu"
-            >
-              <Menu className="size-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <div className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-lg text-xs font-bold">
-                C
-              </div>
-              <span className="font-semibold">Cuview</span>
-            </div>
-            <div className="w-9" />
-          </div>
-        </div>
-        <main className="flex-1">{children}</main>
-      </div>
-
-      {/* Desktop Main Content */}
-      <main
-        className="hidden min-h-screen flex-1 transition-all duration-300 lg:block"
-        style={{
-          marginLeft: layout.sidebarCollapsed ? "4rem" : "16rem",
-        }}
-      >
-        {/* Top Bar */}
-        <div className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur-sm">
-          <div className="flex items-center justify-between px-6 py-3">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={layout.toggleSidebar}
-                title={
-                  layout.sidebarCollapsed
-                    ? "Expand sidebar"
-                    : "Collapse sidebar"
-                }
-                aria-label={
-                  layout.sidebarCollapsed
-                    ? "Expand sidebar"
-                    : "Collapse sidebar"
-                }
-              >
-                {layout.sidebarCollapsed ? (
-                  <Menu className="size-5" />
-                ) : (
-                  <ChevronLeft className="size-5" />
-                )}
-              </Button>
+    <SidebarProvider
+      open={!layout.sidebarCollapsed}
+      onOpenChange={(open) => layout.setSidebarCollapsed(!open)}
+    >
+      <CollapsibleSidebar />
+      <SidebarInset>
+        <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm">
+          <div className="flex min-h-12 items-center gap-3 px-4 py-2 sm:px-6">
+            <div className="flex min-w-0 items-center gap-2">
+              <SidebarTrigger />
               <ConnectionStatusBadge status={connectionStatus} />
-              {version && (
-                <span className="text-xs text-muted-foreground">
-                  v{version}
-                </span>
-              )}
+              {version && <VersionLabel version={version} />}
               <Link
                 to="/alerts"
                 className={cn(
-                  "flex items-center gap-1 rounded-md px-2 py-0.5 text-xs",
-                  hasActiveAlerts
-                    ? "border border-destructive/30 bg-destructive/10 text-destructive"
-                    : "text-muted-foreground hover:text-foreground",
+                  buttonVariants({
+                    variant: hasActiveAlerts ? "destructive" : "ghost",
+                    size: "sm",
+                  }),
+                  hasActiveAlerts ? "ml-1" : "ml-1 text-muted-foreground",
                 )}
               >
                 {hasActiveAlerts ? (
-                  <BellRing className="size-3.5" />
+                  <BellRing data-icon="inline-start" />
                 ) : (
-                  <Bell className="size-3" />
+                  <Bell data-icon="inline-start" />
                 )}
                 {hasActiveAlerts ? alertCount : ""}
               </Link>
             </div>
 
-            {/* Search */}
-            <div className="mx-8 max-w-md flex-1">
+            <div className="mx-auto hidden w-full max-w-md flex-1 sm:block">
               <Button
                 variant="outline"
+                size="lg"
                 onClick={openSearch}
-                className="bg-muted text-muted-foreground h-9 w-full justify-between rounded-lg text-left font-normal shadow-none transition hover:border-ring hover:text-muted-foreground"
+                className="w-full min-w-0 justify-between text-muted-foreground"
               >
                 <span className="flex items-center gap-2">
-                  <Search className="size-4 opacity-50" />
+                  <Search data-icon="inline-start" />
                   <span className="truncate">
                     Search pages, actors, or task types
                   </span>
                 </span>
-                <kbd className="border-border bg-card pointer-events-none hidden rounded border px-1.5 py-0.5 text-xs sm:inline-flex">
+                <kbd className="pointer-events-none hidden rounded border border-border bg-card px-1.5 py-0.5 text-xs md:inline-flex">
                   ⌘K
                 </kbd>
               </Button>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1">
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openSearch}
+                title="Search"
+                aria-label="Search"
+                className="sm:hidden"
+              >
+                <Search />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -200,11 +190,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   layout.isDark ? "Switch to light mode" : "Switch to dark mode"
                 }
               >
-                {layout.isDark ? (
-                  <Sun className="size-5" />
-                ) : (
-                  <Moon className="size-5" />
-                )}
+                {layout.isDark ? <Sun /> : <Moon />}
               </Button>
               <Button
                 variant="ghost"
@@ -213,17 +199,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 title="Settings"
                 aria-label="Settings"
               >
-                <Settings className="size-5" />
+                <Settings />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Page Content */}
-        <div className="relative">{children}</div>
-      </main>
+        <div className="relative min-w-0 flex-1">{children}</div>
+      </SidebarInset>
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
-    </div>
+    </SidebarProvider>
   );
 }

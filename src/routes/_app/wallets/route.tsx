@@ -40,6 +40,7 @@ export function WalletsLayout() {
                 <TabsTrigger
                   key={tab.to}
                   value={tab.to}
+                  nativeButton={false}
                   render={<Link to={tab.to} search={true} />}
                   className="h-7 px-2.5 text-xs"
                 >

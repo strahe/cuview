@@ -1,5 +1,5 @@
 import {
-  ArrowRightLeft,
+  BellRing,
   Cpu,
   Database,
   Globe,
@@ -7,11 +7,13 @@ import {
   Home,
   KeyRound,
   type LucideIcon,
+  RefreshCw,
   Settings,
   Shield,
   Store,
   User,
   Wallet,
+  Workflow,
   Wrench,
 } from "lucide-react";
 
@@ -30,7 +32,7 @@ export interface NavigationGroup {
 
 export const navigationGroups: NavigationGroup[] = [
   {
-    title: "Core Operations",
+    title: "Cluster",
     entries: [
       {
         label: "Overview",
@@ -39,11 +41,10 @@ export const navigationGroups: NavigationGroup[] = [
         keywords: ["dashboard", "home", "summary"],
       },
       {
-        label: "Tasks",
-        icon: Wrench,
-        to: "/tasks/active",
-        activePattern: "^/tasks",
-        keywords: ["job", "task", "pc1", "pc2", "winningpost", "windowpost"],
+        label: "Alerts",
+        icon: BellRing,
+        to: "/alerts",
+        keywords: ["alert", "alerts", "alarm", "warning", "risk", "incident"],
       },
       {
         label: "Machines",
@@ -53,18 +54,49 @@ export const navigationGroups: NavigationGroup[] = [
         keywords: ["worker", "machine", "node"],
       },
       {
+        label: "Tasks",
+        icon: Wrench,
+        to: "/tasks/active",
+        activePattern: "^/tasks",
+        keywords: ["job", "task", "pc1", "pc2", "winningpost", "windowpost"],
+      },
+      {
+        label: "Actors",
+        icon: User,
+        to: "/actor",
+        activePattern: "^/actor",
+        keywords: ["actor", "provider", "storage provider", "miner id"],
+      },
+    ],
+  },
+  {
+    title: "Sealing",
+    entries: [
+      {
         label: "Sectors",
         icon: Database,
         to: "/sectors",
         keywords: ["sector", "storage sector"],
       },
       {
-        label: "Pipeline",
-        icon: ArrowRightLeft,
+        label: "PoRep",
+        icon: Workflow,
         to: "/pipeline/porep",
-        activePattern: "^/pipeline",
-        keywords: ["pipeline", "porep", "workflow"],
+        activePattern: "^/pipeline/porep",
+        keywords: ["pipeline", "porep", "proof of replication", "sealing"],
       },
+      {
+        label: "Snap",
+        icon: RefreshCw,
+        to: "/pipeline/snap",
+        activePattern: "^/pipeline/snap",
+        keywords: ["pipeline", "snap", "upgrade", "snap deals"],
+      },
+    ],
+  },
+  {
+    title: "Storage",
+    entries: [
       {
         label: "Storage",
         icon: HardDrive,
@@ -77,29 +109,11 @@ export const navigationGroups: NavigationGroup[] = [
     title: "Market",
     entries: [
       {
-        label: "Market",
+        label: "Storage Market",
         icon: Store,
         to: "/market/balance",
         activePattern: "^/market",
         keywords: ["deal", "market", "storage market"],
-      },
-    ],
-  },
-  {
-    title: "System",
-    entries: [
-      {
-        label: "Actor",
-        icon: User,
-        to: "/actor",
-        activePattern: "^/actor",
-        keywords: ["actor", "wallet actor", "miner id"],
-      },
-      {
-        label: "Wallets",
-        icon: Wallet,
-        to: "/wallets",
-        keywords: ["wallet", "keys", "balance"],
       },
       {
         label: "IPNI",
@@ -118,10 +132,21 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Snark Market",
         icon: Shield,
         to: "/proof-share",
-        keywords: ["proof", "share", "proving", "windowed post", "snark"],
+        keywords: ["proofshare", "proof", "proving", "windowed post", "snark"],
       },
       {
-        label: "Configuration",
+        label: "Wallets",
+        icon: Wallet,
+        to: "/wallets",
+        keywords: ["wallet", "keys", "balance"],
+      },
+    ],
+  },
+  {
+    title: "Admin",
+    entries: [
+      {
+        label: "Configurations",
         icon: Settings,
         to: "/config",
         keywords: ["config", "configuration", "settings", "toml"],

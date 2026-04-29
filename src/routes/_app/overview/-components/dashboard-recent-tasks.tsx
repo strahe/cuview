@@ -1,10 +1,24 @@
 import { Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
-import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { TaskHistorySummary } from "@/types/task";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface DashboardRecentTasksProps {
   data: TaskHistorySummary[];
@@ -19,97 +33,95 @@ export function DashboardRecentTasks({
 }: DashboardRecentTasksProps) {
   if (loading) {
     return (
-      <SectionCard title="Recent Tasks" icon={Zap}>
-        <div className="space-y-2">
+      <OverviewSection title="Recent Tasks" icon={Zap}>
+        <OverviewList className="gap-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-8 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (error) {
     return (
-      <SectionCard title="Recent Tasks" icon={Zap}>
-        <p className="text-sm text-destructive">Failed to load recent tasks</p>
-      </SectionCard>
+      <OverviewSection title="Recent Tasks" icon={Zap}>
+        <Alert variant="destructive">
+          <AlertTitle>Failed to load recent tasks</AlertTitle>
+          <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
+      </OverviewSection>
     );
   }
 
   if (!data.length) {
     return (
-      <SectionCard title="Recent Tasks" icon={Zap}>
-        <p className="text-sm text-muted-foreground">No recent tasks</p>
-      </SectionCard>
+      <OverviewSection title="Recent Tasks" icon={Zap}>
+        <OverviewEmpty>No recent tasks</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard
+    <OverviewSection
       title="Recent Tasks"
       icon={Zap}
       action={
         <Link
           to="/tasks/history"
           search={DEFAULT_TASK_SEARCH}
-          className="text-xs text-muted-foreground hover:text-foreground"
+          className={overviewActionClassName}
         >
-          View all →
+          View all
         </Link>
       }
     >
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="pb-2 pr-3 font-medium">Status</th>
-              <th className="pb-2 pr-3 font-medium">Name</th>
-              <th className="pb-2 pr-3 font-medium">Executor</th>
-              <th className="pb-2 pr-3 font-medium">Posted</th>
-              <th className="pb-2 pr-3 font-medium">Queued</th>
-              <th className="pb-2 pr-3 font-medium">Took</th>
-              <th className="pb-2 font-medium">Error</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.slice(0, 10).map((task) => (
-              <tr
-                key={task.TaskID}
-                className="border-b border-border/50 last:border-0 hover:bg-muted/50"
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Status</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Executor</TableHead>
+            <TableHead>Posted</TableHead>
+            <TableHead>Queued</TableHead>
+            <TableHead>Took</TableHead>
+            <TableHead>Error</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.slice(0, 10).map((task) => (
+            <TableRow key={task.TaskID}>
+              <TableCell>
+                <StatusBadge
+                  status={task.Result ? "done" : "failed"}
+                  label={task.Result ? "OK" : "Fail"}
+                />
+              </TableCell>
+              <TableCell className="max-w-[14rem] truncate font-medium">
+                {task.Name}
+              </TableCell>
+              <TableCell className="max-w-[10rem] truncate text-muted-foreground">
+                {task.CompletedBy || "-"}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {task.Posted || "-"}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {task.Queued || "-"}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {task.Took || "-"}
+              </TableCell>
+              <TableCell
+                className="max-w-[12rem] truncate text-destructive"
+                title={task.Err || ""}
               >
-                <td className="py-1.5 pr-3">
-                  <StatusBadge
-                    status={task.Result ? "done" : "failed"}
-                    label={task.Result ? "OK" : "Fail"}
-                  />
-                </td>
-                <td className="max-w-[14rem] truncate py-1.5 pr-3 font-medium">
-                  {task.Name}
-                </td>
-                <td className="max-w-[10rem] truncate py-1.5 pr-3 text-muted-foreground">
-                  {task.CompletedBy || "—"}
-                </td>
-                <td className="py-1.5 pr-3 text-xs text-muted-foreground">
-                  {task.Posted || "—"}
-                </td>
-                <td className="py-1.5 pr-3 text-xs text-muted-foreground">
-                  {task.Queued || "—"}
-                </td>
-                <td className="py-1.5 pr-3 text-xs text-muted-foreground">
-                  {task.Took || "—"}
-                </td>
-                <td
-                  className="max-w-[12rem] truncate py-1.5 text-xs text-destructive"
-                  title={task.Err || ""}
-                >
-                  {task.Err || ""}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </SectionCard>
+                {task.Err || ""}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </OverviewSection>
   );
 }

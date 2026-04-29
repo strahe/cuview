@@ -1,10 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
 import { useState } from "react";
-import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { WalletView } from "@/routes/_app/wallets/-module/types";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface WalletSummaryProps {
   data: WalletView[];
@@ -22,21 +27,21 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
 
   if (loading && stableData.length === 0) {
     return (
-      <SectionCard title="Wallets" icon={Wallet}>
-        <div className="space-y-2">
+      <OverviewSection title="Wallets" icon={Wallet}>
+        <OverviewList className="gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-8 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (!displayData.length) {
     return (
-      <SectionCard title="Wallets" icon={Wallet}>
-        <p className="text-sm text-muted-foreground">No wallets configured</p>
-      </SectionCard>
+      <OverviewSection title="Wallets" icon={Wallet}>
+        <OverviewEmpty>No wallets configured</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
@@ -51,19 +56,16 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
   });
 
   return (
-    <SectionCard
+    <OverviewSection
       title="Wallets"
       icon={Wallet}
       action={
-        <Link
-          to="/wallets"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          View all →
+        <Link to="/wallets" className={overviewActionClassName}>
+          View all
         </Link>
       }
     >
-      <div className="space-y-1.5">
+      <OverviewList>
         {sorted.slice(0, 6).map((wallet) => {
           const balance = getWalletBalanceValue(wallet);
           const isPendingBalance = balance == null;
@@ -72,9 +74,9 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
           return (
             <div
               key={wallet.address}
-              className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
+              className="flex items-center justify-between gap-3 rounded-md bg-background/40 px-2 py-1.5 text-sm transition-colors hover:bg-muted/50"
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 {isLow && (
                   <div
                     className="size-1.5 shrink-0 rounded-full bg-warning"
@@ -106,8 +108,8 @@ export function WalletSummary({ data, loading }: WalletSummaryProps) {
             +{displayData.length - 6} more
           </p>
         )}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }
 

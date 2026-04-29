@@ -18,7 +18,7 @@ const tabs = [
 ];
 
 function ConfigLayout() {
-  usePageTitle("Config");
+  usePageTitle("Configurations");
   const matchRoute = useMatchRoute();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
@@ -27,7 +27,9 @@ function ConfigLayout() {
     <>
       <div className="sticky top-0 z-20 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
-          <h1 className="text-xl font-semibold tracking-tight">Config</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Configurations
+          </h1>
           <Tabs
             value={
               tabs.find((tab) => matchRoute({ to: tab.to, fuzzy: true }))?.to ??
@@ -40,6 +42,7 @@ function ConfigLayout() {
                 <TabsTrigger
                   key={tab.to}
                   value={tab.to}
+                  nativeButton={false}
                   render={<Link to={tab.to} search={true} />}
                   className="h-7 px-2.5 text-xs"
                 >

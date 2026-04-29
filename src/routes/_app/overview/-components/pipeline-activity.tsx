@@ -1,9 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRightLeft } from "lucide-react";
-import { SectionCard } from "@/components/composed/section-card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { PipelineWaterfallStats } from "@/types/pipeline";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface PipelineActivityProps {
   porepStats: PipelineWaterfallStats | null;
@@ -18,12 +24,12 @@ export function PipelineActivity({
 }: PipelineActivityProps) {
   if (loading) {
     return (
-      <SectionCard title="Pipeline Activity" icon={ArrowRightLeft}>
-        <div className="space-y-4">
+      <OverviewSection title="Pipeline Activity" icon={ArrowRightLeft}>
+        <OverviewList className="gap-4">
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
@@ -32,26 +38,23 @@ export function PipelineActivity({
 
   if (!hasPoRep && !hasSnap) {
     return (
-      <SectionCard title="Pipeline Activity" icon={ArrowRightLeft}>
-        <p className="text-sm text-muted-foreground">No pipeline activity</p>
-      </SectionCard>
+      <OverviewSection title="Pipeline Activity" icon={ArrowRightLeft}>
+        <OverviewEmpty>No pipeline activity</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard
+    <OverviewSection
       title="Pipeline Activity"
       icon={ArrowRightLeft}
       action={
-        <Link
-          to="/pipeline/porep"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          View details →
+        <Link to="/pipeline/porep" className={overviewActionClassName}>
+          View details
         </Link>
       }
     >
-      <div className="space-y-4">
+      <OverviewList className="gap-4">
         {hasPoRep && (
           <PipelineFlow
             label="PoRep"
@@ -66,8 +69,8 @@ export function PipelineActivity({
             linkTo="/pipeline/snap"
           />
         )}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }
 
@@ -83,8 +86,8 @@ function PipelineFlow({
   const stages = stats.Stages ?? [];
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
         <Link to={linkTo} className="text-sm font-medium hover:text-primary">
           {label}
         </Link>
@@ -92,7 +95,7 @@ function PipelineFlow({
           Total: {stats.Total}
         </span>
       </div>
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1.5">
         {stages.map((stage, i) => {
           const count = stage.Pending + stage.Running;
           const isFailed =
@@ -102,21 +105,22 @@ function PipelineFlow({
 
           return (
             <div key={stage.Name} className="flex items-center gap-1">
-              <div
-                className={cn(
-                  "rounded px-2 py-1 text-xs font-medium",
+              <Badge
+                variant={
                   isFailed && !isDone
-                    ? "bg-destructive/10 text-destructive"
-                    : isDone
-                      ? "bg-success/10 text-success"
-                      : count > 0
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground",
+                    ? "destructive"
+                    : count > 0
+                      ? "default"
+                      : "secondary"
+                }
+                className={cn(
+                  isDone && "border-success/30 bg-success/10 text-success",
+                  count === 0 && !isDone && "text-muted-foreground",
                 )}
               >
                 {stage.Name}
-                <span className="ml-1 font-bold">{count}</span>
-              </div>
+                <span className="font-semibold">{count}</span>
+              </Badge>
               {i < stages.length - 1 && !isDone && (
                 <span className="text-xs text-muted-foreground/50">→</span>
               )}

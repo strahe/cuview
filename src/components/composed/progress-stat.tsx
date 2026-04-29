@@ -18,7 +18,7 @@ export function ProgressStat({
   const percentage = Math.min(100, (value / max) * 100);
 
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("flex flex-col gap-1", className)}>
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
         <span className="font-medium">

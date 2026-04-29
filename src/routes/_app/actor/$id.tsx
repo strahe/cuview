@@ -28,7 +28,7 @@ function ActorDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -54,7 +54,7 @@ function ActorDetailPage() {
   const data = info.data;
   if (!data) {
     return (
-      <div className="p-6">
+      <div className="py-2">
         <p className="text-muted-foreground">Actor not found.</p>
       </div>
     );
@@ -64,7 +64,7 @@ function ActorDetailPage() {
 
   return (
     <TooltipProvider>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Link to="/actor">
             <Button variant="ghost" size="sm">

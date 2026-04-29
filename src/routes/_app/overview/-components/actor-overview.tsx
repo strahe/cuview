@@ -1,55 +1,59 @@
 import { Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { ActorSummaryData } from "@/types/actor";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface ActorOverviewProps {
   data: ActorSummaryData[];
   loading: boolean;
 }
 
+const actorSummaryTitle = "Actor Summary";
+
 export function ActorOverview({ data, loading }: ActorOverviewProps) {
   if (loading) {
     return (
-      <SectionCard title="Storage Providers">
-        <div className="space-y-3">
+      <OverviewSection title={actorSummaryTitle}>
+        <OverviewList className="gap-3">
           {Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (!data.length) {
     return (
-      <SectionCard title="Storage Providers">
-        <p className="text-sm text-muted-foreground">No actors registered</p>
-      </SectionCard>
+      <OverviewSection title={actorSummaryTitle}>
+        <OverviewEmpty>No actors registered</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard
-      title="Storage Providers"
+    <OverviewSection
+      title={actorSummaryTitle}
       action={
-        <Link
-          to="/actor"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          View all →
+        <Link to="/actor" className={overviewActionClassName}>
+          View all
         </Link>
       }
     >
-      <div className="space-y-3">
+      <OverviewList className="gap-3">
         {data.map((actor) => (
           <div
             key={actor.Address}
-            className="rounded-md border border-border p-3"
+            className="flex flex-col gap-2 rounded-md border border-border bg-background/40 p-3"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Link
                 to="/actor/$id"
                 params={{ id: actor.Address }}
@@ -68,7 +72,7 @@ export function ActorOverview({ data, loading }: ActorOverviewProps) {
               </div>
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span>
                 QaP:{" "}
                 <span className="font-medium text-foreground">
@@ -98,14 +102,14 @@ export function ActorOverview({ data, loading }: ActorOverviewProps) {
 
             {/* Deadline mini-bar */}
             {actor.Deadlines && actor.Deadlines.length > 0 && (
-              <div className="mt-2">
+              <div>
                 <DeadlineMiniBar deadlines={actor.Deadlines} />
               </div>
             )}
           </div>
         ))}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }
 

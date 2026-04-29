@@ -23,7 +23,7 @@ const tabs = [
 ];
 
 function MarketLayout() {
-  usePageTitle("Market");
+  usePageTitle("Storage Market");
   const matchRoute = useMatchRoute();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
@@ -38,13 +38,16 @@ function MarketLayout() {
     <>
       <div className="sticky top-0 z-20 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
-          <h1 className="text-xl font-semibold tracking-tight">Market</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Storage Market
+          </h1>
           <Tabs value={activeTab}>
             <TabsList className="h-8">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.to}
                   value={tab.to}
+                  nativeButton={false}
                   render={<Link to={tab.to} search={true} />}
                   className="h-7 px-2.5 text-xs"
                 >

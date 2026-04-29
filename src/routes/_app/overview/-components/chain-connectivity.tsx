@@ -1,8 +1,12 @@
 import { Link2 } from "lucide-react";
-import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SyncerStateItem } from "@/types/sync";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+} from "./overview-section";
 
 interface ChainConnectivityProps {
   data: SyncerStateItem[];
@@ -12,33 +16,31 @@ interface ChainConnectivityProps {
 export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
   if (loading) {
     return (
-      <SectionCard title="Chain Endpoints" icon={Link2}>
-        <div className="space-y-2">
+      <OverviewSection title="Chain Endpoints" icon={Link2}>
+        <OverviewList className="gap-2">
           {Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} className="h-8 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (!data.length) {
     return (
-      <SectionCard title="Chain Endpoints" icon={Link2}>
-        <p className="text-sm text-muted-foreground">
-          No chain endpoints configured
-        </p>
-      </SectionCard>
+      <OverviewSection title="Chain Endpoints" icon={Link2}>
+        <OverviewEmpty>No chain endpoints configured</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard title="Chain Endpoints" icon={Link2}>
-      <div className="space-y-1.5">
+    <OverviewSection title="Chain Endpoints" icon={Link2}>
+      <OverviewList>
         {data.map((item, i) => (
           <div
             key={i}
-            className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
+            className="flex items-center justify-between gap-2 rounded-md bg-background/40 px-2 py-1.5 text-sm transition-colors hover:bg-muted/50"
           >
             <span className="min-w-0 flex-1 truncate font-mono text-xs">
               {item.Address || "Unknown"}
@@ -57,7 +59,7 @@ export function ChainConnectivity({ data, loading }: ChainConnectivityProps) {
             </div>
           </div>
         ))}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }

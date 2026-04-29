@@ -58,6 +58,7 @@ function StorageLayout() {
                 <TabsTrigger
                   key={tab.to}
                   value={tab.to}
+                  nativeButton={false}
                   render={renderStorageTabLink(tab.to)}
                   className="h-7 px-2.5 text-xs"
                 >

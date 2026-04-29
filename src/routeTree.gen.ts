@@ -23,6 +23,7 @@ import { Route as AppMarketRouteRouteImport } from "./routes/_app/market/route"
 import { Route as AppMachinesRouteRouteImport } from "./routes/_app/machines/route"
 import { Route as AppIpniRouteRouteImport } from "./routes/_app/ipni/route"
 import { Route as AppConfigRouteRouteImport } from "./routes/_app/config/route"
+import { Route as AppActorRouteRouteImport } from "./routes/_app/actor/route"
 import { Route as AppWalletsIndexRouteImport } from "./routes/_app/wallets/index"
 import { Route as AppTasksIndexRouteImport } from "./routes/_app/tasks/index"
 import { Route as AppStorageIndexRouteImport } from "./routes/_app/storage/index"
@@ -145,6 +146,11 @@ const AppConfigRouteRoute = AppConfigRouteRouteImport.update({
   path: "/config",
   getParentRoute: () => AppRoute,
 } as any)
+const AppActorRouteRoute = AppActorRouteRouteImport.update({
+  id: "/actor",
+  path: "/actor",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWalletsIndexRoute = AppWalletsIndexRouteImport.update({
   id: "/",
   path: "/",
@@ -211,9 +217,9 @@ const AppAlertsIndexRoute = AppAlertsIndexRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppActorIndexRoute = AppActorIndexRouteImport.update({
-  id: "/actor/",
-  path: "/actor/",
-  getParentRoute: () => AppRoute,
+  id: "/",
+  path: "/",
+  getParentRoute: () => AppActorRouteRoute,
 } as any)
 const AppWalletsMessagesRoute = AppWalletsMessagesRouteImport.update({
   id: "/messages",
@@ -347,9 +353,9 @@ const AppConfigEditorRoute = AppConfigEditorRouteImport.update({
   getParentRoute: () => AppConfigRouteRoute,
 } as any)
 const AppActorIdRoute = AppActorIdRouteImport.update({
-  id: "/actor/$id",
-  path: "/actor/$id",
-  getParentRoute: () => AppRoute,
+  id: "/$id",
+  path: "/$id",
+  getParentRoute: () => AppActorRouteRoute,
 } as any)
 const AppStoragePathsRouteRoute = AppStoragePathsRouteRouteImport.update({
   id: "/paths",
@@ -414,6 +420,7 @@ const AppMarketMk12DealIdRoute = AppMarketMk12DealIdRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/setup": typeof SetupRoute
+  "/actor": typeof AppActorRouteRouteWithChildren
   "/config": typeof AppConfigRouteRouteWithChildren
   "/ipni": typeof AppIpniRouteRouteWithChildren
   "/machines": typeof AppMachinesRouteRouteWithChildren
@@ -538,6 +545,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_app": typeof AppRouteWithChildren
   "/setup": typeof SetupRoute
+  "/_app/actor": typeof AppActorRouteRouteWithChildren
   "/_app/config": typeof AppConfigRouteRouteWithChildren
   "/_app/ipni": typeof AppIpniRouteRouteWithChildren
   "/_app/machines": typeof AppMachinesRouteRouteWithChildren
@@ -607,6 +615,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/setup"
+    | "/actor"
     | "/config"
     | "/ipni"
     | "/machines"
@@ -730,6 +739,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_app"
     | "/setup"
+    | "/_app/actor"
     | "/_app/config"
     | "/_app/ipni"
     | "/_app/machines"
@@ -901,6 +911,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppConfigRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/actor": {
+      id: "/_app/actor"
+      path: "/actor"
+      fullPath: "/actor"
+      preLoaderRoute: typeof AppActorRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/wallets/": {
       id: "/_app/wallets/"
       path: "/"
@@ -994,10 +1011,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/actor/": {
       id: "/_app/actor/"
-      path: "/actor"
+      path: "/"
       fullPath: "/actor/"
       preLoaderRoute: typeof AppActorIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppActorRouteRoute
     }
     "/_app/wallets/messages": {
       id: "/_app/wallets/messages"
@@ -1183,10 +1200,10 @@ declare module "@tanstack/react-router" {
     }
     "/_app/actor/$id": {
       id: "/_app/actor/$id"
-      path: "/actor/$id"
+      path: "/$id"
       fullPath: "/actor/$id"
       preLoaderRoute: typeof AppActorIdRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppActorRouteRoute
     }
     "/_app/storage/paths": {
       id: "/_app/storage/paths"
@@ -1267,6 +1284,20 @@ declare module "@tanstack/react-router" {
     }
   }
 }
+
+interface AppActorRouteRouteChildren {
+  AppActorIdRoute: typeof AppActorIdRoute
+  AppActorIndexRoute: typeof AppActorIndexRoute
+}
+
+const AppActorRouteRouteChildren: AppActorRouteRouteChildren = {
+  AppActorIdRoute: AppActorIdRoute,
+  AppActorIndexRoute: AppActorIndexRoute,
+}
+
+const AppActorRouteRouteWithChildren = AppActorRouteRoute._addFileChildren(
+  AppActorRouteRouteChildren,
+)
 
 interface AppConfigRouteRouteChildren {
   AppConfigEditorRoute: typeof AppConfigEditorRoute
@@ -1481,6 +1512,7 @@ const AppWalletsRouteRouteWithChildren = AppWalletsRouteRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppActorRouteRoute: typeof AppActorRouteRouteWithChildren
   AppConfigRouteRoute: typeof AppConfigRouteRouteWithChildren
   AppIpniRouteRoute: typeof AppIpniRouteRouteWithChildren
   AppMachinesRouteRoute: typeof AppMachinesRouteRouteWithChildren
@@ -1492,13 +1524,12 @@ interface AppRouteChildren {
   AppStorageRouteRoute: typeof AppStorageRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppWalletsRouteRoute: typeof AppWalletsRouteRouteWithChildren
-  AppActorIdRoute: typeof AppActorIdRoute
-  AppActorIndexRoute: typeof AppActorIndexRoute
   AppAlertsIndexRoute: typeof AppAlertsIndexRoute
   AppOverviewIndexRoute: typeof AppOverviewIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppActorRouteRoute: AppActorRouteRouteWithChildren,
   AppConfigRouteRoute: AppConfigRouteRouteWithChildren,
   AppIpniRouteRoute: AppIpniRouteRouteWithChildren,
   AppMachinesRouteRoute: AppMachinesRouteRouteWithChildren,
@@ -1510,8 +1541,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppStorageRouteRoute: AppStorageRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppWalletsRouteRoute: AppWalletsRouteRouteWithChildren,
-  AppActorIdRoute: AppActorIdRoute,
-  AppActorIndexRoute: AppActorIndexRoute,
   AppAlertsIndexRoute: AppAlertsIndexRoute,
   AppOverviewIndexRoute: AppOverviewIndexRoute,
 }

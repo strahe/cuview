@@ -1,10 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { HardDrive } from "lucide-react";
 import { ProgressStat } from "@/components/composed/progress-stat";
-import { SectionCard } from "@/components/composed/section-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StorageUseStat } from "@/types/storage";
 import { formatBytes } from "@/utils/format";
+import {
+  OverviewEmpty,
+  OverviewList,
+  OverviewSection,
+  overviewActionClassName,
+} from "./overview-section";
 
 interface StorageStatsProps {
   data: StorageUseStat[];
@@ -14,48 +19,43 @@ interface StorageStatsProps {
 export function StorageStats({ data, loading }: StorageStatsProps) {
   if (loading) {
     return (
-      <SectionCard title="Storage" icon={HardDrive}>
-        <div className="space-y-3">
+      <OverviewSection title="Storage" icon={HardDrive}>
+        <OverviewList className="gap-3">
           {Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} className="h-7 w-full" />
           ))}
-        </div>
-      </SectionCard>
+        </OverviewList>
+      </OverviewSection>
     );
   }
 
   if (!data.length) {
     return (
-      <SectionCard title="Storage" icon={HardDrive}>
-        <p className="text-sm text-muted-foreground">
-          No storage data available
-        </p>
-      </SectionCard>
+      <OverviewSection title="Storage" icon={HardDrive}>
+        <OverviewEmpty>No storage data available</OverviewEmpty>
+      </OverviewSection>
     );
   }
 
   return (
-    <SectionCard
+    <OverviewSection
       title="Storage"
       icon={HardDrive}
       action={
-        <Link
-          to="/storage"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          View all →
+        <Link to="/storage" className={overviewActionClassName}>
+          View all
         </Link>
       }
     >
-      <div className="space-y-3">
+      <OverviewList className="gap-3">
         {data.map((stat, i) => {
           const used = Math.max(stat.Capacity - stat.Available, 0);
           const usagePercent =
             stat.Capacity === 0 ? 0 : (used / stat.Capacity) * 100;
 
           return (
-            <div key={i}>
-              <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+            <div key={i} className="flex flex-col gap-1">
+              <div className="flex justify-between gap-3 text-xs text-muted-foreground">
                 <span className="font-mono">
                   {stat.Type || `Storage ${i + 1}`}
                 </span>
@@ -71,7 +71,7 @@ export function StorageStats({ data, loading }: StorageStatsProps) {
             </div>
           );
         })}
-      </div>
-    </SectionCard>
+      </OverviewList>
+    </OverviewSection>
   );
 }
