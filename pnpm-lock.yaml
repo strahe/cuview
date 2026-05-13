@@ -22,7 +22,7 @@ importers:
         version: 6.5.2(@rjsf/utils@6.5.2(react@19.2.6))(react@19.2.6)
       '@rjsf/shadcn':
         specifier: ^6.5.2
-        version: 6.5.2(@rjsf/core@6.5.2(@rjsf/utils@6.5.2(react@19.2.6))(react@19.2.6))(@rjsf/utils@6.5.2(react@19.2.6))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(tailwindcss@4.2.4)
+        version: 6.5.2(@rjsf/core@6.5.2(@rjsf/utils@6.5.2(react@19.2.6))(react@19.2.6))(@rjsf/utils@6.5.2(react@19.2.6))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(tailwindcss@4.3.0)
       '@rjsf/utils':
         specifier: ^6.5.2
         version: 6.5.2(react@19.2.6)
@@ -78,8 +78,8 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       tailwindcss:
-        specifier: ^4.2.4
-        version: 4.2.4
+        specifier: ^4.3.0
+        version: 4.3.0
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -3130,6 +3130,9 @@ packages:
   tailwindcss@4.2.4:
     resolution: {integrity: sha512-HhKppgO81FQof5m6TEnuBWCZGgfRAWbaeOaGT00KOy/Pf/j6oUihdvBpA7ltCeAvZpFhW3j0PTclkxsd4IXYDA==}
 
+  tailwindcss@4.3.0:
+    resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
+
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
@@ -4424,7 +4427,7 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.6
 
-  '@rjsf/shadcn@6.5.2(@rjsf/core@6.5.2(@rjsf/utils@6.5.2(react@19.2.6))(react@19.2.6))(@rjsf/utils@6.5.2(react@19.2.6))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(tailwindcss@4.2.4)':
+  '@rjsf/shadcn@6.5.2(@rjsf/core@6.5.2(@rjsf/utils@6.5.2(react@19.2.6))(react@19.2.6))(@rjsf/utils@6.5.2(react@19.2.6))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(tailwindcss@4.3.0)':
     dependencies:
       '@radix-ui/react-checkbox': 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -4447,7 +4450,7 @@ snapshots:
       lucide-react: 0.548.0(react@19.2.6)
       react: 19.2.6
       tailwind-merge: 3.5.0
-      tailwindcss-animate: 1.0.7(tailwindcss@4.2.4)
+      tailwindcss-animate: 1.0.7(tailwindcss@4.3.0)
       uuid: 14.0.0
     transitivePeerDependencies:
       - '@types/react'
@@ -6329,11 +6332,13 @@ snapshots:
 
   tailwind-merge@3.5.0: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@4.2.4):
+  tailwindcss-animate@1.0.7(tailwindcss@4.3.0):
     dependencies:
-      tailwindcss: 4.2.4
+      tailwindcss: 4.3.0
 
   tailwindcss@4.2.4: {}
+
+  tailwindcss@4.3.0: {}
 
   tapable@2.3.3: {}
 
