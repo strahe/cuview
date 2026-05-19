@@ -5,7 +5,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/strahe/cuview/badge/main)](https://www.codefactor.io/repository/github/strahe/cuview/overview/main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-10-F69220?logo=pnpm&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white)
 
 A modern, responsive dashboard UI for [Curio](https://github.com/filecoin-project/curio) nodes.
 
