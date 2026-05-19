@@ -184,8 +184,21 @@ vi.mock("./-module/queries", () => ({
 }));
 
 vi.mock("./-components/task-type-panel", () => ({
-  TaskTypePanel: ({ taskType }: { taskType: string }) => (
-    <div data-testid="task-type-panel">{taskType}</div>
+  TaskTypePanel: ({
+    taskType,
+    onOpenTask,
+  }: {
+    taskType: string;
+    onOpenTask?: (taskId: number, taskType: string) => void;
+  }) => (
+    <div data-testid="task-type-panel">
+      {taskType}
+      {taskType ? (
+        <button type="button" onClick={() => onOpenTask?.(303, taskType)}>
+          open-analysis-task
+        </button>
+      ) : null}
+    </div>
   ),
 }));
 
@@ -404,6 +417,43 @@ describe("tasks integration", () => {
     const next = payload.search(currentSearch);
     expect(next.taskType).toBe("");
     expect(next.taskId).toBeNull();
+  });
+
+  it("opens task detail from the analysis task type panel", async () => {
+    currentSearch = {
+      ...currentSearch,
+      taskType: "WindowPost",
+    };
+
+    const { TaskAnalysisPage } = await import("./analysis");
+    renderWithLayoutControls(<TaskAnalysisPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "open-analysis-task" }));
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    const payload = navigateMock.mock.calls[0]?.[0] as {
+      search: (prev: typeof currentSearch) => typeof currentSearch;
+    };
+    const next = payload.search(currentSearch);
+    expect(next.taskId).toBe(303);
+    expect(next.taskType).toBe("WindowPost");
+  });
+
+  it("renders task detail drawer from analysis taskId search", async () => {
+    currentSearch = {
+      ...currentSearch,
+      taskType: "WindowPost",
+      taskId: 303,
+    };
+
+    const { TaskAnalysisPage } = await import("./analysis");
+    renderWithLayoutControls(<TaskAnalysisPage />);
+
+    expect(useTaskDetailBundleMock).toHaveBeenCalledWith({
+      taskId: 303,
+      taskType: "WindowPost",
+      includeTaskTypeData: false,
+    });
   });
 
   it("restarts failed task from detail panel", async () => {

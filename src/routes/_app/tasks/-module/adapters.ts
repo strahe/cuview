@@ -1,4 +1,5 @@
 import type {
+  ApiSingletonInfo,
   ApiTaskDetail,
   ApiTaskHistoryEntry,
   ApiTaskHistorySummary,
@@ -6,6 +7,7 @@ import type {
   ApiTaskStat,
   ApiTaskStatus,
   ApiTaskSummary,
+  SingletonInfoView,
   TaskDetailView,
   TaskHistoryEntryView,
   TaskHistorySummaryView,
@@ -44,6 +46,23 @@ const asBool = (value: unknown): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") return value.toLowerCase() === "true";
   return false;
+};
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value !== null && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+
+const asNullableTaskId = (value: unknown): number | null => {
+  const record = asRecord(value);
+  const numericValue = record
+    ? asBool(record.Valid ?? record.valid)
+      ? (record.Int64 ?? record.int64)
+      : null
+    : value;
+  const id = asNumber(numericValue);
+
+  return id && id > 0 ? id : null;
 };
 
 const normalizeRuntimeStatus = (status: string): TaskRuntimeStatus => {
@@ -183,5 +202,18 @@ export const normalizeTaskHistoryEntry = (
       raw.CompletedByName ?? raw.completed_by_machine_name,
     ),
     eventCount: Array.isArray(raw.Events) ? raw.Events.length : 0,
+  };
+};
+
+export const normalizeSingletonInfo = (
+  raw: ApiSingletonInfo,
+): SingletonInfoView => {
+  const lastRunTime = asText(raw.LastRunTime ?? raw.last_run_time);
+
+  return {
+    taskName: asText(raw.TaskName ?? raw.task_name),
+    taskId: asNullableTaskId(raw.TaskID ?? raw.task_id),
+    lastRunTime: lastRunTime || null,
+    runNowRequest: asBool(raw.RunNowRequest ?? raw.run_now_request),
   };
 };

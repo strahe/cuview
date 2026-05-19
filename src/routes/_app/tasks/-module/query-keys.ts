@@ -7,6 +7,7 @@ export const taskQueryKeys = {
   status: ["curio", "GetTaskStatus"],
   historyById: ["curio", "HarmonyTaskHistoryById"],
   machines: ["curio", "HarmonyTaskMachines"],
+  singletonInfo: ["curio", "SingletonTaskInfo"],
 };
 
 export const taskInvalidateKeys: unknown[][] = [
@@ -18,4 +19,5 @@ export const taskInvalidateKeys: unknown[][] = [
   taskQueryKeys.historyById,
   taskQueryKeys.detail,
   taskQueryKeys.machines,
+  taskQueryKeys.singletonInfo,
 ];

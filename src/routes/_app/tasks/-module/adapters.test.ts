@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  normalizeSingletonInfo,
   normalizeTaskDetail,
   normalizeTaskHistoryEntry,
   normalizeTaskMachine,
@@ -86,5 +87,33 @@ describe("tasks adapters", () => {
     });
 
     expect(normalized.id).toBe(0);
+  });
+
+  it("normalizes singleton task info from Curio v1.27.4 fields", () => {
+    const normalized = normalizeSingletonInfo({
+      TaskName: "WindowPost",
+      TaskID: 77,
+      LastRunTime: "2026-04-28T08:00:00Z",
+      RunNowRequest: true,
+    });
+
+    expect(normalized).toEqual({
+      taskName: "WindowPost",
+      taskId: 77,
+      lastRunTime: "2026-04-28T08:00:00Z",
+      runNowRequest: true,
+    });
+  });
+
+  it("treats empty singleton task ids as idle state", () => {
+    const normalized = normalizeSingletonInfo({
+      TaskName: "WindowPost",
+      TaskID: 0,
+      LastRunTime: null,
+      RunNowRequest: false,
+    });
+
+    expect(normalized.taskId).toBeNull();
+    expect(normalized.lastRunTime).toBeNull();
   });
 });

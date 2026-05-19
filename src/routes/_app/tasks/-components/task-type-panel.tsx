@@ -3,10 +3,17 @@ import { useMemo } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateTime } from "@/utils/format";
-import { useTaskDetailBundle } from "../-module/queries";
+import {
+  useSingletonRunNow,
+  useSingletonTaskInfo,
+  useTaskDetailBundle,
+} from "../-module/queries";
 import type { TaskHistoryEntryView, TaskMachineView } from "../-module/types";
+
+type OpenTaskHandler = (taskId: number, taskType: string) => void;
 
 const machineColumns: ColumnDef<TaskMachineView>[] = [
   {
@@ -30,10 +37,31 @@ const machineColumns: ColumnDef<TaskMachineView>[] = [
   },
 ];
 
-const historyColumns: ColumnDef<TaskHistoryEntryView>[] = [
+const createHistoryColumns = (
+  taskType: string,
+  onOpenTask?: OpenTaskHandler,
+): ColumnDef<TaskHistoryEntryView>[] => [
   {
     accessorKey: "taskId",
     header: "Task ID",
+    cell: ({ row }) =>
+      onOpenTask ? (
+        <Button
+          type="button"
+          variant="link"
+          size="xs"
+          className="h-auto p-0 font-mono text-xs"
+          aria-label={`Open task ${row.original.taskId}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenTask(row.original.taskId, taskType);
+          }}
+        >
+          {row.original.taskId}
+        </Button>
+      ) : (
+        <span className="font-mono text-xs">{row.original.taskId}</span>
+      ),
   },
   {
     accessorKey: "completedBy",
@@ -82,10 +110,13 @@ const historyColumns: ColumnDef<TaskHistoryEntryView>[] = [
 
 interface TaskTypePanelProps {
   taskType: string;
+  onOpenTask?: OpenTaskHandler;
 }
 
-export function TaskTypePanel({ taskType }: TaskTypePanelProps) {
+export function TaskTypePanel({ taskType, onOpenTask }: TaskTypePanelProps) {
   const detail = useTaskDetailBundle({ taskId: null, taskType });
+  const singletonQuery = useSingletonTaskInfo(taskType);
+  const singletonRunNowMutation = useSingletonRunNow();
   const recentRuns = useMemo(
     () => detail.taskTypeHistory.slice(0, 25),
     [detail.taskTypeHistory],
@@ -93,6 +124,10 @@ export function TaskTypePanel({ taskType }: TaskTypePanelProps) {
   const recentFailures = useMemo(
     () => detail.taskTypeFailedHistory.slice(0, 25),
     [detail.taskTypeFailedHistory],
+  );
+  const historyColumns = useMemo(
+    () => createHistoryColumns(taskType, onOpenTask),
+    [onOpenTask, taskType],
   );
 
   if (!taskType) {
@@ -106,6 +141,15 @@ export function TaskTypePanel({ taskType }: TaskTypePanelProps) {
     );
   }
 
+  const singletonInfo = singletonQuery.data;
+  const singletonTaskId = singletonInfo?.taskId ?? null;
+  const singletonRunning = singletonTaskId !== null;
+  const singletonRunRequested = singletonInfo?.runNowRequest ?? false;
+  const singletonRunDisabled =
+    singletonRunNowMutation.isPending ||
+    singletonRunning ||
+    singletonRunRequested;
+
   return (
     <Tabs defaultValue="summary">
       <TabsList>
@@ -118,6 +162,61 @@ export function TaskTypePanel({ taskType }: TaskTypePanelProps) {
       <TabsContent value="summary">
         <SectionCard title={`Task Type: ${taskType}`}>
           <div className="grid gap-3 text-xs sm:grid-cols-2">
+            {singletonInfo ? (
+              <div className="rounded border border-border p-3 sm:col-span-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-muted-foreground">Singleton</p>
+                    <StatusBadge
+                      status={singletonRunning ? "running" : "idle"}
+                      label={singletonRunning ? "Running" : "Idle"}
+                    />
+                    {singletonRunRequested ? (
+                      <StatusBadge status="pending" label="Run Requested" />
+                    ) : null}
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={singletonRunDisabled}
+                    onClick={() => singletonRunNowMutation.mutate([taskType])}
+                  >
+                    {singletonRunRequested
+                      ? "Run Requested"
+                      : singletonRunNowMutation.isPending
+                        ? "Requesting..."
+                        : "Run Now"}
+                  </Button>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <p className="text-muted-foreground">Current Task</p>
+                    {singletonTaskId && onOpenTask ? (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="xs"
+                        className="h-auto p-0 font-mono text-xs"
+                        aria-label={`Open singleton task ${singletonTaskId}`}
+                        onClick={() => onOpenTask(singletonTaskId, taskType)}
+                      >
+                        Task #{singletonTaskId}
+                      </Button>
+                    ) : (
+                      <p className="font-medium">—</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Last Run</p>
+                    <p className="font-medium">
+                      {singletonInfo.lastRunTime
+                        ? formatDateTime(singletonInfo.lastRunTime)
+                        : "Never"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <div className="rounded border border-border p-3">
               <p className="text-muted-foreground">Machines</p>
               <p className="text-lg font-semibold">

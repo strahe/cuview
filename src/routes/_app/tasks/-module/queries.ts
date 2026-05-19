@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useCurioRpc, useCurioRpcMutation } from "@/hooks/use-curio-query";
+import { isCurioVersionAtLeast } from "@/utils/curio-version";
 import {
+  normalizeSingletonInfo,
   normalizeTaskDetail,
   normalizeTaskHistoryEntry,
   normalizeTaskHistorySummary,
@@ -11,6 +13,7 @@ import {
 } from "./adapters";
 import { taskInvalidateKeys } from "./query-keys";
 import type {
+  ApiSingletonInfo,
   ApiTaskDetail,
   ApiTaskHistoryEntry,
   ApiTaskHistorySummary,
@@ -18,6 +21,7 @@ import type {
   ApiTaskStat,
   ApiTaskStatus,
   ApiTaskSummary,
+  SingletonInfoView,
 } from "./types";
 
 /** Stable empty array reference to prevent useMemo dependency churn when data is undefined. */
@@ -118,6 +122,33 @@ const selectTaskHistoryById = (data: ApiTaskHistoryEntry[]) =>
   data.map((row) => normalizeTaskHistoryEntry(row));
 const selectTaskMachines = (data: ApiTaskMachine[]) =>
   data.map((row) => normalizeTaskMachine(row));
+const selectSingletonInfo = (data: ApiSingletonInfo | null) =>
+  data ? normalizeSingletonInfo(data) : null;
+
+export const useSingletonTaskInfo = (taskType: string) => {
+  const hasTaskType = taskType.trim() !== "";
+  const versionQuery = useCurioRpc<string>("Version", [], {
+    refetchInterval: 300_000,
+    staleTime: 300_000,
+  });
+  const supportsSingleton = isCurioVersionAtLeast(versionQuery.data, "1.27.4");
+  const query = useCurioRpc<ApiSingletonInfo | null, SingletonInfoView | null>(
+    "SingletonTaskInfo",
+    [taskType],
+    {
+      enabled: supportsSingleton && hasTaskType,
+      refetchInterval: 5_000,
+      select: selectSingletonInfo,
+    },
+  );
+
+  return {
+    ...query,
+    data: query.data ?? null,
+    isLoading: hasTaskType && versionQuery.isLoading ? true : query.isLoading,
+    error: versionQuery.error ?? query.error,
+  };
+};
 
 export const useTaskDetailBundle = (params: {
   taskId: number | null;
@@ -187,5 +218,10 @@ export const useTaskDetailBundle = (params: {
 
 export const useRestartFailedTask = () =>
   useCurioRpcMutation("RestartFailedTask", {
+    invalidateKeys: taskInvalidateKeys,
+  });
+
+export const useSingletonRunNow = () =>
+  useCurioRpcMutation("SingletonRunNow", {
     invalidateKeys: taskInvalidateKeys,
   });

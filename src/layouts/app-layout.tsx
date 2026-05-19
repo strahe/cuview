@@ -20,6 +20,10 @@ import {
 import { useLayout } from "@/contexts/layout-context";
 import { useCurioRpc } from "@/hooks/use-curio-query";
 import { cn } from "@/lib/utils";
+import {
+  getCurioVersionSummary,
+  normalizeCurioVersion,
+} from "@/utils/curio-version";
 import { CollapsibleSidebar } from "./collapsible-sidebar";
 
 function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
@@ -43,25 +47,6 @@ function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
       <span className="text-muted-foreground">{labelMap[status]}</span>
     </div>
   );
-}
-
-function normalizeCurioVersion(version: string) {
-  const trimmed = version.trim();
-
-  if (!trimmed) {
-    return "";
-  }
-
-  return trimmed.startsWith("v") ? trimmed : `v${trimmed}`;
-}
-
-function getCurioVersionSummary(version: string) {
-  const normalized = normalizeCurioVersion(version);
-  const buildMetadataIndex = normalized.indexOf("+");
-
-  return buildMetadataIndex === -1
-    ? normalized
-    : normalized.slice(0, buildMetadataIndex);
 }
 
 function VersionLabel({ version }: { version: string }) {

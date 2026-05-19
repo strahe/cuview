@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { taskTypeColumns } from "@/routes/_app/tasks/-components/task-columns";
+import { TaskDetailPanel } from "@/routes/_app/tasks/-components/task-detail-panel";
 import { TasksOverlayDrawer } from "@/routes/_app/tasks/-components/tasks-overlay-drawer";
 import { TasksToolbar } from "@/routes/_app/tasks/-components/tasks-toolbar";
 import { TaskTypePanel } from "./-components/task-type-panel";
@@ -42,6 +43,12 @@ export function TaskAnalysisPage() {
       });
     },
     [navigate],
+  );
+  const openTaskDetail = useCallback(
+    (taskId: number, taskType: string) => {
+      updateSearch({ taskId, taskType });
+    },
+    [updateSearch],
   );
 
   const metrics = useMemo(() => {
@@ -141,7 +148,7 @@ export function TaskAnalysisPage() {
       </div>
 
       <TasksOverlayDrawer
-        open={Boolean(search.taskType)}
+        open={Boolean(search.taskType) && search.taskId === null}
         onOpenChange={(open) => {
           if (open) return;
           updateSearch({ taskType: "", taskId: null });
@@ -152,7 +159,25 @@ export function TaskAnalysisPage() {
         }
         description="Machine coverage, recent runs, and recent failures."
       >
-        <TaskTypePanel taskType={search.taskType} />
+        <TaskTypePanel taskType={search.taskType} onOpenTask={openTaskDetail} />
+      </TasksOverlayDrawer>
+
+      <TasksOverlayDrawer
+        open={search.taskId !== null}
+        onOpenChange={(open) => {
+          if (open) return;
+          updateSearch({ taskId: null });
+        }}
+        title={
+          search.taskId !== null ? `Task #${search.taskId}` : "Task Detail"
+        }
+        description="Task status and execution history."
+      >
+        <TaskDetailPanel
+          taskId={search.taskId}
+          taskType={search.taskType}
+          embedded
+        />
       </TasksOverlayDrawer>
     </>
   );

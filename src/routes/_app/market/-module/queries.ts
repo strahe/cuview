@@ -327,7 +327,7 @@ export function useDisableDataSource() {
 }
 
 export function useContracts() {
-  return useCurioRpc<Record<string, string>>("ListMarketContracts", [], {
+  return useCurioRpc<Record<string, boolean>>("ListMarketContracts", [], {
     refetchInterval: 60_000,
   });
 }

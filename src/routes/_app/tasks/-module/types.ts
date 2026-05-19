@@ -144,6 +144,24 @@ export interface ApiTaskHistoryEntry {
   }>;
 }
 
+interface ApiNullableInt64 {
+  Int64?: number;
+  int64?: number;
+  Valid?: boolean;
+  valid?: boolean;
+}
+
+export interface ApiSingletonInfo {
+  TaskName?: string;
+  task_name?: string;
+  TaskID?: number | string | ApiNullableInt64 | null;
+  task_id?: number | string | ApiNullableInt64 | null;
+  LastRunTime?: string | null;
+  last_run_time?: string | null;
+  RunNowRequest?: boolean | string;
+  run_now_request?: boolean | string;
+}
+
 export interface TaskSummaryView {
   id: number;
   name: string;
@@ -217,6 +235,13 @@ export interface TaskHistoryEntryView {
   completedById: number | null;
   completedByName: string;
   eventCount: number;
+}
+
+export interface SingletonInfoView {
+  taskName: string;
+  taskId: number | null;
+  lastRunTime: string | null;
+  runNowRequest: boolean;
 }
 
 export interface TaskQueueTaskRow {

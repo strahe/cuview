@@ -1,6 +1,7 @@
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
+import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,7 +14,6 @@ import {
 import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import {
   useAddContract,
   useContracts,
@@ -42,34 +42,17 @@ export function ProductsSection() {
   const [showAddContract, setShowAddContract] = useState(false);
   const [contractForm, setContractForm] = useState({
     address: "",
-    abi: "",
   });
-
-  // Edit ABI dialog state
-  const [editAbi, setEditAbi] = useState<{
-    address: string;
-    abi: string;
-  } | null>(null);
 
   const handleAddContract = useCallback(() => {
     if (!contractForm.address.trim()) return;
-    addContractMutation.mutate(
-      [contractForm.address.trim(), contractForm.abi.trim()],
-      {
-        onSuccess: () => {
-          setContractForm({ address: "", abi: "" });
-          setShowAddContract(false);
-        },
+    addContractMutation.mutate([contractForm.address.trim(), true], {
+      onSuccess: () => {
+        setContractForm({ address: "" });
+        setShowAddContract(false);
       },
-    );
-  }, [contractForm, addContractMutation]);
-
-  const handleUpdateAbi = useCallback(() => {
-    if (!editAbi) return;
-    updateContractMutation.mutate([editAbi.address, editAbi.abi], {
-      onSuccess: () => setEditAbi(null),
     });
-  }, [editAbi, updateContractMutation]);
+  }, [contractForm, addContractMutation]);
 
   return (
     <div className="space-y-4">
@@ -168,31 +151,36 @@ export function ProductsSection() {
         <CardContent>
           {contracts && Object.keys(contracts).length > 0 ? (
             <div className="space-y-2">
-              {Object.entries(contracts).map(([addr, abi]) => (
+              {Object.entries(contracts).map(([addr, allowed]) => (
                 <div
                   key={addr}
                   className="flex items-center justify-between rounded border border-border p-3"
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
                     <span className="font-mono text-xs">{addr}</span>
-                    {abi && (
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        ABI: {abi.slice(0, 60)}…
-                      </p>
-                    )}
+                    <StatusBadge
+                      status={allowed ? "done" : "failed"}
+                      label={allowed ? "Allowed" : "Blocked"}
+                    />
                   </div>
                   <div className="flex gap-1">
                     <Button
                       size="sm"
-                      variant="ghost"
-                      onClick={() => setEditAbi({ address: addr, abi })}
+                      variant={allowed ? "outline" : "default"}
+                      onClick={() =>
+                        updateContractMutation.mutate([addr, !allowed])
+                      }
+                      disabled={updateContractMutation.isPending}
+                      aria-label={`${allowed ? "Block" : "Allow"} contract ${addr}`}
                     >
-                      <Edit2 className="size-3.5" />
+                      {allowed ? "Block" : "Allow"}
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label={`Remove contract ${addr}`}
                       onClick={() => removeContractMutation.mutate([addr])}
+                      disabled={removeContractMutation.isPending}
                     >
                       <Trash2 className="size-3.5 text-destructive" />
                     </Button>
@@ -232,20 +220,6 @@ export function ProductsSection() {
                   className="font-mono text-xs"
                 />
               </Field>
-              <Field>
-                <FieldLabel>ABI JSON</FieldLabel>
-                <Textarea
-                  className="min-h-[80px] font-mono text-xs"
-                  value={contractForm.abi}
-                  onChange={(e) =>
-                    setContractForm((f) => ({
-                      ...f,
-                      abi: e.target.value,
-                    }))
-                  }
-                  placeholder="[{...}]"
-                />
-              </Field>
             </FieldGroup>
             <DialogFooter>
               <Button
@@ -264,52 +238,6 @@ export function ProductsSection() {
                   <Spinner data-icon="inline-start" className="size-3" />
                 )}
                 {addContractMutation.isPending ? "Adding..." : "Add"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Edit ABI Dialog */}
-      {editAbi && (
-        <Dialog open onOpenChange={() => setEditAbi(null)}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Contract ABI</DialogTitle>
-            </DialogHeader>
-            <FieldGroup className="gap-3">
-              <Field>
-                <FieldLabel>Contract Address</FieldLabel>
-                <p className="truncate font-mono text-xs text-muted-foreground">
-                  {editAbi.address}
-                </p>
-              </Field>
-              <Field>
-                <FieldLabel>ABI JSON</FieldLabel>
-                <Textarea
-                  className="min-h-[120px] font-mono text-xs"
-                  value={editAbi.abi}
-                  onChange={(e) =>
-                    setEditAbi((prev) =>
-                      prev ? { ...prev, abi: e.target.value } : null,
-                    )
-                  }
-                  placeholder="[{...}]"
-                />
-              </Field>
-            </FieldGroup>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditAbi(null)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateAbi}
-                disabled={updateContractMutation.isPending}
-              >
-                {updateContractMutation.isPending && (
-                  <Spinner data-icon="inline-start" className="size-3" />
-                )}
-                {updateContractMutation.isPending ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
