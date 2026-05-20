@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   AppFormActions,
   TextareaField,
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
 import { useFsUpdateProvider } from "../-module/queries";
 
 interface FsUpdateProviderDialogProps {
@@ -24,6 +25,8 @@ interface FsUpdateProviderDialogProps {
 interface FsUpdateProviderDialogFormProps {
   currentDescription: string;
   currentName: string;
+  mutationError: unknown;
+  mutationIsError: boolean;
   mutationPending: boolean;
   onCancel: () => void;
   onSubmit: (values: { description: string; name: string }) => void;
@@ -32,6 +35,8 @@ interface FsUpdateProviderDialogFormProps {
 function FsUpdateProviderDialogForm({
   currentDescription,
   currentName,
+  mutationError,
+  mutationIsError,
   mutationPending,
   onCancel,
   onSubmit,
@@ -67,6 +72,7 @@ function FsUpdateProviderDialogForm({
             label="Name"
             placeholder="Provider name"
             required
+            disabled={mutationPending}
           />
         )}
       </form.Field>
@@ -84,15 +90,21 @@ function FsUpdateProviderDialogForm({
             placeholder="Provider description"
             required
             rows={3}
+            disabled={mutationPending}
           />
         )}
       </form.Field>
+      {mutationIsError && (
+        <p className="text-sm text-destructive">
+          {(mutationError as Error)?.message ?? "Failed to update provider"}
+        </p>
+      )}
       <AppFormActions>
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" disabled={mutationPending}>
-          {mutationPending ? "Updating..." : "Update"}
+          {mutationPending ? "Updating…" : "Update"}
         </Button>
       </AppFormActions>
     </form>
@@ -105,43 +117,66 @@ export function FsUpdateProviderDialog({
   currentName,
   currentDescription,
 }: FsUpdateProviderDialogProps) {
-  const wasOpenRef = useRef(false);
-  const sessionKeyRef = useRef(0);
   const mutation = useFsUpdateProvider();
-  if (open && !wasOpenRef.current) {
-    wasOpenRef.current = true;
-    sessionKeyRef.current += 1;
-    mutation.reset();
-  } else if (!open && wasOpenRef.current) {
-    wasOpenRef.current = false;
-  }
+  useResetMutationOnOpen(open, mutation);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Update Provider Info</DialogTitle>
-        </DialogHeader>
-        {open ? (
-          <FsUpdateProviderDialogForm
-            key={sessionKeyRef.current}
-            currentDescription={currentDescription}
-            currentName={currentName}
-            mutationPending={mutation.isPending}
-            onCancel={() => onOpenChange(false)}
-            onSubmit={(value) => {
-              mutation.mutate([value.name.trim(), value.description.trim()], {
-                onSuccess: () => onOpenChange(false),
-              });
-            }}
-          />
-        ) : null}
-        {mutation.isError && (
-          <p className="text-sm text-destructive">
-            {(mutation.error as Error)?.message ?? "Failed to update provider"}
-          </p>
-        )}
-      </DialogContent>
+      {open ? (
+        <FsUpdateProviderDialogContent
+          currentDescription={currentDescription}
+          currentName={currentName}
+          mutation={mutation}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
     </Dialog>
+  );
+}
+
+type FsUpdateProviderMutation = ReturnType<typeof useFsUpdateProvider>;
+
+function FsUpdateProviderDialogContent({
+  mutation,
+  onOpenChange,
+  currentName,
+  currentDescription,
+}: Omit<FsUpdateProviderDialogProps, "open"> & {
+  mutation: FsUpdateProviderMutation;
+}) {
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  return (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Update Provider Info</DialogTitle>
+      </DialogHeader>
+      <FsUpdateProviderDialogForm
+        currentDescription={currentDescription}
+        currentName={currentName}
+        mutationError={mutation.error}
+        mutationIsError={mutation.isError}
+        mutationPending={mutation.isPending}
+        onCancel={() => onOpenChange(false)}
+        onSubmit={(value) => {
+          if (mutation.isPending) return;
+
+          mutation.mutate([value.name.trim(), value.description.trim()], {
+            onSuccess: () => {
+              if (mountedRef.current) {
+                onOpenChange(false);
+              }
+            },
+          });
+        }}
+      />
+    </DialogContent>
   );
 }

@@ -1,5 +1,4 @@
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
 import { useCreateLayerMutation } from "../-module/queries";
 
 interface CreateLayerDialogProps {
@@ -22,66 +23,103 @@ export function CreateLayerDialog({
   onOpenChange,
   onCreated,
 }: CreateLayerDialogProps) {
+  const mutation = useCreateLayerMutation();
+  useResetMutationOnOpen(open, mutation);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <CreateLayerDialogContent
+          mutation={mutation}
+          onCreated={onCreated}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
+    </Dialog>
+  );
+}
+
+type CreateLayerMutation = ReturnType<typeof useCreateLayerMutation>;
+
+function CreateLayerDialogContent({
+  mutation,
+  onOpenChange,
+  onCreated,
+}: Pick<CreateLayerDialogProps, "onOpenChange" | "onCreated"> & {
+  mutation: CreateLayerMutation;
+}) {
   const [name, setName] = useState("");
-  const { error, isPending, mutate, reset } = useCreateLayerMutation();
+  const [localError, setLocalError] = useState<unknown>(null);
+  const mountedRef = useRef(true);
+  const { error: mutationError, isError, isPending, mutateAsync } = mutation;
+  const visibleError = localError ?? (isError ? mutationError : null);
 
   useEffect(() => {
-    if (!open) return;
-
-    setName("");
-    reset();
-  }, [open, reset]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleCreate = () => {
     const trimmed = name.trim();
     if (!trimmed || isPending) return;
 
-    mutate(trimmed, {
-      onSuccess: () => {
-        setName("");
+    setLocalError(null);
+    void mutateAsync(trimmed).then(
+      () => {
+        if (!mountedRef.current) return;
+
         onOpenChange(false);
         onCreated?.(trimmed);
       },
-    });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleCreate();
-    }
+      (err: unknown) => {
+        if (mountedRef.current) {
+          setLocalError(err);
+        }
+      },
+    );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Layer</DialogTitle>
-        </DialogHeader>
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Create New Layer</DialogTitle>
+      </DialogHeader>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleCreate();
+        }}
+      >
         <div className="space-y-4 py-2">
           <Input
             placeholder="Layer name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={handleKeyDown}
             autoFocus
           />
-          {error && <p className="text-sm text-destructive">{String(error)}</p>}
+          {visibleError !== null && (
+            <p className="text-sm text-destructive">{String(visibleError)}</p>
+          )}
         </div>
         <DialogFooter>
           <Button
             variant="ghost"
+            type="button"
             onClick={() => onOpenChange(false)}
-            disabled={isPending}
           >
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!name.trim() || isPending}>
-            {isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
+          <Button type="submit" disabled={!name.trim() || isPending}>
+            {isPending && (
+              <Spinner data-icon="inline-start" className="size-3" />
+            )}
             {isPending ? "Creating…" : "Create"}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </DialogContent>
   );
 }

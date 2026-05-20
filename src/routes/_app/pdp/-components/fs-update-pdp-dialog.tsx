@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
 import { SizeSelect } from "@/components/composed/size-select";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
 import { useFsUpdatePdp } from "../-module/queries";
 import type { FSPDPOffering } from "../-module/types";
 
@@ -39,23 +40,41 @@ export function FsUpdatePdpDialog({
   onOpenChange,
   current,
 }: FsUpdatePdpDialogProps) {
-  const [form, setForm] = useState<FSPDPOffering>(current ?? defaultOffering);
-  const [prevOpen, setPrevOpen] = useState(open);
   const mutation = useFsUpdatePdp();
+  useResetMutationOnOpen(open, mutation);
 
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (open) {
-      setForm(current ?? defaultOffering);
-    }
-  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <FsUpdatePdpDialogContent
+          current={current}
+          mutation={mutation}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
+    </Dialog>
+  );
+}
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only reset mutation when dialog opens, not on polled data changes
+type FsUpdatePdpMutation = ReturnType<typeof useFsUpdatePdp>;
+
+function FsUpdatePdpDialogContent({
+  mutation,
+  onOpenChange,
+  current,
+}: Pick<FsUpdatePdpDialogProps, "current" | "onOpenChange"> & {
+  mutation: FsUpdatePdpMutation;
+}) {
+  const [form, setForm] = useState<FSPDPOffering>(current ?? defaultOffering);
+  const mountedRef = useRef(true);
+  const { error, isError, isPending, mutate } = mutation;
+
   useEffect(() => {
-    if (open) {
-      mutation.reset();
-    }
-  }, [open]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const updateField = useCallback(
     <K extends keyof FSPDPOffering>(key: K, value: FSPDPOffering[K]) => {
@@ -65,18 +84,28 @@ export function FsUpdatePdpDialog({
   );
 
   const handleSubmit = useCallback(() => {
-    if (!form.service_url.trim()) return;
-    mutation.mutate([form, null], {
-      onSuccess: () => onOpenChange(false),
+    if (!form.service_url.trim() || isPending) return;
+    mutate([form, null], {
+      onSuccess: () => {
+        if (mountedRef.current) {
+          onOpenChange(false);
+        }
+      },
     });
-  }, [form, mutation, onOpenChange]);
+  }, [form, isPending, mutate, onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Update PDP Offering</DialogTitle>
-        </DialogHeader>
+    <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>Update PDP Offering</DialogTitle>
+      </DialogHeader>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleSubmit();
+        }}
+      >
         <FieldGroup>
           <Field>
             <FieldLabel>Service URL *</FieldLabel>
@@ -84,6 +113,7 @@ export function FsUpdatePdpDialog({
               value={form.service_url}
               onChange={(e) => updateField("service_url", e.target.value)}
               placeholder="https://example.com/pdp"
+              disabled={isPending}
             />
           </Field>
 
@@ -93,6 +123,7 @@ export function FsUpdatePdpDialog({
               <SizeSelect
                 value={form.min_size}
                 onChange={(v) => updateField("min_size", v)}
+                disabled={isPending}
               />
             </Field>
             <Field>
@@ -100,6 +131,7 @@ export function FsUpdatePdpDialog({
               <SizeSelect
                 value={form.max_size}
                 onChange={(v) => updateField("max_size", v)}
+                disabled={isPending}
               />
             </Field>
           </div>
@@ -112,6 +144,7 @@ export function FsUpdatePdpDialog({
                 value={form.price}
                 onChange={(e) => updateField("price", Number(e.target.value))}
                 min={0}
+                disabled={isPending}
               />
             </Field>
             <Field>
@@ -123,6 +156,7 @@ export function FsUpdatePdpDialog({
                   updateField("min_proving_period", Number(e.target.value))
                 }
                 min={0}
+                disabled={isPending}
               />
             </Field>
           </div>
@@ -134,6 +168,7 @@ export function FsUpdatePdpDialog({
               onChange={(e) => updateField("location", e.target.value)}
               placeholder="Geographic location"
               maxLength={128}
+              disabled={isPending}
             />
           </Field>
 
@@ -142,6 +177,7 @@ export function FsUpdatePdpDialog({
               <Checkbox
                 checked={form.ipni_piece}
                 onCheckedChange={(v) => updateField("ipni_piece", !!v)}
+                disabled={isPending}
               />
               IPNI Piece
             </FieldLabel>
@@ -149,6 +185,7 @@ export function FsUpdatePdpDialog({
               <Checkbox
                 checked={form.ipni_ipfs}
                 onCheckedChange={(v) => updateField("ipni_ipfs", !!v)}
+                disabled={isPending}
               />
               IPNI IPFS
             </FieldLabel>
@@ -161,31 +198,36 @@ export function FsUpdatePdpDialog({
               onChange={(e) =>
                 updateField("payment_token_address", e.target.value)
               }
-              placeholder="0x... (defaults to USDFC)"
+              placeholder="0x… (defaults to USDFC)"
               className="font-mono text-xs"
+              disabled={isPending}
             />
           </Field>
         </FieldGroup>
-        {mutation.isError && (
+        {isError && (
           <p className="text-sm text-destructive">
-            {(mutation.error as Error)?.message ?? "Failed to update PDP"}
+            {(error as Error)?.message ?? "Failed to update PDP"}
           </p>
         )}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit}
-            disabled={mutation.isPending || !form.service_url.trim()}
+            type="submit"
+            disabled={isPending || !form.service_url.trim()}
           >
-            {mutation.isPending && (
+            {isPending && (
               <Spinner data-icon="inline-start" className="size-3" />
             )}
-            {mutation.isPending ? "Updating..." : "Update PDP"}
+            {isPending ? "Updating…" : "Update PDP"}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </DialogContent>
   );
 }

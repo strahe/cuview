@@ -1,5 +1,5 @@
 import { Globe, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
 import { useFsDeregister } from "../-module/queries";
 import type { FSRegistryStatus } from "../-module/types";
 import { FsRegisterDialog } from "./fs-register-dialog";
@@ -26,15 +27,18 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
   const [showUpdatePdp, setShowUpdatePdp] = useState(false);
   const [showDeregister, setShowDeregister] = useState(false);
 
-  const deregisterMutation = useFsDeregister();
+  const isProviderActive = Boolean(fsStatus?.status);
 
-  // Reset dialog states when provider becomes inactive/null
   useEffect(() => {
-    if (!fsStatus?.status) {
+    if (!isProviderActive) {
       setShowUpdateProvider(false);
       setShowUpdatePdp(false);
+      setShowDeregister(false);
+      return;
     }
-  }, [fsStatus?.status]);
+
+    setShowRegister(false);
+  }, [isProviderActive]);
 
   return (
     <>
@@ -43,7 +47,7 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
           <CardTitle className="flex items-center gap-2">
             <Globe className="size-4" /> FS Registry
           </CardTitle>
-          {!fsStatus?.status && (
+          {!isProviderActive && (
             <Button
               size="sm"
               variant="outline"
@@ -201,7 +205,7 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
                   </div>
                 )}
 
-              {fsStatus.status && (
+              {isProviderActive && (
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -237,7 +241,7 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
 
       <FsRegisterDialog open={showRegister} onOpenChange={setShowRegister} />
 
-      {fsStatus && (
+      {fsStatus && isProviderActive && (
         <FsUpdateProviderDialog
           open={showUpdateProvider}
           onOpenChange={setShowUpdateProvider}
@@ -246,7 +250,7 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
         />
       )}
 
-      {fsStatus && (
+      {fsStatus && isProviderActive && (
         <FsUpdatePdpDialog
           open={showUpdatePdp}
           onOpenChange={setShowUpdatePdp}
@@ -254,54 +258,89 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
         />
       )}
 
-      {/* Deregister confirmation dialog */}
-      <Dialog
-        open={showDeregister}
-        onOpenChange={(open) => {
-          if (!open) {
-            deregisterMutation.reset();
-          }
-          setShowDeregister(open);
-        }}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Deregister Provider</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to deregister this storage provider? This
-            action will remove your provider from the FS registry.
-          </p>
-          {deregisterMutation.isError && (
-            <p className="text-sm text-destructive">
-              {(deregisterMutation.error as Error)?.message ??
-                "Failed to deregister"}
-            </p>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                deregisterMutation.reset();
-                setShowDeregister(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={deregisterMutation.isPending}
-              onClick={() => {
-                deregisterMutation.mutate([], {
-                  onSuccess: () => setShowDeregister(false),
-                });
-              }}
-            >
-              {deregisterMutation.isPending ? "Deregistering..." : "Deregister"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FsDeregisterDialog
+        open={isProviderActive && showDeregister}
+        onOpenChange={setShowDeregister}
+      />
     </>
+  );
+}
+
+interface FsDeregisterDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function FsDeregisterDialog({ open, onOpenChange }: FsDeregisterDialogProps) {
+  const deregisterMutation = useFsDeregister();
+  useResetMutationOnOpen(open, deregisterMutation);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <FsDeregisterDialogContent
+          deregisterMutation={deregisterMutation}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
+    </Dialog>
+  );
+}
+
+type FsDeregisterMutation = ReturnType<typeof useFsDeregister>;
+
+function FsDeregisterDialogContent({
+  deregisterMutation,
+  onOpenChange,
+}: Pick<FsDeregisterDialogProps, "onOpenChange"> & {
+  deregisterMutation: FsDeregisterMutation;
+}) {
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  return (
+    <DialogContent className="sm:max-w-sm">
+      <DialogHeader>
+        <DialogTitle>Deregister Provider</DialogTitle>
+      </DialogHeader>
+      <p className="text-sm text-muted-foreground">
+        Are you sure you want to deregister this storage provider? This action
+        will remove your provider from the FS registry.
+      </p>
+      {deregisterMutation.isError && (
+        <p className="text-sm text-destructive">
+          {(deregisterMutation.error as Error)?.message ??
+            "Failed to deregister"}
+        </p>
+      )}
+      <DialogFooter>
+        <Button variant="outline" onClick={() => onOpenChange(false)}>
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          disabled={deregisterMutation.isPending}
+          onClick={() => {
+            if (deregisterMutation.isPending) return;
+
+            deregisterMutation.mutate([], {
+              onSuccess: () => {
+                if (mountedRef.current) {
+                  onOpenChange(false);
+                }
+              },
+            });
+          }}
+        >
+          {deregisterMutation.isPending ? "Deregistering…" : "Deregister"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
