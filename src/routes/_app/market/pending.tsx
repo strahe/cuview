@@ -5,6 +5,7 @@ import { KPICard } from "@/components/composed/kpi-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import type { OpenDealInfo } from "@/types/market";
 import { formatBytes } from "@/utils/format";
 import { usePendingDeals, useSealNow } from "./-module/queries";
@@ -72,22 +73,30 @@ function PendingDealsPage() {
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs"
-            onClick={() =>
-              sealNowMutation.mutate([
-                row.original.Actor,
-                row.original.SectorNumber,
-              ])
-            }
-            disabled={sealNowMutation.isPending}
-          >
-            Seal Now
-          </Button>
-        ),
+        cell: ({ row }) => {
+          const isSealing =
+            sealNowMutation.isPending &&
+            sealNowMutation.variables?.[0] === row.original.Actor &&
+            sealNowMutation.variables?.[1] === row.original.SectorNumber;
+
+          return (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 gap-1 px-2 text-xs"
+              onClick={() =>
+                sealNowMutation.mutate([
+                  row.original.Actor,
+                  row.original.SectorNumber,
+                ])
+              }
+              disabled={sealNowMutation.isPending}
+            >
+              {isSealing && <Spinner className="size-3" />}
+              {isSealing ? "Sealing" : "Seal Now"}
+            </Button>
+          );
+        },
       },
     ],
     [sealNowMutation],

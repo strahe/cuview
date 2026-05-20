@@ -20,9 +20,16 @@ function ActorListPage() {
 
   const stats = useMemo(() => {
     const total = actors.length;
-    const totalWins1d = actors.reduce((sum, a) => sum + (a.Win1 || 0), 0);
-    const totalWins7d = actors.reduce((sum, a) => sum + (a.Win7 || 0), 0);
-    const totalWins30d = actors.reduce((sum, a) => sum + (a.Win30 || 0), 0);
+    let totalWins1d = 0;
+    let totalWins7d = 0;
+    let totalWins30d = 0;
+
+    for (const actor of actors) {
+      totalWins1d += actor.Win1 || 0;
+      totalWins7d += actor.Win7 || 0;
+      totalWins30d += actor.Win30 || 0;
+    }
+
     return { total, totalWins1d, totalWins7d, totalWins30d };
   }, [actors]);
 

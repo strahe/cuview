@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { AddWalletDialog } from "./-components/add-wallet-dialog";
 import { RenameWalletDialog } from "./-components/rename-wallet-dialog";
 import { walletColumns } from "./-components/wallet-columns";
@@ -47,7 +48,6 @@ export function WalletListPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
               title="Rename wallet"
               aria-label="Rename wallet"
               onClick={() =>
@@ -57,12 +57,12 @@ export function WalletListPage() {
                 })
               }
             >
-              <Pencil className="size-3.5" />
+              <Pencil />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive"
               title="Remove wallet"
               aria-label="Remove wallet"
               disabled={removeWallet.isPending}
@@ -70,9 +70,9 @@ export function WalletListPage() {
             >
               {removeWallet.isPending &&
               removeWallet.variables?.[0] === row.original.address ? (
-                <Loader2 className="size-3.5 animate-spin" />
+                <Spinner className="size-3.5" />
               ) : (
-                <Trash2 className="size-3.5" />
+                <Trash2 />
               )}
             </Button>
           </div>

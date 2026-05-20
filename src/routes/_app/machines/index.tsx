@@ -81,38 +81,35 @@ function MachineActions({
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
           title="Uncordon"
           aria-label="Uncordon"
           onClick={() => onAction("uncordon", machine)}
           disabled={disabled}
         >
-          <Play className="size-3.5" />
+          <Play />
         </Button>
       ) : (
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
           title="Cordon"
           aria-label="Cordon"
           onClick={() => onAction("cordon", machine)}
           disabled={disabled}
         >
-          <Pause className="size-3.5" />
+          <Pause />
         </Button>
       )}
       {machine.Unschedulable && (
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
           title="Restart"
           aria-label="Restart"
           onClick={() => onAction("restart", machine)}
           disabled={disabled}
         >
-          <RotateCcw className="size-3.5" />
+          <RotateCcw />
         </Button>
       )}
     </div>

@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCurioConnection } from "@/contexts/curio-api-context";
-import { formatEndpointForDisplay } from "@/utils/endpoint";
+import {
+  formatEndpointForDisplay,
+  formatEndpointForInput,
+} from "@/utils/endpoint";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -107,7 +110,7 @@ function SettingsDialogEndpointForm({
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { endpoint, endpointHistory, testAndSwitchEndpoint } =
     useCurioConnection();
-  const currentEndpointValue = formatEndpointForDisplay(endpoint);
+  const currentEndpointValue = formatEndpointForInput(endpoint);
   const [switchStatus, setSwitchStatus] = useState<SwitchStatus>("idle");
   const [switchMessage, setSwitchMessage] = useState("");
 

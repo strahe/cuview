@@ -100,6 +100,28 @@ describe("SettingsDialog RPC section", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps credentials in editable endpoint values", async () => {
+    const user = userEvent.setup();
+    currentEndpoint = "ws://user:secret@host:4701/api/webrpc/v0";
+
+    render(<SettingsDialog open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByLabelText("RPC Endpoint")).toHaveValue(
+      "http://user:secret@host:4701",
+    );
+    expect(
+      screen.getByText("Current endpoint: http://host:4701"),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Test & Switch" }));
+
+    await waitFor(() => {
+      expect(testAndSwitchEndpointMock).toHaveBeenCalledWith(
+        "http://user:secret@host:4701",
+      );
+    });
+  });
+
   it("supports quick switch from history", async () => {
     const user = userEvent.setup();
 

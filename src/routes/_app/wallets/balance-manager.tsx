@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { AddRuleDialog } from "./-components/add-rule-dialog";
 import { balanceRuleColumns } from "./-components/balance-rule-columns";
 import { EditRuleDialog } from "./-components/edit-rule-dialog";
@@ -41,17 +42,16 @@ export function WalletBalanceManagerPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
               title="Edit rule"
               aria-label="Edit rule"
               onClick={() => setEditingRule(row.original)}
             >
-              <Pencil className="size-3.5" />
+              <Pencil />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive"
               title="Remove rule"
               aria-label="Remove rule"
               disabled={removeRule.isPending}
@@ -59,9 +59,9 @@ export function WalletBalanceManagerPage() {
             >
               {removeRule.isPending &&
               removeRule.variables?.[0] === row.original.id ? (
-                <Loader2 className="size-3.5 animate-spin" />
+                <Spinner className="size-3.5" />
               ) : (
-                <Trash2 className="size-3.5" />
+                <Trash2 />
               )}
             </Button>
           </div>

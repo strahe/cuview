@@ -245,16 +245,28 @@ function MarketSettingsPage() {
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => removePricingMutation.mutate([row.original.name])}
-            disabled={removePricingMutation.isPending}
-          >
-            <Trash2 className="size-3.5 text-destructive" />
-          </Button>
-        ),
+        cell: ({ row }) => {
+          const isRemoving =
+            removePricingMutation.isPending &&
+            removePricingMutation.variables?.[0] === row.original.name;
+
+          return (
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              title="Remove filter"
+              aria-label="Remove filter"
+              onClick={() => removePricingMutation.mutate([row.original.name])}
+              disabled={removePricingMutation.isPending}
+            >
+              {isRemoving ? (
+                <Spinner className="size-2.5 text-destructive" />
+              ) : (
+                <Trash2 className="text-destructive" />
+              )}
+            </Button>
+          );
+        },
       },
     ],
     [removePricingMutation],
@@ -266,16 +278,28 @@ function MarketSettingsPage() {
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => removeClientMutation.mutate([row.original.name])}
-            disabled={removeClientMutation.isPending}
-          >
-            <Trash2 className="size-3.5 text-destructive" />
-          </Button>
-        ),
+        cell: ({ row }) => {
+          const isRemoving =
+            removeClientMutation.isPending &&
+            removeClientMutation.variables?.[0] === row.original.name;
+
+          return (
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              title="Remove filter"
+              aria-label="Remove filter"
+              onClick={() => removeClientMutation.mutate([row.original.name])}
+              disabled={removeClientMutation.isPending}
+            >
+              {isRemoving ? (
+                <Spinner className="size-2.5 text-destructive" />
+              ) : (
+                <Trash2 className="text-destructive" />
+              )}
+            </Button>
+          );
+        },
       },
     ],
     [removeClientMutation],
@@ -287,16 +311,28 @@ function MarketSettingsPage() {
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => removeAllowMutation.mutate([row.original.wallet])}
-            disabled={removeAllowMutation.isPending}
-          >
-            <Trash2 className="size-3.5 text-destructive" />
-          </Button>
-        ),
+        cell: ({ row }) => {
+          const isRemoving =
+            removeAllowMutation.isPending &&
+            removeAllowMutation.variables?.[0] === row.original.wallet;
+
+          return (
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              title="Remove entry"
+              aria-label="Remove entry"
+              onClick={() => removeAllowMutation.mutate([row.original.wallet])}
+              disabled={removeAllowMutation.isPending}
+            >
+              {isRemoving ? (
+                <Spinner className="size-2.5 text-destructive" />
+              ) : (
+                <Trash2 className="text-destructive" />
+              )}
+            </Button>
+          );
+        },
       },
     ],
     [removeAllowMutation],

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isValidHost, normalizeEndpoint } from "@/utils/endpoint";
+import {
+  formatEndpointForDisplay,
+  formatEndpointForInput,
+  isValidHost,
+  normalizeEndpoint,
+} from "@/utils/endpoint";
 
 describe("normalizeEndpoint", () => {
   it("normalizes http origin with trailing slash", () => {
@@ -34,6 +39,46 @@ describe("normalizeEndpoint", () => {
 
   it("returns original value for invalid input", () => {
     expect(normalizeEndpoint("not a url")).toBe("not a url");
+  });
+
+  it("keeps credentials required for endpoint connectivity", () => {
+    expect(normalizeEndpoint("http://user:secret@host:4701")).toBe(
+      "ws://user:secret@host:4701/api/webrpc/v0",
+    );
+  });
+});
+
+describe("formatEndpointForDisplay", () => {
+  it("removes credentials from websocket display values", () => {
+    expect(formatEndpointForDisplay("ws://user:secret@host:4701")).toBe(
+      "http://host:4701",
+    );
+  });
+
+  it("removes credentials from http display values", () => {
+    expect(formatEndpointForDisplay("https://user:secret@host:4701/rpc")).toBe(
+      "https://host:4701/rpc",
+    );
+  });
+
+  it("removes credentials from non-rpc URL display values", () => {
+    expect(formatEndpointForDisplay("tcp://user:secret@host:4701")).toBe(
+      "tcp://host:4701",
+    );
+  });
+});
+
+describe("formatEndpointForInput", () => {
+  it("keeps credentials required for editable websocket endpoint values", () => {
+    expect(
+      formatEndpointForInput("ws://user:secret@host:4701/api/webrpc/v0"),
+    ).toBe("http://user:secret@host:4701");
+  });
+
+  it("keeps credentials required for editable http endpoint values", () => {
+    expect(
+      formatEndpointForInput("https://user:secret@host:4701/api/webrpc/v0"),
+    ).toBe("https://user:secret@host:4701");
   });
 });
 

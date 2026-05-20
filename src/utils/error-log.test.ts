@@ -16,10 +16,42 @@ describe("error log helpers", () => {
     expect(getErrorMessage("plain failure")).toBe("plain failure");
     expect(getErrorMessage(42)).toBe("42");
     expect(getErrorMessage({ code: "E_RPC" })).toBe("Unexpected error");
+    expect(getErrorMessage({ message: "object failure" })).toBe(
+      "object failure",
+    );
     expect(getErrorMessage(null, "Fallback message")).toBe("Fallback message");
     expect(getErrorMessage(undefined, "Fallback message")).toBe(
       "Fallback message",
     );
+  });
+
+  it("masks sensitive values in readable error messages", () => {
+    expect(
+      getErrorMessage(
+        new Error("failed to connect ws://user:secret@node.local/rpc"),
+      ),
+    ).toBe("failed to connect ws://***:***@node.local/rpc");
+
+    expect(
+      getErrorMessage(
+        "request failed for https://node.local/rpc?token=secret&debug=1",
+      ),
+    ).toBe("request failed for https://node.local/rpc?token=***&debug=1");
+
+    expect(
+      getErrorMessage({
+        message:
+          "rpc rejected eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.VeryLongSignature",
+      }),
+    ).toBe("rpc rejected ***JWT***");
+  });
+
+  it("does not mask non-token three-part identifiers as JWTs", () => {
+    expect(
+      getErrorMessage(
+        "failed in servicecomponent.pipelineidentifier.stepidentifier",
+      ),
+    ).toBe("failed in servicecomponent.pipelineidentifier.stepidentifier");
   });
 
   it("keeps raw error details in development logs", () => {

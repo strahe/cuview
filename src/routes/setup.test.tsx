@@ -5,6 +5,7 @@ import { SetupPage } from "@/routes/setup";
 
 const navigateMock = vi.fn();
 const testAndSwitchEndpointMock = vi.fn();
+let activeEndpoint = "ws://localhost:4701/api/webrpc/v0";
 
 vi.mock("@tanstack/react-router", () => ({
   stripSearchParams: (defaults: unknown) => defaults,
@@ -14,13 +15,14 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@/contexts/curio-api-context", () => ({
   useCurioConnection: () => ({
-    endpoint: "ws://localhost:4701/api/webrpc/v0",
+    endpoint: activeEndpoint,
     testAndSwitchEndpoint: testAndSwitchEndpointMock,
   }),
 }));
 
 describe("SetupPage", () => {
   beforeEach(() => {
+    activeEndpoint = "ws://localhost:4701/api/webrpc/v0";
     navigateMock.mockReset();
     testAndSwitchEndpointMock.mockReset();
   });
@@ -65,6 +67,29 @@ describe("SetupPage", () => {
       ).toBeInTheDocument();
     });
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps credentials in editable endpoint values", async () => {
+    const user = userEvent.setup();
+    activeEndpoint = "ws://user:secret@host:4701/api/webrpc/v0";
+    testAndSwitchEndpointMock.mockResolvedValue({
+      ok: true,
+      endpoint: "ws://user:secret@host:4701/api/webrpc/v0",
+    });
+
+    render(<SetupPage />);
+
+    expect(screen.getByLabelText("Curio Endpoint")).toHaveValue(
+      "http://user:secret@host:4701",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Connect" }));
+
+    await waitFor(() => {
+      expect(testAndSwitchEndpointMock).toHaveBeenCalledWith(
+        "http://user:secret@host:4701",
+      );
+    });
   });
 
   it("resets test status when endpoint input changes", async () => {

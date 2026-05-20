@@ -10,7 +10,7 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { type MouseEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Field,
   FieldDescription,
@@ -177,27 +177,23 @@ const muteColumns: ColumnDef<AlertMute>[] = [
         <div className="flex gap-1">
           {!mute.Active && (
             <Button
-              size="sm"
+              size="icon-sm"
               variant="ghost"
-              title="Reactivate"
-              onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                e.stopPropagation();
-                meta?.onReactivate(mute.ID);
-              }}
+              title="Reactivate mute rule"
+              aria-label="Reactivate mute rule"
+              onClick={() => meta?.onReactivate(mute.ID)}
             >
-              <RotateCcw className="size-3.5" />
+              <RotateCcw />
             </Button>
           )}
           <Button
-            size="sm"
+            size="icon-sm"
             variant="ghost"
-            title="Remove"
-            onClick={(e: MouseEvent<HTMLButtonElement>) => {
-              e.stopPropagation();
-              meta?.onRemove(mute.ID);
-            }}
+            title="Remove mute rule"
+            aria-label="Remove mute rule"
+            onClick={() => meta?.onRemove(mute.ID)}
           >
-            <Trash2 className="size-3.5 text-destructive" />
+            <Trash2 className="text-destructive" />
           </Button>
         </div>
       );

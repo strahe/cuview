@@ -7,7 +7,7 @@ import {
   Database,
   HardDrive,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { type KeyboardEvent, useCallback, useMemo, useState } from "react";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
@@ -62,6 +62,14 @@ export const Route = createFileRoute("/_app/sectors/")({
 
 const quickLinkClass =
   "inline-flex h-7 items-center rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+
+const handleInteractiveRowKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+  if (event.target !== event.currentTarget) return;
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  event.preventDefault();
+  event.currentTarget.click();
+};
 
 // Deadline/Partition detail types
 interface DeadlinePartitionInfo {
@@ -317,12 +325,16 @@ function SectorsPage() {
                 <TableRow
                   key={i}
                   className="cursor-pointer"
+                  role="button"
+                  aria-label={`Open sectors for ${ds.sp_address} deadline ${ds.deadline}`}
+                  tabIndex={0}
                   onClick={() =>
                     setSelectedDeadline({
                       sp: ds.sp_address,
                       deadline: ds.deadline,
                     })
                   }
+                  onKeyDown={handleInteractiveRowKeyDown}
                 >
                   <TableCell className="font-mono text-xs">
                     {ds.sp_address}
@@ -893,7 +905,11 @@ function DeadlineDetailDialog({
                     <TableRow
                       key={p.partition}
                       className="cursor-pointer"
+                      role="button"
+                      aria-label={`Open sectors for partition ${p.partition}`}
+                      tabIndex={0}
                       onClick={() => onPartitionClick(p.partition)}
+                      onKeyDown={handleInteractiveRowKeyDown}
                     >
                       <TableCell className="font-mono">
                         #{p.partition}

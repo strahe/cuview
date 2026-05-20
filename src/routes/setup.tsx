@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurioConnection } from "@/contexts/curio-api-context";
-import { formatEndpointForDisplay } from "@/utils/endpoint";
+import { formatEndpointForInput } from "@/utils/endpoint";
 
 export const Route = createFileRoute("/setup")({
   component: SetupPage,
@@ -23,7 +23,7 @@ export function SetupPage() {
   const { endpoint: activeEndpoint, testAndSwitchEndpoint } =
     useCurioConnection();
   const activeEndpointValue =
-    formatEndpointForDisplay(activeEndpoint) || "http://localhost:4701";
+    formatEndpointForInput(activeEndpoint) || "http://localhost:4701";
 
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,7 +48,7 @@ export function SetupPage() {
     if (result.ok) {
       setTestStatus("success");
       form.reset({
-        endpoint: formatEndpointForDisplay(result.endpoint),
+        endpoint: formatEndpointForInput(result.endpoint),
       });
 
       if (navigateOnSuccess) {
