@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurioRestAccessMessage } from "@/utils/curio-rest-access";
 import { useConfigHistory, useConfigHistoryEntry } from "../-module/queries";
 import type { ConfigHistoryEntryView } from "../-module/types";
 import { HistoryDiffViewer } from "./history-diff-viewer";
@@ -24,7 +25,11 @@ export function HistoryDialog({
   onOpenChange,
   onRestore,
 }: HistoryDialogProps) {
-  const { data: entries, isLoading } = useConfigHistory(open ? layer : null);
+  const {
+    data: entries,
+    error,
+    isLoading,
+  } = useConfigHistory(open ? layer : null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [prevLayer, setPrevLayer] = useState(layer);
   const [prevOpen, setPrevOpen] = useState(open);
@@ -56,6 +61,10 @@ export function HistoryDialog({
                 <Skeleton key={`hist-skel-${i}`} className="h-16" />
               ))}
             </div>
+          ) : error && entries.length === 0 ? (
+            <p className="py-4 text-center text-sm text-destructive">
+              {formatCurioRestAccessMessage(error)}
+            </p>
           ) : entries.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
               No history entries.
@@ -97,7 +106,11 @@ function HistoryEntryItem({
   onToggle: () => void;
   onRestore?: (content: string) => void;
 }) {
-  const { data: entryDetail, isLoading: detailLoading } = useConfigHistoryEntry(
+  const {
+    data: entryDetail,
+    error: detailError,
+    isLoading: detailLoading,
+  } = useConfigHistoryEntry(
     expanded ? layer : null,
     expanded ? entry.id : null,
   );
@@ -118,6 +131,10 @@ function HistoryEntryItem({
         <div className="border-t border-border px-3 py-3">
           {detailLoading ? (
             <Skeleton className="h-32" />
+          ) : detailError && !entryDetail ? (
+            <p className="text-sm text-destructive">
+              {formatCurioRestAccessMessage(detailError)}
+            </p>
           ) : entryDetail ? (
             <div className="space-y-3">
               <HistoryDiffViewer

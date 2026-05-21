@@ -164,9 +164,7 @@ describe("CreateLayerDialog", () => {
     await user.click(screen.getByRole("button", { name: "Create" }));
 
     expect(screen.getByDisplayValue("Draft Layer")).toBeVisible();
-    expect(
-      await screen.findByText("Error: Layer already exists"),
-    ).toBeVisible();
+    expect(await screen.findByText("Layer already exists")).toBeVisible();
 
     view.rerender(<CreateLayerDialog open={false} onOpenChange={vi.fn()} />);
     view.rerender(<CreateLayerDialog open onOpenChange={vi.fn()} />);
@@ -174,7 +172,7 @@ describe("CreateLayerDialog", () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Layer name")).toHaveValue("");
       expect(
-        screen.queryByText("Error: Layer already exists"),
+        screen.queryByText("Layer already exists"),
       ).not.toBeInTheDocument();
     });
   });
@@ -262,9 +260,7 @@ describe("CreateLayerDialog", () => {
       await pendingCreate.promise.catch(() => undefined);
     });
 
-    expect(
-      await screen.findByText("Error: Layer already exists"),
-    ).toBeVisible();
+    expect(await screen.findByText("Layer already exists")).toBeVisible();
   });
 
   it("clears an in-flight create error before the next session when it fails while closed", async () => {
@@ -299,7 +295,7 @@ describe("CreateLayerDialog", () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Layer name")).toHaveValue("");
       expect(
-        screen.queryByText("Error: Layer already exists"),
+        screen.queryByText("Layer already exists"),
       ).not.toBeInTheDocument();
     });
   });

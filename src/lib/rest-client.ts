@@ -38,6 +38,21 @@ export class RestClientError extends Error {
   }
 }
 
+export class RestClientNetworkError extends Error {
+  readonly url: string;
+
+  constructor(message: string, url: string, cause: unknown) {
+    super(message, { cause });
+    this.name = "RestClientNetworkError";
+    this.url = url;
+  }
+}
+
+interface MergedAbortSignal {
+  signal?: AbortSignal;
+  cleanup: () => void;
+}
+
 export interface RestClient {
   get<T>(path: string, options?: RestRequestOptions): Promise<RestResponse<T>>;
   delete<T>(
@@ -97,29 +112,68 @@ async function parseJSON<T>(response: Response): Promise<T> {
   }
 }
 
-function mergeAbortSignals(timeout?: number, signal?: AbortSignal) {
-  if (!timeout) return signal;
+function isAbortError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error.name === "AbortError" || error.name === "TimeoutError")
+  );
+}
+
+function getRestClientErrorMessage(data: unknown, url: string) {
+  if (typeof data === "string" && data.trim().length > 0) {
+    return data;
+  }
+
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof data.message === "string" &&
+    data.message.trim().length > 0
+  ) {
+    return data.message;
+  }
+
+  return `Request to ${url} failed`;
+}
+
+function mergeAbortSignals(
+  timeout?: number,
+  signal?: AbortSignal,
+): MergedAbortSignal {
+  if (!timeout) {
+    return { signal, cleanup: () => undefined };
+  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   const clear = () => clearTimeout(timer);
+  const abortFromSignal = () => {
+    controller.abort(signal?.reason);
+    clear();
+  };
 
   if (signal) {
     if (signal.aborted) {
       controller.abort(signal.reason);
       clear();
     } else {
-      signal.addEventListener("abort", () => {
-        controller.abort(signal.reason);
-        clear();
-      });
+      signal.addEventListener("abort", abortFromSignal, { once: true });
     }
   }
 
   controller.signal.addEventListener("abort", clear, { once: true });
 
-  return controller.signal;
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clear();
+      signal?.removeEventListener("abort", abortFromSignal);
+    },
+  };
 }
 
 export function createRestClient({
@@ -142,6 +196,7 @@ export function createRestClient({
   ): Promise<RestResponse<T>> {
     const { headers, query, signal, timeout: requestTimeout, body } = options;
     const url = buildURL(normalizedBaseURL, path, query);
+    const mergedSignal = mergeAbortSignals(requestTimeout ?? timeout, signal);
     const mergedHeaders = {
       ...defaultHeaders,
       ...(headers || {}),
@@ -151,7 +206,7 @@ export function createRestClient({
       method,
       headers: mergedHeaders,
       credentials,
-      signal: mergeAbortSignals(requestTimeout ?? timeout, signal),
+      signal: mergedSignal.signal,
     };
 
     if (body !== undefined) {
@@ -168,24 +223,36 @@ export function createRestClient({
       }
     }
 
-    const response = await fetch(url, init);
+    try {
+      let response: Response;
+      try {
+        response = await fetch(url, init);
+      } catch (err) {
+        if (isAbortError(err) || init.signal?.aborted) {
+          throw err;
+        }
+        throw new RestClientNetworkError(`Request to ${url} failed`, url, err);
+      }
 
-    const data = await parseJSON<T>(response);
+      const data = await parseJSON<T>(response);
 
-    if (!response.ok) {
-      throw new RestClientError(
-        `Request to ${url} failed`,
-        response.status,
-        response.statusText,
+      if (!response.ok) {
+        throw new RestClientError(
+          getRestClientErrorMessage(data, url),
+          response.status,
+          response.statusText,
+          data,
+        );
+      }
+
+      return {
+        status: response.status,
+        headers: response.headers,
         data,
-      );
+      };
+    } finally {
+      mergedSignal.cleanup();
     }
-
-    return {
-      status: response.status,
-      headers: response.headers,
-      data,
-    };
   }
 
   return {

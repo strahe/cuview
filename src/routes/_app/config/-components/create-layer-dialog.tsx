@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
+import { formatCurioRestAccessMessage } from "@/utils/curio-rest-access";
 import { useCreateLayerMutation } from "../-module/queries";
 
 interface CreateLayerDialogProps {
@@ -101,7 +102,9 @@ function CreateLayerDialogContent({
             autoFocus
           />
           {visibleError !== null && (
-            <p className="text-sm text-destructive">{String(visibleError)}</p>
+            <p className="text-sm text-destructive">
+              {formatCurioRestAccessMessage(visibleError)}
+            </p>
           )}
         </div>
         <DialogFooter>

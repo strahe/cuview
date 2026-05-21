@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CurioRestAccessError } from "@/utils/curio-rest-access";
 import { HistoryDialog } from "./history-dialog";
 
 const {
@@ -103,12 +104,14 @@ describe("HistoryDialog", () => {
 
     useConfigHistoryMock.mockReturnValue({
       data: historyEntries,
+      error: null,
       isLoading: false,
     });
 
     useConfigHistoryEntryMock.mockImplementation(
       (layer: string | null, id: number | null) => ({
         data: layer && id ? historyEntryDetail : null,
+        error: null,
         isLoading: false,
       }),
     );
@@ -130,6 +133,49 @@ describe("HistoryDialog", () => {
 
     expect(screen.getByText("Version #5 (Before change)")).toBeInTheDocument();
     expect(screen.getByText("Version #5 (After change)")).toBeInTheDocument();
+  });
+
+  it("shows REST access errors instead of empty history content", () => {
+    useConfigHistoryMock.mockReturnValue({
+      data: [],
+      error: new CurioRestAccessError(new TypeError("Failed to fetch")),
+      isLoading: false,
+    });
+
+    render(<HistoryDialog layer="layer-a" open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByText("Curio REST blocked.")).toBeInTheDocument();
+    expect(screen.queryByText("No history entries.")).not.toBeInTheDocument();
+  });
+
+  it("shows REST access errors for expanded history details", async () => {
+    const user = userEvent.setup();
+    useConfigHistoryEntryMock.mockImplementation(
+      (layer: string | null, id: number | null) => ({
+        data: null,
+        error:
+          layer && id
+            ? new CurioRestAccessError(new TypeError("Failed to fetch"))
+            : null,
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <HistoryDialog
+        layer="layer-a"
+        open
+        onOpenChange={vi.fn()}
+        onRestore={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /version #5/i }));
+
+    expect(screen.getByText("Curio REST blocked.")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Version #5 (Before change)"),
+    ).not.toBeInTheDocument();
   });
 
   it("resets expanded state when closed and when the layer changes", async () => {

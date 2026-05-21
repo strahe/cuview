@@ -16,6 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import { fetchConfigLayer } from "@/services/config-api";
 import {
+  formatCurioRestAccessMessage,
+  isCurioRestAccessError,
+} from "@/utils/curio-rest-access";
+import {
   useConfigEditorBundle,
   useSaveLayerMutation,
 } from "../-module/queries";
@@ -32,6 +36,14 @@ interface ConfigEditorPanelProps {
   infoDisplay: ConfigInfoDisplay;
   onModeChange: (mode: ConfigEditMode) => void;
   onInfoDisplayChange: (display: ConfigInfoDisplay) => void;
+}
+
+function formatConfigActionError(prefix: string, error: unknown): string {
+  if (isCurioRestAccessError(error)) {
+    return formatCurioRestAccessMessage(error);
+  }
+
+  return `${prefix}: ${formatCurioRestAccessMessage(error)}`;
 }
 
 export function ConfigEditorPanel({
@@ -64,7 +76,7 @@ export function ConfigEditorPanel({
       setJsonContent(JSON.stringify(data, null, 2));
       setJsonLoaded(true);
     } catch (err) {
-      setStatusMsg(`Error loading layer: ${err}`);
+      setStatusMsg(formatConfigActionError("Error loading layer", err));
       setStatusIsError(true);
     } finally {
       setJsonLoading(false);
@@ -101,7 +113,7 @@ export function ConfigEditorPanel({
           setStatusMsg("Saved successfully");
         },
         onError: (err) => {
-          setStatusMsg(`Error saving: ${err}`);
+          setStatusMsg(formatConfigActionError("Error saving", err));
           setStatusIsError(true);
         },
       });
@@ -128,12 +140,12 @@ export function ConfigEditorPanel({
           setStatusMsg("Saved successfully");
         },
         onError: (err) => {
-          setStatusMsg(`Error saving: ${err}`);
+          setStatusMsg(formatConfigActionError("Error saving", err));
           setStatusIsError(true);
         },
       });
     } catch (err) {
-      setStatusMsg(`Error saving: ${err}`);
+      setStatusMsg(formatConfigActionError("Error saving", err));
       setStatusIsError(true);
     }
   }, [isDefault, saveMutation]);

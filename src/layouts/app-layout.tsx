@@ -15,16 +15,18 @@ import {
 } from "@/components/ui/tooltip";
 import {
   type ConnectionStatus,
-  useConnectionStatus,
+  useCurioConnection,
 } from "@/contexts/curio-api-context";
 import { useLayout } from "@/contexts/layout-context";
 import { useCurioRpc } from "@/hooks/use-curio-query";
+import { useCurioRestAccessError } from "@/hooks/use-curio-rest-access-error";
 import { cn } from "@/lib/utils";
 import {
   getCurioVersionSummary,
   normalizeCurioVersion,
 } from "@/utils/curio-version";
 import { CollapsibleSidebar } from "./collapsible-sidebar";
+import { CurioRestAccessAlert } from "./curio-rest-access-alert";
 
 function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
   const colorMap: Record<ConnectionStatus, string> = {
@@ -84,8 +86,11 @@ function VersionLabel({ version }: { version: string }) {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const layout = useLayout();
-  const connectionStatus = useConnectionStatus();
+  const { endpoint, status: connectionStatus } = useCurioConnection();
+  const hasCurioRestAccessError = useCurioRestAccessError(endpoint);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const showCurioRestAccessAlert =
+    connectionStatus === "connected" && hasCurioRestAccessError;
 
   const { data: version } = useCurioRpc<string>("Version", [], {
     refetchInterval: 300_000,
@@ -190,7 +195,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="relative min-w-0 flex-1">{children}</div>
+        <div className="relative min-w-0 flex-1">
+          {showCurioRestAccessAlert && (
+            <div className="px-4 pt-4 sm:px-6">
+              <CurioRestAccessAlert />
+            </div>
+          )}
+          {children}
+        </div>
       </SidebarInset>
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />

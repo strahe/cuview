@@ -1,6 +1,11 @@
 import type { JsonRpcClientEvents } from "@/lib/jsonrpc-client";
 import { createJsonRpcClient, type JsonRpcClient } from "@/lib/jsonrpc-client";
-import { createRestClient, type RestClient } from "@/lib/rest-client";
+import {
+  createRestClient,
+  type RestClient,
+  RestClientNetworkError,
+} from "@/lib/rest-client";
+import { CurioRestAccessError } from "@/utils/curio-rest-access";
 
 export class CurioApiService {
   private client: JsonRpcClient;
@@ -59,8 +64,7 @@ export class CurioApiService {
     path: string,
     options?: { signal?: AbortSignal },
   ): Promise<T> {
-    const response = await this.restClient.get<T>(path, options);
-    return response.data;
+    return this.readRestData(() => this.restClient.get<T>(path, options));
   }
 
   async restPost<T = unknown>(
@@ -68,8 +72,23 @@ export class CurioApiService {
     body?: unknown,
     options?: { signal?: AbortSignal },
   ): Promise<T> {
-    const response = await this.restClient.post<T>(path, body, options);
-    return response.data;
+    return this.readRestData(() =>
+      this.restClient.post<T>(path, body, options),
+    );
+  }
+
+  private async readRestData<T>(
+    request: () => Promise<{ data: T }>,
+  ): Promise<T> {
+    try {
+      const response = await request();
+      return response.data;
+    } catch (err) {
+      if (err instanceof RestClientNetworkError) {
+        throw new CurioRestAccessError(err);
+      }
+      throw err;
+    }
   }
 
   private deriveRestBaseURL(endpoint: string): string {
