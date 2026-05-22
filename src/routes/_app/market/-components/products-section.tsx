@@ -176,13 +176,14 @@ export function ProductsSection() {
                       {allowed ? "Block" : "Allow"}
                     </Button>
                     <Button
-                      size="sm"
+                      size="icon-xs"
                       variant="ghost"
+                      className="text-destructive hover:text-destructive"
                       aria-label={`Remove contract ${addr}`}
                       onClick={() => removeContractMutation.mutate([addr])}
                       disabled={removeContractMutation.isPending}
                     >
-                      <Trash2 className="size-3.5 text-destructive" />
+                      <Trash2 />
                     </Button>
                   </div>
                 </div>

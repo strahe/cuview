@@ -28,17 +28,19 @@ export function FsRegistryCard({ fsStatus }: FsRegistryCardProps) {
   const [showDeregister, setShowDeregister] = useState(false);
 
   const isProviderActive = Boolean(fsStatus?.status);
+  const [prevIsProviderActive, setPrevIsProviderActive] =
+    useState(isProviderActive);
 
-  useEffect(() => {
+  if (isProviderActive !== prevIsProviderActive) {
+    setPrevIsProviderActive(isProviderActive);
     if (!isProviderActive) {
       setShowUpdateProvider(false);
       setShowUpdatePdp(false);
       setShowDeregister(false);
-      return;
+    } else {
+      setShowRegister(false);
     }
-
-    setShowRegister(false);
-  }, [isProviderActive]);
+  }
 
   return (
     <>
