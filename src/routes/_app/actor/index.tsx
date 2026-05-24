@@ -53,6 +53,7 @@ function ActorListPage() {
           searchPlaceholder="Search actors..."
           searchColumn="Address"
           emptyMessage="No actors found"
+          getRowAriaLabel={(row) => `Open actor ${row.Address}`}
           onRowClick={(row) =>
             navigate({ to: "/actor/$id", params: { id: row.Address } })
           }

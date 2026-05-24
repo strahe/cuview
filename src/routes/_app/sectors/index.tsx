@@ -429,6 +429,9 @@ function SectorsPage() {
           searchPlaceholder="Search sectors..."
           searchColumn="MinerAddress"
           emptyMessage="No sectors found"
+          getRowAriaLabel={(row) =>
+            `Open sector ${row.SectorNum} for miner ${row.MinerAddress}`
+          }
           onRowClick={handleRowClick}
         />
       </SectionCard>

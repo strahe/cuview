@@ -120,6 +120,7 @@ export function TaskHistoryPage() {
               loading={isLoading}
               emptyMessage="No task history."
               pagination={false}
+              getRowAriaLabel={(row) => `Open task ${row.taskId} (${row.name})`}
               onRowClick={(row) =>
                 updateSearch({
                   taskId: row.taskId,

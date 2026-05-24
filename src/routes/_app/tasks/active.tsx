@@ -95,6 +95,12 @@ export function ActiveTasksPage() {
               data={queueRows}
               loading={isLoading}
               emptyMessage="No active tasks."
+              getRowAriaLabel={(row) =>
+                row.kind === "task"
+                  ? `Open task ${row.task.id} (${row.task.name})`
+                  : ""
+              }
+              getRowCanClick={(row) => row.kind === "task"}
               onRowClick={(row) => {
                 if (row.kind !== "task") return;
                 updateSearch({ taskId: row.task.id, taskType: row.task.name });

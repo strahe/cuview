@@ -114,6 +114,20 @@ const alertColumns: ColumnDef<AlertHistoryItem>[] = [
   },
 ];
 
+const MAX_ALERT_ROW_ARIA_MESSAGE_LENGTH = 100;
+
+const getAlertRowAriaLabel = (row: AlertHistoryItem) => {
+  const message = row.Message.trim();
+  const displayMessage =
+    message.length > MAX_ALERT_ROW_ARIA_MESSAGE_LENGTH
+      ? `${message.slice(0, MAX_ALERT_ROW_ARIA_MESSAGE_LENGTH).trimEnd()}...`
+      : message;
+
+  return displayMessage
+    ? `Open alert ${row.AlertName}: ${displayMessage}`
+    : `Open alert ${row.AlertName}`;
+};
+
 interface MuteTableMeta {
   onReactivate: (id: number) => void;
   onRemove: (id: number) => void;
@@ -370,6 +384,7 @@ function AlertsPage() {
           searchPlaceholder="Search alerts..."
           searchColumn="Message"
           emptyMessage="No alerts"
+          getRowAriaLabel={getAlertRowAriaLabel}
           onRowClick={(row) => setSelectedAlert(row)}
         />
       </SectionCard>

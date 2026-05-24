@@ -299,6 +299,7 @@ function StoragePathsPage() {
               data={filteredPaths}
               loading={pathsQuery.isLoading}
               emptyMessage="No storage paths matched the current filters."
+              getRowAriaLabel={(row) => `Open storage path ${row.StorageID}`}
               onRowClick={(row) =>
                 navigate({
                   to: "/storage/paths/$storageId",

@@ -135,6 +135,7 @@ export function TaskAnalysisPage() {
                 data={filteredRows}
                 loading={isLoading}
                 emptyMessage="No task stats found."
+                getRowAriaLabel={(row) => `Filter by task type ${row.name}`}
                 onRowClick={(row) =>
                   updateSearch({
                     taskType: row.name,

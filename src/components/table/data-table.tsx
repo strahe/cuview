@@ -13,7 +13,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { Fragment, type ReactNode, useState } from "react";
+import {
+  Fragment,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,7 +33,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableCommonProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
@@ -36,14 +42,85 @@ interface DataTableProps<TData, TValue> {
   searchColumn?: string;
   pagination?: boolean;
   pageSize?: number;
-  onRowClick?: (row: TData) => void;
-  emptyMessage?: string;
+  emptyMessage?: ReactNode;
   emptyState?: ReactNode;
   className?: string;
   meta?: object;
   getRowCanExpand?: (row: Row<TData>) => boolean;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode;
 }
+
+type DataTableInteractiveProps<TData> = {
+  onRowClick: (row: TData) => void;
+  getRowAriaLabel: (row: TData) => string;
+  getRowCanClick?: (row: TData) => boolean;
+};
+
+type DataTableNonInteractiveProps = {
+  onRowClick?: never;
+  getRowAriaLabel?: never;
+  getRowCanClick?: never;
+};
+
+type DataTableProps<TData, TValue> = DataTableCommonProps<TData, TValue> &
+  (DataTableInteractiveProps<TData> | DataTableNonInteractiveProps);
+
+const interactiveRowChildSelector = [
+  "a",
+  "button",
+  "input",
+  "label",
+  "select",
+  "textarea",
+  "[role='button']",
+  "[role='link']",
+  "[role='checkbox']",
+  "[role='menuitem']",
+  "[role='menuitemcheckbox']",
+  "[role='menuitemradio']",
+  "[role='radio']",
+  "[role='switch']",
+  "[role='tab']",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+const isFromInteractiveRowChild = (
+  target: EventTarget | null,
+  currentTarget: HTMLTableRowElement,
+) => {
+  if (!(target instanceof Element)) return false;
+
+  const interactiveElement = target.closest(interactiveRowChildSelector);
+  return Boolean(
+    interactiveElement &&
+      interactiveElement !== currentTarget &&
+      currentTarget.contains(interactiveElement),
+  );
+};
+
+const handleInteractiveRowKeyDown = <TData,>(
+  event: KeyboardEvent<HTMLTableRowElement>,
+  row: TData,
+  onRowClick: (row: TData) => void,
+) => {
+  if (event.target !== event.currentTarget) return;
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  event.preventDefault();
+  if (event.repeat) return;
+
+  onRowClick(row);
+};
+
+const handleInteractiveRowClick = <TData,>(
+  event: MouseEvent<HTMLTableRowElement>,
+  row: TData,
+  onRowClick: (row: TData) => void,
+) => {
+  if (isFromInteractiveRowChild(event.target, event.currentTarget)) return;
+
+  onRowClick(row);
+};
 
 export function DataTable<TData, TValue>({
   columns,
@@ -55,6 +132,8 @@ export function DataTable<TData, TValue>({
   pagination = true,
   pageSize = 20,
   onRowClick,
+  getRowAriaLabel,
+  getRowCanClick,
   emptyMessage = "No results.",
   emptyState,
   className,
@@ -93,6 +172,8 @@ export function DataTable<TData, TValue>({
       },
     },
   });
+  const rows = table.getRowModel().rows;
+  const hasRowClick = Boolean(onRowClick);
 
   if (loading) {
     return (
@@ -161,33 +242,66 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={onRowClick ? "cursor-pointer" : undefined}
-                    onClick={() => onRowClick?.(row.original)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {row.getIsExpanded() && renderSubComponent && (
-                    <TableRow key={`${row.id}-expanded`}>
-                      <TableCell colSpan={row.getVisibleCells().length}>
-                        {renderSubComponent({ row })}
-                      </TableCell>
+            {rows.length ? (
+              rows.map((row) => {
+                const isInteractiveRow =
+                  hasRowClick && (getRowCanClick?.(row.original) ?? true);
+
+                return (
+                  <Fragment key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      aria-label={
+                        isInteractiveRow
+                          ? getRowAriaLabel?.(row.original)
+                          : undefined
+                      }
+                      className={cn(
+                        isInteractiveRow &&
+                          "cursor-pointer focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+                      )}
+                      onClick={
+                        isInteractiveRow && onRowClick
+                          ? (e) =>
+                              handleInteractiveRowClick(
+                                e,
+                                row.original,
+                                onRowClick,
+                              )
+                          : undefined
+                      }
+                      tabIndex={isInteractiveRow ? 0 : undefined}
+                      onKeyDown={
+                        isInteractiveRow && onRowClick
+                          ? (e) =>
+                              handleInteractiveRowKeyDown(
+                                e,
+                                row.original,
+                                onRowClick,
+                              )
+                          : undefined
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )}
-                </Fragment>
-              ))
+                    {row.getIsExpanded() && renderSubComponent && (
+                      <TableRow key={`${row.id}-expanded`}>
+                        <TableCell colSpan={row.getVisibleCells().length}>
+                          {renderSubComponent({ row })}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

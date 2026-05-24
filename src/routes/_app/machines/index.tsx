@@ -727,6 +727,9 @@ function MachinesPage() {
                   ? "No machines match current filters"
                   : "No machines found"
               }
+              getRowAriaLabel={(row) =>
+                `Open machine ${row.Name || `Machine #${row.ID}`}`
+              }
               onRowClick={(row) =>
                 navigate({
                   to: "/machines/$id",
