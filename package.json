@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "curio:compat": "node scripts/curio-compat/cli.mjs",
     "typecheck": "tsc -b --noEmit",
     "check:ui-html": "node scripts/check-ui-html.mjs",
     "check:ui-baseline": "node scripts/check-ui-baseline.mjs",
@@ -18,7 +19,7 @@
     "lint:fix": "biome lint --fix src/",
     "format": "biome format --write src/",
     "format:check": "biome format src/",
-    "check": "pnpm run typecheck && biome check src/ && pnpm run check:ui-html && pnpm run check:ui-baseline",
+    "check": "pnpm run typecheck && biome check src/ scripts/curio-compat/ && pnpm run check:ui-html && pnpm run check:ui-baseline",
     "test": "vitest run",
     "test:watch": "vitest"
   },

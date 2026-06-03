@@ -1,0 +1,2853 @@
+{
+  "rpc": [
+    {
+      "kind": "mutation",
+      "method": "AbortRestart",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/machines/$id.tsx:90"]
+    },
+    {
+      "kind": "query",
+      "method": "ActorCharts",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["All", "CC"]
+      },
+      "locations": ["src/routes/_app/actor/-module/queries.ts:28"]
+    },
+    {
+      "kind": "query",
+      "method": "ActorInfo",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Address",
+          "Beneficiary",
+          "BeneficiaryTerm",
+          "OwnerAddress",
+          "PeerID",
+          "PendingBeneficiaryTerm",
+          "PendingOwnerAddress",
+          "SectorSize",
+          "Summary",
+          "Wallets",
+          "WorkerAddress",
+          "WorkerBalance"
+        ]
+      },
+      "locations": ["src/routes/_app/actor/-module/queries.ts:21"]
+    },
+    {
+      "kind": "query",
+      "method": "ActorList",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:98"]
+    },
+    {
+      "kind": "query",
+      "method": "ActorSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "ActorAvailable",
+          "ActorBalance",
+          "Address",
+          "CLayers",
+          "Deadlines",
+          "InitialPledgeRequirement",
+          "PreCommitDeposits",
+          "QualityAdjustedPower",
+          "RawBytePower",
+          "VestingFunds",
+          "Win1",
+          "Win30",
+          "Win7"
+        ]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:55",
+        "src/routes/_app/actor/-module/queries.ts:14"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "AddAllowDenyList",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:400"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AddClientFilters",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:382"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AddMarketContract",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:336"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AddPDPService",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:28"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AddPriceFilters",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:364"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertAcknowledge",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:250"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertAcknowledgeMultiple",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:257"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertCategoriesList",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:229"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertCommentAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:552"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertCommentList",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["AlertID", "Comment", "CreatedAt", "CreatedBy", "ID"]
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:547"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertHistoryListPaginated",
+      "params": 3,
+      "response": {
+        "kind": "fields",
+        "fields": ["Alerts", "Total"]
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:237"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertMuteAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:267"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertMuteList",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Active",
+          "AlertName",
+          "ExpiresAt",
+          "ID",
+          "MutedAt",
+          "MutedBy",
+          "Pattern",
+          "Reason"
+        ]
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:244"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertMuteReactivate",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:273"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertMuteRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:270"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertPendingCount",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": [
+        "src/layouts/app-layout.tsx:98",
+        "src/hooks/use-dashboard-summary.ts:69",
+        "src/routes/_app/alerts/index.tsx:221"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertSendTest",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:264"]
+    },
+    {
+      "kind": "query",
+      "method": "AlertUnacknowledgedCount",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:224"]
+    },
+    {
+      "kind": "mutation",
+      "method": "BalanceMgrRuleAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:125"]
+    },
+    {
+      "kind": "mutation",
+      "method": "BalanceMgrRuleRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:137"]
+    },
+    {
+      "kind": "query",
+      "method": "BalanceMgrRules",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "action_type",
+          "high_watermark",
+          "id",
+          "last_msg_cid",
+          "last_msg_landed_at",
+          "last_msg_sent_at",
+          "low_watermark",
+          "second_address",
+          "subject_address",
+          "subject_type",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:112"]
+    },
+    {
+      "kind": "mutation",
+      "method": "BalanceMgrRuleUpdate",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:131"]
+    },
+    {
+      "kind": "query",
+      "method": "BlockDelaySecs",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/overview/index.tsx:47"]
+    },
+    {
+      "kind": "query",
+      "method": "ChunkUploadStatus",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["id", "status"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:452"]
+    },
+    {
+      "kind": "query",
+      "method": "ClusterMachines",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Address",
+          "Cpu",
+          "Gpu",
+          "ID",
+          "Layers",
+          "Name",
+          "RamHumanized",
+          "RestartRequest",
+          "Restarting",
+          "RunningTasks",
+          "SinceContact",
+          "Tasks",
+          "Unschedulable",
+          "Uptime"
+        ]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:46",
+        "src/routes/_app/machines/index.tsx:371"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "ClusterNodeInfo",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "FinishedTasks",
+          "Info",
+          "RunningTasks",
+          "Storage",
+          "StorageURLs"
+        ]
+      },
+      "locations": ["src/routes/_app/machines/$id.tsx:72"]
+    },
+    {
+      "kind": "query",
+      "method": "ClusterNodeMetrics",
+      "params": 1,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/machines/$id.tsx:98"]
+    },
+    {
+      "kind": "query",
+      "method": "ClusterTaskHistory",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "CompletedBy",
+          "Err",
+          "Name",
+          "Posted",
+          "Queued",
+          "Result",
+          "Start",
+          "TaskID",
+          "Took"
+        ]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:64",
+        "src/routes/_app/tasks/-module/queries.ts:50"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "ClusterTaskSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "ID",
+          "Miner",
+          "Name",
+          "Owner",
+          "OwnerID",
+          "SincePosted",
+          "SincePostedStr",
+          "SpID"
+        ]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:61",
+        "src/routes/_app/tasks/-module/queries.ts:37"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "Cordon",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": [
+        "src/routes/_app/machines/index.tsx:382",
+        "src/routes/_app/machines/$id.tsx:81"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "DeadlineDetail",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deadline",
+          "disputable_proof_count",
+          "partitions",
+          "post_submissions",
+          "sp_address",
+          "sp_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:857"]
+    },
+    {
+      "kind": "mutation",
+      "method": "DealPipelineRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:232"]
+    },
+    {
+      "kind": "query",
+      "method": "DealsPending",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Actor",
+          "CreatedAt",
+          "CreatedAtStr",
+          "Miner",
+          "PieceCID",
+          "PieceSize",
+          "PieceSizeStr",
+          "RawSize",
+          "SectorNumber",
+          "SnapDeals"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:180"]
+    },
+    {
+      "kind": "mutation",
+      "method": "DealsSealNow",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:186"]
+    },
+    {
+      "kind": "query",
+      "method": "DefaultFilterBehaviour",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "allow_deals_from_unknown_clients",
+          "cid_gravity_status",
+          "is_deal_rejected_when_cid_gravity_not_reachable"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:412"]
+    },
+    {
+      "kind": "mutation",
+      "method": "DisableDataSource",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:324"]
+    },
+    {
+      "kind": "mutation",
+      "method": "DisableProduct",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:306"]
+    },
+    {
+      "kind": "mutation",
+      "method": "EnableDataSource",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:318"]
+    },
+    {
+      "kind": "mutation",
+      "method": "EnableProduct",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:300"]
+    },
+    {
+      "kind": "query",
+      "method": "FindContentByCID",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["data_url", "piece_cid", "sector_num", "sp_id"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:440"]
+    },
+    {
+      "kind": "query",
+      "method": "FindEntriesByDataURL",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["data_url", "piece_cid", "sector_num", "sp_id"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:446"]
+    },
+    {
+      "kind": "mutation",
+      "method": "FSDeregister",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:90"]
+    },
+    {
+      "kind": "mutation",
+      "method": "FSRegister",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:72"]
+    },
+    {
+      "kind": "query",
+      "method": "FSRegistryStatus",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "address",
+          "capabilities",
+          "description",
+          "id",
+          "name",
+          "payee",
+          "pdp_service",
+          "status"
+        ]
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:66"]
+    },
+    {
+      "kind": "mutation",
+      "method": "FSUpdatePDP",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:84"]
+    },
+    {
+      "kind": "mutation",
+      "method": "FSUpdateProvider",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:78"]
+    },
+    {
+      "kind": "query",
+      "method": "GetAd",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "ad_cid",
+          "ad_cids",
+          "addresses",
+          "cid_count",
+          "context_id",
+          "entries",
+          "entry_count",
+          "is_rm",
+          "is_skip",
+          "miner",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "previous",
+          "sp_id"
+        ]
+      },
+      "locations": ["src/routes/_app/ipni/-module/queries.ts:24"]
+    },
+    {
+      "kind": "query",
+      "method": "GetAllowDenyList",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["status", "wallet"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:394"]
+    },
+    {
+      "kind": "query",
+      "method": "GetClientFilters",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "active",
+          "additional_info",
+          "max_deal_size_per_hour",
+          "max_deals_per_hour",
+          "name",
+          "peer_ids",
+          "pricing_filters",
+          "wallets"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:376"]
+    },
+    {
+      "kind": "query",
+      "method": "GetMK12DealPipelines",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "after_commp",
+          "after_find_deal",
+          "after_psd",
+          "announce",
+          "commp_task_id",
+          "complete",
+          "created_at",
+          "find_deal_task_id",
+          "headers",
+          "indexed",
+          "miner",
+          "offline",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "psd_task_id",
+          "psd_wait_time",
+          "raw_size",
+          "sector",
+          "sector_offset",
+          "sp_id",
+          "started",
+          "url",
+          "uuid"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:196"]
+    },
+    {
+      "kind": "query",
+      "method": "GetPriceFilters",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "max_dur",
+          "max_size",
+          "min_dur",
+          "min_size",
+          "name",
+          "price",
+          "verified"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:358"]
+    },
+    {
+      "kind": "direct",
+      "method": "GetStorageAsk",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "CreatedAt",
+          "Expiry",
+          "MaxSize",
+          "MinSize",
+          "Miner",
+          "Price",
+          "Sequence",
+          "SpID",
+          "VerifiedPrice"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:130"]
+    },
+    {
+      "kind": "query",
+      "method": "GetTaskStatus",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "No explicit response type"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:162"]
+    },
+    {
+      "kind": "query",
+      "method": "HarmonyTaskDetails",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "No explicit response type"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:168"]
+    },
+    {
+      "kind": "query",
+      "method": "HarmonyTaskHistory",
+      "params": 2,
+      "response": {
+        "kind": "opaque",
+        "reason": "No explicit response type"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:108"]
+    },
+    {
+      "kind": "query",
+      "method": "HarmonyTaskHistoryById",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "No explicit response type"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:174"]
+    },
+    {
+      "kind": "query",
+      "method": "HarmonyTaskMachines",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "No explicit response type"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:184"]
+    },
+    {
+      "kind": "query",
+      "method": "HarmonyTaskStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["FalseCount", "Name", "TotalCount", "TrueCount"]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:49",
+        "src/routes/_app/tasks/-module/queries.ts:59"
+      ]
+    },
+    {
+      "kind": "direct",
+      "method": "HostToMachineID",
+      "params": 1,
+      "response": {
+        "kind": "map"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:196"]
+    },
+    {
+      "kind": "mutation",
+      "method": "ImportPDPKey",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:50"]
+    },
+    {
+      "kind": "direct",
+      "method": "IPNIEntry",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Err",
+          "FirstCID",
+          "FromCar",
+          "NumBlocks",
+          "PieceCID",
+          "PrevCID",
+          "Size",
+          "StartOffset"
+        ]
+      },
+      "locations": [
+        "src/routes/_app/ipni/-components/entry-scan-grid.tsx:101",
+        "src/routes/_app/ipni/-module/queries.ts:35"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "IPNISetSkip",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/ipni/-module/queries.ts:46"]
+    },
+    {
+      "kind": "query",
+      "method": "IPNISummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["head", "miner", "peer_id", "sp_id", "sync_status"]
+      },
+      "locations": ["src/routes/_app/ipni/-module/queries.ts:14"]
+    },
+    {
+      "kind": "query",
+      "method": "ListDataSources",
+      "params": 0,
+      "response": {
+        "kind": "map"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:312"]
+    },
+    {
+      "kind": "query",
+      "method": "ListMarketContracts",
+      "params": 0,
+      "response": {
+        "kind": "map"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:330"]
+    },
+    {
+      "kind": "query",
+      "method": "ListPDPKeys",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:44"]
+    },
+    {
+      "kind": "query",
+      "method": "ListProducts",
+      "params": 0,
+      "response": {
+        "kind": "map"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:294"]
+    },
+    {
+      "kind": "query",
+      "method": "MarketBalance",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["balances", "market_balance", "miner"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:65"]
+    },
+    {
+      "kind": "query",
+      "method": "MessageByCid",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "executed_msg_cid",
+          "executed_msg_data",
+          "executed_rcpt_exitcode",
+          "executed_rcpt_gas_used",
+          "executed_rcpt_return",
+          "executed_tsk_cid",
+          "executed_tsk_epoch",
+          "fee_str",
+          "from_key",
+          "nonce",
+          "send_error",
+          "send_reason",
+          "send_success",
+          "send_task_id",
+          "send_time",
+          "signed_cid",
+          "signed_data",
+          "signed_json",
+          "to_addr",
+          "unsigned_cid",
+          "unsigned_data",
+          "value_str",
+          "waiter_machine_id"
+        ]
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:153"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK12BulkRemoveFailedMarketPipelines",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:226"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK12BulkRestartFailedMarketTasks",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:220"]
+    },
+    {
+      "kind": "query",
+      "method": "MK12DDOStorageDealList",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "created_at",
+          "error",
+          "miner",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "processed",
+          "raw_size",
+          "sp_id",
+          "uuid"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:208"]
+    },
+    {
+      "kind": "query",
+      "method": "MK12PipelineFailedTasks",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "CommPFailed",
+          "DownloadingFailed",
+          "FindDealFailed",
+          "IndexFailed",
+          "PSDFailed"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:214"]
+    },
+    {
+      "kind": "query",
+      "method": "MK12StorageDealList",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "created_at",
+          "error",
+          "miner",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "processed",
+          "raw_size",
+          "sp_id",
+          "uuid"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:202"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK20BulkRemoveFailedMarketPipelines",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:273"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK20BulkRemoveFailedPDPPipelines",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:119"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK20BulkRestartFailedMarketTasks",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:267"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK20BulkRestartFailedPDPTasks",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:113"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20DDOPipelines",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "after_commp",
+          "agg_task_id",
+          "aggr_index",
+          "aggregated",
+          "allocation_id",
+          "announce",
+          "client",
+          "commp_task_id",
+          "complete",
+          "contract",
+          "created_at",
+          "deal_aggregation",
+          "downloaded",
+          "duration",
+          "id",
+          "indexed",
+          "indexing",
+          "indexing_created_at",
+          "indexing_task_id",
+          "miner",
+          "offline",
+          "piece_aggregation",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "raw_size",
+          "reg_seal_proof",
+          "sealed",
+          "sector",
+          "sector_offset",
+          "sp_id",
+          "started",
+          "url"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:249"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20DDOStorageDeal",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["ddoerr", "ddoid", "deal", "pdperr"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:280"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20DDOStorageDeals",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "created_at",
+          "error",
+          "id",
+          "miner",
+          "piece_cid_v2",
+          "processed"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:255"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20PDPPipelineFailedTasks",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "AddPieceFailed",
+          "AggFailed",
+          "CommPFailed",
+          "DownloadingFailed",
+          "IndexFailed",
+          "SaveCacheFailed"
+        ]
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:107"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MK20PDPPipelineRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:125"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20PDPPipelines",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "add_piece_task_id",
+          "after_add_piece",
+          "after_add_piece_msg",
+          "after_commp",
+          "after_save_cache",
+          "agg_task_id",
+          "aggr_index",
+          "aggregated",
+          "announce",
+          "announce_payload",
+          "client",
+          "commp_task_id",
+          "complete",
+          "created_at",
+          "deal_aggregation",
+          "downloaded",
+          "id",
+          "indexed",
+          "indexing",
+          "indexing_created_at",
+          "indexing_task_id",
+          "miner",
+          "piece_cid_v2",
+          "save_cache_task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:100"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20PDPStorageDeals",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": ["created_at", "error", "id", "piece_cid_v2", "processed"]
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:135"]
+    },
+    {
+      "kind": "query",
+      "method": "MK20PipelineFailedTasks",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "AggFailed",
+          "CommPFailed",
+          "DownloadingFailed",
+          "IndexFailed"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:261"]
+    },
+    {
+      "kind": "mutation",
+      "method": "MoveBalanceToEscrow",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:78"]
+    },
+    {
+      "kind": "query",
+      "method": "NetSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "bandwidth",
+          "epoch",
+          "nodeCount",
+          "nodes",
+          "peerCount",
+          "reachability"
+        ]
+      },
+      "locations": ["src/routes/_app/overview/index.tsx:50"]
+    },
+    {
+      "kind": "query",
+      "method": "PartitionDetail",
+      "params": 3,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "active_sectors_count",
+          "all_sectors_count",
+          "deadline",
+          "faulty_sectors_count",
+          "faulty_storage_paths",
+          "live_sectors_count",
+          "partition",
+          "recovering_sectors_count",
+          "sectors",
+          "sp_address",
+          "sp_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:975"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PartitionVanillaTest",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deadline",
+          "error",
+          "failed_count",
+          "miner",
+          "partition",
+          "passed_count",
+          "results",
+          "sector_count",
+          "slow_count",
+          "tested_count",
+          "total_time"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:879"]
+    },
+    {
+      "kind": "query",
+      "method": "PDPServices",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["id", "name", "pubkey"]
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:22"]
+    },
+    {
+      "kind": "query",
+      "method": "PendingMessages",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["messages", "total"]
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:147"]
+    },
+    {
+      "kind": "query",
+      "method": "PieceDealDetail",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deal_id",
+          "end_epoch",
+          "is_ddo",
+          "miner",
+          "piece_cid",
+          "piece_size",
+          "sector_num",
+          "sp_id",
+          "start_epoch"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:428"]
+    },
+    {
+      "kind": "query",
+      "method": "PieceInfo",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "created_at",
+          "deals",
+          "indexed",
+          "indexed_at",
+          "ipni_ads",
+          "piece_cid",
+          "piece_cid_v2",
+          "size"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:422"]
+    },
+    {
+      "kind": "query",
+      "method": "PieceParkStates",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["complete", "created_at", "piece_cid", "state", "url"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:434"]
+    },
+    {
+      "kind": "query",
+      "method": "PieceSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["announced", "indexed", "last_updated", "total"]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:88"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PipelinePorepRestartAll",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:68"]
+    },
+    {
+      "kind": "query",
+      "method": "PipelinePorepSectors",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Address",
+          "AfterCommitMsg",
+          "AfterCommitMsgSuccess",
+          "AfterFinalize",
+          "AfterMoveStorage",
+          "AfterPoRep",
+          "AfterPrecommitMsg",
+          "AfterPrecommitMsgSuccess",
+          "AfterSDR",
+          "AfterSeed",
+          "AfterSynthetic",
+          "AfterTreeC",
+          "AfterTreeD",
+          "AfterTreeR",
+          "AllTasks",
+          "ChainActive",
+          "ChainAlloc",
+          "ChainFaulty",
+          "ChainSector",
+          "ChainUnproven",
+          "CommitMsgCid",
+          "CommitReadyAt",
+          "CreateTime",
+          "Failed",
+          "FailedReason",
+          "MissingTasks",
+          "PoRepProof",
+          "PreCommitMsgCid",
+          "PreCommitReadyAt",
+          "SectorNumber",
+          "SeedEpoch",
+          "SpID",
+          "StartedCommitMsg",
+          "StartedFinalize",
+          "StartedMoveStorage",
+          "StartedPoRep",
+          "StartedPrecommitMsg",
+          "StartedSDR",
+          "StartedSynthetic",
+          "StartedTreeD",
+          "StartedTreeRC",
+          "TaskCommitMsg",
+          "TaskFinalize",
+          "TaskMoveStorage",
+          "TaskPoRep",
+          "TaskPrecommitMsg",
+          "TaskSDR",
+          "TaskSynthetic",
+          "TaskTreeC",
+          "TaskTreeD",
+          "TaskTreeR",
+          "TreeD",
+          "TreeR"
+        ]
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:35"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PipelineSnapRestartAll",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:121"]
+    },
+    {
+      "kind": "query",
+      "method": "PipelineStatsMarket",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["Stages", "Total"]
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:149"]
+    },
+    {
+      "kind": "query",
+      "method": "PipelineStatsSDR",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["Stages", "Total"]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:72",
+        "src/routes/_app/pipeline/-module/queries.ts:143"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "PipelineStatsSnap",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["Stages", "Total"]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:77",
+        "src/routes/_app/pipeline/-module/queries.ts:97",
+        "src/routes/_app/pipeline/-module/queries.ts:146"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "PorepPipelineSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Actor",
+          "CountCommitMsg",
+          "CountDone",
+          "CountFailed",
+          "CountPoRep",
+          "CountPrecommitMsg",
+          "CountSDR",
+          "CountTrees",
+          "CountWaitSeed"
+        ]
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:48"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSAskWithdraw",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:65"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientAddWallet",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:125"]
+    },
+    {
+      "kind": "query",
+      "method": "PSClientGet",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "address",
+          "do_porep",
+          "do_snap",
+          "enabled",
+          "minimum_pending_seconds",
+          "price",
+          "sp_id",
+          "wallet"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:81"]
+    },
+    {
+      "kind": "query",
+      "method": "PSClientListMessages",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "action",
+          "address",
+          "completed_at",
+          "signed_cid",
+          "started_at",
+          "success",
+          "wallet"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:99"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:119"]
+    },
+    {
+      "kind": "query",
+      "method": "PSClientRequests",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "created_at",
+          "done",
+          "done_at",
+          "payment_amount",
+          "payment_nonce",
+          "payment_wallet",
+          "request_cid",
+          "request_sent",
+          "request_uploaded",
+          "response_data",
+          "sector_num",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:93"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientRouterAddBalance",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:131"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientRouterCancelWithdrawal",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:143"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientRouterCompleteWithdrawal",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:149"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientRouterRequestWithdrawal",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:137"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSClientSet",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:113"]
+    },
+    {
+      "kind": "query",
+      "method": "PSClientWallets",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "address",
+          "available_balance",
+          "chain_balance",
+          "router_avail_balance",
+          "router_unlocked_balance",
+          "router_unsettled_balance",
+          "wallet",
+          "withdraw_timestamp"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:87"]
+    },
+    {
+      "kind": "query",
+      "method": "PSGetMeta",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["enabled", "price", "request_task_id", "wallet"]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:27"]
+    },
+    {
+      "kind": "query",
+      "method": "PSGetTos",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["client", "provider"]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:105"]
+    },
+    {
+      "kind": "query",
+      "method": "PSListAsks",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["created_at", "id", "min_price_fil", "min_price_nfil"]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:43"]
+    },
+    {
+      "kind": "query",
+      "method": "PSListQueue",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "compute_done",
+          "compute_task_id",
+          "obtained_at",
+          "payment_amount",
+          "service_id",
+          "submit_done",
+          "submit_task_id",
+          "was_pow"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:31"]
+    },
+    {
+      "kind": "query",
+      "method": "PSListSettlements",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "address",
+          "amount_for_this_settlement_fil",
+          "payment_nonce",
+          "provider_id",
+          "settle_message_cid",
+          "settled_at"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:49"]
+    },
+    {
+      "kind": "query",
+      "method": "PSProviderLastPaymentsSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "address",
+          "contract_last_nonce",
+          "contract_settled_fil",
+          "last_payment_nonce",
+          "last_settled_amount_fil",
+          "last_settled_at",
+          "time_since_last_settlement",
+          "unsettled_amount_fil",
+          "wallet_id"
+        ]
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:37"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSProviderSettle",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:71"]
+    },
+    {
+      "kind": "mutation",
+      "method": "PSSetMeta",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/proof-share/-module/queries.ts:59"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemoveAllowFilter",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:406"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemoveClientFilter",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:388"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemoveMarketContract",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:348"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemovePDPKey",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:56"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemovePDPService",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pdp/-module/queries.ts:34"]
+    },
+    {
+      "kind": "mutation",
+      "method": "RemovePricingFilter",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:370"]
+    },
+    {
+      "kind": "mutation",
+      "method": "Restart",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": [
+        "src/routes/_app/machines/index.tsx:384",
+        "src/routes/_app/machines/$id.tsx:87"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "RestartFailedTask",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:220"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorCCScheduler",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "DurationDays",
+          "Enabled",
+          "RequestedSize",
+          "SPAddress",
+          "SectorSize",
+          "SpID",
+          "ToSeal",
+          "Weight"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/cc-scheduler/index.tsx:40"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorCCSchedulerDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/cc-scheduler/index.tsx:49"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorCCSchedulerEdit",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/cc-scheduler/index.tsx:46"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorCommRCheckList",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_comm_r",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_comm_r",
+          "file_type",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:377"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorCommRCheckStart",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_comm_r",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_comm_r",
+          "file_type",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:384"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorCommRCheckStatus",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_comm_r",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_comm_r",
+          "file_type",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:391"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorDeadlineStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "active_sectors",
+          "all_sectors",
+          "count",
+          "deadline",
+          "faulty_sectors",
+          "live_sectors",
+          "post_submissions",
+          "recovering_sectors",
+          "sp_address",
+          "sp_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:164"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpBucketAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:170"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorExpBucketCounts",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "cc_count",
+          "deal_count",
+          "less_than_days",
+          "sp_address",
+          "sp_id",
+          "total_count"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:163"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpBucketDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:173"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorExpBuckets",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["less_than_days"]
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:150"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerPresetAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:178"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerPresetDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:181"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorExpManagerPresets",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "action_type",
+          "cc",
+          "drop_claims",
+          "info_bucket_above_days",
+          "info_bucket_below_days",
+          "max_candidate_days",
+          "name",
+          "target_expiration_days",
+          "top_up_count_high_water_mark",
+          "top_up_count_low_water_mark"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:155"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerPresetUpdate",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:185"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerSPAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:191"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerSPDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:194"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerSPEvalCondition",
+      "params": "dynamic",
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:200"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorExpManagerSPs",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "enabled",
+          "last_message_cid",
+          "last_message_landed_at",
+          "last_run_at",
+          "preset_name",
+          "sp_address",
+          "sp_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:160"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorExpManagerSPToggle",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/expiration/index.tsx:197"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorFileTypeStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["count", "file_type"]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:169"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorInfo",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "ActivationEpoch",
+          "CommitMsg",
+          "Deadline",
+          "DealWeight",
+          "ExpirationEpoch",
+          "HasSealed",
+          "HasUnsealed",
+          "HasUpdate",
+          "IsSnap",
+          "Locations",
+          "Miner",
+          "Partition",
+          "PartitionState",
+          "Pieces",
+          "PreCommitMsg",
+          "Restart",
+          "Resumable",
+          "SealedCid",
+          "SectorNumber",
+          "SpID",
+          "TaskHistory",
+          "Tasks",
+          "UnsealedCid",
+          "UnsealedState",
+          "UpdateMsg",
+          "UpdatedSealedCid",
+          "UpdatedUnsealedCid"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:481"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorPipelineStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["count", "pipeline_type", "stage"]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:159"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:489"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorRestart",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:492"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorResume",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:486"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorSPStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "cc_count",
+          "non_cc_count",
+          "sp_address",
+          "sp_id",
+          "total_count"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/index.tsx:156"]
+    },
+    {
+      "kind": "query",
+      "method": "SectorUnsealedCheckList",
+      "params": 2,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_commd",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_commd",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:606"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorUnsealedCheckStart",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_commd",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_commd",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:613"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorUnsealedCheckStatus",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "actual_commd",
+          "check_id",
+          "complete",
+          "create_time",
+          "error",
+          "expected_commd",
+          "message",
+          "ok",
+          "sector_number",
+          "sp_id",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:620"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SectorVanillaTest",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deadline",
+          "error",
+          "failed_count",
+          "miner",
+          "partition",
+          "passed_count",
+          "results",
+          "sector_count",
+          "slow_count",
+          "tested_count",
+          "total_time"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:802"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SetStorageAsk",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:170"]
+    },
+    {
+      "kind": "mutation",
+      "method": "SingletonRunNow",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:225"]
+    },
+    {
+      "kind": "query",
+      "method": "SingletonTaskInfo",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "Unsupported response type ApiSingletonInfo | null"
+      },
+      "locations": ["src/routes/_app/tasks/-module/queries.ts:135"]
+    },
+    {
+      "kind": "query",
+      "method": "StorageDealInfo",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "announce_to_ipni",
+          "chain_deal_id",
+          "client_peer_id",
+          "created_at",
+          "end_epoch",
+          "error",
+          "fast_retrieval",
+          "id",
+          "indexed",
+          "is_ddo",
+          "miner",
+          "offline",
+          "piece_cid",
+          "piece_cid_v2",
+          "piece_size",
+          "publish_cid",
+          "sector",
+          "signed_proposal_cid",
+          "sp_id",
+          "start_epoch",
+          "url",
+          "url_headers",
+          "verified"
+        ]
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:239"]
+    },
+    {
+      "kind": "mutation",
+      "method": "StorageGCApprove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:238"]
+    },
+    {
+      "kind": "mutation",
+      "method": "StorageGCApproveAll",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:250"]
+    },
+    {
+      "kind": "direct",
+      "method": "StorageGCMarks",
+      "params": 4,
+      "response": {
+        "kind": "opaque",
+        "reason": "Unsupported response type StorageGCMarksResponsePayload"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:225"]
+    },
+    {
+      "kind": "query",
+      "method": "StorageGCStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["Actor", "Count", "Miner"]
+      },
+      "locations": [
+        "src/routes/_app/sectors/index.tsx:174",
+        "src/routes/_app/storage/-module/queries.ts:204"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "StorageGCUnapprove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:244"]
+    },
+    {
+      "kind": "mutation",
+      "method": "StorageGCUnapproveAll",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:256"]
+    },
+    {
+      "kind": "direct",
+      "method": "StoragePathDetail",
+      "params": 1,
+      "response": {
+        "kind": "opaque",
+        "reason": "Unsupported response type StoragePathDetailResponsePayload"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:137"]
+    },
+    {
+      "kind": "query",
+      "method": "StoragePathList",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "AllowMinersList",
+          "AllowToList",
+          "AllowTypesList",
+          "Available",
+          "AvailableStr",
+          "CanSeal",
+          "CanStore",
+          "Capacity",
+          "CapacityStr",
+          "DenyMinersList",
+          "DenyTypesList",
+          "FSAvailableStr",
+          "GroupList",
+          "HealthOK",
+          "HealthStatus",
+          "HeartbeatErr",
+          "HostList",
+          "LastHeartbeat",
+          "MaxStorage",
+          "MaxStorageStr",
+          "PathType",
+          "ReservedPercent",
+          "ReservedStr",
+          "StorageID",
+          "URLList",
+          "Used",
+          "UsedPercent",
+          "UsedStr",
+          "Weight"
+        ]
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:121"]
+    },
+    {
+      "kind": "direct",
+      "method": "StoragePathSectors",
+      "params": 3,
+      "response": {
+        "kind": "opaque",
+        "reason": "Unsupported response type StoragePathSectorsResponsePayload"
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:161"]
+    },
+    {
+      "kind": "query",
+      "method": "StoragePathsSummary",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "AllowMinersList",
+          "AllowToList",
+          "AllowTypesList",
+          "Available",
+          "AvailableStr",
+          "CanSeal",
+          "CanStore",
+          "Capacity",
+          "CapacityStr",
+          "DenyMinersList",
+          "DenyTypesList",
+          "FSAvailableStr",
+          "GroupList",
+          "HealthOK",
+          "HealthStatus",
+          "HeartbeatErr",
+          "HostList",
+          "LastHeartbeat",
+          "MaxStorage",
+          "MaxStorageStr",
+          "PathType",
+          "ReservedPercent",
+          "ReservedStr",
+          "StorageID",
+          "URLList",
+          "Used",
+          "UsedPercent",
+          "UsedStr",
+          "Weight"
+        ]
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:115"]
+    },
+    {
+      "kind": "query",
+      "method": "StorageStoreTypeStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "avail_str",
+          "available",
+          "cap_str",
+          "capacity",
+          "type",
+          "use_str",
+          "used"
+        ]
+      },
+      "locations": ["src/routes/_app/storage/-module/queries.ts:109"]
+    },
+    {
+      "kind": "query",
+      "method": "StorageUseStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Available",
+          "CanSeal",
+          "CanStore",
+          "CapStr",
+          "Capacity",
+          "Type",
+          "UseStr"
+        ]
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:52",
+        "src/routes/_app/storage/-module/queries.ts:103"
+      ]
+    },
+    {
+      "kind": "query",
+      "method": "SyncerState",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": ["Address", "CLayers", "Reachable", "SyncState", "Version"]
+      },
+      "locations": ["src/hooks/use-dashboard-summary.ts:58"]
+    },
+    {
+      "kind": "mutation",
+      "method": "Uncordon",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": [
+        "src/routes/_app/machines/index.tsx:383",
+        "src/routes/_app/machines/$id.tsx:84"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "UpdateMarketContract",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/market/-module/queries.ts:342"]
+    },
+    {
+      "kind": "mutation",
+      "method": "UpgradeDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:127"]
+    },
+    {
+      "kind": "mutation",
+      "method": "UpgradeResetTaskIDs",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:133"]
+    },
+    {
+      "kind": "query",
+      "method": "UpgradeSectors",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Address",
+          "AfterEncode",
+          "AfterMoveStorage",
+          "AfterProve",
+          "AfterProveMsgSuccess",
+          "AfterSubmit",
+          "CurrentState",
+          "DataAssigned",
+          "Failed",
+          "FailedAt",
+          "FailedReason",
+          "FailedReasonMsg",
+          "Progress",
+          "Proof",
+          "ProveMsgCid",
+          "ProveMsgTsk",
+          "SectorNumber",
+          "SpID",
+          "StartTime",
+          "SubmitAfter",
+          "TaskIDEncode",
+          "TaskIDMoveStorage",
+          "TaskIDProve",
+          "TaskIDSubmit",
+          "UpdateReadyAt",
+          "UpdateSealedCid",
+          "UpdateUnsealedCid",
+          "UpgradeProof"
+        ]
+      },
+      "locations": ["src/routes/_app/pipeline/-module/queries.ts:84"]
+    },
+    {
+      "kind": "query",
+      "method": "Version",
+      "params": 0,
+      "response": {
+        "kind": "scalar"
+      },
+      "locations": [
+        "src/layouts/app-layout.tsx:95",
+        "src/routes/_app/tasks/-module/queries.ts:130",
+        "src/utils/test-connection.ts:20"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "WalletAdd",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:90"]
+    },
+    {
+      "kind": "direct",
+      "method": "WalletInfoShort",
+      "params": 1,
+      "response": {
+        "kind": "fields",
+        "fields": ["balance", "id_address", "key_address", "pending_messages"]
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:44"]
+    },
+    {
+      "kind": "mutation",
+      "method": "WalletNameChange",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:102"]
+    },
+    {
+      "kind": "query",
+      "method": "WalletNames",
+      "params": 0,
+      "response": {
+        "kind": "map"
+      },
+      "locations": [
+        "src/hooks/use-dashboard-summary.ts:82",
+        "src/routes/_app/wallets/-module/queries.ts:23"
+      ]
+    },
+    {
+      "kind": "mutation",
+      "method": "WalletRemove",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/wallets/-module/queries.ts:96"]
+    },
+    {
+      "kind": "mutation",
+      "method": "WdPostTaskCheck",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deadline",
+          "error",
+          "partition",
+          "result",
+          "sp_id",
+          "submitted",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:878"]
+    },
+    {
+      "kind": "mutation",
+      "method": "WdPostTaskStart",
+      "params": "dynamic",
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "deadline",
+          "error",
+          "partition",
+          "result",
+          "sp_id",
+          "submitted",
+          "task_id"
+        ]
+      },
+      "locations": ["src/routes/_app/sectors/diagnostics/index.tsx:877"]
+    },
+    {
+      "kind": "query",
+      "method": "WinStats",
+      "params": 0,
+      "response": {
+        "kind": "fields",
+        "fields": [
+          "Actor",
+          "BaseComputeTime",
+          "Block",
+          "ComputeTime",
+          "Epoch",
+          "Included",
+          "IncludedStr",
+          "MinedAt",
+          "Miner",
+          "SubmittedAt",
+          "SubmittedAtStr",
+          "TaskID",
+          "TaskSuccess"
+        ]
+      },
+      "locations": ["src/routes/_app/actor/-module/queries.ts:35"]
+    }
+  ],
+  "rest": [
+    {
+      "kind": "direct",
+      "method": "GET",
+      "path": "/api/config/default",
+      "locations": ["src/services/config-api.ts:37"]
+    },
+    {
+      "kind": "direct",
+      "method": "GET",
+      "path": "/api/config/layers",
+      "locations": [
+        "src/services/config-api.ts:16",
+        "src/routes/_app/config/-module/queries.ts:69"
+      ]
+    },
+    {
+      "kind": "direct",
+      "method": "GET",
+      "path": "/api/config/schema",
+      "locations": ["src/services/config-api.ts:48"]
+    },
+    {
+      "kind": "direct",
+      "method": "GET",
+      "path": "/api/config/topo",
+      "locations": [
+        "src/services/config-api.ts:26",
+        "src/routes/_app/config/-module/queries.ts:123"
+      ]
+    },
+    {
+      "kind": "direct",
+      "method": "GET",
+      "path": "/api/sector/all",
+      "locations": ["src/services/sector-api.ts:12"]
+    },
+    {
+      "kind": "query",
+      "method": "GET",
+      "path": "/sectors",
+      "locations": ["src/routes/_app/sectors/index.tsx:153"]
+    },
+    {
+      "kind": "direct",
+      "method": "POST",
+      "path": "/api/config/addlayer",
+      "locations": ["src/services/config-api.ts:80"]
+    },
+    {
+      "kind": "direct",
+      "method": "POST",
+      "path": "/api/sector/terminate",
+      "locations": ["src/services/sector-api.ts:22"]
+    }
+  ],
+  "manualReview": [
+    {
+      "type": "dynamic-rpc",
+      "location": "src/routes/_app/pipeline/-module/queries.ts:74",
+      "reason": "useCurioRpcMutation uses a non-literal method"
+    },
+    {
+      "type": "dynamic-rest",
+      "location": "src/services/config-api.ts:104",
+      "reason": "restGet uses a non-literal path"
+    },
+    {
+      "type": "dynamic-rest",
+      "location": "src/services/config-api.ts:117",
+      "reason": "restGet uses a non-literal path"
+    },
+    {
+      "type": "dynamic-rest",
+      "location": "src/services/config-api.ts:61",
+      "reason": "restGet uses a non-literal path"
+    },
+    {
+      "type": "dynamic-rest",
+      "location": "src/services/config-api.ts:73",
+      "reason": "restPost uses a non-literal path"
+    }
+  ]
+}
