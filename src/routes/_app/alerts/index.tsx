@@ -130,10 +130,11 @@ const getAlertRowAriaLabel = (row: AlertHistoryItem) => {
 
 interface MuteTableMeta {
   onReactivate: (id: number) => void;
-  onRemove: (id: number) => void;
+  onDeactivate: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
-const muteColumns: ColumnDef<AlertMute>[] = [
+export const muteColumns: ColumnDef<AlertMute>[] = [
   { accessorKey: "AlertName", header: "Category" },
   {
     accessorKey: "Pattern",
@@ -203,9 +204,15 @@ const muteColumns: ColumnDef<AlertMute>[] = [
           <Button
             size="icon-sm"
             variant="ghost"
-            title="Remove mute rule"
-            aria-label="Remove mute rule"
-            onClick={() => meta?.onRemove(mute.ID)}
+            title={mute.Active ? "Deactivate mute rule" : "Delete mute rule"}
+            aria-label={
+              mute.Active ? "Deactivate mute rule" : "Delete mute rule"
+            }
+            onClick={() =>
+              mute.Active
+                ? meta?.onDeactivate(mute.ID)
+                : meta?.onDelete(mute.ID)
+            }
           >
             <Trash2 className="text-destructive" />
           </Button>
@@ -267,7 +274,10 @@ function AlertsPage() {
   const muteAddMutation = useCurioRpcMutation("AlertMuteAdd", {
     invalidateKeys: [["curio", "AlertMuteList"]],
   });
-  const muteRemoveMutation = useCurioRpcMutation("AlertMuteRemove", {
+  const muteDeactivateMutation = useCurioRpcMutation("AlertMuteDeactivate", {
+    invalidateKeys: [["curio", "AlertMuteList"]],
+  });
+  const muteDeleteMutation = useCurioRpcMutation("AlertMuteDelete", {
     invalidateKeys: [["curio", "AlertMuteList"]],
   });
   const muteReactivateMutation = useCurioRpcMutation("AlertMuteReactivate", {
@@ -315,7 +325,8 @@ function AlertsPage() {
 
   const muteTableMeta: MuteTableMeta = {
     onReactivate: (id) => muteReactivateMutation.mutate([id]),
-    onRemove: (id) => muteRemoveMutation.mutate([id]),
+    onDeactivate: (id) => muteDeactivateMutation.mutate([id]),
+    onDelete: (id) => muteDeleteMutation.mutate([id]),
   };
 
   return (

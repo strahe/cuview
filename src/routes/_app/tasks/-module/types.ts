@@ -84,8 +84,11 @@ export interface ApiTaskMachine {
 }
 
 export interface ApiTaskStat {
-  Name?: string;
   name?: string;
+  success?: number;
+  failure?: number;
+  total?: number;
+  Name?: string;
   TrueCount?: number;
   true_count?: number;
   FalseCount?: number;

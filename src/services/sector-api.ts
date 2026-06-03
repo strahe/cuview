@@ -1,8 +1,14 @@
 import type { CurioApiService } from "@/services/curio-api";
 import type { SectorListItem, SectorTerminationPayload } from "@/types/sectors";
 
-interface SectorListResponse {
+export interface SectorListResponse {
   data: SectorListItem[];
+}
+
+export function normalizeSectorListResponse(
+  response: SectorListResponse | null | undefined,
+): SectorListItem[] {
+  return response?.data ?? [];
 }
 
 export async function fetchSectors(
@@ -12,7 +18,7 @@ export async function fetchSectors(
   const response = await api.restGet<SectorListResponse>("/api/sector/all", {
     signal,
   });
-  return response?.data ?? [];
+  return normalizeSectorListResponse(response);
 }
 
 export async function terminateSectors(

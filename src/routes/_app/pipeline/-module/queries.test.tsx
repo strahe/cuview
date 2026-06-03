@@ -34,19 +34,19 @@ function makeSnapSector(
 ): SnapSectorEntry {
   return {
     SpID: 5678,
-    SectorNumber: 99,
+    SectorNum: 99,
     StartTime: "2025-06-01T00:00:00Z",
-    UpgradeProof: 0,
-    DataAssigned: false,
     AfterEncode: false,
     AfterProve: false,
     AfterSubmit: false,
     AfterMoveStorage: false,
-    AfterProveMsgSuccess: false,
+    AfterProveSuccess: false,
     Failed: false,
     FailedReason: "",
-    FailedReasonMsg: "",
-    Address: "f05678",
+    FailedMsg: "",
+    MissingTasks: [],
+    AllTasks: [],
+    Miner: "f05678",
     ...overrides,
   };
 }
@@ -123,18 +123,16 @@ describe("snap pipeline query helpers", () => {
     };
 
     const sectors = [
-      normalizeSnapSector(
-        makeSnapSector({ Address: "f01", AfterEncode: true }),
-      ),
+      normalizeSnapSector(makeSnapSector({ Miner: "f01", AfterEncode: true })),
       normalizeSnapSector(
         makeSnapSector({
-          Address: "f01",
+          Miner: "f01",
           Failed: true,
           FailedReason: "disk full",
         }),
       ),
       normalizeSnapSector(
-        makeSnapSector({ Address: "f02", AfterProveMsgSuccess: true }),
+        makeSnapSector({ Miner: "f02", AfterProveSuccess: true }),
       ),
     ];
 

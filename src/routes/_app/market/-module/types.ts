@@ -7,12 +7,12 @@ export { extractNullable } from "@/utils/sql";
 
 // MK12 deal list item (raw from RPC, StorageDealList in Go)
 export interface MK12DealListItem {
-  uuid: string;
+  id: string;
   sp_id: number;
   created_at: string;
   piece_cid: string;
   piece_size: number;
-  raw_size?: SqlNullableNumber | number | null;
+  RawSize?: SqlNullableNumber | number | null;
   piece_cid_v2?: string;
   processed: boolean;
   error?: SqlNullableString | string | null;
@@ -64,30 +64,68 @@ export interface PieceInfoResult {
 }
 
 export interface PieceDealDetailItem {
-  deal_id: number;
+  uuid: string;
   piece_cid: string;
-  is_ddo: boolean;
   sp_id: number;
-  miner: string;
-  sector_num: number;
+  addr?: string;
   start_epoch: number;
   end_epoch: number;
   piece_size: number;
+  is_ddo?: boolean;
+}
+
+export interface PieceDealDetailResponse {
+  mk12?: Array<{
+    deal?: PieceDealDetailItem | null;
+    mk12_pipeline?: Record<string, unknown> | null;
+  } | null> | null;
+  mk20?: Array<{
+    deal?: MK20DealDetailResponse | null;
+    mk20_ddo_pipeline?: Record<string, unknown> | null;
+    mk20_pdp_pipeline?: Record<string, unknown> | null;
+  } | null> | null;
 }
 
 export interface PieceParkState {
+  id: number;
   piece_cid: string;
-  state: string;
+  piece_padded_size: number;
+  piece_raw_size: number;
   complete: boolean;
   created_at: string;
-  url?: string;
+  task_id?: SqlNullableNumber | number | null;
+  cleanup_task_id?: SqlNullableNumber | number | null;
+  refs?: PieceParkRef[] | null;
 }
 
-export interface ContentEntry {
+export interface PieceParkRef {
+  ref_id: number;
+  piece_id: number;
+  data_url?: SqlNullableString | string | null;
+  data_headers?: Record<string, unknown> | null;
+}
+
+export interface ContentInfo {
   piece_cid: string;
-  data_url: string;
+  offset: number;
+  size: number;
+  err?: string;
+}
+
+export interface PieceParkRefEntry {
+  table_name: string;
   sp_id: number;
-  sector_num: number;
+  sector_number?: number;
+  piece_index?: number;
+  piece_cid: string;
+  deal_uuid?: string;
+  addr: string;
+}
+
+export interface ContentSearchResult {
+  pieceCid: string;
+  details: string[];
+  error?: string;
 }
 
 export interface UploadStatusResult {

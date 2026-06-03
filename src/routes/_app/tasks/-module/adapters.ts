@@ -154,13 +154,16 @@ export const normalizeTaskStat = (
   raw: ApiTaskStat,
   runningMachines = 0,
 ): TaskStatView => {
-  const trueCount = asNumber(raw.TrueCount ?? raw.true_count) ?? 0;
-  const falseCount = asNumber(raw.FalseCount ?? raw.false_count) ?? 0;
-  const totalCount = asNumber(raw.TotalCount ?? raw.total_count) ?? 0;
+  const trueCount =
+    asNumber(raw.success ?? raw.TrueCount ?? raw.true_count) ?? 0;
+  const falseCount =
+    asNumber(raw.failure ?? raw.FalseCount ?? raw.false_count) ?? 0;
+  const totalCount =
+    asNumber(raw.total ?? raw.TotalCount ?? raw.total_count) ?? 0;
   const successRate = totalCount === 0 ? 0 : (trueCount / totalCount) * 100;
 
   return {
-    name: asText(raw.Name ?? raw.name),
+    name: asText(raw.name ?? raw.Name),
     trueCount,
     falseCount,
     totalCount,

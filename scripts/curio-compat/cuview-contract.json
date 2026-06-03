@@ -218,12 +218,21 @@
     },
     {
       "kind": "mutation",
-      "method": "AlertMuteRemove",
+      "method": "AlertMuteDeactivate",
       "params": "dynamic",
       "response": {
         "kind": "none"
       },
-      "locations": ["src/routes/_app/alerts/index.tsx:270"]
+      "locations": ["src/routes/_app/alerts/index.tsx:277"]
+    },
+    {
+      "kind": "mutation",
+      "method": "AlertMuteDelete",
+      "params": "dynamic",
+      "response": {
+        "kind": "none"
+      },
+      "locations": ["src/routes/_app/alerts/index.tsx:280"]
     },
     {
       "kind": "query",
@@ -546,7 +555,7 @@
       "params": 1,
       "response": {
         "kind": "fields",
-        "fields": ["data_url", "piece_cid", "sector_num", "sp_id"]
+        "fields": ["err", "offset", "piece_cid", "size"]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:440"]
     },
@@ -556,7 +565,15 @@
       "params": 1,
       "response": {
         "kind": "fields",
-        "fields": ["data_url", "piece_cid", "sector_num", "sp_id"]
+        "fields": [
+          "addr",
+          "deal_uuid",
+          "piece_cid",
+          "piece_index",
+          "sector_number",
+          "sp_id",
+          "table_name"
+        ]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:446"]
     },
@@ -659,11 +676,11 @@
         "kind": "fields",
         "fields": [
           "active",
-          "additional_info",
+          "info",
           "max_deal_size_per_hour",
           "max_deals_per_hour",
           "name",
-          "peer_ids",
+          "peers",
           "pricing_filters",
           "wallets"
         ]
@@ -673,7 +690,7 @@
     {
       "kind": "query",
       "method": "GetMK12DealPipelines",
-      "params": 0,
+      "params": 2,
       "response": {
         "kind": "fields",
         "fields": [
@@ -799,7 +816,7 @@
       "params": 0,
       "response": {
         "kind": "fields",
-        "fields": ["FalseCount", "Name", "TotalCount", "TrueCount"]
+        "fields": ["failure", "name", "success", "total"]
       },
       "locations": [
         "src/hooks/use-dashboard-summary.ts:49",
@@ -970,16 +987,16 @@
       "response": {
         "kind": "fields",
         "fields": [
+          "RawSize",
           "created_at",
           "error",
+          "id",
           "miner",
           "piece_cid",
           "piece_cid_v2",
           "piece_size",
           "processed",
-          "raw_size",
-          "sp_id",
-          "uuid"
+          "sp_id"
         ]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:208"]
@@ -1007,16 +1024,16 @@
       "response": {
         "kind": "fields",
         "fields": [
+          "RawSize",
           "created_at",
           "error",
+          "id",
           "miner",
           "piece_cid",
           "piece_cid_v2",
           "piece_size",
           "processed",
-          "raw_size",
-          "sp_id",
-          "uuid"
+          "sp_id"
         ]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:202"]
@@ -1310,17 +1327,7 @@
       "params": 1,
       "response": {
         "kind": "fields",
-        "fields": [
-          "deal_id",
-          "end_epoch",
-          "is_ddo",
-          "miner",
-          "piece_cid",
-          "piece_size",
-          "sector_num",
-          "sp_id",
-          "start_epoch"
-        ]
+        "fields": ["mk12", "mk20"]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:428"]
     },
@@ -1349,7 +1356,17 @@
       "params": 1,
       "response": {
         "kind": "fields",
-        "fields": ["complete", "created_at", "piece_cid", "state", "url"]
+        "fields": [
+          "cleanup_task_id",
+          "complete",
+          "created_at",
+          "id",
+          "piece_cid",
+          "piece_padded_size",
+          "piece_raw_size",
+          "refs",
+          "task_id"
+        ]
       },
       "locations": ["src/routes/_app/market/-module/queries.ts:434"]
     },
@@ -2612,34 +2629,25 @@
       "response": {
         "kind": "fields",
         "fields": [
-          "Address",
           "AfterEncode",
           "AfterMoveStorage",
           "AfterProve",
-          "AfterProveMsgSuccess",
+          "AfterProveSuccess",
           "AfterSubmit",
-          "CurrentState",
-          "DataAssigned",
+          "AllTasks",
           "Failed",
-          "FailedAt",
+          "FailedMsg",
           "FailedReason",
-          "FailedReasonMsg",
-          "Progress",
-          "Proof",
-          "ProveMsgCid",
-          "ProveMsgTsk",
-          "SectorNumber",
+          "Miner",
+          "MissingTasks",
+          "SectorNum",
           "SpID",
           "StartTime",
-          "SubmitAfter",
           "TaskIDEncode",
           "TaskIDMoveStorage",
           "TaskIDProve",
           "TaskIDSubmit",
-          "UpdateReadyAt",
-          "UpdateSealedCid",
-          "UpdateUnsealedCid",
-          "UpgradeProof"
+          "UpdateReadyAt"
         ]
       },
       "locations": ["src/routes/_app/pipeline/-module/queries.ts:84"]
@@ -2802,13 +2810,10 @@
       "kind": "direct",
       "method": "GET",
       "path": "/api/sector/all",
-      "locations": ["src/services/sector-api.ts:12"]
-    },
-    {
-      "kind": "query",
-      "method": "GET",
-      "path": "/sectors",
-      "locations": ["src/routes/_app/sectors/index.tsx:153"]
+      "locations": [
+        "src/routes/_app/sectors/index.tsx:153",
+        "src/services/sector-api.ts:12"
+      ]
     },
     {
       "kind": "direct",

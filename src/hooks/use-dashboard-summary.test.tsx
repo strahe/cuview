@@ -63,8 +63,8 @@ describe("useDashboardSummary", () => {
       ClusterTaskHistory: [],
       ClusterTaskSummary: [],
       HarmonyTaskStats: [
-        { TotalCount: 5, TrueCount: 3 },
-        { TotalCount: 10, TrueCount: 7 },
+        { total: 5, success: 3, failure: 2, name: "SealSDR" },
+        { total: 10, success: 7, failure: 3, name: "TreeRC" },
       ],
       PipelineStatsSDR: {
         Stages: [{ Name: "Failed", Pending: 2, Running: 0 }],

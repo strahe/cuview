@@ -45,6 +45,10 @@ import {
   useCurioRpcMutation,
 } from "@/hooks/use-curio-query";
 import { DEFAULT_STORAGE_PATH_DETAIL_SEARCH } from "@/routes/_app/storage/-module/search-state";
+import {
+  normalizeSectorListResponse,
+  type SectorListResponse,
+} from "@/services/sector-api";
 import type {
   DeadlineStats,
   PartitionDetailData,
@@ -150,8 +154,12 @@ const columns: ColumnDef<SectorListItem>[] = [
 ];
 
 function SectorsPage() {
-  const { data, isLoading } = useCurioRest<SectorListItem[]>("/sectors", {
+  const { data, isLoading } = useCurioRest<
+    SectorListResponse,
+    SectorListItem[]
+  >("/api/sector/all", {
     refetchInterval: 60_000,
+    select: normalizeSectorListResponse,
   });
   const { data: spStats } = useCurioRpc<SPSectorStats[]>("SectorSPStats", [], {
     refetchInterval: 60_000,

@@ -11,6 +11,10 @@ import type { MK12Pipeline } from "@/types/market";
 import { formatBytes } from "@/utils/format";
 import { FailedTasksCard } from "../-components/failed-tasks-card";
 import {
+  runFailedTaskActions,
+  toFailedTaskDisplayCategories,
+} from "../-module/failed-task-actions";
+import {
   useDealPipelineRemove,
   useMK12BulkRemove,
   useMK12BulkRestart,
@@ -58,16 +62,16 @@ function PipelineSubRow({ row }: { row: { original: MK12Pipeline } }) {
 
 const mk12DealColumns: ColumnDef<MK12DealListItem>[] = [
   {
-    accessorKey: "uuid",
-    header: "UUID",
+    accessorKey: "id",
+    header: "ID",
     cell: ({ row }) => (
       <Link
         to="/market/mk12/deal/$id"
-        params={{ id: row.original.uuid }}
+        params={{ id: row.original.id }}
         className="block max-w-[10rem] truncate font-mono text-xs text-primary hover:underline lg:max-w-[16rem] xl:max-w-[24rem]"
-        title={row.original.uuid}
+        title={row.original.id}
       >
-        {row.original.uuid || "—"}
+        {row.original.id || "—"}
       </Link>
     ),
   },
@@ -145,19 +149,24 @@ function MK12DealsPage() {
     return { total: pipelines.length, active, complete, pending };
   }, [pipelines]);
 
-  const failedCategories = useMemo(
-    () =>
-      failedStats
-        ? ([
-            ["Download", failedStats.DownloadingFailed],
-            ["CommP", failedStats.CommPFailed],
-            ["PSD", failedStats.PSDFailed],
-            ["FindDeal", failedStats.FindDealFailed],
-            ["Index", failedStats.IndexFailed],
-          ] as const)
-        : ([] as const),
-    [failedStats],
-  );
+  const failedCategories = useMemo(() => {
+    if (!failedStats) return [];
+    return [
+      {
+        label: "Download",
+        count: failedStats.DownloadingFailed,
+        taskType: "downloading",
+      },
+      { label: "CommP", count: failedStats.CommPFailed, taskType: "commp" },
+      { label: "PSD", count: failedStats.PSDFailed, taskType: "psd" },
+      {
+        label: "FindDeal",
+        count: failedStats.FindDealFailed,
+        taskType: "find_deal",
+      },
+      { label: "Index", count: failedStats.IndexFailed, taskType: "index" },
+    ] as const;
+  }, [failedStats]);
 
   const pipelineColumns: ColumnDef<MK12Pipeline>[] = useMemo(
     () => [
@@ -279,9 +288,13 @@ function MK12DealsPage() {
 
       {failedStats && (
         <FailedTasksCard
-          categories={failedCategories}
-          onRestart={() => bulkRestartMutation.mutate(["all"])}
-          onRemove={() => bulkRemoveMutation.mutate(["all"])}
+          categories={toFailedTaskDisplayCategories(failedCategories)}
+          onRestart={() => {
+            void runFailedTaskActions(bulkRestartMutation, failedCategories);
+          }}
+          onRemove={() => {
+            void runFailedTaskActions(bulkRemoveMutation, failedCategories);
+          }}
           restartPending={bulkRestartMutation.isPending}
           removePending={bulkRemoveMutation.isPending}
         />

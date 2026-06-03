@@ -12,6 +12,10 @@ import { formatBytes } from "@/utils/format";
 import { FailedTasksCard } from "../-components/failed-tasks-card";
 import { ProductsSection } from "../-components/products-section";
 import {
+  runFailedTaskActions,
+  toFailedTaskDisplayCategories,
+} from "../-module/failed-task-actions";
+import {
   useDealPipelineRemove,
   useMK20BulkRemove,
   useMK20BulkRestart,
@@ -149,18 +153,23 @@ function MK20DealsPage() {
     return { total: pipelines.length, active, complete, pending };
   }, [pipelines]);
 
-  const failedCategories = useMemo(
-    () =>
-      failedStats
-        ? ([
-            ["Download", failedStats.DownloadingFailed],
-            ["CommP", failedStats.CommPFailed],
-            ["Agg", failedStats.AggFailed],
-            ["Index", failedStats.IndexFailed],
-          ] as const)
-        : ([] as const),
-    [failedStats],
-  );
+  const failedCategories = useMemo(() => {
+    if (!failedStats) return [];
+    return [
+      {
+        label: "Download",
+        count: failedStats.DownloadingFailed,
+        taskType: "downloading",
+      },
+      { label: "CommP", count: failedStats.CommPFailed, taskType: "commp" },
+      {
+        label: "Agg",
+        count: failedStats.AggFailed,
+        taskType: "aggregate",
+      },
+      { label: "Index", count: failedStats.IndexFailed, taskType: "index" },
+    ] as const;
+  }, [failedStats]);
 
   const pipelineColumns: ColumnDef<Mk20Pipeline>[] = useMemo(
     () => [
@@ -297,9 +306,13 @@ function MK20DealsPage() {
 
       {failedStats && (
         <FailedTasksCard
-          categories={failedCategories}
-          onRestart={() => bulkRestartMutation.mutate(["all"])}
-          onRemove={() => bulkRemoveMutation.mutate(["all"])}
+          categories={toFailedTaskDisplayCategories(failedCategories)}
+          onRestart={() => {
+            void runFailedTaskActions(bulkRestartMutation, failedCategories);
+          }}
+          onRemove={() => {
+            void runFailedTaskActions(bulkRemoveMutation, failedCategories);
+          }}
           restartPending={bulkRestartMutation.isPending}
           removePending={bulkRemoveMutation.isPending}
         />

@@ -272,11 +272,11 @@ export interface ClientFilter {
   name: string;
   active: boolean;
   wallets: string[];
-  peer_ids: string[];
+  peers: string[];
   pricing_filters: string[];
   max_deals_per_hour: number;
   max_deal_size_per_hour: number;
-  additional_info: string;
+  info: string;
 }
 
 // Table entry

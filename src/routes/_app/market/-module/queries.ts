@@ -26,14 +26,16 @@ import {
   productsInvalidateKeys,
 } from "./query-keys";
 import type {
-  ContentEntry,
+  ContentInfo,
+  ContentSearchResult,
   MarketBalanceEntry,
   MarketBalanceStatus,
   MK12DealListItem,
   MK20DealDetailResponse,
   MK20DealListItem,
-  PieceDealDetailItem,
+  PieceDealDetailResponse,
   PieceInfoResult,
+  PieceParkRefEntry,
   PieceParkState,
   StorageDealDetail,
   UploadStatusResult,
@@ -59,6 +61,31 @@ function parseStorageProviderId(addr: string) {
 
   const spID = Number.parseInt(match[1]!, 10);
   return Number.isNaN(spID) ? null : spID;
+}
+
+export function normalizeContentInfoResults(
+  rows: ContentInfo[],
+): ContentSearchResult[] {
+  return rows.map((row) => ({
+    pieceCid: row.piece_cid,
+    details: [`Offset: ${row.offset}`, `Size: ${row.size}`],
+    error: row.err || undefined,
+  }));
+}
+
+export function normalizePieceParkRefResults(
+  rows: PieceParkRefEntry[],
+): ContentSearchResult[] {
+  return rows.map((row) => ({
+    pieceCid: row.piece_cid,
+    details: [
+      `Source: ${row.table_name}`,
+      `SP: ${row.addr || row.sp_id}`,
+      row.sector_number == null ? null : `Sector: ${row.sector_number}`,
+      row.piece_index == null ? null : `Piece index: ${row.piece_index}`,
+      row.deal_uuid ? `Deal: ${row.deal_uuid}` : null,
+    ].filter((detail): detail is string => Boolean(detail)),
+  }));
 }
 
 export function useMarketBalance() {
@@ -193,7 +220,7 @@ export function useSealNow() {
 // ---------------------------------------------------------------------------
 
 export function useMK12Pipelines() {
-  return useCurioRpc<MK12Pipeline[]>("GetMK12DealPipelines", [], {
+  return useCurioRpc<MK12Pipeline[]>("GetMK12DealPipelines", [100, 0], {
     refetchInterval: 30_000,
   });
 }
@@ -425,27 +452,37 @@ export function usePieceInfo(cid: string | null) {
 }
 
 export function usePieceDealDetail(cid: string | null, enabled: boolean) {
-  return useCurioRpc<PieceDealDetailItem[]>("PieceDealDetail", [cid ?? ""], {
+  return useCurioRpc<PieceDealDetailResponse>("PieceDealDetail", [cid ?? ""], {
     enabled: !!cid && enabled,
   });
 }
 
 export function usePieceParkStates(cid: string | null, enabled: boolean) {
-  return useCurioRpc<PieceParkState[]>("PieceParkStates", [cid ?? ""], {
+  return useCurioRpc<PieceParkState | null>("PieceParkStates", [cid ?? ""], {
     enabled: !!cid && enabled,
   });
 }
 
 export function useFindContentByCID(cid: string | null) {
-  return useCurioRpc<ContentEntry[]>("FindContentByCID", [cid ?? ""], {
-    enabled: !!cid,
-  });
+  return useCurioRpc<ContentInfo[], ContentSearchResult[]>(
+    "FindContentByCID",
+    [cid ?? ""],
+    {
+      enabled: !!cid,
+      select: normalizeContentInfoResults,
+    },
+  );
 }
 
 export function useFindEntriesByDataURL(url: string | null) {
-  return useCurioRpc<ContentEntry[]>("FindEntriesByDataURL", [url ?? ""], {
-    enabled: !!url,
-  });
+  return useCurioRpc<PieceParkRefEntry[], ContentSearchResult[]>(
+    "FindEntriesByDataURL",
+    [url ?? ""],
+    {
+      enabled: !!url,
+      select: normalizePieceParkRefResults,
+    },
+  );
 }
 
 export function useChunkUploadStatus(id: string | null) {

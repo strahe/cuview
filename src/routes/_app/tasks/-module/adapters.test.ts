@@ -4,6 +4,7 @@ import {
   normalizeTaskDetail,
   normalizeTaskHistoryEntry,
   normalizeTaskMachine,
+  normalizeTaskStat,
   normalizeTaskStatus,
 } from "./adapters";
 
@@ -52,6 +53,27 @@ describe("tasks adapters", () => {
     expect(normalized.name).toBe("worker-11");
     expect(normalized.address).toBe("10.0.0.11:4701");
     expect(normalized.actors).toBe("f09999");
+  });
+
+  it("normalizes task stats from Curio v1.28.1 fields", () => {
+    const normalized = normalizeTaskStat(
+      {
+        name: "SealSDR",
+        success: 3,
+        failure: 2,
+        total: 5,
+      },
+      2,
+    );
+
+    expect(normalized).toEqual({
+      name: "SealSDR",
+      trueCount: 3,
+      falseCount: 2,
+      totalCount: 5,
+      successRate: 60,
+      runningMachines: 2,
+    });
   });
 
   it("computes duration for history entry when Took is missing", () => {

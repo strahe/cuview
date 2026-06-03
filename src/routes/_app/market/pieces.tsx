@@ -17,10 +17,24 @@ import {
   usePieceParkStates,
   useStorageDealInfo,
 } from "./-module/queries";
+import { extractNullable } from "./-module/types";
 
 export const Route = createFileRoute("/_app/market/pieces")({
   component: PiecesPage,
 });
+
+type ContentSearchMode = "cid" | "dataUrl" | null;
+
+function getRecordText(
+  value: Record<string, unknown> | null | undefined,
+  key: string,
+) {
+  const raw = value?.[key];
+  if (typeof raw === "string" || typeof raw === "number") {
+    return String(raw);
+  }
+  return null;
+}
 
 function PiecesPage() {
   const [tab, setTab] = useState("piece");
@@ -30,6 +44,8 @@ function PiecesPage() {
   const [contentSearch, setContentSearch] = useState<string | null>(null);
   const [dataUrlQuery, setDataUrlQuery] = useState("");
   const [dataUrlSearch, setDataUrlSearch] = useState<string | null>(null);
+  const [contentSearchMode, setContentSearchMode] =
+    useState<ContentSearchMode>(null);
   const [dealInfoQuery, setDealInfoQuery] = useState("");
   const [dealInfoSearch, setDealInfoSearch] = useState<string | null>(null);
   const [uploadIdQuery, setUploadIdQuery] = useState("");
@@ -39,7 +55,7 @@ function PiecesPage() {
 
   const { data: dealDetail } = usePieceDealDetail(searchCid, !!pieceInfo);
 
-  const { data: parkStates } = usePieceParkStates(searchCid, !!pieceInfo);
+  const { data: parkState } = usePieceParkStates(searchCid, !!pieceInfo);
 
   const { data: contentResults } = useFindContentByCID(contentSearch);
 
@@ -53,6 +69,31 @@ function PiecesPage() {
     const cid = query.trim();
     if (cid) setSearchCid(cid);
   }, [query]);
+
+  const handleContentCidSearch = useCallback(() => {
+    const cid = contentQuery.trim();
+    if (!cid) return;
+    setContentSearch(cid);
+    setDataUrlSearch(null);
+    setContentSearchMode("cid");
+  }, [contentQuery]);
+
+  const handleContentDataUrlSearch = useCallback(() => {
+    const dataUrl = dataUrlQuery.trim();
+    if (!dataUrl) return;
+    setDataUrlSearch(dataUrl);
+    setContentSearch(null);
+    setContentSearchMode("dataUrl");
+  }, [dataUrlQuery]);
+
+  const contentSearchResults =
+    contentSearchMode === "cid"
+      ? contentResults
+      : contentSearchMode === "dataUrl"
+        ? dataUrlResults
+        : undefined;
+  const mk12DealDetails = dealDetail?.mk12 ?? [];
+  const mk20DealDetails = dealDetail?.mk20 ?? [];
 
   return (
     <div className="space-y-6">
@@ -200,61 +241,131 @@ function PiecesPage() {
                       </div>
                     )}
 
-                    {dealDetail && dealDetail.length > 0 && (
+                    {(mk12DealDetails.length > 0 ||
+                      mk20DealDetails.length > 0) && (
                       <div>
                         <h4 className="mb-2 text-sm font-medium">
-                          Deal Details ({dealDetail.length})
+                          Deal Details (
+                          {mk12DealDetails.length + mk20DealDetails.length})
                         </h4>
                         <div className="max-h-48 space-y-2 overflow-y-auto">
-                          {dealDetail.map((d) => (
-                            <div
-                              key={d.deal_id}
-                              className="rounded border border-border p-2 text-xs"
-                            >
-                              <div className="grid grid-cols-3 gap-2">
-                                <span>
-                                  Deal #{d.deal_id}{" "}
-                                  {d.is_ddo && (
-                                    <StatusBadge status="info" label="DDO" />
-                                  )}
-                                </span>
-                                <span className="font-mono">{d.miner}</span>
-                                <span>Sector: {d.sector_num}</span>
+                          {mk12DealDetails.map((entry, i) => {
+                            const d = entry?.deal;
+                            if (!d) return null;
+                            return (
+                              <div
+                                key={`mk12-${d.uuid || i}`}
+                                className="rounded border border-border p-2 text-xs"
+                              >
+                                <div className="grid grid-cols-3 gap-2">
+                                  <span className="font-mono">
+                                    {d.uuid || "MK12 deal"}{" "}
+                                    {d.is_ddo ? (
+                                      <StatusBadge status="info" label="DDO" />
+                                    ) : null}
+                                  </span>
+                                  <span className="font-mono">
+                                    {d.addr || `f0${d.sp_id}`}
+                                  </span>
+                                  <span>Type: MK12</span>
+                                </div>
+                                <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
+                                  <span>Start: {d.start_epoch}</span>
+                                  <span>End: {d.end_epoch}</span>
+                                  <span>Size: {formatBytes(d.piece_size)}</span>
+                                </div>
                               </div>
-                              <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
-                                <span>Start: {d.start_epoch}</span>
-                                <span>End: {d.end_epoch}</span>
-                                <span>Size: {formatBytes(d.piece_size)}</span>
+                            );
+                          })}
+                          {mk20DealDetails.map((entry, i) => {
+                            if (!entry) return null;
+                            const pipelineId =
+                              getRecordText(entry.mk20_ddo_pipeline, "id") ??
+                              getRecordText(entry.mk20_pdp_pipeline, "id") ??
+                              `MK20 ${i + 1}`;
+                            return (
+                              <div
+                                key={`mk20-${pipelineId}-${i}`}
+                                className="rounded border border-border p-2 text-xs"
+                              >
+                                <div className="grid grid-cols-3 gap-2">
+                                  <span className="font-mono">
+                                    {pipelineId}
+                                  </span>
+                                  <span>Type: MK20</span>
+                                  <span className="flex gap-1">
+                                    {entry.mk20_ddo_pipeline ? (
+                                      <StatusBadge status="info" label="DDO" />
+                                    ) : null}
+                                    {entry.mk20_pdp_pipeline ? (
+                                      <StatusBadge status="info" label="PDP" />
+                                    ) : null}
+                                  </span>
+                                </div>
+                                <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
+                                  <span>
+                                    DDO error:{" "}
+                                    {extractNullable(entry.deal?.ddoerr) ?? "—"}
+                                  </span>
+                                  <span>
+                                    PDP error:{" "}
+                                    {extractNullable(entry.deal?.pdperr) ?? "—"}
+                                  </span>
+                                  <span>
+                                    DDO ID:{" "}
+                                    {extractNullable(entry.deal?.ddoid) ?? "—"}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
 
-                    {parkStates && parkStates.length > 0 && (
+                    {parkState && (
                       <div>
-                        <h4 className="mb-2 text-sm font-medium">
-                          Park States ({parkStates.length})
-                        </h4>
+                        <h4 className="mb-2 text-sm font-medium">Park State</h4>
                         <div className="max-h-32 space-y-1 overflow-y-auto">
-                          {parkStates.map((ps, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center justify-between rounded border border-border p-2 text-xs"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span>{ps.state}</span>
-                                <StatusBadge
-                                  status={ps.complete ? "done" : "pending"}
-                                  label={ps.complete ? "Complete" : "Active"}
-                                />
-                              </div>
-                              <span className="text-muted-foreground">
-                                {ps.created_at}
+                          <div className="rounded border border-border p-2 text-xs">
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono">
+                                {parkState.piece_cid}
                               </span>
+                              <StatusBadge
+                                status={parkState.complete ? "done" : "pending"}
+                                label={
+                                  parkState.complete ? "Complete" : "Active"
+                                }
+                              />
                             </div>
-                          ))}
+                            <div className="mt-1 grid grid-cols-3 gap-2 text-muted-foreground">
+                              <span>
+                                Padded:{" "}
+                                {formatBytes(parkState.piece_padded_size)}
+                              </span>
+                              <span>
+                                Raw: {formatBytes(parkState.piece_raw_size)}
+                              </span>
+                              <span>Created: {parkState.created_at}</span>
+                            </div>
+                            {parkState.refs && parkState.refs.length > 0 ? (
+                              <div className="mt-2 flex flex-col gap-1">
+                                {parkState.refs.map((ref) => (
+                                  <span
+                                    key={ref.ref_id}
+                                    className="truncate font-mono text-muted-foreground"
+                                    title={
+                                      extractNullable(ref.data_url) ?? undefined
+                                    }
+                                  >
+                                    Ref {ref.ref_id}:{" "}
+                                    {extractNullable(ref.data_url) ?? "—"}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -278,13 +389,12 @@ function PiecesPage() {
                     value={contentQuery}
                     onChange={(e) => setContentQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && contentQuery.trim())
-                        setContentSearch(contentQuery.trim());
+                      if (e.key === "Enter") handleContentCidSearch();
                     }}
                     className="max-w-lg font-mono text-xs"
                   />
                   <Button
-                    onClick={() => setContentSearch(contentQuery.trim())}
+                    onClick={handleContentCidSearch}
                     disabled={!contentQuery.trim()}
                   >
                     Search
@@ -296,31 +406,32 @@ function PiecesPage() {
                     value={dataUrlQuery}
                     onChange={(e) => setDataUrlQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && dataUrlQuery.trim())
-                        setDataUrlSearch(dataUrlQuery.trim());
+                      if (e.key === "Enter") handleContentDataUrlSearch();
                     }}
                     className="max-w-lg text-xs"
                   />
                   <Button
-                    onClick={() => setDataUrlSearch(dataUrlQuery.trim())}
+                    onClick={handleContentDataUrlSearch}
                     disabled={!dataUrlQuery.trim()}
                   >
                     Search
                   </Button>
                 </div>
-                {(contentResults ?? dataUrlResults) && (
+                {contentSearchResults && (
                   <div className="max-h-64 space-y-1 overflow-y-auto">
-                    {(contentResults ?? dataUrlResults ?? []).map((e, i) => (
+                    {contentSearchResults.map((e, i) => (
                       <div
                         key={i}
                         className="flex items-center justify-between rounded border border-border p-2 text-xs"
                       >
-                        <span className="truncate font-mono">
-                          {e.piece_cid}
-                        </span>
+                        <span className="truncate font-mono">{e.pieceCid}</span>
                         <div className="flex gap-3 text-muted-foreground">
-                          <span>SP: {e.sp_id}</span>
-                          <span>Sector: {e.sector_num}</span>
+                          {e.details.map((detail) => (
+                            <span key={detail}>{detail}</span>
+                          ))}
+                          {e.error ? (
+                            <span className="text-destructive">{e.error}</span>
+                          ) : null}
                         </div>
                       </div>
                     ))}

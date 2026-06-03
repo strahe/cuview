@@ -138,7 +138,7 @@ export function buildPorepActorRows(
 
 function resolveSnapStage(s: SnapSectorEntry): SnapStage {
   if (s.Failed) return "Failed";
-  if (s.AfterProveMsgSuccess) return "Done";
+  if (s.AfterProveSuccess) return "Done";
   if (s.AfterMoveStorage) return "MoveStorage";
   if (s.AfterSubmit) return "Submit";
   if (s.AfterProve) return "Prove";
@@ -159,14 +159,14 @@ function resolveSnapActiveTaskId(s: SnapSectorEntry): number | null {
 export function normalizeSnapSector(s: SnapSectorEntry): SnapSectorView {
   return {
     spId: s.SpID,
-    sectorNumber: s.SectorNumber,
-    address: s.Address ?? "",
+    sectorNumber: s.SectorNum,
+    address: s.Miner ?? "",
     startTime: s.StartTime ?? "",
     stage: resolveSnapStage(s),
     activeTaskId: resolveSnapActiveTaskId(s),
     failed: s.Failed,
     failedReason: s.FailedReason ?? "",
-    failedReasonMsg: s.FailedReasonMsg ?? "",
+    failedReasonMsg: s.FailedMsg ?? "",
     updateReadyAt: s.UpdateReadyAt ?? null,
     raw: s,
   };
@@ -191,7 +191,7 @@ export function computeSnapTotals(
   for (const s of sectors) {
     if (s.Failed) {
       failedCount++;
-    } else if (s.AfterProveMsgSuccess) {
+    } else if (s.AfterProveSuccess) {
       doneCount++;
     }
   }
@@ -210,7 +210,7 @@ export function buildSnapActorRows(sectors: SnapSectorEntry[]): SnapActorRow[] {
   const byActor = new Map<string, SnapActorRow>();
 
   for (const sector of sectors) {
-    const actor = sector.Address || "unknown";
+    const actor = sector.Miner || "unknown";
     const current = byActor.get(actor) ?? {
       actor,
       countEncode: 0,
@@ -223,7 +223,7 @@ export function buildSnapActorRows(sectors: SnapSectorEntry[]): SnapActorRow[] {
 
     if (sector.Failed) {
       current.countFailed += 1;
-    } else if (sector.AfterProveMsgSuccess) {
+    } else if (sector.AfterProveSuccess) {
       current.countDone += 1;
     } else if (sector.AfterMoveStorage) {
       current.countMoveStorage += 1;

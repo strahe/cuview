@@ -66,19 +66,19 @@ function makeSnapSector(
 ): SnapSectorEntry {
   return {
     SpID: 5678,
-    SectorNumber: 99,
+    SectorNum: 99,
     StartTime: "2025-06-01T00:00:00Z",
-    UpgradeProof: 0,
-    DataAssigned: false,
     AfterEncode: false,
     AfterProve: false,
     AfterSubmit: false,
     AfterMoveStorage: false,
-    AfterProveMsgSuccess: false,
+    AfterProveSuccess: false,
     Failed: false,
     FailedReason: "",
-    FailedReasonMsg: "",
-    Address: "f05678",
+    FailedMsg: "",
+    MissingTasks: [],
+    AllTasks: [],
+    Miner: "f05678",
     ...overrides,
   };
 }
@@ -170,7 +170,7 @@ describe("normalizeSnapSector", () => {
 
   it("resolves Done stage", () => {
     const result = normalizeSnapSector(
-      makeSnapSector({ AfterProveMsgSuccess: true }),
+      makeSnapSector({ AfterProveSuccess: true }),
     );
     expect(result.stage).toBe("Done");
   });
@@ -180,7 +180,7 @@ describe("normalizeSnapSector", () => {
       makeSnapSector({
         Failed: true,
         FailedReason: "proof invalid",
-        FailedReasonMsg: "bad data",
+        FailedMsg: "bad data",
       }),
     );
     expect(result.stage).toBe("Failed");
@@ -262,8 +262,8 @@ describe("computeSnapTotals", () => {
       ],
     };
     const sectors: SnapSectorEntry[] = [
-      makeSnapSector({ AfterProveMsgSuccess: true }),
-      makeSnapSector({ AfterProveMsgSuccess: true }),
+      makeSnapSector({ AfterProveSuccess: true }),
+      makeSnapSector({ AfterProveSuccess: true }),
       makeSnapSector({ Failed: true }),
     ];
     const totals = computeSnapTotals(stats, sectors);
@@ -316,9 +316,9 @@ describe("buildPorepActorRows", () => {
 describe("buildSnapActorRows", () => {
   it("groups sectors by actor and tallies stages", () => {
     const sectors: SnapSectorEntry[] = [
-      makeSnapSector({ Address: "f01", AfterEncode: true }),
-      makeSnapSector({ Address: "f01", Failed: true }),
-      makeSnapSector({ Address: "f02", AfterProveMsgSuccess: true }),
+      makeSnapSector({ Miner: "f01", AfterEncode: true }),
+      makeSnapSector({ Miner: "f01", Failed: true }),
+      makeSnapSector({ Miner: "f02", AfterProveSuccess: true }),
     ];
     const rows = buildSnapActorRows(sectors);
     expect(rows).toHaveLength(2);
@@ -333,8 +333,8 @@ describe("buildSnapActorRows", () => {
 
   it("sorts by actor name", () => {
     const sectors: SnapSectorEntry[] = [
-      makeSnapSector({ Address: "f09" }),
-      makeSnapSector({ Address: "f01" }),
+      makeSnapSector({ Miner: "f09" }),
+      makeSnapSector({ Miner: "f01" }),
     ];
     const rows = buildSnapActorRows(sectors);
     expect(rows[0]!.actor).toBe("f01");

@@ -128,12 +128,8 @@ export interface PipelineOverviewStats {
 
 export interface SnapSectorEntry {
   SpID: number;
-  SectorNumber: number;
+  SectorNum: number;
   StartTime: string;
-  UpgradeProof: number;
-  DataAssigned: boolean;
-  UpdateUnsealedCid?: string;
-  UpdateSealedCid?: string;
 
   // Task IDs (nullable)
   TaskIDEncode?: number;
@@ -146,25 +142,18 @@ export interface SnapSectorEntry {
   AfterProve: boolean;
   AfterSubmit: boolean;
   AfterMoveStorage: boolean;
-  AfterProveMsgSuccess: boolean;
+  AfterProveSuccess: boolean;
 
-  // Proof and submission data
-  Proof?: string;
-  ProveMsgCid?: string;
-  ProveMsgTsk?: string;
-  SubmitAfter?: string;
   UpdateReadyAt?: string;
 
   // Failure information
   Failed: boolean;
-  FailedAt?: string;
   FailedReason: string;
-  FailedReasonMsg: string;
+  FailedMsg: string;
 
-  // Computed fields for display
-  Address?: string;
-  CurrentState?: string;
-  Progress?: number;
+  MissingTasks: number[];
+  AllTasks: number[];
+  Miner: string;
 }
 
 export interface SnapPipelineSummary {

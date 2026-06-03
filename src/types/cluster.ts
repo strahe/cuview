@@ -16,10 +16,10 @@ export interface ClusterMachine {
 }
 
 export interface HarmonyTaskStat {
-  Name: string;
-  TrueCount: number;
-  FalseCount: number;
-  TotalCount: number;
+  name: string;
+  success: number;
+  failure: number;
+  total: number;
 }
 
 export interface TaskStatWithPercentage extends HarmonyTaskStat {

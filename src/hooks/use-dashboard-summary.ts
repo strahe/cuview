@@ -109,8 +109,8 @@ export function useDashboardSummary() {
     let statsSuccess = 0;
     let statsTotal = 0;
     for (const stat of stats) {
-      statsSuccess += stat.TrueCount;
-      statsTotal += stat.TotalCount;
+      statsSuccess += stat.success ?? 0;
+      statsTotal += stat.total ?? 0;
     }
     const successRate =
       statsTotal === 0 ? 0 : (statsSuccess / statsTotal) * 100;
