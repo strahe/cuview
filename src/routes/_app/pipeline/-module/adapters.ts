@@ -91,28 +91,29 @@ export function normalizePorepSector(s: SectorListEntry): PorepSectorView {
 export function computePorepTotals(
   summaries: PorepPipelineSummary[],
 ): PorepTotals {
-  return summaries.reduce(
-    (acc, s) => ({
-      sdr: acc.sdr + s.CountSDR,
-      trees: acc.trees + s.CountTrees,
-      precommit: acc.precommit + s.CountPrecommitMsg,
-      waitSeed: acc.waitSeed + s.CountWaitSeed,
-      porep: acc.porep + s.CountPoRep,
-      commit: acc.commit + s.CountCommitMsg,
-      done: acc.done + s.CountDone,
-      failed: acc.failed + s.CountFailed,
-    }),
-    {
-      sdr: 0,
-      trees: 0,
-      precommit: 0,
-      waitSeed: 0,
-      porep: 0,
-      commit: 0,
-      done: 0,
-      failed: 0,
-    },
-  );
+  const totals = {
+    sdr: 0,
+    trees: 0,
+    precommit: 0,
+    waitSeed: 0,
+    porep: 0,
+    commit: 0,
+    done: 0,
+    failed: 0,
+  };
+
+  for (const s of summaries) {
+    totals.sdr += s.CountSDR;
+    totals.trees += s.CountTrees;
+    totals.precommit += s.CountPrecommitMsg;
+    totals.waitSeed += s.CountWaitSeed;
+    totals.porep += s.CountPoRep;
+    totals.commit += s.CountCommitMsg;
+    totals.done += s.CountDone;
+    totals.failed += s.CountFailed;
+  }
+
+  return totals;
 }
 
 export function buildPorepActorRows(
@@ -184,13 +185,24 @@ export function computeSnapTotals(
     return (stage?.Pending ?? 0) + (stage?.Running ?? 0);
   };
 
+  let doneCount = 0;
+  let failedCount = 0;
+
+  for (const s of sectors) {
+    if (s.Failed) {
+      failedCount++;
+    } else if (s.AfterProveMsgSuccess) {
+      doneCount++;
+    }
+  }
+
   return {
     encode: getStageCount("Encode"),
     prove: getStageCount("Prove"),
     submit: getStageCount("Submit"),
     moveStorage: getStageCount("MoveStorage"),
-    done: sectors.filter((s) => s.AfterProveMsgSuccess && !s.Failed).length,
-    failed: sectors.filter((s) => s.Failed).length,
+    done: doneCount,
+    failed: failedCount,
   };
 }
 

@@ -12,7 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { useCurioConnection } from "@/contexts/curio-api-context";
 import {
   formatEndpointForDisplay,
@@ -72,8 +77,9 @@ function SettingsDialogEndpointForm({
             label="RPC Endpoint"
             required
           >
-            <div className="flex gap-2">
-              <Input
+            <InputGroup>
+              <InputGroupInput
+                aria-invalid={isFormFieldInvalid(field) || undefined}
                 id="settings-rpc-endpoint"
                 name={field.name}
                 onBlur={field.handleBlur}
@@ -84,22 +90,25 @@ function SettingsDialogEndpointForm({
                 placeholder="http://localhost:4701"
                 value={field.state.value}
               />
-              <form.Subscribe selector={(state) => state.values.endpoint}>
-                {(endpointValue) => (
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    disabled={
-                      !endpointValue.trim() || switchStatus === "testing"
-                    }
-                  >
-                    {switchStatus === "testing"
-                      ? "Switching..."
-                      : "Test & Switch"}
-                  </Button>
-                )}
-              </form.Subscribe>
-            </div>
+              <InputGroupAddon align="inline-end">
+                <form.Subscribe selector={(state) => state.values.endpoint}>
+                  {(endpointValue) => (
+                    <InputGroupButton
+                      type="submit"
+                      variant="outline"
+                      size="xs"
+                      disabled={
+                        !endpointValue.trim() || switchStatus === "testing"
+                      }
+                    >
+                      {switchStatus === "testing"
+                        ? "Switching..."
+                        : "Test & Switch"}
+                    </InputGroupButton>
+                  )}
+                </form.Subscribe>
+              </InputGroupAddon>
+            </InputGroup>
           </AppField>
         )}
       </form.Field>

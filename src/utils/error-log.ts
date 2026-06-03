@@ -1,7 +1,7 @@
 const DEFAULT_CLIENT_ERROR_MESSAGE = "Unexpected error";
 
 const URL_WITH_AUTH_PATTERN =
-  /\b((?:https?|wss?):\/\/)([^/@\s?#]+(?::[^/@\s?#]*)?@)([^\s]+)/gi;
+  /\b([a-zA-Z][a-zA-Z0-9+\-.]*:\/\/)([^/@\s?#]+(?::[^/@\s?#]*)?@)([^\s"'<>]+?)(?=$|\s|["'\])}<>]|[,;](?=[a-zA-Z][a-zA-Z0-9+\-.]*:\/\/))/gi;
 const TOKEN_QUERY_PARAM_PATTERN = /([?&]token=)([^&#\s"'<>]+)/gi;
 const JWT_PATTERN =
   /\beyJ[A-Za-z0-9_-]{7,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g;

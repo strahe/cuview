@@ -39,6 +39,30 @@ describe("error log helpers", () => {
     ).toBe("request failed for https://node.local/rpc?token=***&debug=1");
 
     expect(
+      getErrorMessage(
+        new Error("failed to connect tcp://user:secret@node.local:4701/rpc"),
+      ),
+    ).toBe("failed to connect tcp://***:***@node.local:4701/rpc");
+
+    expect(getErrorMessage("mongodb://admin:pass123@db.example.com")).toBe(
+      "mongodb://***:***@db.example.com",
+    );
+
+    expect(
+      getErrorMessage("redis://some-user:very_secret_pass@127.0.0.1:6379"),
+    ).toBe("redis://***:***@127.0.0.1:6379");
+
+    expect(
+      getErrorMessage(
+        "failed: tcp://user1:pass1@host1:4701,tcp://user2:pass2@host2:4702",
+      ),
+    ).toBe("failed: tcp://***:***@host1:4701,tcp://***:***@host2:4702");
+
+    expect(
+      getErrorMessage('["tcp://alpha:one@host1","redis://beta:two@host2"]'),
+    ).toBe('["tcp://***:***@host1","redis://***:***@host2"]');
+
+    expect(
       getErrorMessage({
         message:
           "rpc rejected eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.VeryLongSignature",

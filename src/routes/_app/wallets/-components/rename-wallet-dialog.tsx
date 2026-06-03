@@ -1,7 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { Loader2 } from "lucide-react";
 import { useRef } from "react";
-import { AppFormActions, TextField } from "@/components/composed/form";
+import {
+  AppFieldGroup,
+  AppFormActions,
+  TextField,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,48 +48,49 @@ function RenameWalletDialogForm({
 
   return (
     <form
-      className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
       }}
     >
-      <div className="font-mono text-xs text-muted-foreground">{address}</div>
-      <form.Field
-        name="name"
-        validators={{
-          onChange: ({ value }) =>
-            value.trim() ? undefined : "New name is required.",
-        }}
-      >
-        {(field) => (
-          <TextField
-            field={field}
-            label="New Name"
-            placeholder="Wallet name"
-            required
-          />
-        )}
-      </form.Field>
-      <AppFormActions>
-        <Button variant="ghost" size="sm" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        <form.Subscribe selector={(state) => state.values.name}>
-          {(name) => (
-            <Button
-              size="sm"
-              type="submit"
-              disabled={mutationPending || !name.trim()}
-            >
-              {mutationPending && (
-                <Loader2 className="mr-1 size-3 animate-spin" />
-              )}
-              {mutationPending ? "Saving..." : "Save"}
-            </Button>
+      <AppFieldGroup>
+        <div className="font-mono text-xs text-muted-foreground">{address}</div>
+        <form.Field
+          name="name"
+          validators={{
+            onChange: ({ value }) =>
+              value.trim() ? undefined : "New name is required.",
+          }}
+        >
+          {(field) => (
+            <TextField
+              field={field}
+              label="New Name"
+              placeholder="Wallet name"
+              required
+            />
           )}
-        </form.Subscribe>
-      </AppFormActions>
+        </form.Field>
+        <AppFormActions>
+          <Button variant="ghost" size="sm" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
+          <form.Subscribe selector={(state) => state.values.name}>
+            {(name) => (
+              <Button
+                size="sm"
+                type="submit"
+                disabled={mutationPending || !name.trim()}
+              >
+                {mutationPending && (
+                  <Loader2 className="mr-1 size-3 animate-spin" />
+                )}
+                {mutationPending ? "Saving..." : "Save"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </AppFormActions>
+      </AppFieldGroup>
     </form>
   );
 }
