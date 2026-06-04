@@ -109,11 +109,14 @@ export const summarizeStorageOverview = (
   paths: StoragePathInfo[],
 ): StorageOverviewSummary => {
   const inventory = summarizeStoragePathInventory(paths);
-  const totalCapacity = useStats.reduce((sum, stat) => sum + stat.Capacity, 0);
-  const totalAvailable = useStats.reduce(
-    (sum, stat) => sum + stat.Available,
-    0,
-  );
+  let totalCapacity = 0;
+  let totalAvailable = 0;
+
+  for (const stat of useStats) {
+    totalCapacity += stat.Capacity;
+    totalAvailable += stat.Available;
+  }
+
   const totalUsed = Math.max(totalCapacity - totalAvailable, 0);
   const usedPercent = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
 

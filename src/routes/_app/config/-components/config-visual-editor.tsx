@@ -36,6 +36,7 @@ import {
   formatCurioRestAccessMessage,
   isCurioRestAccessError,
 } from "@/utils/curio-rest-access";
+import { getErrorMessage } from "@/utils/error-log";
 import { mergeDeep } from "@/utils/object";
 import { useConfigEditorBundle } from "../-module/queries";
 
@@ -83,7 +84,7 @@ export const ConfigVisualEditor = forwardRef<
   if (error) {
     const message = isCurioRestAccessError(error)
       ? formatCurioRestAccessMessage(error)
-      : `Failed to load configuration: ${error.message}`;
+      : `Failed to load configuration: ${getErrorMessage(error)}`;
 
     return (
       <Alert variant="destructive">

@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { Loader2 } from "lucide-react";
 import { useRef } from "react";
 import { FilPriceInput } from "@/components/composed/fil-price-input";
 import {
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import type { StorageAskTableEntry } from "@/types/market";
 import { MAX_PIECE_SIZE_BYTES } from "@/utils/market";
 import { useSetStorageAsk } from "../-module/queries";
@@ -191,7 +191,7 @@ function SetAskDialogForm({ entry, mutation, onClose }: SetAskDialogFormProps) {
           </Button>
           <Button size="sm" type="submit" disabled={mutation.isPending}>
             {mutation.isPending && (
-              <Loader2 className="mr-1 size-3 animate-spin" />
+              <Spinner data-icon="inline-start" className="size-3" />
             )}
             {mutation.isPending ? "Saving..." : "Save"}
           </Button>

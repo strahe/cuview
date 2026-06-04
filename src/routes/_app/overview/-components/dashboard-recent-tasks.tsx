@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { DEFAULT_TASK_SEARCH } from "@/routes/_app/tasks/-module/search-state";
 import type { TaskHistorySummary } from "@/types/task";
+import { getErrorMessage } from "@/utils/error-log";
 import {
   OverviewEmpty,
   OverviewList,
@@ -48,7 +49,7 @@ export function DashboardRecentTasks({
       <OverviewSection title="Recent Tasks" icon={Zap}>
         <Alert variant="destructive">
           <AlertTitle>Failed to load recent tasks</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
+          <AlertDescription>{getErrorMessage(error)}</AlertDescription>
         </Alert>
       </OverviewSection>
     );
