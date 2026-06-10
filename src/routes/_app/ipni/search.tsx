@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/utils/error-log";
 import { AdDetailCard } from "./-components/ad-detail-card";
 import { EntryDetailCard } from "./-components/entry-detail-card";
 import { EntryScanGrid } from "./-components/entry-scan-grid";
@@ -153,7 +154,7 @@ function SearchPage() {
           <AlertCircle className="size-4" />
           <AlertTitle>Advertisement lookup failed</AlertTitle>
           <AlertDescription>
-            {adError instanceof Error ? adError.message : "Unknown error"}
+            {getErrorMessage(adError, "Unknown error")}
           </AlertDescription>
         </Alert>
       )}
@@ -205,7 +206,7 @@ function SearchPage() {
           <AlertCircle className="size-4" />
           <AlertTitle>Entry lookup failed</AlertTitle>
           <AlertDescription>
-            {entryError instanceof Error ? entryError.message : "Unknown error"}
+            {getErrorMessage(entryError, "Unknown error")}
           </AlertDescription>
         </Alert>
       )}

@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Field, FieldGroup, FieldLabel } from "@/components/composed/form";
+import {
+  AppFormActions,
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/composed/form";
 import { SizeSelect } from "@/components/composed/size-select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
+import { getErrorMessage } from "@/utils/error-log";
 import { useFsUpdatePdp } from "../-module/queries";
 import type { FSPDPOffering } from "../-module/types";
 
@@ -40,15 +44,11 @@ export function FsUpdatePdpDialog({
   onOpenChange,
   current,
 }: FsUpdatePdpDialogProps) {
-  const mutation = useFsUpdatePdp();
-  useResetMutationOnOpen(open, mutation);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open ? (
         <FsUpdatePdpDialogContent
           current={current}
-          mutation={mutation}
           onOpenChange={onOpenChange}
         />
       ) : null}
@@ -56,17 +56,13 @@ export function FsUpdatePdpDialog({
   );
 }
 
-type FsUpdatePdpMutation = ReturnType<typeof useFsUpdatePdp>;
-
 function FsUpdatePdpDialogContent({
-  mutation,
   onOpenChange,
   current,
-}: Pick<FsUpdatePdpDialogProps, "current" | "onOpenChange"> & {
-  mutation: FsUpdatePdpMutation;
-}) {
+}: Pick<FsUpdatePdpDialogProps, "current" | "onOpenChange">) {
   const [form, setForm] = useState<FSPDPOffering>(current ?? defaultOffering);
   const mountedRef = useRef(true);
+  const mutation = useFsUpdatePdp();
   const { error, isError, isPending, mutate } = mutation;
 
   useEffect(() => {
@@ -94,13 +90,18 @@ function FsUpdatePdpDialogContent({
     });
   }, [form, isPending, mutate, onOpenChange]);
 
+  const handleClose = () => {
+    mutation.reset();
+    onOpenChange(false);
+  };
+
   return (
     <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>Update PDP Offering</DialogTitle>
       </DialogHeader>
       <form
-        className="space-y-4"
+        className="flex flex-col gap-4"
         onSubmit={(event) => {
           event.preventDefault();
           handleSubmit();
@@ -206,27 +207,28 @@ function FsUpdatePdpDialogContent({
         </FieldGroup>
         {isError && (
           <p className="text-sm text-destructive">
-            {(error as Error)?.message ?? "Failed to update PDP"}
+            {getErrorMessage(error, "Failed to update PDP")}
           </p>
         )}
-        <DialogFooter>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => onOpenChange(false)}
-          >
+        <AppFormActions>
+          <Button variant="ghost" size="sm" type="button" onClick={handleClose}>
             Cancel
           </Button>
           <Button
+            size="sm"
             type="submit"
             disabled={isPending || !form.service_url.trim()}
           >
             {isPending && (
-              <Spinner data-icon="inline-start" className="size-3" />
+              <Spinner
+                aria-hidden="true"
+                data-icon="inline-start"
+                className="size-3"
+              />
             )}
             {isPending ? "Updating…" : "Update PDP"}
           </Button>
-        </DialogFooter>
+        </AppFormActions>
       </form>
     </DialogContent>
   );

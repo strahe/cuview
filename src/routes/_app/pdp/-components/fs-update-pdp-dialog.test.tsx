@@ -160,7 +160,7 @@ describe("FsUpdatePdpDialog", () => {
     expect(serviceUrl).toBeDisabled();
   });
 
-  it("keeps pending state when reopened during an update", async () => {
+  it("resets pending state when reopened during an update", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <FsUpdatePdpDialog current={baseOffering} onOpenChange={vi.fn()} open />,
@@ -182,7 +182,7 @@ describe("FsUpdatePdpDialog", () => {
       <FsUpdatePdpDialog current={baseOffering} onOpenChange={vi.fn()} open />,
     );
 
-    expect(screen.getByRole("button", { name: /Updating/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Update PDP" })).toBeEnabled();
   });
 
   it("does not close a later dialog instance when an earlier update succeeds", async () => {

@@ -7,6 +7,7 @@ import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { AddWalletDialog } from "./-components/add-wallet-dialog";
 import { RenameWalletDialog } from "./-components/rename-wallet-dialog";
 import { walletColumns } from "./-components/wallet-columns";
@@ -104,8 +105,7 @@ export function WalletListPage() {
       >
         {walletQuery.isError ? (
           <p className="text-sm text-destructive">
-            {(walletQuery.error as Error)?.message ??
-              "Failed to load wallet list."}
+            {getErrorMessage(walletQuery.error, "Failed to load wallet list.")}
           </p>
         ) : (
           <DataTable

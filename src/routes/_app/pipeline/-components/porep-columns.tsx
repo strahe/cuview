@@ -1,5 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Play, RotateCcw, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Play,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,22 +28,25 @@ export function createPorepColumns(
     cols.push({
       id: "expand",
       header: "",
-      cell: ({ row }) => (
-        <Button
-          type="button"
-          size="icon-xs"
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground"
-          onClick={() => row.toggleExpanded()}
-          aria-label={
-            row.getIsExpanded()
-              ? "Collapse sector details"
-              : "Expand sector details"
-          }
-        >
-          {row.getIsExpanded() ? "▼" : "▶"}
-        </Button>
-      ),
+      cell: ({ row }) => {
+        const label = row.getIsExpanded()
+          ? "Collapse sector details"
+          : "Expand sector details";
+
+        return (
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => row.toggleExpanded()}
+            aria-label={label}
+            title={label}
+          >
+            {row.getIsExpanded() ? <ChevronDown /> : <ChevronRight />}
+          </Button>
+        );
+      },
       size: 30,
     });
   }

@@ -1,6 +1,9 @@
 import { useForm } from "@tanstack/react-form";
-import { Loader2 } from "lucide-react";
-import { AppFormActions, TextField } from "@/components/composed/form";
+import {
+  AppFieldGroup,
+  AppFormActions,
+  TextField,
+} from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { useAddWallet } from "../-module/queries";
 
 interface AddWalletDialogProps {
@@ -16,6 +21,16 @@ interface AddWalletDialogProps {
 }
 
 export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? <AddWalletDialogContent onOpenChange={onOpenChange} /> : null}
+    </Dialog>
+  );
+}
+
+function AddWalletDialogContent({
+  onOpenChange,
+}: Pick<AddWalletDialogProps, "onOpenChange">) {
   const mutation = useAddWallet();
   const form = useForm({
     defaultValues: {
@@ -27,34 +42,30 @@ export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
       const name = value.name.trim();
       mutation.mutate([addr, name], {
         onSuccess: () => {
-          form.reset();
           onOpenChange(false);
         },
       });
     },
   });
 
-  const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      form.reset();
-      mutation.reset();
-    }
-    onOpenChange(nextOpen);
+  const handleClose = () => {
+    form.reset();
+    mutation.reset();
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add Wallet</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
-        >
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Add Wallet</DialogTitle>
+      </DialogHeader>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <AppFieldGroup>
           <form.Field
             name="address"
             validators={{
@@ -90,7 +101,7 @@ export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
           </form.Field>
           {mutation.isError && (
             <p className="text-xs text-destructive">
-              {(mutation.error as Error)?.message ?? "Failed to add wallet"}
+              {getErrorMessage(mutation.error, "Failed to add wallet")}
             </p>
           )}
           <AppFormActions>
@@ -98,7 +109,7 @@ export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
               variant="ghost"
               size="sm"
               type="button"
-              onClick={() => handleClose(false)}
+              onClick={handleClose}
             >
               Cancel
             </Button>
@@ -114,15 +125,19 @@ export function AddWalletDialog({ open, onOpenChange }: AddWalletDialogProps) {
                   }
                 >
                   {mutation.isPending && (
-                    <Loader2 className="mr-1 size-3 animate-spin" />
+                    <Spinner
+                      aria-hidden="true"
+                      data-icon="inline-start"
+                      className="size-3"
+                    />
                   )}
                   {mutation.isPending ? "Adding..." : "Add"}
                 </Button>
               )}
             </form.Subscribe>
           </AppFormActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </AppFieldGroup>
+      </form>
+    </DialogContent>
   );
 }

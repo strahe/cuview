@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { KPICard } from "@/components/composed/kpi-card";
 import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
+import { getErrorMessage } from "@/utils/error-log";
 import { MessageDetailCard } from "./-components/message-detail-card";
 import { pendingMsgColumns } from "./-components/pending-msg-columns";
 import { usePendingMessages } from "./-module/queries";
@@ -24,8 +25,10 @@ export function WalletMessagesPage() {
       <SectionCard title="Pending Messages">
         {pendingQuery.isError ? (
           <p className="text-sm text-destructive">
-            {(pendingQuery.error as Error)?.message ??
-              "Failed to load pending messages."}
+            {getErrorMessage(
+              pendingQuery.error,
+              "Failed to load pending messages.",
+            )}
           </p>
         ) : (
           <DataTable

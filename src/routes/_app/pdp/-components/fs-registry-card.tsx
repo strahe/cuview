@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
+import { getErrorMessage } from "@/utils/error-log";
 import { useFsDeregister } from "../-module/queries";
 import type { FSRegistryStatus } from "../-module/types";
 import { FsRegisterDialog } from "./fs-register-dialog";
@@ -317,8 +318,7 @@ function FsDeregisterDialogContent({
       </p>
       {deregisterMutation.isError && (
         <p className="text-sm text-destructive">
-          {(deregisterMutation.error as Error)?.message ??
-            "Failed to deregister"}
+          {getErrorMessage(deregisterMutation.error, "Failed to deregister")}
         </p>
       )}
       <DialogFooter>

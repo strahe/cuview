@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import type { WalletView } from "../-module/types";
 
 export const walletColumns: ColumnDef<WalletView>[] = [
@@ -25,7 +25,7 @@ export const walletColumns: ColumnDef<WalletView>[] = [
       row.original.idAddress ? (
         <span className="font-mono text-xs">{row.original.idAddress}</span>
       ) : row.original.isLoadingBalance ? (
-        <Loader2 className="size-3 animate-spin text-muted-foreground" />
+        <Spinner className="size-3 text-muted-foreground" />
       ) : (
         <span className="text-xs text-muted-foreground">—</span>
       ),
@@ -38,9 +38,7 @@ export const walletColumns: ColumnDef<WalletView>[] = [
         return <span className="text-xs text-destructive">Error</span>;
       }
       if (row.original.isLoadingBalance) {
-        return (
-          <Loader2 className="size-3 animate-spin text-muted-foreground" />
-        );
+        return <Spinner className="size-3 text-muted-foreground" />;
       }
       return <span className="text-xs">{row.original.balance ?? "—"}</span>;
     },

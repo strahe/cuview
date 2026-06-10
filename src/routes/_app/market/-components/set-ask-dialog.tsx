@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useRef } from "react";
 import { FilPriceInput } from "@/components/composed/fil-price-input";
 import {
   AppField,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { StorageAskTableEntry } from "@/types/market";
+import { getErrorMessage } from "@/utils/error-log";
 import { MAX_PIECE_SIZE_BYTES } from "@/utils/market";
 import { useSetStorageAsk } from "../-module/queries";
 
@@ -30,11 +30,8 @@ interface SetAskDialogProps {
   entry: StorageAskTableEntry | null;
 }
 
-type SetStorageAskMutation = ReturnType<typeof useSetStorageAsk>;
-
 interface SetAskDialogFormProps {
   entry: StorageAskTableEntry | null;
-  mutation: SetStorageAskMutation;
   onClose: () => void;
 }
 
@@ -51,7 +48,8 @@ function getSetAskFormSignature(entry: StorageAskTableEntry | null) {
     : "empty";
 }
 
-function SetAskDialogForm({ entry, mutation, onClose }: SetAskDialogFormProps) {
+function SetAskDialogForm({ entry, onClose }: SetAskDialogFormProps) {
+  const mutation = useSetStorageAsk();
   const form = useForm({
     defaultValues: {
       price: entry?.Price ?? 0,
@@ -83,6 +81,12 @@ function SetAskDialogForm({ entry, mutation, onClose }: SetAskDialogFormProps) {
       );
     },
   });
+
+  const handleClose = () => {
+    form.reset();
+    mutation.reset();
+    onClose();
+  };
 
   return (
     <form
@@ -182,16 +186,20 @@ function SetAskDialogForm({ entry, mutation, onClose }: SetAskDialogFormProps) {
         </div>
         {mutation.isError && (
           <p className="text-xs text-destructive">
-            {(mutation.error as Error)?.message ?? "Failed to set ask"}
+            {getErrorMessage(mutation.error, "Failed to set ask")}
           </p>
         )}
         <AppFormActions>
-          <Button variant="ghost" size="sm" type="button" onClick={onClose}>
+          <Button variant="ghost" size="sm" type="button" onClick={handleClose}>
             Cancel
           </Button>
           <Button size="sm" type="submit" disabled={mutation.isPending}>
             {mutation.isPending && (
-              <Spinner data-icon="inline-start" className="size-3" />
+              <Spinner
+                aria-hidden="true"
+                data-icon="inline-start"
+                className="size-3"
+              />
             )}
             {mutation.isPending ? "Saving..." : "Save"}
           </Button>
@@ -201,52 +209,42 @@ function SetAskDialogForm({ entry, mutation, onClose }: SetAskDialogFormProps) {
   );
 }
 
-export function SetAskDialog({ open, onOpenChange, entry }: SetAskDialogProps) {
-  const activeSignatureRef = useRef<string | null>(null);
-  const wasOpenRef = useRef(false);
-  const sessionKeyRef = useRef(0);
-  const mutation = useSetStorageAsk();
-  const formSignature = getSetAskFormSignature(entry);
-
-  if (open) {
-    if (!wasOpenRef.current || activeSignatureRef.current !== formSignature) {
-      wasOpenRef.current = true;
-      activeSignatureRef.current = formSignature;
-      sessionKeyRef.current += 1;
-    }
-  } else if (wasOpenRef.current) {
-    wasOpenRef.current = false;
-    activeSignatureRef.current = null;
-  }
-
-  const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      mutation.reset();
-    }
-    onOpenChange(nextOpen);
-  };
+function SetAskDialogContent({
+  entry,
+  onOpenChange,
+}: Pick<SetAskDialogProps, "entry" | "onOpenChange">) {
+  const handleClose = () => onOpenChange(false);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {entry?.hasAsk ? "Edit Storage Ask" : "Set Storage Ask"}
-          </DialogTitle>
-        </DialogHeader>
-        {entry && (
-          <div className="mb-2 text-sm">
-            <span className="text-muted-foreground">Miner: </span>
-            <span className="font-mono text-xs">{entry.Miner}</span>
-          </div>
-        )}
-        <SetAskDialogForm
-          key={sessionKeyRef.current}
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>
+          {entry?.hasAsk ? "Edit Storage Ask" : "Set Storage Ask"}
+        </DialogTitle>
+      </DialogHeader>
+      {entry && (
+        <div className="mb-2 text-sm">
+          <span className="text-muted-foreground">Miner: </span>
+          <span className="font-mono text-xs">{entry.Miner}</span>
+        </div>
+      )}
+      <SetAskDialogForm entry={entry} onClose={handleClose} />
+    </DialogContent>
+  );
+}
+
+export function SetAskDialog({ open, onOpenChange, entry }: SetAskDialogProps) {
+  const formSignature = getSetAskFormSignature(entry);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <SetAskDialogContent
+          key={formSignature}
           entry={entry}
-          mutation={mutation}
-          onClose={() => handleClose(false)}
+          onOpenChange={onOpenChange}
         />
-      </DialogContent>
+      ) : null}
     </Dialog>
   );
 }

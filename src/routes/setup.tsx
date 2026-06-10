@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import {
   AppField,
@@ -9,6 +9,7 @@ import {
 } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { useCurioConnection } from "@/contexts/curio-api-context";
 import { formatEndpointForInput } from "@/utils/endpoint";
 
@@ -135,7 +136,11 @@ export function SetupPage() {
                       className="flex items-center gap-2"
                     >
                       {testStatus === "testing" && (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Spinner
+                          aria-hidden="true"
+                          data-icon="inline-start"
+                          className="size-4"
+                        />
                       )}
                       {testStatus === "success" && (
                         <CheckCircle2 className="size-4 text-success" />

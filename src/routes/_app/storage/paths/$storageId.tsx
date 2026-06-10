@@ -19,6 +19,7 @@ import { DataTable } from "@/components/table/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -514,9 +515,13 @@ function StoragePathDetailPage() {
                   );
                 })
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No URL liveness data is available for this path.
-                </p>
+                <Empty className="border-0 py-4">
+                  <EmptyHeader>
+                    <EmptyTitle>
+                      No URL liveness data is available for this path.
+                    </EmptyTitle>
+                  </EmptyHeader>
+                </Empty>
               )}
             </CardContent>
           </Card>
@@ -546,9 +551,11 @@ function StoragePathDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No sector type data.
-                  </p>
+                  <Empty className="border-0 py-4">
+                    <EmptyHeader>
+                      <EmptyTitle>No sector type data.</EmptyTitle>
+                    </EmptyHeader>
+                  </Empty>
                 )}
               </div>
               <div>
@@ -574,9 +581,11 @@ function StoragePathDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No miner allocation data.
-                  </p>
+                  <Empty className="border-0 py-4">
+                    <EmptyHeader>
+                      <EmptyTitle>No miner allocation data.</EmptyTitle>
+                    </EmptyHeader>
+                  </Empty>
                 )}
               </div>
             </CardContent>

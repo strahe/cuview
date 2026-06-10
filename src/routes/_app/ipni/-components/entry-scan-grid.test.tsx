@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IpniEntryInfo } from "@/types/ipni";
 import { EntryScanGrid } from "./entry-scan-grid";
@@ -118,5 +124,30 @@ describe("EntryScanGrid", () => {
       "Entry 2, not scanned yet",
     );
     expect(secondButton).toBeDisabled();
+  });
+
+  it("masks backend entry errors before rendering scan details", async () => {
+    const head = "bafy-entry-head";
+    mockState.api.call.mockResolvedValue(
+      makeEntryInfo({
+        Err: "failed to fetch https://node.local/rpc?token=secret",
+      }),
+    );
+
+    render(<EntryScanGrid entriesHead={head} entryCount={1} />);
+
+    const entryButton = await screen.findByTitle(/bafy-entry-head/i);
+    fireEvent.click(entryButton);
+
+    expect(
+      screen.getAllByText((_content, element) =>
+        Boolean(element?.textContent?.includes("token=***")),
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryAllByText((_content, element) =>
+        Boolean(element?.textContent?.includes("token=secret")),
+      ),
+    ).toHaveLength(0);
   });
 });

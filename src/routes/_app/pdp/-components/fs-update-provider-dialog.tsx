@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
+import { getErrorMessage } from "@/utils/error-log";
 import { useFsUpdateProvider } from "../-module/queries";
 
 interface FsUpdateProviderDialogProps {
@@ -96,7 +97,7 @@ function FsUpdateProviderDialogForm({
       </form.Field>
       {mutationIsError && (
         <p className="text-sm text-destructive">
-          {(mutationError as Error)?.message ?? "Failed to update provider"}
+          {getErrorMessage(mutationError, "Failed to update provider")}
         </p>
       )}
       <AppFormActions>

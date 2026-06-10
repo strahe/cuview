@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_app/ipni/providers")({
   component: ProvidersPage,
 });
 
+const EMPTY_PROVIDERS: IpniProviderSummary[] = [];
+
 const providerColumns: ColumnDef<IpniProviderSummary>[] = [
   {
     id: "expand",
@@ -83,15 +85,16 @@ const providerColumns: ColumnDef<IpniProviderSummary>[] = [
 function ProvidersPage() {
   const { data: summary, isLoading } = useIpniSummary();
   const navigate = useNavigate();
-  const providers = summary ?? [];
+  const providers = summary ?? EMPTY_PROVIDERS;
 
   const stats = useMemo<IpniProviderStats>(() => {
-    const total = providers.length;
-    const withHead = providers.filter((p) => p.head).length;
-    const withErrors = providers.filter((p) =>
-      p.sync_status?.some((s) => s.error),
-    ).length;
-    return { total, withHead, withErrors };
+    let withHead = 0;
+    let withErrors = 0;
+    for (const provider of providers) {
+      if (provider.head) withHead++;
+      if (provider.sync_status?.some((status) => status.error)) withErrors++;
+    }
+    return { total: providers.length, withHead, withErrors };
   }, [providers]);
 
   const handleSearchAd = (cid: string) => {

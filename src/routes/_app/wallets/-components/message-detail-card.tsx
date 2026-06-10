@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/utils/error-log";
 import { unwrapNullable } from "../-module/adapters";
 import { useMessageByCid } from "../-module/queries";
 
@@ -45,7 +46,7 @@ export function MessageDetailCard() {
 
       {isError && (
         <p className="text-xs text-destructive">
-          {(error as Error)?.message ?? "Message not found"}
+          {getErrorMessage(error, "Message not found")}
         </p>
       )}
 

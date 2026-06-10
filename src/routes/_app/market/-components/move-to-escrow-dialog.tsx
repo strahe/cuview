@@ -1,6 +1,9 @@
 import { useForm } from "@tanstack/react-form";
-import { Loader2 } from "lucide-react";
-import { AppFormActions, TextField } from "@/components/composed/form";
+import {
+  AppFieldGroup,
+  AppFormActions,
+  TextField,
+} from "@/components/composed/form";
 import { WalletComboboxField } from "@/components/composed/form/wallet-combobox-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { useWalletNames } from "@/routes/_app/wallets/-module/queries";
+import { getErrorMessage } from "@/utils/error-log";
 import { useMoveToEscrow } from "../-module/queries";
 
 function getAmountValidationError(value: string) {
@@ -37,6 +42,19 @@ export function MoveToEscrowDialog({
   onOpenChange,
   miner,
 }: MoveToEscrowDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <MoveToEscrowDialogContent miner={miner} onOpenChange={onOpenChange} />
+      ) : null}
+    </Dialog>
+  );
+}
+
+function MoveToEscrowDialogContent({
+  miner,
+  onOpenChange,
+}: Pick<MoveToEscrowDialogProps, "miner" | "onOpenChange">) {
   const { data: walletNames } = useWalletNames();
   const mutation = useMoveToEscrow();
   const form = useForm({
@@ -49,7 +67,6 @@ export function MoveToEscrowDialog({
         [miner, value.amount.trim(), value.wallet.trim() || undefined],
         {
           onSuccess: () => {
-            form.reset();
             onOpenChange(false);
           },
         },
@@ -57,31 +74,28 @@ export function MoveToEscrowDialog({
     },
   });
 
-  const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      form.reset();
-      mutation.reset();
-    }
-    onOpenChange(nextOpen);
+  const handleClose = () => {
+    form.reset();
+    mutation.reset();
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Move Balance to Escrow</DialogTitle>
-        </DialogHeader>
-        <div className="mb-2 text-sm">
-          <span className="text-muted-foreground">Miner: </span>
-          <span className="font-mono text-xs">{miner}</span>
-        </div>
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
-        >
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Move Balance to Escrow</DialogTitle>
+      </DialogHeader>
+      <div className="mb-2 text-sm">
+        <span className="text-muted-foreground">Miner: </span>
+        <span className="font-mono text-xs">{miner}</span>
+      </div>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <AppFieldGroup>
           <form.Field
             name="amount"
             validators={{
@@ -112,7 +126,7 @@ export function MoveToEscrowDialog({
           </form.Field>
           {mutation.isError && (
             <p className="text-xs text-destructive">
-              {(mutation.error as Error)?.message ?? "Transfer failed"}
+              {getErrorMessage(mutation.error, "Transfer failed")}
             </p>
           )}
           <AppFormActions>
@@ -120,7 +134,7 @@ export function MoveToEscrowDialog({
               variant="ghost"
               size="sm"
               type="button"
-              onClick={() => handleClose(false)}
+              onClick={handleClose}
             >
               Cancel
             </Button>
@@ -135,15 +149,19 @@ export function MoveToEscrowDialog({
                   }
                 >
                   {mutation.isPending && (
-                    <Loader2 className="mr-1 size-3 animate-spin" />
+                    <Spinner
+                      aria-hidden="true"
+                      data-icon="inline-start"
+                      className="size-3"
+                    />
                   )}
                   {mutation.isPending ? "Sending..." : "Transfer"}
                 </Button>
               )}
             </form.Subscribe>
           </AppFormActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </AppFieldGroup>
+      </form>
+    </DialogContent>
   );
 }

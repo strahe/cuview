@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
 import {
+  AppFieldGroup,
   AppFormActions,
   TextareaField,
   TextField,
@@ -12,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useResetMutationOnOpen } from "@/hooks/use-reset-mutation-on-open";
+import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { useFsRegister } from "../-module/queries";
 
 interface FsRegisterDialogProps {
@@ -24,30 +26,18 @@ export function FsRegisterDialog({
   open,
   onOpenChange,
 }: FsRegisterDialogProps) {
-  const mutation = useFsRegister();
-  useResetMutationOnOpen(open, mutation);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {open ? (
-        <FsRegisterDialogContent
-          mutation={mutation}
-          onOpenChange={onOpenChange}
-        />
-      ) : null}
+      {open ? <FsRegisterDialogContent onOpenChange={onOpenChange} /> : null}
     </Dialog>
   );
 }
 
-type FsRegisterMutation = ReturnType<typeof useFsRegister>;
-
 function FsRegisterDialogContent({
-  mutation,
   onOpenChange,
-}: Pick<FsRegisterDialogProps, "onOpenChange"> & {
-  mutation: FsRegisterMutation;
-}) {
+}: Pick<FsRegisterDialogProps, "onOpenChange">) {
   const mountedRef = useRef(true);
+  const mutation = useFsRegister();
   const form = useForm({
     defaultValues: {
       description: "",
@@ -78,6 +68,7 @@ function FsRegisterDialogContent({
 
   const handleClose = () => {
     form.reset();
+    mutation.reset();
     onOpenChange(false);
   };
 
@@ -87,86 +78,100 @@ function FsRegisterDialogContent({
         <DialogTitle>Register Storage Provider</DialogTitle>
       </DialogHeader>
       <form
-        className="space-y-3"
         onSubmit={(event) => {
           event.preventDefault();
           void form.handleSubmit();
         }}
       >
-        <form.Field
-          name="name"
-          validators={{
-            onChange: ({ value }) =>
-              value.trim() ? undefined : "Name is required.",
-          }}
-        >
-          {(field) => (
-            <TextField
-              field={field}
-              label="Name"
-              placeholder="Provider name"
-              required
-            />
-          )}
-        </form.Field>
-        <form.Field
-          name="description"
-          validators={{
-            onChange: ({ value }) =>
-              value.trim() ? undefined : "Description is required.",
-          }}
-        >
-          {(field) => (
-            <TextareaField
-              field={field}
-              label="Description"
-              placeholder="Provider description"
-              required
-              rows={3}
-            />
-          )}
-        </form.Field>
-        <form.Field
-          name="location"
-          validators={{
-            onChange: ({ value }) =>
-              value.trim() ? undefined : "Location is required.",
-          }}
-        >
-          {(field) => (
-            <TextField
-              field={field}
-              label="Location"
-              placeholder="Geographic location"
-              required
-            />
-          )}
-        </form.Field>
-        {mutation.isError && (
-          <p className="text-sm text-destructive">
-            {(mutation.error as Error)?.message ?? "Failed to register"}
-          </p>
-        )}
-        <AppFormActions>
-          <Button variant="outline" type="button" onClick={handleClose}>
-            Cancel
-          </Button>
-          <form.Subscribe selector={(state) => state.values}>
-            {(values) => (
-              <Button
-                type="submit"
-                disabled={
-                  mutation.isPending ||
-                  !values.name.trim() ||
-                  !values.description.trim() ||
-                  !values.location.trim()
-                }
-              >
-                {mutation.isPending ? "Registering..." : "Register"}
-              </Button>
+        <AppFieldGroup>
+          <form.Field
+            name="name"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Name is required.",
+            }}
+          >
+            {(field) => (
+              <TextField
+                field={field}
+                label="Name"
+                placeholder="Provider name"
+                required
+              />
             )}
-          </form.Subscribe>
-        </AppFormActions>
+          </form.Field>
+          <form.Field
+            name="description"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Description is required.",
+            }}
+          >
+            {(field) => (
+              <TextareaField
+                field={field}
+                label="Description"
+                placeholder="Provider description"
+                required
+                rows={3}
+              />
+            )}
+          </form.Field>
+          <form.Field
+            name="location"
+            validators={{
+              onChange: ({ value }) =>
+                value.trim() ? undefined : "Location is required.",
+            }}
+          >
+            {(field) => (
+              <TextField
+                field={field}
+                label="Location"
+                placeholder="Geographic location"
+                required
+              />
+            )}
+          </form.Field>
+          {mutation.isError && (
+            <p className="text-sm text-destructive">
+              {getErrorMessage(mutation.error, "Failed to register")}
+            </p>
+          )}
+          <AppFormActions>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={handleClose}
+            >
+              Cancel
+            </Button>
+            <form.Subscribe selector={(state) => state.values}>
+              {(values) => (
+                <Button
+                  size="sm"
+                  type="submit"
+                  disabled={
+                    mutation.isPending ||
+                    !values.name.trim() ||
+                    !values.description.trim() ||
+                    !values.location.trim()
+                  }
+                >
+                  {mutation.isPending && (
+                    <Spinner
+                      aria-hidden="true"
+                      data-icon="inline-start"
+                      className="size-3"
+                    />
+                  )}
+                  {mutation.isPending ? "Registering..." : "Register"}
+                </Button>
+              )}
+            </form.Subscribe>
+          </AppFormActions>
+        </AppFieldGroup>
       </form>
     </DialogContent>
   );

@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import {
+  AppFieldGroup,
   AppFormActions,
   TextareaField,
   TextField,
@@ -11,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { useAddPdpService } from "../-module/queries";
 
 interface AddServiceDialogProps {
@@ -22,6 +25,16 @@ export function AddServiceDialog({
   open,
   onOpenChange,
 }: AddServiceDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? <AddServiceDialogContent onOpenChange={onOpenChange} /> : null}
+    </Dialog>
+  );
+}
+
+function AddServiceDialogContent({
+  onOpenChange,
+}: Pick<AddServiceDialogProps, "onOpenChange">) {
   const addMutation = useAddPdpService();
   const form = useForm({
     defaultValues: {
@@ -31,7 +44,6 @@ export function AddServiceDialog({
     onSubmit: ({ value }) => {
       addMutation.mutate([value.name.trim(), value.pubKey.trim()], {
         onSuccess: () => {
-          form.reset();
           onOpenChange(false);
         },
       });
@@ -45,18 +57,17 @@ export function AddServiceDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add PDP Service</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
-        >
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Add PDP Service</DialogTitle>
+      </DialogHeader>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <AppFieldGroup>
           <form.Field
             name="name"
             validators={{
@@ -93,16 +104,22 @@ export function AddServiceDialog({
           </form.Field>
           {addMutation.isError && (
             <p className="text-sm text-destructive">
-              {(addMutation.error as Error)?.message ?? "Failed to add service"}
+              {getErrorMessage(addMutation.error, "Failed to add service")}
             </p>
           )}
           <AppFormActions>
-            <Button variant="outline" type="button" onClick={handleClose}>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={handleClose}
+            >
               Cancel
             </Button>
             <form.Subscribe selector={(state) => state.values}>
               {(values) => (
                 <Button
+                  size="sm"
                   type="submit"
                   disabled={
                     addMutation.isPending ||
@@ -110,13 +127,20 @@ export function AddServiceDialog({
                     !values.pubKey.trim()
                   }
                 >
+                  {addMutation.isPending && (
+                    <Spinner
+                      aria-hidden="true"
+                      data-icon="inline-start"
+                      className="size-3"
+                    />
+                  )}
                   {addMutation.isPending ? "Adding..." : "Add Service"}
                 </Button>
               )}
             </form.Subscribe>
           </AppFormActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </AppFieldGroup>
+      </form>
+    </DialogContent>
   );
 }

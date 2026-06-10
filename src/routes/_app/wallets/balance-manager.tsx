@@ -6,6 +6,7 @@ import { SectionCard } from "@/components/composed/section-card";
 import { DataTable } from "@/components/table/data-table";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { AddRuleDialog } from "./-components/add-rule-dialog";
 import { balanceRuleColumns } from "./-components/balance-rule-columns";
 import { EditRuleDialog } from "./-components/edit-rule-dialog";
@@ -94,8 +95,10 @@ export function WalletBalanceManagerPage() {
       >
         {rulesQuery.isError ? (
           <p className="text-sm text-destructive">
-            {(rulesQuery.error as Error)?.message ??
-              "Failed to load balance manager rules."}
+            {getErrorMessage(
+              rulesQuery.error,
+              "Failed to load balance manager rules.",
+            )}
           </p>
         ) : (
           <DataTable

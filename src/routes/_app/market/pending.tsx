@@ -92,7 +92,13 @@ function PendingDealsPage() {
               }
               disabled={sealNowMutation.isPending}
             >
-              {isSealing && <Spinner className="size-3" />}
+              {isSealing && (
+                <Spinner
+                  aria-hidden="true"
+                  data-icon="inline-start"
+                  className="size-3"
+                />
+              )}
               {isSealing ? "Sealing" : "Seal Now"}
             </Button>
           );

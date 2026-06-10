@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurioApi } from "@/contexts/curio-api-context";
 import type { IpniEntryInfo } from "@/types/ipni";
+import { getErrorMessage } from "@/utils/error-log";
 import type { EntryScanEntry, ScanEntryDetail } from "../-module/types";
 
 const GRID_COLUMN_COUNT = 64;
@@ -28,7 +29,7 @@ function toScanDetail(info: IpniEntryInfo): ScanEntryDetail {
     NumBlocks: info.NumBlocks,
     Size: info.Size,
     PrevCID: resolvePrevCid(info.PrevCID),
-    Err: info.Err,
+    Err: info.Err ? getErrorMessage(info.Err) : info.Err,
   };
 }
 
@@ -129,7 +130,7 @@ export function EntryScanGrid({ entriesHead, entryCount }: EntryScanGridProps) {
               NumBlocks: 0,
               Size: 0,
               PrevCID: null,
-              Err: err instanceof Error ? err.message : String(err),
+              Err: getErrorMessage(err),
             },
           };
           return next;

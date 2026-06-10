@@ -128,7 +128,9 @@ describe("SetupPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Test Connection" }));
 
-    expect(screen.getByRole("button", { name: "Testing..." })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Testing\.\.\./i }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Connect" })).toBeDisabled();
 
     if (!resolveSwitch) {

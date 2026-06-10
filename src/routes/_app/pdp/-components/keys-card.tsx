@@ -1,5 +1,5 @@
 import { Key, Plus, Trash2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Field, FieldLabel } from "@/components/composed/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { useImportPdpKey, useRemovePdpKey } from "../-module/queries";
 
 interface KeysCardProps {
@@ -23,21 +24,9 @@ interface KeysCardProps {
 
 export function KeysCard({ keys, loading }: KeysCardProps) {
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const [keyHex, setKeyHex] = useState("");
   const [confirmRemoveKey, setConfirmRemoveKey] = useState<string | null>(null);
 
-  const importMutation = useImportPdpKey();
   const removeMutation = useRemovePdpKey();
-
-  const handleImport = useCallback(() => {
-    if (!keyHex.trim()) return;
-    importMutation.mutate([keyHex.trim()], {
-      onSuccess: () => {
-        setKeyHex("");
-        setShowImportDialog(false);
-      },
-    });
-  }, [keyHex, importMutation]);
 
   return (
     <>
@@ -111,61 +100,91 @@ export function KeysCard({ keys, loading }: KeysCardProps) {
         </CardContent>
       </Card>
 
-      {/* Import Key Dialog */}
-      <Dialog
-        open={showImportDialog}
-        onOpenChange={(open) => {
-          if (!open) {
-            setKeyHex("");
-            importMutation.reset();
-          }
-          setShowImportDialog(open);
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Import PDP Key</DialogTitle>
-          </DialogHeader>
-          <Field>
-            <FieldLabel>Private Key (hex) *</FieldLabel>
-            <Input
-              type="password"
-              value={keyHex}
-              onChange={(e) => setKeyHex(e.target.value)}
-              placeholder="Hex-encoded private key"
-              className="font-mono text-xs"
-              autoComplete="off"
-            />
-          </Field>
-          {importMutation.isError && (
-            <p className="text-sm text-destructive">
-              {(importMutation.error as Error)?.message ??
-                "Failed to import key"}
-            </p>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setKeyHex("");
-                importMutation.reset();
-                setShowImportDialog(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleImport}
-              disabled={importMutation.isPending || !keyHex.trim()}
-            >
-              {importMutation.isPending && (
-                <Spinner data-icon="inline-start" className="size-3" />
-              )}
-              {importMutation.isPending ? "Importing..." : "Import Key"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        {showImportDialog ? (
+          <ImportKeyDialogContent onOpenChange={setShowImportDialog} />
+        ) : null}
       </Dialog>
     </>
+  );
+}
+
+function ImportKeyDialogContent({
+  onOpenChange,
+}: {
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [keyHex, setKeyHex] = useState("");
+  const mountedRef = useRef(true);
+  const importMutation = useImportPdpKey();
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handleClose = () => {
+    setKeyHex("");
+    importMutation.reset();
+    onOpenChange(false);
+  };
+
+  const handleImport = useCallback(() => {
+    if (!keyHex.trim()) return;
+
+    importMutation.mutate([keyHex.trim()], {
+      onSuccess: () => {
+        if (mountedRef.current) {
+          setKeyHex("");
+          onOpenChange(false);
+        }
+      },
+    });
+  }, [importMutation, keyHex, onOpenChange]);
+
+  return (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Import PDP Key</DialogTitle>
+      </DialogHeader>
+      <Field>
+        <FieldLabel>Private Key (hex) *</FieldLabel>
+        <Input
+          type="password"
+          value={keyHex}
+          onChange={(e) => setKeyHex(e.target.value)}
+          placeholder="Hex-encoded private key"
+          className="font-mono text-xs"
+          autoComplete="off"
+        />
+      </Field>
+      {importMutation.isError && (
+        <p className="text-sm text-destructive">
+          {getErrorMessage(importMutation.error, "Failed to import key")}
+        </p>
+      )}
+      <DialogFooter>
+        <Button variant="ghost" size="sm" type="button" onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          type="button"
+          onClick={handleImport}
+          disabled={importMutation.isPending || !keyHex.trim()}
+        >
+          {importMutation.isPending && (
+            <Spinner
+              aria-hidden="true"
+              data-icon="inline-start"
+              className="size-3"
+            />
+          )}
+          {importMutation.isPending ? "Importing..." : "Import Key"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }

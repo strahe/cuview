@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
-import { Loader2 } from "lucide-react";
 import {
   AppField,
+  AppFieldGroup,
   AppFormActions,
   SelectField,
   TextField,
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SelectItem } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { getErrorMessage } from "@/utils/error-log";
 import { useAddBalanceRule, useWalletNames } from "../-module/queries";
 
 type SubjectType = "wallet" | "proofshare" | "f05";
@@ -38,7 +40,25 @@ export function AddRuleDialog({
   onOpenChange,
   initialSubjectType = "wallet",
 }: AddRuleDialogProps) {
-  const subjectType = initialSubjectType;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <AddRuleDialogContent
+          key={initialSubjectType}
+          subjectType={initialSubjectType}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
+    </Dialog>
+  );
+}
+
+function AddRuleDialogContent({
+  subjectType,
+  onOpenChange,
+}: Pick<AddRuleDialogProps, "onOpenChange"> & {
+  subjectType: SubjectType;
+}) {
   const { data: walletNames } = useWalletNames();
   const mutation = useAddBalanceRule();
   const form = useForm({
@@ -67,7 +87,6 @@ export function AddRuleDialog({
         ],
         {
           onSuccess: () => {
-            form.reset();
             onOpenChange(false);
           },
         },
@@ -78,27 +97,24 @@ export function AddRuleDialog({
   const showSecondField = subjectType === "wallet" || subjectType === "f05";
   const showActionSelect = subjectType === "wallet";
 
-  const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      form.reset();
-      mutation.reset();
-    }
-    onOpenChange(nextOpen);
+  const handleClose = () => {
+    form.reset();
+    mutation.reset();
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add {SUBJECT_TYPE_LABELS[subjectType]}</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
-        >
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Add {SUBJECT_TYPE_LABELS[subjectType]}</DialogTitle>
+      </DialogHeader>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <AppFieldGroup>
           <form.Field
             name="subject"
             validators={{
@@ -199,15 +215,15 @@ export function AddRuleDialog({
 
           {mutation.isError && (
             <p className="text-xs text-destructive">
-              {(mutation.error as Error)?.message ?? "Failed to add rule"}
+              {getErrorMessage(mutation.error, "Failed to add rule")}
             </p>
           )}
           <AppFormActions>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               type="button"
-              onClick={() => handleClose(false)}
+              onClick={handleClose}
             >
               Cancel
             </Button>
@@ -223,15 +239,19 @@ export function AddRuleDialog({
                   }
                 >
                   {mutation.isPending && (
-                    <Loader2 className="mr-1 size-3 animate-spin" />
+                    <Spinner
+                      aria-hidden="true"
+                      data-icon="inline-start"
+                      className="size-3"
+                    />
                   )}
                   {mutation.isPending ? "Adding..." : "Add Rule"}
                 </Button>
               )}
             </form.Subscribe>
           </AppFormActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </AppFieldGroup>
+      </form>
+    </DialogContent>
   );
 }
