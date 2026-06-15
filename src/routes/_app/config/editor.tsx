@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { ConfigEditorPanel } from "./-components/config-editor-panel";
 import { CreateLayerDialog } from "./-components/create-layer-dialog";
 import { LayerSidebar } from "./-components/layer-sidebar";
@@ -56,14 +62,14 @@ function EditorPage() {
             onInfoDisplayChange={(infoDisplay) => updateSearch({ infoDisplay })}
           />
         ) : (
-          <div className="flex items-center justify-center rounded-lg border border-dashed border-border/50 p-12 text-center text-muted-foreground xl:col-span-3">
-            <div>
-              <p className="text-lg font-medium">No layer selected</p>
-              <p className="mt-1 text-sm">
+          <Empty className="border border-border/50 xl:col-span-3">
+            <EmptyHeader>
+              <EmptyTitle>No layer selected</EmptyTitle>
+              <EmptyDescription>
                 Select a layer from the sidebar to edit its configuration.
-              </p>
-            </div>
-          </div>
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
 

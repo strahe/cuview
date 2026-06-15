@@ -1,4 +1,5 @@
 import { RestClientNetworkError } from "@/lib/rest-client";
+import { getErrorMessage } from "@/utils/error-log";
 
 export class CurioRestAccessError extends Error {
   constructor(cause: unknown) {
@@ -53,5 +54,5 @@ export function formatCurioRestAccessMessage(error: unknown): string {
     return "Curio REST blocked.";
   }
 
-  return error instanceof Error ? error.message : String(error);
+  return getErrorMessage(error);
 }

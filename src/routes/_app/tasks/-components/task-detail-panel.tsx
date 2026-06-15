@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { SectionCard } from "@/components/composed/section-card";
 import { StatusBadge } from "@/components/composed/status-badge";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "@/utils/format";
 import { useRestartFailedTask, useTaskDetailBundle } from "../-module/queries";
@@ -45,9 +46,13 @@ export function TaskDetailPanel({
   if (taskId === null) {
     if (embedded) {
       return (
-        <div className="rounded-xl border border-dashed border-border/70 p-6 text-sm text-muted-foreground">
-          Select a task to view status and execution history.
-        </div>
+        <Empty className="border border-border/70">
+          <EmptyHeader>
+            <EmptyDescription>
+              Select a task to view status and execution history.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       );
     }
 

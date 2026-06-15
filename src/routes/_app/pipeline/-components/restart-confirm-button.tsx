@@ -46,7 +46,8 @@ export function RestartConfirmButton({
       onClick={() => setConfirming(true)}
       disabled={isPending}
     >
-      <RotateCcw className="mr-1 size-3" /> {label}
+      <RotateCcw data-icon="inline-start" />
+      {label}
     </Button>
   );
 }
