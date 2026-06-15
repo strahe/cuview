@@ -24,7 +24,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@base-ui/react": "^1.4.1",
+    "@base-ui/react": "^1.5.0",
     "@fontsource-variable/inter": "^5.2.8",
     "@radix-ui/react-slot": "^1.2.5",
     "@rjsf/core": "^6.6.2",
