@@ -33,7 +33,7 @@
     "@rjsf/validator-ajv8": "^6.6.2",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-form": "^1.29.1",
-    "@tanstack/react-query": "^5.100.14",
+    "@tanstack/react-query": "^5.101.0",
     "@tanstack/react-router": "^1.170.15",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.2",
