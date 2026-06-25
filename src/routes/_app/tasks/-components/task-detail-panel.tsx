@@ -153,7 +153,11 @@ export function TaskDetailPanel({
           Recent Execution History
         </p>
         {detail.taskHistoryById.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No history found.</p>
+          <Empty className="items-start border-0 p-0 text-left">
+            <EmptyHeader className="items-start text-left">
+              <EmptyDescription>No history found.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div
             className={`space-y-2 overflow-auto ${

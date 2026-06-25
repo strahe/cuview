@@ -50,6 +50,15 @@ describe("getFieldErrorMessages", () => {
       getFieldErrorMessages([undefined, "Required", { message: "Too short" }]),
     ).toEqual(["Required", "Too short"]);
   });
+
+  it.each([
+    ["string", "mongodb://admin:secret@db.example.com"],
+    ["message object", { message: "mongodb://admin:secret@db.example.com" }],
+  ])("masks sensitive values from %s errors", (_kind, error) => {
+    expect(getFieldErrorMessages([error])).toEqual([
+      "mongodb://***:***@db.example.com",
+    ]);
+  });
 });
 
 describe("AppField", () => {

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import type { DiffLine } from "../-module/types";
 
 // ---------------------------------------------------------------------------
@@ -66,6 +67,10 @@ export function HistoryDiffViewer({
   newLabel,
 }: HistoryDiffViewerProps) {
   const diffLines = useMemo(() => {
+    if (oldContent === newContent) {
+      return [];
+    }
+
     const oldLines = oldContent.split("\n");
     const newLines = newContent.split("\n");
     return computeLcsDiff(oldLines, newLines);
@@ -73,9 +78,11 @@ export function HistoryDiffViewer({
 
   if (diffLines.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-muted-foreground">
-        No differences.
-      </p>
+      <Empty className="border-0 py-4">
+        <EmptyHeader>
+          <EmptyTitle>No differences.</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     );
   }
 

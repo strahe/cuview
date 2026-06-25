@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import {
+  AppFieldGroup,
   AppFormActions,
   CheckboxField,
   TextField,
@@ -21,6 +22,16 @@ interface AddClientDialogProps {
 }
 
 export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? <AddClientDialogContent onOpenChange={onOpenChange} /> : null}
+    </Dialog>
+  );
+}
+
+function AddClientDialogContent({
+  onOpenChange,
+}: Pick<AddClientDialogProps, "onOpenChange">) {
   const { data: walletNames } = useWalletNames();
   const clientSetMutation = usePsClientSet();
   const form = useForm({
@@ -54,7 +65,6 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
         {
           onSuccess: () => {
             onOpenChange(false);
-            form.reset();
           },
         },
       );
@@ -70,18 +80,17 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add Client</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void form.handleSubmit();
-          }}
-        >
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Add Client</DialogTitle>
+      </DialogHeader>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <AppFieldGroup>
           <form.Field
             name="address"
             validators={{
@@ -146,28 +155,28 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
               )}
             </form.Field>
           </div>
+        </AppFieldGroup>
 
-          <AppFormActions className="pt-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => handleOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <form.Subscribe selector={(state) => state.values.address}>
-              {(address) => (
-                <Button
-                  type="submit"
-                  disabled={clientSetMutation.isPending || !address.trim()}
-                >
-                  Add
-                </Button>
-              )}
-            </form.Subscribe>
-          </AppFormActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <AppFormActions className="pt-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => handleOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <form.Subscribe selector={(state) => state.values.address}>
+            {(address) => (
+              <Button
+                type="submit"
+                disabled={clientSetMutation.isPending || !address.trim()}
+              >
+                Add
+              </Button>
+            )}
+          </form.Subscribe>
+        </AppFormActions>
+      </form>
+    </DialogContent>
   );
 }

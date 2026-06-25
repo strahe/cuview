@@ -22,6 +22,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/utils/error-log";
 
 interface AppFieldProps {
   label?: ReactNode;
@@ -149,7 +150,7 @@ export function getFieldErrorMessages(errors: unknown[] | undefined) {
     }
 
     if (typeof error === "string") {
-      return [error];
+      return [getErrorMessage(error)];
     }
 
     if (
@@ -157,7 +158,7 @@ export function getFieldErrorMessages(errors: unknown[] | undefined) {
       "message" in error &&
       typeof error.message === "string"
     ) {
-      return [error.message];
+      return [getErrorMessage(error.message)];
     }
 
     return [];

@@ -262,7 +262,7 @@ function StorageUsagePage() {
               ))}
             </div>
           ) : (
-            <div className="space-y-3 rounded-lg border border-dashed border-border/70 bg-muted/10 p-4">
+            <div className="flex flex-col gap-3 rounded-lg border border-dashed border-border/70 bg-muted/10 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{storeTypeEmptyState.title}</Badge>

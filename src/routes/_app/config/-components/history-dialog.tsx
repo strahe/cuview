@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurioRestAccessMessage } from "@/utils/curio-rest-access";
 import { useConfigHistory, useConfigHistoryEntry } from "../-module/queries";
@@ -66,9 +67,11 @@ export function HistoryDialog({
               {formatCurioRestAccessMessage(error)}
             </p>
           ) : entries.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No history entries.
-            </p>
+            <Empty className="border-0 py-4">
+              <EmptyHeader>
+                <EmptyTitle>No history entries.</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           ) : (
             entries.map((entry) => (
               <HistoryEntryItem
